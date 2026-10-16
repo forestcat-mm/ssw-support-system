@@ -42,3 +42,9 @@ def test_core_labels_are_translated(model: type[Model]) -> None:
     with translation.override("ja"):
         untranslated = [str(label) for label in _labels(model) if str(label).isascii()]
     assert untranslated == [], "locale/ja の .po に訳を追加して make messages を実行する"
+
+
+@pytest.mark.parametrize("po", PO_FILES, ids=str)
+def test_po_has_no_fuzzy_entries(po: Path) -> None:
+    """fuzzy は .mo に入らず、印だけ消すと誤訳が出るため残さない。"""
+    assert "#, fuzzy" not in po.read_text(encoding="utf-8")

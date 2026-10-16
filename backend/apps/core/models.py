@@ -12,11 +12,28 @@ from services.files import attachment_upload_to, logo_upload_to, validate_logo
 
 
 class User(AbstractUser):
-    """ログインユーザー。ロール・MFA・招待は T04 で追加する。"""
+    """ログインユーザー。権限はロール（UserRole）だけで決まり、superuser は使わない。
+
+    ユーザーは削除せず無効化する（services.users.deactivate_user）。
+    """
+
+    deactivated_at = models.DateTimeField(_("deactivated at"), null=True, blank=True)
+    deactivated_by = models.ForeignKey(
+        "self",
+        verbose_name=_("deactivated by"),
+        on_delete=models.PROTECT,
+        related_name="+",
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         verbose_name = _("user")
         verbose_name_plural = _("users")
+        constraints = [
+            # superuser はロールによる権限判定を素通りするため使わない。管理者は Role で表す。
+            models.CheckConstraint(condition=Q(is_superuser=False), name="core_user_no_superuser"),
+        ]
 
 
 class TrackedModel(models.Model):
@@ -214,3 +231,75 @@ class Staff(TrackedModel):
 
     def __str__(self) -> str:
         return self.name
+
+
+class Action(models.TextChoices):
+    """権限判定の操作（services.authorization）。機能を追加するタスクで行を足す。"""
+
+    ADMIN_ACCESS = "admin.access", _("access the management site")
+    USERS_MANAGE = "users.manage", _("manage users, roles, invitations and MFA")
+    ORGANIZATION_VIEW = "organization.view", _("view organization, offices and staff")
+    ORGANIZATION_MANAGE = "organization.manage", _("edit organization, offices and staff")
+
+
+class DataScope(models.TextChoices):
+    """ロールが見られるデータの範囲。ポータル追加時に「本人のみ」「自社機関のみ」を足す。"""
+
+    ALL = "all", _("all data")
+
+
+class Role(TrackedModel):
+    """ロール（第4章）。ロールの追加は行の追加で行い、コードは変えない。"""
+
+    code = models.CharField(_("code"), max_length=32, unique=True)
+    name = models.CharField(_("name"), max_length=50)
+    data_scope = models.CharField(
+        _("data scope"), max_length=32, choices=DataScope.choices, default=DataScope.ALL
+    )
+
+    class Meta:
+        verbose_name = _("role")
+        verbose_name_plural = _("roles")
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class RolePermission(TrackedModel):
+    """ロール×操作。権限表をデータで持つ。"""
+
+    role = models.ForeignKey(
+        Role, verbose_name=_("role"), on_delete=models.CASCADE, related_name="permissions"
+    )
+    action = models.CharField(_("action"), max_length=64, choices=Action.choices)
+
+    class Meta:
+        verbose_name = _("role permission")
+        verbose_name_plural = _("role permissions")
+        constraints = [
+            models.UniqueConstraint(fields=["role", "action"], name="core_rolepermission_unique"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.role}: {self.get_action_display()}"
+
+
+class UserRole(TrackedModel):
+    """ユーザー×ロール（第7章 user_roles）。"""
+
+    user = models.ForeignKey(
+        User, verbose_name=_("user"), on_delete=models.PROTECT, related_name="user_roles"
+    )
+    role = models.ForeignKey(
+        Role, verbose_name=_("role"), on_delete=models.PROTECT, related_name="user_roles"
+    )
+
+    class Meta:
+        verbose_name = _("user role")
+        verbose_name_plural = _("user roles")
+        constraints = [
+            models.UniqueConstraint(fields=["user", "role"], name="core_userrole_unique"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.user}: {self.role}"

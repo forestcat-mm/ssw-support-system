@@ -1,7 +1,7 @@
 COMPOSE := docker compose
 MANAGE := $(COMPOSE) exec web python manage.py
 
-.PHONY: up down build logs migrate superuser shell psql lock test lint format messages
+.PHONY: up down build logs migrate admin shell psql lock test lint format messages
 
 up:         ## コンテナを起動する
 	$(COMPOSE) up -d
@@ -18,8 +18,8 @@ logs:       ## ログを追う
 migrate:    ## マイグレーションを適用する
 	$(MANAGE) migrate
 
-superuser:  ## 管理者ユーザーを対話で作る
-	$(MANAGE) createsuperuser
+admin:      ## 管理者ロールのユーザーを対話で作る（superuser は使わない）
+	$(MANAGE) create_admin
 
 shell:      ## Django shell
 	$(MANAGE) shell

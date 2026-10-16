@@ -1,16 +1,30 @@
 from typing import Any, TypeVar
 
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from django.contrib.auth.models import Group
 from django.contrib.contenttypes.admin import GenericTabularInline
-from django.db.models import Model
+from django.db.models import Model, QuerySet
 from django.forms import ModelForm
 from django.http import HttpRequest
+from django.utils.translation import gettext_lazy as _
 
 from services.attachments import fill_file_metadata, validate_upload
+from services.users import LastAdminError, deactivate_user, reactivate_user
 
-from .models import Attachment, Office, Organization, Staff, SupportLanguage, TrackedModel, User
+from .models import (
+    Attachment,
+    Office,
+    Organization,
+    Role,
+    RolePermission,
+    Staff,
+    SupportLanguage,
+    TrackedModel,
+    User,
+    UserRole,
+)
 
 TRACKED_READONLY_FIELDS = ("created_at", "created_by", "updated_at", "updated_by")
 
@@ -43,9 +57,89 @@ def _stamp(obj: Model, request: HttpRequest) -> None:
     obj.updated_by = request.user
 
 
+admin.site.unregister(Group)  # Django 標準のグループは使わない（権限はロールで表す）
+
+
+class UserRoleInline(admin.TabularInline[UserRole, User]):
+    model = UserRole
+    fk_name = "user"
+    extra = 0
+    readonly_fields = ("created_at", "created_by")
+
+
 @admin.register(User)
-class UserAdmin(DjangoUserAdmin[User]):
-    pass
+class UserAdmin(TrackedModelAdmin[User], DjangoUserAdmin[User]):
+    """ユーザーは削除しない。is_active は無効化・再有効化のアクションでだけ変える。"""
+
+    list_display = ("username", "email", "last_name", "first_name", "is_active", "role_names")
+    list_filter = ("is_active", "user_roles__role")
+    fieldsets = (
+        (None, {"fields": ("username", "password")}),
+        (_("Personal info"), {"fields": ("last_name", "first_name", "email")}),
+        (
+            _("Status"),
+            {
+                "fields": (
+                    "is_active",
+                    "deactivated_at",
+                    "deactivated_by",
+                    "last_login",
+                    "date_joined",
+                )
+            },
+        ),
+    )
+    readonly_fields = ("is_active", "deactivated_at", "deactivated_by", "last_login", "date_joined")
+    inlines = [UserRoleInline]
+    actions = ["deactivate", "reactivate"]
+
+    def get_inlines(self, request: HttpRequest, obj: User | None) -> list[Any]:
+        return [] if obj is None else list(self.inlines)
+
+    @admin.display(description=_("roles"))
+    def role_names(self, obj: User) -> str:
+        return ", ".join(str(user_role.role) for user_role in obj.user_roles.all())
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[User]:
+        return super().get_queryset(request).prefetch_related("user_roles__role")
+
+    def has_delete_permission(self, request: HttpRequest, obj: User | None = None) -> bool:
+        return False
+
+    @admin.action(description=_("Deactivate selected users"))
+    def deactivate(self, request: HttpRequest, queryset: QuerySet[User]) -> None:
+        actor = request.user if isinstance(request.user, User) else None
+        for user in queryset.filter(is_active=True):
+            try:
+                deactivate_user(user, by=actor)
+            except LastAdminError:
+                self.message_user(
+                    request,
+                    _("%(user)s is the last active admin and cannot be deactivated.")
+                    % {"user": user.username},
+                    messages.ERROR,
+                )
+
+    @admin.action(description=_("Reactivate selected users"))
+    def reactivate(self, request: HttpRequest, queryset: QuerySet[User]) -> None:
+        actor = request.user if isinstance(request.user, User) else None
+        for user in queryset.filter(is_active=False):
+            reactivate_user(user, by=actor)
+
+
+class RolePermissionInline(admin.TabularInline[RolePermission, Role]):
+    model = RolePermission
+    extra = 0
+
+
+@admin.register(Role)
+class RoleAdmin(TrackedModelAdmin[Role]):
+    list_display = ("name", "code", "data_scope")
+    readonly_fields = TRACKED_READONLY_FIELDS
+    inlines = [RolePermissionInline]
+
+    def has_delete_permission(self, request: HttpRequest, obj: Role | None = None) -> bool:
+        return False
 
 
 class AttachmentInlineForm(forms.ModelForm[Attachment]):

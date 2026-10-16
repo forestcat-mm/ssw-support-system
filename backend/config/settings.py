@@ -25,7 +25,7 @@ ALLOWED_HOSTS: list[str] = env.list("DJANGO_ALLOWED_HOSTS", default=[])
 CSRF_TRUSTED_ORIGINS: list[str] = env.list("DJANGO_CSRF_TRUSTED_ORIGINS", default=[])
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
+    "apps.core.admin_apps.SupportAdminConfig",  # django.contrib.admin（ロール判定の管理サイト）
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -82,6 +82,7 @@ SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # --- 認証 ---
 AUTH_USER_MODEL = "core.User"
+AUTHENTICATION_BACKENDS = ["apps.core.backends.RoleBackend"]
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},

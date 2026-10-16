@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 14:20+0900\n"
+"POT-Creation-Date: 2026-10-16 14:39+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -15,8 +15,39 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
+msgid "Personal info"
+msgstr "個人情報"
+
+msgid "Status"
+msgstr "状態"
+
+msgid "roles"
+msgstr "ロール"
+
+msgid "Deactivate selected users"
+msgstr "選択したユーザーを無効化"
+
+#, python-format
+msgid "%(user)s is the last active admin and cannot be deactivated."
+msgstr "%(user)s は最後の有効な管理者のため無効化できません。"
+
+msgid "Reactivate selected users"
+msgstr "選択したユーザーを再有効化"
+
+msgid "Support organization management"
+msgstr "登録支援機関 業務管理"
+
+msgid "Management"
+msgstr "管理"
+
 msgid "Organization and users"
 msgstr "自機関・ユーザー"
+
+msgid "deactivated at"
+msgstr "無効化日時"
+
+msgid "deactivated by"
+msgstr "無効化した人"
 
 msgid "user"
 msgstr "ユーザー"
@@ -50,9 +81,6 @@ msgstr "元のファイル名"
 
 msgid "size (bytes)"
 msgstr "サイズ（バイト）"
-
-msgid "SHA-256"
-msgstr "SHA-256"
 
 msgid "valid until"
 msgstr "有効期限"
@@ -164,6 +192,42 @@ msgstr "支援責任者・支援担当者"
 
 msgid "Select at least one of support manager or support staff."
 msgstr "支援責任者・支援担当者のどちらか一方以上を選択してください。"
+
+msgid "access the management site"
+msgstr "管理画面に入る"
+
+msgid "manage users, roles, invitations and MFA"
+msgstr "ユーザー・ロール・招待・多要素認証の管理"
+
+msgid "view organization, offices and staff"
+msgstr "自機関・事務所・担当者の閲覧"
+
+msgid "edit organization, offices and staff"
+msgstr "自機関・事務所・担当者の登録・編集"
+
+msgid "all data"
+msgstr "すべてのデータ"
+
+msgid "data scope"
+msgstr "データ範囲"
+
+msgid "role"
+msgstr "ロール"
+
+msgid "action"
+msgstr "操作"
+
+msgid "role permission"
+msgstr "ロールの権限"
+
+msgid "role permissions"
+msgstr "ロールの権限"
+
+msgid "user role"
+msgstr "ユーザーのロール"
+
+msgid "user roles"
+msgstr "ユーザーのロール"
 
 #, python-format
 msgid "File type “.%(ext)s” is not allowed. Allowed types: %(allowed)s."

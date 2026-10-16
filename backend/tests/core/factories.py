@@ -3,7 +3,9 @@
 from datetime import date
 from typing import Any
 
-from apps.core.models import EmploymentType, Office, Organization, Staff
+from apps.core.models import EmploymentType, Office, Organization, Role, Staff, User, UserRole
+
+TEST_PASSWORD = "correct-horse-battery-staple"
 
 
 def make_organization(**overrides: Any) -> Organization:
@@ -34,3 +36,10 @@ def make_staff(office: Office | None = None, **overrides: Any) -> Staff:
         "office": office or make_office(),
     }
     return Staff.objects.create(**(values | overrides))
+
+
+def make_user(username: str, *, roles: tuple[str, ...] = (), **overrides: Any) -> User:
+    user = User.objects.create_user(username=username, password=TEST_PASSWORD, **overrides)
+    for code in roles:
+        UserRole.objects.create(user=user, role=Role.objects.get(code=code))
+    return user
