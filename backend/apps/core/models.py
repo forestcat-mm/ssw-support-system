@@ -403,6 +403,8 @@ class AuditAction(models.TextChoices):
     DEACTIVATE = "deactivate", _("deactivate user")
     REACTIVATE = "reactivate", _("reactivate user")
     MFA_RESET = "mfa_reset", _("reset two-factor authentication")
+    MFA_ENROLL = "mfa_enroll", _("set up two-factor authentication")
+    RECOVERY_CODES_REGENERATE = "recovery_codes_regenerate", _("regenerate recovery codes")
 
 
 class AppendOnlyError(Exception):

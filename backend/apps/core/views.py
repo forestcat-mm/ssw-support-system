@@ -154,7 +154,9 @@ class RecoveryCodesView(View):
         return render(request, self.template_name, context)
 
     def post(self, request: HttpRequest) -> HttpResponse:
-        request.session[NEW_RECOVERY_CODES_SESSION_KEY] = mfa.issue_recovery_codes(_user(request))
+        request.session[NEW_RECOVERY_CODES_SESSION_KEY] = mfa.regenerate_recovery_codes(
+            _user(request)
+        )
         return redirect("accounts:recovery_codes")
 
 

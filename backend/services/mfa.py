@@ -66,18 +66,40 @@ def qr_svg(data: str) -> str:
 
 @transaction.atomic
 def confirm_totp(device: TOTPDevice, token: str) -> list[str] | None:
-    """設定途中の TOTP を確定し、回復用コードを発行する。トークンが違えば None。"""
+    """設定途中の TOTP を確定し、回復用コードを発行する。トークンが違えば None。
+
+    監査ログに「多要素認証の設定」を本人の操作として 1 件残す（コードの平文は残さない）。
+    """
     if not device.verify_token(token):
         return None
-    device.confirmed = True
-    device.save(update_fields=["confirmed"])
-    TOTPDevice.objects.filter(user=device.user, confirmed=False).delete()
-    return issue_recovery_codes(device.user)
+    user = device.user
+    with audit.event(AuditAction.MFA_ENROLL, target=user, actor=user) as event:
+        event.changes["totp_devices"] = [_confirmed_totp_count(user), 1]
+        event.changes["unused_recovery_codes"] = [remaining_recovery_codes(user), None]
+        device.confirmed = True
+        device.save(update_fields=["confirmed"])
+        TOTPDevice.objects.filter(user=user, confirmed=False).delete()
+        codes = _issue_recovery_codes(user)
+        event.changes["unused_recovery_codes"][1] = len(codes)
+    return codes
 
 
 @transaction.atomic
-def issue_recovery_codes(user: User) -> list[str]:
-    """回復用コードを作り直す。古いコードはすべて無効になる。平文は戻り値でだけ返す。"""
+def regenerate_recovery_codes(user: User) -> list[str]:
+    """回復用コードを作り直す（本人の操作）。古いコードは無効になる。監査ログに 1 件残す。"""
+    with audit.event(AuditAction.RECOVERY_CODES_REGENERATE, target=user, actor=user) as event:
+        before = remaining_recovery_codes(user)
+        codes = _issue_recovery_codes(user)
+        event.changes["unused_recovery_codes"] = [before, len(codes)]
+    return codes
+
+
+def _confirmed_totp_count(user: User) -> int:
+    return int(TOTPDevice.objects.filter(user=user, confirmed=True).count())
+
+
+def _issue_recovery_codes(user: User) -> list[str]:
+    """回復用コードを発行する。平文は戻り値でだけ返す。監査は呼び出し側のイベントで行う。"""
     RecoveryCodeDevice.objects.filter(user=user).delete()
     device = RecoveryCodeDevice.objects.create(user=user, name="recovery codes", confirmed=True)
     codes = recovery_codes.generate_codes()

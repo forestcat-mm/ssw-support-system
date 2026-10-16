@@ -189,7 +189,9 @@ def event(
 
     中の保存は一般の作成・更新の記録を止める。例外が起きたら記録しない。
     """
-    old = type(target)._base_manager.filter(pk=target.pk).first() if target.pk else None
+    # request.user（SimpleLazyObject）でも実体のモデルを取れるよう _meta.model を使う
+    model = target._meta.model
+    old = model._base_manager.filter(pk=target.pk).first() if target.pk else None
     before = snapshot(old) if old is not None else {}
     holder = Event(context=dict(context or {}))
     with suppressed():
