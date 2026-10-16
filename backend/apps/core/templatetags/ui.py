@@ -48,6 +48,21 @@ def level_badge(deadline: deadlines.Deadline, today: date | None = None) -> dict
     }
 
 
+@register.inclusion_tag("ui/components/level_count_badge.html")
+def level_count_badge(level: deadlines.Level, count: int) -> dict[str, Any]:
+    """一覧の見出しに並べる警告レベルの人数（押すとそのレベルで絞り込む）。"""
+    texts = {
+        deadlines.Level.OVERDUE: _("Overdue: %(count)s"),
+        deadlines.Level.WITHIN_7: _("Within 7 days: %(count)s"),
+        deadlines.Level.WITHIN_14: _("Within 14 days: %(count)s"),
+    }
+    return {
+        "css": LEVEL_CLASSES[level],
+        "level": level.value,
+        "text": texts[level] % {"count": count},
+    }
+
+
 FIELD_CLASSES = {"industrial_products": "tag--industrial", "food_manufacturing": "tag--food"}
 
 

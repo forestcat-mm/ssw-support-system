@@ -1,0 +1,57 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Foreign workers" %}{% endblock %}
+{% block heading %}{% translate "Foreign workers" %}{% endblock %}
+{% block actions %}
+  {% for level, count in level_counts %}{% level_count_badge level count %}{% endfor %}
+{% endblock %}
+{% block content %}
+<form class="filter-bar" role="search" method="get">
+  <div class="form-row">
+    <label class="form-row__label" for="{{ form.q.id_for_label }}">{% translate "Search" %}</label>
+    <input class="input filter-bar__search" type="search" name="q" id="{{ form.q.id_for_label }}" value="{{ form.q.value|default:'' }}" placeholder="{% translate 'Name or residence card / passport number' %}" maxlength="100">
+  </div>
+  {% for bound in form %}{% if bound.name != "q" %}
+    <div class="form-row">
+      <label class="form-row__label" for="{{ bound.id_for_label }}">{{ bound.label }}</label>
+      {{ bound }}
+    </div>
+  {% endif %}{% endfor %}
+  <div class="cluster">
+    <button class="button button--neutral" type="submit">{% translate "Filter" %}</button>
+    {% if filtered %}<a class="button button--neutral button--small" href="{% url 'workers:list' %}">{% translate "Clear" %}</a>{% endif %}
+  </div>
+</form>
+
+<p class="caption" data-count="{{ rows|length }}">{% blocktranslate count counter=rows|length %}{{ counter }} person{% plural %}{{ counter }} people{% endblocktranslate %}</p>
+
+{% if rows %}
+<div class="table-wrap">
+  <table class="table" id="worker-list">
+    <thead><tr>
+      <th>{% translate "full name" %}</th>
+      <th>{% translate "nationality or region" %}</th>
+      <th>{% translate "host organization" %}</th>
+      <th>{% translate "specified skill field" %}</th>
+      <th>{% translate "period of stay expires on" %}</th>
+      <th>{% translate "assigned staff" %}</th>
+      <th>{% translate "status" %}</th>
+    </tr></thead>
+    <tbody>
+      {% for row in rows %}
+        <tr data-worker="{{ row.worker.pk }}">
+          <td><span class="person-name"><span{% if row.display_name_lang %} lang="{{ row.display_name_lang }}"{% endif %}>{{ row.display_name }}</span>{% if row.romaji %} <span class="caption">{{ row.romaji }}</span>{% endif %}</span></td>
+          <td>{{ row.worker.nationality.name }}</td>
+          <td>{% if row.host_organization_name %}{{ row.host_organization_name }}{% if row.contract_scheduled %} <span class="caption">{% translate "(scheduled)" %}</span>{% endif %}{% else %}<span class="muted">—</span>{% endif %}</td>
+          <td>{% if row.skill_field %}{% field_tag row.skill_field %}{% else %}<span class="muted">—</span>{% endif %}</td>
+          <td>{% if row.deadline %}{% if row.level != "not_yet" %}<span class="mono">{{ row.expires_on|date:"Y-m-d" }}</span> {% endif %}{% level_badge row.deadline %}{% else %}<span class="muted">—</span>{% endif %}</td>
+          <td>{% if row.worker.assigned_staff %}{{ row.worker.assigned_staff.name }}{% else %}<span class="muted">{% translate "not assigned" %}</span>{% endif %}</td>
+          <td>{% worker_status row.worker.status row.worker.get_status_display %}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card"><div class="empty">{% translate "No foreign workers match the conditions." %}</div></div>
+{% endif %}
+{% endblock %}

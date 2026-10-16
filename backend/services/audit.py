@@ -213,6 +213,35 @@ def record_view(target: models.Model, *, context: Mapping[str, Any] | None = Non
         record(AuditAction.VIEW, target=target, context=context)
 
 
+def record_list_view(
+    screen: str, *, conditions: Mapping[str, Any], object_ids: list[Any]
+) -> AuditLog:
+    """一覧の閲覧の記録（1 回の表示で 1 件）。
+
+    context に画面・条件・件数・表示した対象の ID を入れる。
+
+    検索語に数字があれば番号（在留カード番号・旅券番号）の検索とみなしてマスクする。
+    """
+    safe: dict[str, Any] = {}
+    for key, value in conditions.items():
+        if value in (None, ""):
+            continue
+        if isinstance(value, models.Model):
+            value = value.pk
+        elif key == "q" and any(character.isdigit() for character in str(value)):
+            value = MASK
+        safe[key] = value if isinstance(value, (str, int, bool)) else str(value)
+    return record(
+        AuditAction.VIEW,
+        context={
+            "screen": screen,
+            "conditions": safe,
+            "count": len(object_ids),
+            "object_ids": list(object_ids),
+        },
+    )
+
+
 def record_export(
     *, target: models.Model | None = None, context: Mapping[str, Any] | None = None
 ) -> AuditLog:

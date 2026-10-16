@@ -89,7 +89,8 @@
   --input-focus-border: var(--palette-cobalt);
   --input-error-border: var(--palette-red-ink);
   --input-disabled-bg: var(--palette-canvas);
-  --table-cell-padding-y: 6px; /* 行高 36px 前後 */
+  --table-cell-padding-y: 4px;
+  --table-row-height: 36px; /* 文字の種類（漢字・簡体字・ラテン文字）やバッジの有無で行の高さを変えない */
 
   /* --- 警告レベル --- */
   --level-overdue-bg: var(--palette-red-tint);

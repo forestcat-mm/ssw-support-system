@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 21:25+0900\n"
+"POT-Creation-Date: 2026-10-16 21:35+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -1340,6 +1340,18 @@ msgstr "今日まで"
 msgid "%(days)s d left"
 msgstr "あと%(days)s日"
 
+#, python-format
+msgid "Overdue: %(count)s"
+msgstr "超過 %(count)s人"
+
+#, python-format
+msgid "Within 7 days: %(count)s"
+msgstr "7日以内 %(count)s人"
+
+#, python-format
+msgid "Within 14 days: %(count)s"
+msgstr "14日以内 %(count)s人"
+
 msgid "The code is incorrect. Check the time on your device."
 msgstr "コードが正しくありません。端末の時刻がずれていないか確認してください。"
 
@@ -1433,18 +1445,6 @@ msgstr "受付前"
 
 msgid "date only"
 msgstr "日付の文字のみ"
-
-#, python-format
-msgid "Overdue: %(count)s"
-msgstr "超過 %(count)s人"
-
-#, python-format
-msgid "Within 7 days: %(count)s"
-msgstr "7日以内 %(count)s人"
-
-#, python-format
-msgid "Within 14 days: %(count)s"
-msgstr "14日以内 %(count)s人"
 
 msgid "immigration notification"
 msgstr "入管への届出"
@@ -1802,6 +1802,39 @@ msgstr "支援"
 msgid "status of residence"
 msgstr "在留資格"
 
+msgid "Before entry and residing"
+msgstr "入国前・在留中"
+
+msgid "All statuses"
+msgstr "すべての状態"
+
+msgid "All fields"
+msgstr "すべての分野"
+
+msgid "deadline level"
+msgstr "警告レベル"
+
+msgid "All levels"
+msgstr "すべてのレベル"
+
+msgid "order"
+msgstr "並び順"
+
+msgid "Expiry date (nearest first)"
+msgstr "在留期限の近い順"
+
+msgid "Name (romaji)"
+msgstr "氏名（ローマ字）順"
+
+msgid "All staff"
+msgstr "すべての担当者"
+
+msgid "Assigned to me"
+msgstr "自分の担当"
+
+msgid "Not assigned"
+msgstr "担当者なし"
+
 msgid "confirmed by"
 msgstr "最終確認者"
 
@@ -1951,6 +1984,23 @@ msgstr "連絡先"
 
 msgid "contacts"
 msgstr "連絡先"
+
+msgid "Name or residence card / passport number"
+msgstr "氏名、在留カード番号・旅券番号"
+
+msgid "Clear"
+msgstr "条件を消す"
+
+#, python-format
+msgid "%(counter)s person"
+msgid_plural "%(counter)s people"
+msgstr[0] "%(counter)s人"
+
+msgid "(scheduled)"
+msgstr "（予定）"
+
+msgid "not assigned"
+msgstr "未割当"
 
 msgid "scheduled"
 msgstr "予定"

@@ -1,4 +1,4 @@
-"""通しのテスト 1: ログイン → MFA → 業務画面のトップ（T13b で外国人一覧まで確かめる）。"""
+"""通しのテスト 1: ログイン → MFA → 業務画面のトップ（外国人一覧までは test_worker_list.py）。"""
 
 from playwright.sync_api import Page, expect
 
