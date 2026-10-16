@@ -1,0 +1,18 @@
+{% extends "settings/base.html" %}{% load i18n %}
+{% block settings_content %}
+<div class="page-header" style="margin-bottom: 0">
+  <p class="muted page-header__title">{% translate "Offices of the own organization where support work is done. An office is not deleted; turn off “active” when it closes." %}</p>
+  <div class="page-header__actions"><a class="button button--primary" href="{% url 'settings:office_create' %}">{% translate "Add an office" %}</a></div>
+</div>
+<div class="table-wrap">
+  <table class="table table--list" id="offices">
+    <thead><tr><th>{% translate "name" %}</th><th>{% translate "address" %}</th><th>{% translate "phone number" %}</th></tr></thead>
+    <tbody>{% for office in offices %}
+      <tr{% if not office.is_active %} class="is-voided"{% endif %}>
+        <td><a href="{% url 'settings:office_edit' office.pk %}">{{ office.name }}</a></td>
+        <td>〒{{ office.postal_code }} {{ office.address }}</td>
+        <td class="mono">{{ office.phone_number|default:"—" }}</td>
+      </tr>{% empty %}<tr><td colspan="3" class="muted">{% translate "None." %}</td></tr>{% endfor %}</tbody>
+  </table>
+</div>
+{% endblock %}

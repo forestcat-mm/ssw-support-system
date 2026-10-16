@@ -1,0 +1,28 @@
+from django.urls import path
+
+from apps.core import settings_views as views
+
+app_name = "settings"
+
+urlpatterns = [
+    path("", views.SettingsIndexView.as_view(), name="index"),
+    path("users/", views.UserListView.as_view(), name="users"),
+    path("users/invite/", views.UserInviteView.as_view(), name="user_invite"),
+    path("users/<int:pk>/", views.UserDetailView.as_view(), name="user"),
+    path("users/<int:pk>/<str:action>/", views.UserActionView.as_view(), name="user_action"),
+    path("staff/", views.StaffListView.as_view(), name="staff"),
+    path("staff/new/", views.StaffFormView.as_view(), name="staff_create"),
+    path("staff/<int:pk>/", views.StaffFormView.as_view(), name="staff_edit"),
+    path("organization/", views.OrganizationView.as_view(), name="organization"),
+    path("organization/edit/", views.OrganizationEditView.as_view(), name="organization_edit"),
+    path(
+        "organization/certificate/",
+        views.CertificateView.as_view(),
+        name="organization_certificate",
+    ),
+    path("offices/", views.OfficeListView.as_view(), name="offices"),
+    path("offices/new/", views.OfficeFormView.as_view(), name="office_create"),
+    path("offices/<int:pk>/", views.OfficeFormView.as_view(), name="office_edit"),
+    path("audit/", views.AuditListView.as_view(), name="audit"),
+    path("audit/<int:pk>/", views.AuditDetailView.as_view(), name="audit_entry"),
+]

@@ -360,6 +360,13 @@ a.badge:hover {
   font-weight: 500;
 }
 
+.form-row__check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  cursor: pointer;
+}
+
 .form-row__required {
   color: var(--color-graphite);
   font-weight: 400;

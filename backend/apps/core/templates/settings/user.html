@@ -1,0 +1,26 @@
+{% extends "settings/base.html" %}{% load i18n %}
+{% block settings_content %}
+<p class="caption"><a href="{% url 'settings:users' %}">← {% translate "Back to list" %}</a></p>
+<section class="card" id="user">
+  <div class="card__header"><h2 class="card__title">{{ row.user.username }}</h2>{% if not row.user.is_active %}<span class="status status--deactivated">{% translate "deactivated" %}</span>{% elif row.locked %}<span class="badge badge--overdue">{% translate "locked" %}</span>{% endif %}</div>
+  <dl class="fields">
+    <dt>{% translate "full name" %}</dt><dd>{{ row.user.last_name }} {{ row.user.first_name }}</dd>
+    <dt>{% translate "email" %}</dt><dd>{{ row.user.email|default:"—" }}</dd>
+    <dt>{% translate "roles" %}</dt><dd>{{ row.roles|join:"、"|default:"—" }}</dd>
+    <dt>{% translate "linked staff member" %}</dt><dd>{% if row.staff %}<a href="{% url 'settings:staff_edit' row.staff.pk %}">{{ row.staff.name }}</a>{% else %}—{% endif %}</dd>
+    <dt>{% translate "two-factor authentication" %}</dt><dd>{% if row.has_mfa %}{% translate "set up" %}{% else %}{% translate "not set up" %}{% endif %}</dd>
+    <dt>{% translate "invitation" %}</dt><dd>{{ row.invitation_label }}</dd>
+    <dt>{% translate "last login" %}</dt><dd class="mono">{{ row.user.last_login|date:"Y-m-d H:i"|default:"—" }}</dd>
+  </dl>
+</section>
+<section class="card" id="user-actions">
+  <div class="card__header"><h2 class="card__title">{% translate "Actions" %}</h2></div>
+  <p class="caption">{% translate "Each action asks for confirmation and is recorded in the audit log. Roles are changed in the management site." %}</p>
+  <div class="cluster">
+    {% if row.locked %}<a class="button button--primary" href="{% url 'settings:user_action' row.user.pk 'unlock' %}">{% translate "Unlock sign-in" %}</a>{% endif %}
+    {% if row.invitation == "pending" or row.invitation == "expired" %}<a class="button button--neutral" href="{% url 'settings:user_action' row.user.pk 'resend' %}">{% translate "Resend the invitation" %}</a>{% endif %}
+    {% if row.has_mfa %}<a class="button button--neutral" href="{% url 'settings:user_action' row.user.pk 'reset-mfa' %}">{% translate "Reset two-factor authentication" %}</a>{% endif %}
+    {% if row.user.is_active %}<a class="button button--danger" href="{% url 'settings:user_action' row.user.pk 'deactivate' %}">{% translate "Deactivate the user" %}</a>{% else %}<a class="button button--neutral" href="{% url 'settings:user_action' row.user.pk 'reactivate' %}">{% translate "Reactivate the user" %}</a>{% endif %}
+  </div>
+</section>
+{% endblock %}

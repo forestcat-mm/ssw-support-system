@@ -1,0 +1,33 @@
+{% extends "settings/base.html" %}{% load i18n ui %}
+{% block settings_content %}
+<p class="muted">{% translate "Who viewed or changed what, and when (read only). Viewing audit logs is also recorded; it is hidden unless you include it." %}</p>
+<form class="filter-bar" method="get" role="search">
+  {% for field in form %}
+    {% if field.name == "include_audit_views" %}<div class="form-row"><label class="form-row__label cluster">{{ field }} {{ field.label }}</label></div>
+    {% else %}<div class="form-row"><label class="form-row__label" for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}</div>{% endif %}
+  {% endfor %}
+  <div class="cluster"><button class="button button--neutral" type="submit">{% translate "Search" %}</button><a class="button button--neutral button--small" href="{% url 'settings:audit' %}">{% translate "Clear" %}</a></div>
+</form>
+<p class="caption" data-count="{{ page.paginator.count }}">{% blocktranslate count counter=page.paginator.count %}{{ counter }} entry{% plural %}{{ counter }} entries{% endblocktranslate %}</p>
+<div class="table-wrap">
+  <table class="table table--list" id="audit">
+    <thead><tr><th>{% translate "occurred at" %}</th><th>{% translate "action" %}</th><th>{% translate "actor" %}</th><th>{% translate "target type" %}</th><th>{% translate "target" %}</th><th>{% translate "IP address" %}</th></tr></thead>
+    <tbody>{% for entry in page %}
+      <tr data-action="{{ entry.action }}">
+        <td class="mono"><a href="{% url 'settings:audit_entry' entry.pk %}">{{ entry.occurred_at|date:"Y-m-d H:i:s" }}</a></td>
+        <td>{{ entry.get_action_display }}</td>
+        <td>{{ entry.actor_username|default:"—" }}</td>
+        <td>{{ entry.content_type|model_label }}</td>
+        <td><span class="truncate-line truncate-line--wide" title="{{ entry.object_repr }}"><span class="truncate">{{ entry.object_repr|default:"—" }}</span></span></td>
+        <td class="mono">{{ entry.ip_address|default:"—" }}</td>
+      </tr>{% empty %}<tr><td colspan="6" class="muted">{% translate "None." %}</td></tr>{% endfor %}</tbody>
+  </table>
+</div>
+{% if page.has_other_pages %}
+<nav class="cluster" aria-label="{% translate 'Pages' %}" style="margin-top: var(--space-12)">
+  {% if page.has_previous %}<a class="button button--neutral button--small" href="?{{ query_string }}&amp;page={{ page.previous_page_number }}">{% translate "Previous" %}</a>{% endif %}
+  <span class="caption">{{ page.number }} / {{ page.paginator.num_pages }}</span>
+  {% if page.has_next %}<a class="button button--neutral button--small" href="?{{ query_string }}&amp;page={{ page.next_page_number }}">{% translate "Next" %}</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

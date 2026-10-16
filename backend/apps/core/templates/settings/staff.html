@@ -1,0 +1,25 @@
+{% extends "settings/base.html" %}{% load i18n %}
+{% block settings_content %}
+<div class="page-header" style="margin-bottom: 0">
+  <p class="muted page-header__title">{% translate "Support managers and support staff. A staff member is not deleted; turn off “active” when they leave (also deactivate their user)." %}</p>
+  <div class="page-header__actions"><a class="button button--primary" href="{% url 'settings:staff_create' %}">{% translate "Add a staff member" %}</a></div>
+</div>
+<div class="table-wrap">
+  <table class="table table--list" id="staff">
+    <thead><tr>
+      <th>{% translate "full name" %}</th><th>{% translate "role" %}</th><th>{% translate "employment type" %}</th>
+      <th>{% translate "office" %}</th><th>{% translate "languages" %}</th><th>{% translate "training course completed on" %}</th><th>{% translate "login user" %}</th>
+    </tr></thead>
+    <tbody>{% for member in staff %}
+      <tr{% if not member.is_active %} class="is-voided"{% endif %}>
+        <td><a href="{% url 'settings:staff_edit' member.pk %}">{{ member.name }}</a></td>
+        <td>{% if member.is_support_manager %}{% translate "support manager" %}{% endif %}{% if member.is_support_manager and member.is_support_staff %}・{% endif %}{% if member.is_support_staff %}{% translate "support staff" %}{% endif %}</td>
+        <td>{{ member.get_employment_type_display }}</td>
+        <td>{{ member.office.name }}</td>
+        <td>{{ member.languages.all|join:"、"|default:"—" }}</td>
+        <td class="mono">{{ member.training_completed_on|date:"Y-m-d"|default:"—" }}</td>
+        <td>{{ member.user.username|default:"—" }}</td>
+      </tr>{% empty %}<tr><td colspan="7" class="muted">{% translate "None." %}</td></tr>{% endfor %}</tbody>
+  </table>
+</div>
+{% endblock %}

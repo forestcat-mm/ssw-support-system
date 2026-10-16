@@ -1,0 +1,13 @@
+{% extends "settings/base.html" %}{% load i18n %}
+{% block settings_content %}
+<p class="caption"><a href="{{ back }}">← {{ subject }}</a></p>
+<section class="card form" id="confirm">
+  <div class="card__header"><h2 class="card__title">{{ action.title }}: {{ subject }}</h2></div>
+  <p>{{ action.description }}</p>
+  <form method="post" class="form-actions">
+    {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+    <button class="button {% if action.danger %}button--danger{% else %}button--primary{% endif %}" type="submit">{{ action.button }}</button>
+    <a class="button button--neutral" href="{{ back }}">{% translate "Cancel" %}</a>
+  </form>
+</section>
+{% endblock %}

@@ -12,6 +12,7 @@ urlpatterns = [
     path("workers/", include("apps.workers.urls")),
     path("hosts/", include("apps.hosts.urls")),
     path("filings/", include("apps.filings.urls")),
+    path("settings/", include("apps.core.settings_urls")),
     path(
         "attachments/<int:pk>/download/",
         AttachmentDownloadView.as_view(),

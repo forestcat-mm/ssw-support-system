@@ -305,3 +305,15 @@ class DeactivateForm(StyledFormMixin, forms.Form):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.style_fields()
+
+
+class ReactivateForm(StyledFormMixin, forms.Form):
+    reason = forms.CharField(
+        label=_("reason for cancelling the deactivation"),
+        max_length=200,
+        widget=forms.Textarea(attrs={"rows": 3}),
+    )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.style_fields()

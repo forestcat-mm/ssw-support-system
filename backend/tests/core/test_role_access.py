@@ -44,7 +44,9 @@ def test_index_lists_only_permitted_models(support_staff_client: Client) -> None
         for app in support_staff_client.get("/admin/").context["app_list"]
         for m in app["models"]
     }
-    assert "Office" in models
+    assert (
+        "HostOrganization" in models
+    )  # 事務所は設定画面に移したので admin のメニューには出ない（T15b）
     assert "User" not in models
     assert "Role" not in models
 

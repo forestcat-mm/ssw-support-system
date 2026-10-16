@@ -22,6 +22,7 @@ from apps.workers.forms import (
     RECORD_FORMS,
     DeactivateForm,
     HistoryRecordForm,
+    ReactivateForm,
     VoidForm,
     WorkerForm,
     WorkerListForm,
@@ -153,6 +154,7 @@ class WorkerDetailView(ActionRequiredMixin, TemplateView):
             back_url=reverse("workers:list") + (f"?{list_query}" if list_query else ""),
             can_manage=active and authorization.has_action(user, Action.WORKERS_MANAGE),
             can_deactivate=active and authorization.has_action(user, Action.WORKERS_DEACTIVATE),
+            can_reactivate=not active and authorization.has_action(user, Action.WORKERS_DEACTIVATE),
         )
         shown = self.tab_context(context)
         audit.record_view(self.worker, context={"tab": self.tab, **shown})
@@ -444,3 +446,37 @@ class WorkerDeactivateView(WorkerFormView):
                 return redirect(detail)
         effects = workers.deactivation_effects(worker)
         return self.render(request, worker=worker, effects=effects, form=form)
+
+
+class WorkerReactivateView(ActionRequiredMixin, View):
+    """誤って無効化した外国人を戻す（管理者のみ・理由必須。T15b で業務画面にも置く）。"""
+
+    required_action = Action.WORKERS_DEACTIVATE
+    template_name = "workers/reactivate.html"
+
+    def worker(self, request: HttpRequest, pk: int) -> ForeignWorker:
+        queryset = authorization.scope(request.user, ForeignWorker.objects.all())
+        worker = get_object_or_404(queryset, pk=pk)
+        if workers.is_active(worker):
+            raise Http404
+        return worker
+
+    def render(self, request: HttpRequest, worker: ForeignWorker, form: Any) -> HttpResponse:
+        context = {"worker": worker, "form": form, **once_context(request)}
+        return TemplateResponse(request, self.template_name, context)
+
+    def get(self, request: HttpRequest, pk: int) -> HttpResponse:
+        return self.render(request, self.worker(request, pk), ReactivateForm())
+
+    def post(self, request: HttpRequest, pk: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        detail = reverse("workers:detail", args=[pk])
+        if not consume_once_token(request):
+            messages.info(request, _("This form has already been submitted."))
+            return redirect(detail)
+        form = ReactivateForm(request.POST)
+        if not form.is_valid():
+            return self.render(request, worker, form)
+        workers.reactivate(worker, by=_actor(request), reason=form.cleaned_data["reason"])
+        messages.success(request, _("Cancelled the deactivation."))
+        return redirect(detail)

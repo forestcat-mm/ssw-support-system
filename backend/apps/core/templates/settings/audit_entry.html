@@ -1,0 +1,27 @@
+{% extends "settings/base.html" %}{% load i18n %}
+{% block settings_content %}
+<p class="caption"><a href="{{ back }}">← {% translate "Back to list" %}</a></p>
+<section class="card" id="audit-entry">
+  <div class="card__header"><h2 class="card__title">{{ entry.get_action_display }}</h2></div>
+  <dl class="fields">
+    <dt>{% translate "occurred at" %}</dt><dd class="mono">{{ entry.occurred_at|date:"Y-m-d H:i:s" }}</dd>
+    <dt>{% translate "actor" %}</dt><dd>{{ entry.actor_username|default:"—" }}</dd>
+    <dt>{% translate "target" %}</dt><dd>{{ entry.object_repr|default:"—" }}{% if entry.object_id %} <span class="caption mono">ID {{ entry.object_id }}</span>{% endif %}</dd>
+    <dt>{% translate "IP address" %}</dt><dd class="mono">{{ entry.ip_address|default:"—" }}</dd>
+    <dt>{% translate "path" %}</dt><dd class="mono">{{ entry.path|default:"—" }}</dd>
+  </dl>
+</section>
+<section class="card">
+  <div class="card__header"><h2 class="card__title">{% translate "changes" %}</h2></div>
+  {% if changes %}
+  <div class="table-scroll"><table class="table">
+    <thead><tr><th>{% translate "item" %}</th><th>{% translate "before" %}</th><th>{% translate "after" %}</th></tr></thead>
+    <tbody>{% for name, before, after in changes %}<tr><td class="mono">{{ name }}</td><td>{{ before }}</td><td>{{ after }}</td></tr>{% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="muted">{% translate "None." %}</p>{% endif %}
+</section>
+<section class="card">
+  <div class="card__header"><h2 class="card__title">context</h2></div>
+  <pre class="mono" style="white-space: pre-wrap; margin: 0">{{ entry.context|pprint }}</pre>
+</section>
+{% endblock %}

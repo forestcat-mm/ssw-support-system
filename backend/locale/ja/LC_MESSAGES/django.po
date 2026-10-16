@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 22:56+0900\n"
+"POT-Creation-Date: 2026-10-16 23:06+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -627,6 +627,9 @@ msgstr "管理"
 msgid "%(name)s management site"
 msgstr "%(name)s 管理画面"
 
+msgid "Masters (countries and support languages)"
+msgstr "マスタ（国・地域、支援言語）"
+
 msgid "Organization and users"
 msgstr "自機関・ユーザー"
 
@@ -638,6 +641,9 @@ msgstr "外国人台帳"
 
 msgid "Host organizations"
 msgstr "受入れ機関台帳"
+
+msgid "Settings"
+msgstr "設定"
 
 msgid "Management site"
 msgstr "管理画面"
@@ -963,6 +969,9 @@ msgstr "外国人の無効化"
 msgid "cancel deactivation of foreign worker"
 msgstr "外国人の無効化の取り消し"
 
+msgid "unlock sign-in"
+msgstr "ロック解除"
+
 msgid "reset two-factor authentication"
 msgstr "多要素認証のリセット"
 
@@ -1007,6 +1016,150 @@ msgstr "監査ログ"
 
 msgid "audit logs"
 msgstr "監査ログ"
+
+msgid "The login user of this staff member (optional)."
+msgstr "この担当者がログインに使うユーザー（任意）。"
+
+#, python-format
+msgid "Allowed: %(extensions)s, up to %(size)s MB."
+msgstr "使えるファイル: %(extensions)s（%(size)s MB まで）"
+
+msgid "All users"
+msgstr "すべての操作者"
+
+msgid "All actions"
+msgstr "すべての操作"
+
+msgid "All types"
+msgstr "すべての種類"
+
+msgid "Part of the name, or the ID."
+msgstr "名称の一部、または ID"
+
+msgid "from"
+msgstr "開始日"
+
+msgid "to"
+msgstr "終了日"
+
+msgid "Include viewing of audit logs"
+msgstr "監査ログの閲覧を含む"
+
+msgid "Users"
+msgstr "ユーザー"
+
+msgid "Staff members"
+msgstr "担当者"
+
+msgid "Own organization"
+msgstr "自機関"
+
+msgid "Offices"
+msgstr "事務所"
+
+msgid "Audit logs"
+msgstr "監査ログ"
+
+msgid "This form has already been submitted."
+msgstr "このフォームはすでに送信されています。"
+
+msgid "Invite a user"
+msgstr "ユーザーを招待"
+
+#, python-format
+msgid "Sent an invitation email to %(email)s."
+msgstr "%(email)s に招待メールを送りました。"
+
+msgid "Deactivate the user"
+msgstr "ユーザーの無効化"
+
+msgid ""
+"The user can no longer sign in and is signed out immediately. The staff "
+"member linked to this user is not changed; turn it off in Staff members if "
+"they left."
+msgstr ""
+"このユーザーはログインできなくなり、すぐにログアウトされます。紐づく担当者は"
+"変わりません。退職のときは「担当者」で有効を外してください。"
+
+msgid "Deactivate"
+msgstr "無効化する"
+
+msgid "Reactivate the user"
+msgstr "ユーザーの再有効化"
+
+msgid "The user can sign in again with the same password and MFA."
+msgstr "同じパスワードと二要素認証で、もう一度ログインできるようになります。"
+
+msgid "Reactivate"
+msgstr "再有効化する"
+
+msgid "Reset two-factor authentication"
+msgstr "二要素認証のリセット"
+
+msgid ""
+"Use this when the user lost their phone and recovery codes. The "
+"authenticator and recovery codes are deleted, and the user sets them up "
+"again at the next sign-in."
+msgstr ""
+"スマートフォンと回復用コードの両方をなくしたときに使います。認証アプリと回復"
+"用コードを消し、次のログインで本人が設定し直します。"
+
+msgid "Reset"
+msgstr "リセットする"
+
+msgid "Unlock sign-in"
+msgstr "ロック解除"
+
+msgid ""
+"Clears the failed sign-in attempts so the user can try again right away."
+msgstr "ログインの失敗の記録を消し、すぐにもう一度ログインできるようにします。"
+
+msgid "Unlock"
+msgstr "ロックを解除する"
+
+msgid "Resend the invitation"
+msgstr "招待の再送"
+
+msgid ""
+"Sends a new invitation email. The link in the previous email no longer works."
+msgstr "新しい招待メールを送ります。前のメールのリンクは使えなくなります。"
+
+msgid "Resend"
+msgstr "再送する"
+
+msgid "The last active administrator cannot be deactivated."
+msgstr "最後の管理者は無効化できません。管理者は 2 人以上置いてください。"
+
+#, python-format
+msgid "Done: %(action)s"
+msgstr "完了しました: %(action)s"
+
+msgid "Saved."
+msgstr "保存しました。"
+
+msgid "Add a staff member"
+msgstr "担当者を追加"
+
+msgid "Edit the staff member"
+msgstr "担当者の編集"
+
+msgid "Add an office"
+msgstr "事務所を追加"
+
+msgid "Edit the office"
+msgstr "事務所の編集"
+
+msgid "Register the own organization"
+msgstr "自機関の登録"
+
+msgid "Edit the own organization"
+msgstr "自機関の編集"
+
+msgid "Replace the membership certificate"
+msgstr "構成員証明書の差し替え"
+
+msgid "Replaced the membership certificate."
+msgstr "構成員証明書を差し替えました。"
 
 msgid "Access denied"
 msgstr "アクセスできません"
@@ -1147,6 +1300,135 @@ msgstr "終了日"
 msgid "Filter"
 msgstr "絞り込む"
 
+msgid ""
+"Who viewed or changed what, and when (read only). Viewing audit logs is also "
+"recorded; it is hidden unless you include it."
+msgstr ""
+"いつ・誰が・何を見たり変えたりしたかの記録です（読み取り専用）。監査ログの閲"
+"覧も記録されますが、「監査ログの閲覧を含む」にしない限り表示しません。"
+
+msgid "Search"
+msgstr "検索"
+
+msgid "Clear"
+msgstr "条件を消す"
+
+#, python-format
+msgid "%(counter)s entry"
+msgid_plural "%(counter)s entries"
+msgstr[0] "%(counter)s件"
+
+msgid "None."
+msgstr "なし"
+
+msgid "Pages"
+msgstr "ページ"
+
+msgid "Previous"
+msgstr "前へ"
+
+msgid "Back to list"
+msgstr "一覧へ戻る"
+
+msgid "item"
+msgstr "項目"
+
+msgid "Save"
+msgstr "保存する"
+
+msgid ""
+"Offices of the own organization where support work is done. An office is not "
+"deleted; turn off “active” when it closes."
+msgstr ""
+"支援業務を行う自機関の事務所です。削除はできません。閉じたときは「有効」を外"
+"してください。"
+
+msgid ""
+"Information about the own organization (registered support organization). "
+"The registration expiry date is used for the renewal task on the dashboard."
+msgstr ""
+"自機関（登録支援機関）の情報です。登録期限は、ダッシュボードの登録更新のタス"
+"クに使われます。"
+
+msgid "Edit"
+msgstr "編集"
+
+msgid "joined the food industry council on"
+msgstr "食品産業特定技能協議会の加入日"
+
+msgid "Membership certificate"
+msgstr "構成員証明書"
+
+msgid "Replace"
+msgstr "差し替える"
+
+msgid "uploaded on"
+msgstr "登録日"
+
+msgid "old"
+msgstr "古い証明書"
+
+msgid "Not registered."
+msgstr "未登録"
+
+msgid "The own organization is not registered yet."
+msgstr "自機関はまだ登録されていません。"
+
+msgid "Register"
+msgstr "登録する"
+
+msgid ""
+"Support managers and support staff. A staff member is not deleted; turn off "
+"“active” when they leave (also deactivate their user)."
+msgstr ""
+"支援責任者・支援担当者です。削除はできません。退職のときは「有効」を外し、"
+"ユーザーも無効化してください。"
+
+msgid "deactivated"
+msgstr "無効化済み"
+
+msgid "locked"
+msgstr "ロック中"
+
+msgid "email"
+msgstr "メールアドレス"
+
+msgid "linked staff member"
+msgstr "紐づく担当者"
+
+msgid "two-factor authentication"
+msgstr "二要素認証"
+
+msgid "set up"
+msgstr "設定済み"
+
+msgid "not set up"
+msgstr "未設定"
+
+msgid "last login"
+msgstr "最終ログイン"
+
+msgid "Actions"
+msgstr "操作"
+
+msgid ""
+"Each action asks for confirmation and is recorded in the audit log. Roles "
+"are changed in the management site."
+msgstr ""
+"どの操作も確認の画面をはさみ、監査ログに残ります。ロールの変更は管理画面で行"
+"います。"
+
+msgid ""
+"People who can sign in to this system. Invite new staff here; they set their "
+"own password from the invitation email. Users are never deleted: deactivate "
+"them when they leave."
+msgstr ""
+"このシステムにログインできる人です。新しい人はここから招待し、本人が招待メー"
+"ルからパスワードを設定します。ユーザーは削除せず、退職のときは無効化します。"
+
+msgid "username"
+msgstr "ユーザー名"
+
 msgid "Skip to content"
 msgstr "本文へ移動"
 
@@ -1187,9 +1469,6 @@ msgstr "戻る"
 msgid "Export"
 msgstr "書き出す"
 
-msgid "Register"
-msgstr "登録する"
-
 msgid ""
 "Design tokens and components of the business screens. Only administrators "
 "can open this page."
@@ -1227,14 +1506,8 @@ msgstr "番号類は等幅のフォントで表示します:"
 msgid "Buttons"
 msgstr "ボタン"
 
-msgid "Save"
-msgstr "保存する"
-
 msgid "Save and add another"
 msgstr "保存して続けて登録"
-
-msgid "Deactivate"
-msgstr "無効化する"
 
 msgid "Void"
 msgstr "取り消す"
@@ -1270,9 +1543,6 @@ msgstr ""
 
 msgid "Tags and status"
 msgstr "タグと状態"
-
-msgid "Search"
-msgstr "検索"
 
 msgid "Name or residence card number"
 msgstr "氏名または在留カード番号"
@@ -1340,9 +1610,6 @@ msgstr "氏名（漢字）"
 
 msgid "name (native script)"
 msgstr "氏名（母国語）"
-
-msgid "Saved."
-msgstr "保存しました。"
 
 msgid "This residence card number is registered to another foreign worker."
 msgstr "この在留カード番号は別の外国人に登録されています。"
@@ -1453,9 +1720,6 @@ msgstr "工業製品製造業分野"
 
 msgid "food manufacturing field"
 msgstr "飲食料品製造業分野"
-
-msgid "deactivated"
-msgstr "無効化済み"
 
 msgid "fill"
 msgstr "塗り"
@@ -1718,9 +1982,6 @@ msgid "Awaiting receipt: %(counter)s"
 msgid_plural "Awaiting receipt: %(counter)s"
 msgstr[0] "受理待ち %(counter)s件"
 
-msgid "Clear"
-msgstr "条件を消す"
-
 #, python-format
 msgid "%(counter)s task"
 msgid_plural "%(counter)s tasks"
@@ -1760,9 +2021,6 @@ msgstr ""
 
 msgid "Create"
 msgstr "起票する"
-
-msgid "This form has already been submitted."
-msgstr "このフォームはすでに送信されています。"
 
 #, python-format
 msgid "Changed the status to %(status)s."
@@ -1906,9 +2164,6 @@ msgid "+%(counter)s older"
 msgid_plural "+%(counter)s older"
 msgstr[0] "ほか古い%(counter)s件"
 
-msgid "Back to list"
-msgstr "一覧へ戻る"
-
 msgid "Open in management site"
 msgstr "管理画面で開く"
 
@@ -1929,9 +2184,6 @@ msgstr "添付"
 
 msgid "no end date"
 msgstr "期限なし"
-
-msgid "Not registered."
-msgstr "未登録"
 
 msgid "Sites and operation categories"
 msgstr "事業所と業務区分"
@@ -2163,9 +2415,6 @@ msgstr "住所"
 msgid "worker addresses"
 msgstr "住所"
 
-msgid "email"
-msgstr "メールアドレス"
-
 msgid "emergency contact name"
 msgstr "緊急連絡先（氏名）"
 
@@ -2223,17 +2472,11 @@ msgstr "同時に変わるもの"
 msgid "residence records to void"
 msgstr "取り消す在留情報"
 
-msgid "None."
-msgstr "なし"
-
 msgid "passports to void"
 msgstr "取り消す旅券"
 
 msgid "filing tasks to cancel"
 msgstr "取消にする届出タスク"
-
-msgid "Edit"
-msgstr "編集"
 
 #, python-format
 msgid ""
@@ -2297,9 +2540,6 @@ msgstr "版の一覧"
 #, python-format
 msgid "Changes from version %(old)s to %(new)s"
 msgstr "第%(old)s版から第%(new)s版への変更"
-
-msgid "item"
-msgstr "項目"
 
 msgid "No changes."
 msgstr "変更はありません。"

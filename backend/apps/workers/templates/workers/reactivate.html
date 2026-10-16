@@ -1,0 +1,20 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Cancel deactivation" %} | {{ worker }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{% url 'workers:detail' worker.pk %}">← {{ worker }}</a></p>
+  <h1>{% translate "Cancel deactivation" %}</h1>
+{% endblock %}
+{% block content %}
+<div class="stack form">
+  <p>{% blocktranslate with reason=worker.deactivation_reason %}Deactivation reason: {{ reason }}{% endblocktranslate %}</p>
+  <p class="message message--warning">{% translate "Residence records, passports and filing tasks that were voided or cancelled when deactivating are not restored. Register them again as new records." %}</p>
+  <form class="form" method="post" novalidate id="reactivate-form">
+    {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+    {% for field in form %}{% form_field field %}{% endfor %}
+    <div class="form-actions">
+      <button class="button button--primary" type="submit">{% translate "Cancel deactivation" %}</button>
+      <a class="button button--neutral" href="{% url 'workers:detail' worker.pk %}">{% translate "Cancel" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

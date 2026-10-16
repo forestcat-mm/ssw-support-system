@@ -131,3 +131,12 @@ def category_label(category: Any, today: date) -> str:
         return str(category.name)
     note = _("not in effect")
     return f"{category.name}（{note}）"
+
+
+@register.filter
+def model_label(content_type: Any) -> str:
+    """監査ログの対象の種類（モデルの表示名）。"""
+    if content_type is None:
+        return "—"
+    model = content_type.model_class()
+    return str(model._meta.verbose_name) if model is not None else str(content_type.model)

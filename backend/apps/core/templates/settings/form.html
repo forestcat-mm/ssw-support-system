@@ -1,0 +1,16 @@
+{% extends "settings/base.html" %}{% load i18n ui %}
+{% block settings_content %}
+<p class="caption"><a href="{{ back }}">← {% translate "Back to list" %}</a></p>
+<form class="form" method="post" novalidate{% if multipart %} enctype="multipart/form-data"{% endif %} id="settings-form">
+  {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+  <section class="card stack">
+    <h2>{{ title }}</h2>
+    {% include "ui/components/form_errors.html" %}
+    {% for field in form %}{% form_field field %}{% endfor %}
+  </section>
+  <div class="form-actions">
+    <button class="button button--primary" type="submit">{% translate "Save" %}</button>
+    <a class="button button--neutral" href="{{ back }}">{% translate "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

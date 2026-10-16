@@ -1,0 +1,27 @@
+{% extends "settings/base.html" %}{% load i18n ui %}
+{% block settings_content %}
+<p class="muted">{% translate "Information about the own organization (registered support organization). The registration expiry date is used for the renewal task on the dashboard." %}</p>
+{% if organization %}
+<div class="grid-2">
+  <section class="card" id="organization">
+    <div class="card__header"><h2 class="card__title">{{ organization.name }}</h2><a class="button button--neutral button--small" href="{% url 'settings:organization_edit' %}">{% translate "Edit" %}</a></div>
+    <dl class="fields">
+      <dt>{% translate "registration number" %}</dt><dd class="mono">{{ organization.registration_number }}</dd>
+      <dt>{% translate "registration expiry date" %}</dt><dd class="mono">{{ organization.registration_expires_on|date:"Y-m-d" }}</dd>
+      <dt>{% translate "address" %}</dt><dd>〒{{ organization.postal_code }} {{ organization.address }}</dd>
+      <dt>{% translate "joined the food industry council on" %}</dt><dd class="mono">{{ organization.food_council_joined_on|date:"Y-m-d"|default:"—" }}</dd>
+    </dl>
+  </section>
+  <section class="card" id="certificates">
+    <div class="card__header"><h2 class="card__title">{% translate "Membership certificate" %}</h2><a class="button button--neutral button--small" href="{% url 'settings:organization_certificate' %}">{% translate "Replace" %}</a></div>
+    {% if certificates %}
+    <ul>{% for certificate in certificates %}
+      <li{% if not forloop.first %} class="muted"{% endif %}><a href="{% url 'attachment_download' certificate.pk %}">{{ certificate.original_filename }}</a> <span class="caption">{% translate "uploaded on" %} {{ certificate.created_at|date:"Y-m-d" }}{% if certificate.valid_until %} · {% translate "valid until" %} {{ certificate.valid_until|date:"Y-m-d" }}{% endif %}{% if not forloop.first %} · {% translate "old" %}{% endif %}</span></li>
+    {% endfor %}</ul>
+    {% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}
+  </section>
+</div>
+{% else %}
+<div class="card"><div class="empty">{% translate "The own organization is not registered yet." %} <a href="{% url 'settings:organization_edit' %}">{% translate "Register" %}</a></div></div>
+{% endif %}
+{% endblock %}

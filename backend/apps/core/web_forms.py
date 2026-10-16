@@ -26,8 +26,10 @@ class StyledFormMixin:
                 css = "select"
             elif isinstance(widget, forms.Textarea):
                 css = "textarea"
-            elif isinstance(widget, forms.CheckboxInput):
-                continue
+            elif isinstance(
+                widget, (forms.CheckboxInput, forms.RadioSelect, forms.ClearableFileInput)
+            ):
+                continue  # チェックボックス・ラジオ・ファイルはブラウザの見た目のまま
             else:
                 css = "input"
             widget.attrs["class"] = " ".join(filter(None, [widget.attrs.get("class"), css]))

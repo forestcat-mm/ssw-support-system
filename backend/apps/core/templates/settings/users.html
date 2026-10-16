@@ -1,0 +1,26 @@
+{% extends "settings/base.html" %}{% load i18n %}
+{% block settings_content %}
+<div class="page-header" style="margin-bottom: 0">
+  <p class="muted page-header__title">{% translate "People who can sign in to this system. Invite new staff here; they set their own password from the invitation email. Users are never deleted: deactivate them when they leave." %}</p>
+  <div class="page-header__actions"><a class="button button--primary" href="{% url 'settings:user_invite' %}">{% translate "Invite a user" %}</a></div>
+</div>
+<div class="table-wrap">
+  <table class="table table--list" id="users">
+    <thead><tr>
+      <th>{% translate "username" %}</th><th>{% translate "full name" %}</th><th>{% translate "roles" %}</th>
+      <th>{% translate "linked staff member" %}</th><th>{% translate "two-factor authentication" %}</th>
+      <th>{% translate "invitation" %}</th><th>{% translate "status" %}</th>
+    </tr></thead>
+    <tbody>{% for row in rows %}
+      <tr data-user="{{ row.user.pk }}"{% if not row.user.is_active %} class="is-voided"{% endif %}>
+        <td><a href="{% url 'settings:user' row.user.pk %}">{{ row.user.username }}</a></td>
+        <td>{{ row.user.last_name }} {{ row.user.first_name }}</td>
+        <td>{{ row.roles|join:"、"|default:"—" }}</td>
+        <td>{{ row.staff.name|default:"—" }}</td>
+        <td>{% if row.has_mfa %}{% translate "set up" %}{% else %}<span class="muted">{% translate "not set up" %}</span>{% endif %}</td>
+        <td>{{ row.invitation_label }}</td>
+        <td>{% if not row.user.is_active %}<span class="status status--deactivated">{% translate "deactivated" %}</span>{% elif row.locked %}<span class="badge badge--overdue">{% translate "locked" %}</span>{% else %}<span class="status">{% translate "active" %}</span>{% endif %}</td>
+      </tr>{% endfor %}</tbody>
+  </table>
+</div>
+{% endblock %}

@@ -20,6 +20,22 @@ from services.organization import organization_display_name
 # 権限は変えないので、権限のある人は直接の URL で開ける（README の「開発者向け」）。
 HIDDEN_APPS = frozenset({"axes", "django_q", "seed"})
 
+# 業務画面に移した項目もメニューから隠す（T15b。設定画面・外国人台帳・ダッシュボードで扱う）。
+# 受入れ機関・雇用契約は業務画面がまだ閲覧だけなので、段階2の画面ができるまでメニューに残す。
+HIDDEN_MODELS = frozenset(
+    {
+        ("core", "user"),
+        ("core", "role"),
+        ("core", "staff"),
+        ("core", "office"),
+        ("core", "organization"),
+        ("core", "auditlog"),
+        ("core", "attachment"),
+        ("workers", "foreignworker"),
+        ("filings", "filing"),
+    }
+)
+
 
 class SupportAdminSite(admin.AdminSite):
     site_header = _("Support organization management")
@@ -36,8 +52,21 @@ class SupportAdminSite(admin.AdminSite):
 
     def get_app_list(self, request: HttpRequest, app_label: str | None = None) -> list[Any]:
         """開発者向けの項目をメニューから隠す（直接の URL は今までどおり開ける）。"""
-        apps = super().get_app_list(request, app_label)
-        return [app for app in apps if app["app_label"] not in HIDDEN_APPS]
+        result = []
+        for app in super().get_app_list(request, app_label):
+            if app["app_label"] in HIDDEN_APPS:
+                continue
+            app["models"] = [
+                model
+                for model in app["models"]
+                if (app["app_label"], model["object_name"].lower()) not in HIDDEN_MODELS
+            ]
+            if not app["models"]:
+                continue
+            if app["app_label"] == "core":
+                app["name"] = _("Masters (countries and support languages)")
+            result.append(app)
+        return result
 
     def has_permission(self, request: HttpRequest) -> bool:
         user = request.user

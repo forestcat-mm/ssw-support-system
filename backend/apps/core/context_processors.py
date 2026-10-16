@@ -25,6 +25,7 @@ NAV_ITEMS: tuple[NavItem, ...] = (
     NavItem(_("Dashboard"), "home", Action.FILINGS_VIEW, ("home", "filings:")),
     NavItem(_("Foreign workers"), "workers:list", Action.WORKERS_VIEW, "workers:"),
     NavItem(_("Host organizations"), "hosts:list", Action.HOSTS_VIEW, "hosts:"),
+    NavItem(_("Settings"), "settings:index", Action.USERS_MANAGE, "settings:"),
     NavItem(_("Management site"), "admin:index", Action.USERS_MANAGE, "admin:index"),
     NavItem(_("UI components"), "ui_showcase", Action.SYSTEM_MANAGE, "ui_showcase"),
 )

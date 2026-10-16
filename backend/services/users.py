@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.sessions.models import Session
 from django.db import transaction
@@ -69,3 +70,28 @@ def delete_sessions_of(user: User) -> int:
             session.delete()
             deleted += 1
     return deleted
+
+
+# --- ロック（django-axes）。設定画面のユーザー一覧と「ロック解除」（T15b） ---------------------
+
+
+def locked_usernames() -> set[str]:
+    """ログインの失敗が上限に達し、まだロックが続いているユーザー名。"""
+    from axes.models import AccessAttempt
+
+    since = timezone.now() - settings.AXES_COOLOFF_TIME
+    return set(
+        AccessAttempt.objects.filter(
+            failures_since_start__gte=settings.AXES_FAILURE_LIMIT, attempt_time__gte=since
+        ).values_list("username", flat=True)
+    )
+
+
+def unlock_user(user: User, *, by: User | None) -> int:
+    """ロックを解除する（そのユーザー名の失敗の記録を消す）。監査ログに「ロック解除」を残す。"""
+    from axes.utils import reset
+
+    with audit.event(AuditAction.UNLOCK, target=user, actor=by) as event:
+        removed = int(reset(username=user.get_username()))
+        event.context["removed_attempts"] = removed
+    return removed

@@ -447,6 +447,8 @@ class AuditAction(models.TextChoices):
     REACTIVATE = "reactivate", _("reactivate user")
     WORKER_DEACTIVATE = "worker_deactivate", _("deactivate foreign worker")
     WORKER_REACTIVATE = "worker_reactivate", _("cancel deactivation of foreign worker")
+    UNLOCK = "unlock", _("unlock sign-in")
+    AUDIT_VIEW = "audit_view", _("view audit logs")
     MFA_RESET = "mfa_reset", _("reset two-factor authentication")
     MFA_ENROLL = "mfa_enroll", _("set up two-factor authentication")
     RECOVERY_CODES_REGENERATE = "recovery_codes_regenerate", _("regenerate recovery codes")
