@@ -1,13 +1,16 @@
 """ログイン・多要素認証の画面。判定・検証は services に置き、ここは入出力だけを扱う。"""
 
+from __future__ import annotations
+
 from typing import Any
 from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import logout
+from django.contrib.auth import login, logout
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.signals import user_login_failed
 from django.http import HttpRequest, HttpResponse, HttpResponseBase
 from django.shortcuts import redirect, render
@@ -21,7 +24,7 @@ from django_otp import login as otp_login
 from apps.core.forms import SecondFactorForm, TokenForm
 from apps.core.middleware import mfa_exempt
 from apps.core.models import RecoveryCodeDevice, User
-from services import mfa
+from services import invitations, mfa
 
 NEW_RECOVERY_CODES_SESSION_KEY = "new_recovery_codes"
 
@@ -152,3 +155,43 @@ class RecoveryCodesView(View):
     def post(self, request: HttpRequest) -> HttpResponse:
         request.session[NEW_RECOVERY_CODES_SESSION_KEY] = mfa.issue_recovery_codes(_user(request))
         return redirect("accounts:recovery_codes")
+
+
+@mfa_exempt
+class InvitationAcceptView(View):
+    """招待リンク。パスワードを設定させてログインし、TOTP の設定へ進める。"""
+
+    template_name = "accounts/invitation_accept.html"
+
+    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponseBase:
+        invitation = invitations.find_valid_invitation(kwargs["token"])
+        if invitation is None:
+            return render(request, "accounts/invitation_invalid.html", status=400)
+        if request.user.is_authenticated:
+            logout(request)
+        self.invitation = invitation
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request: HttpRequest, token: str) -> HttpResponse:
+        return self._render(request, SetPasswordForm(self.invitation.user))
+
+    def post(self, request: HttpRequest, token: str) -> HttpResponse:
+        form = SetPasswordForm(self.invitation.user, request.POST)
+        if form.is_valid():
+            user = invitations.accept_invitation(
+                self.invitation, form.cleaned_data["new_password1"]
+            )
+            login(request, user, backend="apps.core.backends.RoleBackend")
+            return redirect("accounts:mfa_setup")
+        return self._render(request, form)
+
+    def _render(self, request: HttpRequest, form: SetPasswordForm[User]) -> HttpResponse:
+        context = {"form": form, "invited_user": self.invitation.user}
+        return render(request, self.template_name, context)
+
+
+def invitation_url_builder(request: HttpRequest) -> invitations.UrlBuilder:
+    def build(token: str) -> str:
+        return request.build_absolute_uri(reverse("accounts:invitation_accept", args=[token]))
+
+    return build

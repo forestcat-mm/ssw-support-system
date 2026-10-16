@@ -1,0 +1,5 @@
+{% extends "accounts/base.html" %}{% load i18n %}
+{% block content %}
+<h1>{% translate "This invitation link cannot be used" %}</h1>
+<p>{% translate "The link has expired, has already been used, or has been replaced by a newer invitation. Ask an administrator to send the invitation again." %}</p>
+{% endblock %}

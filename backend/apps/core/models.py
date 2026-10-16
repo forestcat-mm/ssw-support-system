@@ -359,3 +359,26 @@ class RecoveryCode(models.Model):
 
     def __str__(self) -> str:
         return f"{self.device}: {'used' if self.used_at else 'unused'}"
+
+
+class Invitation(TrackedModel):
+    """招待（第7章「招待状態」）。
+
+    トークンは SHA-256 だけを保存し、平文はメールの URL にだけ載せる。
+    """
+
+    user = models.ForeignKey(
+        User, verbose_name=_("user"), on_delete=models.PROTECT, related_name="invitations"
+    )
+    token_hash = models.CharField(max_length=64, unique=True, editable=False)
+    expires_at = models.DateTimeField(_("expires at"))
+    accepted_at = models.DateTimeField(_("accepted at"), null=True, blank=True)
+    revoked_at = models.DateTimeField(_("revoked at"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("invitation")
+        verbose_name_plural = _("invitations")
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.user}: {self.created_at:%Y-%m-%d %H:%M}"

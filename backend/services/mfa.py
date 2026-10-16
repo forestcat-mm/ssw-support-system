@@ -13,10 +13,8 @@ from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.core.models import RecoveryCode, RecoveryCodeDevice, User
 from services import recovery_codes
-from services.organization import OrganizationNotConfiguredError, get_organization
+from services.organization import organization_display_name
 from services.users import delete_sessions_of
-
-DEFAULT_ISSUER = "SSW Support"
 
 
 def has_confirmed_totp(user: User) -> bool:
@@ -37,10 +35,7 @@ def pending_totp_device(user: User) -> TOTPDevice:
 
 
 def totp_issuer() -> str:
-    try:
-        return get_organization().name
-    except OrganizationNotConfiguredError:
-        return DEFAULT_ISSUER
+    return organization_display_name()
 
 
 def totp_secret(device: TOTPDevice) -> str:

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 14:49+0900\n"
+"POT-Creation-Date: 2026-10-16 14:54+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -21,6 +21,22 @@ msgstr "個人情報"
 msgid "Status"
 msgstr "状態"
 
+#, python-format
+msgid "An invitation email was sent to %(email)s."
+msgstr "%(email)s に招待メールを送信しました。"
+
+msgid "invitation"
+msgstr "招待"
+
+msgid "pending"
+msgstr "招待中"
+
+msgid "expired"
+msgstr "期限切れ"
+
+msgid "accepted"
+msgstr "受諾済み"
+
 msgid "roles"
 msgstr "ロール"
 
@@ -33,6 +49,13 @@ msgstr "%(user)s は最後の有効な管理者のため無効化できません
 
 msgid "Reactivate selected users"
 msgstr "選択したユーザーを再有効化"
+
+msgid "Resend invitation to selected users"
+msgstr "選択したユーザーに招待を再送"
+
+#, python-format
+msgid "Invitations sent: %(count)d"
+msgstr "招待を送信しました: %(count)d 件"
 
 msgid "Reset two-factor authentication of selected users"
 msgstr "選択したユーザーの多要素認証をリセット"
@@ -51,6 +74,15 @@ msgstr "6 桁のコード"
 
 msgid "6-digit code or recovery code"
 msgstr "6 桁のコード または 回復用コード"
+
+msgid "staff member"
+msgstr "支援責任者・支援担当者"
+
+msgid "Link this user to a staff member who has no login yet (optional)."
+msgstr "まだログインユーザーがない支援責任者・支援担当者に紐づけます（任意）。"
+
+msgid "A user with this email address already exists."
+msgstr "このメールアドレスのユーザーはすでに登録されています。"
 
 msgid "deactivated at"
 msgstr "無効化日時"
@@ -193,9 +225,6 @@ msgstr "対応言語"
 msgid "login user"
 msgstr "ログインユーザー"
 
-msgid "staff member"
-msgstr "支援責任者・支援担当者"
-
 msgid "staff members"
 msgstr "支援責任者・支援担当者"
 
@@ -253,6 +282,64 @@ msgstr "回復用コード"
 msgid "recovery codes"
 msgstr "回復用コード"
 
+msgid "expires at"
+msgstr "有効期限"
+
+msgid "accepted at"
+msgstr "受諾日時"
+
+msgid "revoked at"
+msgstr "取消日時"
+
+msgid "invitations"
+msgstr "招待"
+
+#, python-format
+msgid ""
+"Hello %(name)s,\n"
+"\n"
+"You have been invited to the %(organization_name)s management system.\n"
+"Open the link below to set your password. You will then set up two-factor "
+"authentication with an authenticator app."
+msgstr ""
+"%(name)s 様\n"
+"\n"
+"%(organization_name)s の業務管理システムに招待されました。\n"
+"下のリンクを開いてパスワードを設定してください。続けて、認証アプリによる多要"
+"素認証を設定します。"
+
+#, python-format
+msgid ""
+"Your username: %(username)s\n"
+"This link can be used once and expires at %(expires)s (Japan time)."
+msgstr ""
+"ユーザー名: %(username)s\n"
+"このリンクは 1 回だけ使え、%(expires)s（日本時間）まで有効です。"
+
+#, python-format
+msgid "[%(organization_name)s] Invitation to the management system"
+msgstr "【%(organization_name)s】業務管理システムへの招待"
+
+msgid "Set your password"
+msgstr "パスワードの設定"
+
+#, python-format
+msgid "Username: %(username)s"
+msgstr "ユーザー名: %(username)s"
+
+msgid "Next"
+msgstr "次へ"
+
+msgid "This invitation link cannot be used"
+msgstr "この招待リンクは使えません"
+
+msgid ""
+"The link has expired, has already been used, or has been replaced by a newer "
+"invitation. Ask an administrator to send the invitation again."
+msgstr ""
+"リンクの有効期限が切れたか、すでに使われたか、新しい招待に置き換えられていま"
+"す。管理者に招待の再送を依頼してください。"
+
 msgid "Account temporarily locked"
 msgstr "アカウントを一時的にロックしました"
 
@@ -269,9 +356,6 @@ msgstr "ログイン画面に戻る"
 
 msgid "Sign in"
 msgstr "ログイン"
-
-msgid "Next"
-msgstr "次へ"
 
 msgid "Set up two-factor authentication"
 msgstr "多要素認証の設定"

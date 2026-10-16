@@ -1,0 +1,10 @@
+{% load i18n tz %}{% autoescape off %}{% blocktranslate %}Hello {{ name }},
+
+You have been invited to the {{ organization_name }} management system.
+Open the link below to set your password. You will then set up two-factor authentication with an authenticator app.{% endblocktranslate %}
+
+{{ url }}
+
+{% blocktranslate with expires=expires_at|localtime|date:"Y-m-d H:i" username=user.username %}Your username: {{ username }}
+This link can be used once and expires at {{ expires }} (Japan time).{% endblocktranslate %}
+{% endautoescape %}

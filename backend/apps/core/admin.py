@@ -12,11 +12,14 @@ from django.utils.translation import gettext_lazy as _
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from services.attachments import fill_file_metadata, validate_upload
+from services.invitations import InvitationStatus, invitation_status, invite_user, resend_invitation
 from services.mfa import reset_mfa
 from services.users import LastAdminError, deactivate_user, reactivate_user
 
+from .forms import InvitationForm
 from .models import (
     Attachment,
+    Invitation,
     Office,
     Organization,
     Role,
@@ -27,6 +30,7 @@ from .models import (
     User,
     UserRole,
 )
+from .views import invitation_url_builder
 
 TRACKED_READONLY_FIELDS = ("created_at", "created_by", "updated_at", "updated_by")
 
@@ -63,6 +67,23 @@ admin.site.unregister(Group)  # Django 標準のグループは使わない（�
 admin.site.unregister(TOTPDevice)  # 端末の直接編集はさせない（MFA リセットのアクションで行う）
 
 
+class InvitationInline(admin.TabularInline[Invitation, User]):
+    """招待の履歴（参照のみ）。"""
+
+    model = Invitation
+    fk_name = "user"
+    extra = 0
+    can_delete = False
+    fields = ("created_at", "created_by", "expires_at", "accepted_at", "revoked_at")
+    readonly_fields = fields
+
+    def has_add_permission(self, request: HttpRequest, obj: Any = None) -> bool:
+        return False
+
+    def has_change_permission(self, request: HttpRequest, obj: Any = None) -> bool:
+        return False
+
+
 class UserRoleInline(admin.TabularInline[UserRole, User]):
     model = UserRole
     fk_name = "user"
@@ -74,7 +95,15 @@ class UserRoleInline(admin.TabularInline[UserRole, User]):
 class UserAdmin(TrackedModelAdmin[User], DjangoUserAdmin[User]):
     """ユーザーは削除しない。is_active は無効化・再有効化のアクションでだけ変える。"""
 
-    list_display = ("username", "email", "last_name", "first_name", "is_active", "role_names")
+    list_display = (
+        "username",
+        "email",
+        "last_name",
+        "first_name",
+        "is_active",
+        "role_names",
+        "invitation",
+    )
     list_filter = ("is_active", "user_roles__role")
     fieldsets = (
         (None, {"fields": ("username", "password")}),
@@ -93,11 +122,40 @@ class UserAdmin(TrackedModelAdmin[User], DjangoUserAdmin[User]):
         ),
     )
     readonly_fields = ("is_active", "deactivated_at", "deactivated_by", "last_login", "date_joined")
-    inlines = [UserRoleInline]
-    actions = ["deactivate", "reactivate", "reset_mfa"]
+    inlines = [UserRoleInline, InvitationInline]
+    actions = ["deactivate", "reactivate", "reset_mfa", "resend_invitation"]
+    # 追加はパスワードを入力させず招待メールで行う
+    add_form = InvitationForm
+    add_fieldsets = (
+        (None, {"fields": ("username", "email", "last_name", "first_name", "roles", "staff")}),
+    )
 
     def get_inlines(self, request: HttpRequest, obj: User | None) -> list[Any]:
         return [] if obj is None else list(self.inlines)
+
+    def save_model(self, request: HttpRequest, obj: User, form: Any, change: bool) -> None:
+        if change:
+            super().save_model(request, obj, form, change)
+            return
+        invite_user(
+            obj,
+            roles=form.cleaned_data["roles"],
+            staff=form.cleaned_data["staff"],
+            by=request.user if isinstance(request.user, User) else None,
+            build_url=invitation_url_builder(request),
+        )
+        self.message_user(
+            request, _("An invitation email was sent to %(email)s.") % {"email": obj.email}
+        )
+
+    @admin.display(description=_("invitation"))
+    def invitation(self, obj: User) -> str:
+        return {
+            InvitationStatus.NONE: "-",
+            InvitationStatus.PENDING: str(_("pending")),
+            InvitationStatus.EXPIRED: str(_("expired")),
+            InvitationStatus.ACCEPTED: str(_("accepted")),
+        }[invitation_status(obj)]
 
     @admin.display(description=_("roles"))
     def role_names(self, obj: User) -> str:
@@ -128,6 +186,19 @@ class UserAdmin(TrackedModelAdmin[User], DjangoUserAdmin[User]):
         actor = request.user if isinstance(request.user, User) else None
         for user in queryset.filter(is_active=False):
             reactivate_user(user, by=actor)
+
+    @admin.action(description=_("Resend invitation to selected users"))
+    def resend_invitation(self, request: HttpRequest, queryset: QuerySet[User]) -> None:
+        """パスワード未設定（未受諾）の有効なユーザーにだけ送り直す。古いリンクは無効になる。"""
+        actor = request.user if isinstance(request.user, User) else None
+        build_url = invitation_url_builder(request)
+        sent = 0
+        for user in queryset.filter(is_active=True):
+            if user.has_usable_password():
+                continue
+            resend_invitation(user, by=actor, build_url=build_url)
+            sent += 1
+        self.message_user(request, _("Invitations sent: %(count)d") % {"count": sent})
 
     @admin.action(description=_("Reset two-factor authentication of selected users"))
     def reset_mfa(self, request: HttpRequest, queryset: QuerySet[User]) -> None:

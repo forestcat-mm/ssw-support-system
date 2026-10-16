@@ -8,6 +8,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.core.models import Role, User, UserRole
+from services.invitations import revoke_pending_invitations
 
 ADMIN_ROLE_CODE = "admin"
 SUPPORT_STAFF_ROLE_CODE = "support_staff"
@@ -46,6 +47,7 @@ def deactivate_user(user: User, *, by: User | None) -> None:
     user.deactivated_by = by
     user.save(update_fields=["is_active", "deactivated_at", "deactivated_by"])
     delete_sessions_of(user)
+    revoke_pending_invitations(user)
     # TODO(T05): 監査ログに「ユーザー無効化」（対象・実行者）を記録する
 
 
