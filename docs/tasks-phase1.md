@@ -7,9 +7,9 @@
 |---|---|---|---|
 | T01 | Django プロジェクト + Docker Compose（web / db / redis / mailpit）+ `.env.example` + Makefile | 第10章 | `make up` → admin にログインできる |
 | T02 | ruff / mypy / pytest の設定と空テスト、`make lint` `make test` | 第10章 | 両方グリーン |
-| T03 | `core`: Organization（1行）, Office, Staff, 設定テーブル（自社名・登録番号・支援言語選択肢） | 第7章 | admin で登録できる。Organization は1行制約 |
-| T04 | `core`: User / UserRole（管理者・支援担当者）、TOTP 多要素認証、招待・無効化 | 第4章, 第8章 | 2 ロールでログイン・権限差を確認 |
-| T05 | `core`: AuditLog（閲覧・作成・更新・削除・エクスポートを記録するミドルウェア＋ヘルパ） | 第8章 | 外国人詳細の閲覧がログに残る |
+| T03 | `core`: カスタム User（AbstractUser のみ）, 共通列（作成/更新日時・者）, Organization（1行。自社名・登録番号・ロゴ・食品協議会加入日）, Office, Staff, SupportLanguage（支援言語選択肢）, Attachment（django-storages 経由、種別ごとの拡張子・サイズ制限）、UI 文言の ja リソース | 第6章, 第7章, 第9章 | admin で登録できる。Organization は1行制約 |
+| T04 | `core`: User（T03 で作成済み）の拡張、UserRole（管理者・支援担当者。行で追加できる構造）、TOTP 多要素認証、招待・無効化（ユーザーは削除せず `is_active` で無効化。作成者・更新者の参照が PROTECT のため） | 第4章, 第8章 | 2 ロールでログイン・権限差を確認 |
+| T05 | `core`: AuditLog（閲覧・作成・更新・削除・エクスポートを記録するミドルウェア＋ヘルパ）、添付ファイルのダウンロードビュー（認可・監査付き。公開 URL は作らない） | 第8章 | 外国人詳細の閲覧・添付のダウンロードがログに残る |
 | T06 | 暗号化フィールド（在留カード番号・パスポート番号・口座）。鍵は環境変数 | 第8章 | DB 直接参照で平文が見えない |
 | T07 | `workers`: ForeignWorker, ResidenceRecord（履歴）, WorkerAddress / Contact（履歴）、「最新行」ビュー | 第7章 | 在留期限を更新すると新行が増え、最新が一覧に出る |
 | T08 | `hosts`: HostOrganization, HostSite（産業分類コード・分野・登録法人/協議会加入日・証明書添付）, SupportContract | 第6章「上乗せ要件」, 第7章 | 2社・各1事業所を登録できる |
@@ -31,8 +31,9 @@
   - W018 `DJANGO_DEBUG=false`
   - W009 本番の `DJANGO_SECRET_KEY` を生成値にする（手元でダミー値のまま起動すると出る）
 - [ ] 本番イメージは `uv sync --frozen --no-dev` でビルドし、ruff / mypy / pytest などの開発用依存を入れない
+- [ ] ファイル保存を S3 互換ストレージにする（`DJANGO_STORAGE_BACKEND=storages.backends.s3.S3Storage` と `DJANGO_STORAGE_OPTIONS`。非公開バケット・署名付き URL・上書き禁止を実ストレージで確認）
 - [ ] 本番の DB はアプリ専用ユーザー（スーパーユーザー権限・CREATEDB なし）で接続する。テスト用 DB の作成権限は開発環境だけにする
-- 完了条件: 本番用の環境変数で `check --deploy` の警告が 0 件。本番イメージに開発用依存が無く、アプリの DB ユーザーが SUPERUSER / CREATEDB を持たない
+- 完了条件: 本番用の環境変数で `check --deploy` の警告が 0 件。本番イメージに開発用依存が無く、アプリの DB ユーザーが SUPERUSER / CREATEDB を持たない。添付のアップロード・ダウンロードが S3 互換ストレージで動く
 
 ## 段階2 以降の見出し（詳細は着手時に分解）
 - 段階2: SupportPlan / SupportPlanItem / SupportRecord（面談は本人用・上司用で別行）、相談記録の分類、証跡添付、キャリアアッププラン・実務経験証明書の交付記録

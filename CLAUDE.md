@@ -79,4 +79,5 @@ make seed      # python manage.py seed_dummy  （外国人30人・受入れ機�
 make test      # pytest
 make lint      # ruff check . && ruff format --check . && mypy .
 make format    # ruff format . && ruff check --fix .
+make messages  # UI 文言の抽出とコンパイル（.po と .mo の両方をコミット）
 ```
