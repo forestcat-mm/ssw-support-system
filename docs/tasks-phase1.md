@@ -49,5 +49,6 @@
 
 ## 段階2 以降の見出し（詳細は着手時に分解）
 - 段階2: SupportPlan / SupportPlanItem / SupportRecord（面談は本人用・上司用で別行）、相談記録の分類、証跡添付、キャリアアッププラン・実務経験証明書の交付記録
+  - 外国人詳細の履歴タブに、行ごとの「全桁を表示」を足す（過去の在留カード番号・旅券番号を入管照会や過去書類との突き合わせで使うため。押したときだけ復号し、監査ログに 1 件残す。置き場は `workers/components/history_row.html` の `data-number-actions`）
 - 段階3: forms_engine（FormTemplate / FormMapping / GeneratedDocument）、Word→PDF 変換サービス、支援計画書・事前ガイダンス確認書（日中2言語）、生成前バリデーション
 - 段階4: 一括申請用 Excel / 一括届出用 Excel のマッピング定義と生成、分野別添付セット（分野参考様式第3-1号 / 第13-1号 / 第13-2号）
