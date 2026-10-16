@@ -1,0 +1,28 @@
+# 秘密情報
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Django
+/media/
+/staticfiles/
+*.sqlite3
+
+# 生成物・個人情報を含みうるファイル
+/output/
+/generated/
+*.dump
+*.sql.gz
+
+# OS / エディタ
+.DS_Store
+.idea/
+.vscode/
