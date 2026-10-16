@@ -6,12 +6,12 @@ from typing import Any
 
 from django.contrib import admin
 from django.contrib.admin.views.main import ChangeList
-from django.db.models import Model, QuerySet
+from django.db.models import DateTimeField, Model, QuerySet
 from django.http import HttpRequest, QueryDict
 
 
 class DateRangeFilter(admin.FieldListFilter):
-    """日時の列を開始日・終了日（両端を含む、Asia/Tokyo の日付）で絞り込む。"""
+    """日付・日時の列を開始日・終了日（両端を含む。日時は Asia/Tokyo の日付）で絞り込む。"""
 
     template = "admin/core/date_range_filter.html"
 
@@ -24,8 +24,9 @@ class DateRangeFilter(admin.FieldListFilter):
         model_admin: admin.ModelAdmin[Any],
         field_path: str,
     ) -> None:
-        self.lookup_since = f"{field_path}__date__gte"
-        self.lookup_until = f"{field_path}__date__lte"
+        date_path = f"{field_path}__date" if isinstance(field, DateTimeField) else field_path
+        self.lookup_since = f"{date_path}__gte"
+        self.lookup_until = f"{date_path}__lte"
         super().__init__(field, request, params, model, model_admin, field_path)
 
     def expected_parameters(self) -> list[str | None]:

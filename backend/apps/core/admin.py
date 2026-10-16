@@ -26,6 +26,7 @@ from .forms import InvitationForm
 from .models import (
     Attachment,
     AuditLog,
+    Country,
     Invitation,
     Office,
     Organization,
@@ -362,6 +363,17 @@ class OfficeAdmin(TrackedModelAdmin[Office]):
 class SupportLanguageAdmin(TrackedModelAdmin[SupportLanguage]):
     list_display = ("name", "code", "sort_order", "is_active")
     readonly_fields = TRACKED_READONLY_FIELDS
+
+
+@admin.register(Country)
+class CountryAdmin(TrackedModelAdmin[Country]):
+    list_display = ("name", "code", "sort_order", "is_active")
+    list_editable = ("sort_order", "is_active")
+    search_fields = ("name", "code")
+    readonly_fields = TRACKED_READONLY_FIELDS
+
+    def has_delete_permission(self, request: HttpRequest, obj: Country | None = None) -> bool:
+        return False
 
 
 @admin.register(Staff)

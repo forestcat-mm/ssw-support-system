@@ -37,8 +37,11 @@ def _labels(model: type[Model]) -> list[Promise]:
     return [label for label in labels if isinstance(label, Promise)]
 
 
-@pytest.mark.parametrize("model", list(apps.get_app_config("core").get_models()), ids=str)
-def test_core_labels_are_translated(model: type[Model]) -> None:
+APP_MODELS = [m for m in apps.get_models() if m.__module__.startswith("apps.") and m._meta.managed]
+
+
+@pytest.mark.parametrize("model", APP_MODELS, ids=str)
+def test_app_labels_are_translated(model: type[Model]) -> None:
     with translation.override("ja"):
         untranslated = [str(label) for label in _labels(model) if str(label).isascii()]
     assert untranslated == [], "locale/ja の .po に訳を追加して make messages を実行する"

@@ -182,6 +182,23 @@ class SupportLanguage(TrackedModel):
         return self.name
 
 
+class Country(TrackedModel):
+    """国・地域のマスタ（国籍・旅券の発行国）。帳票で国名を使うため、名称は入管様式の表記に合わせる。"""
+
+    code = models.CharField(_("ISO code"), max_length=2, unique=True)
+    name = models.CharField(_("name"), max_length=50)
+    sort_order = models.PositiveSmallIntegerField(_("sort order"), default=100)
+    is_active = models.BooleanField(_("active"), default=True)
+
+    class Meta:
+        verbose_name = _("country or region")
+        verbose_name_plural = _("countries and regions")
+        ordering = ["sort_order", "code"]
+
+    def __str__(self) -> str:
+        return self.name
+
+
 class EmploymentType(models.TextChoices):
     FULL_TIME = "full_time", _("full-time")
     PART_TIME = "part_time", _("part-time")
@@ -250,6 +267,8 @@ class Action(models.TextChoices):
     ORGANIZATION_VIEW = "organization.view", _("view organization, offices and staff")
     ORGANIZATION_MANAGE = "organization.manage", _("edit organization, offices and staff")
     AUDIT_VIEW = "audit.view", _("view audit logs")
+    WORKERS_VIEW = "workers.view", _("view foreign workers")
+    WORKERS_MANAGE = "workers.manage", _("register and update foreign workers")
 
 
 class DataScope(models.TextChoices):

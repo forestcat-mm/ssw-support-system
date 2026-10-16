@@ -55,7 +55,11 @@ class EncryptedCharField(models.TextField):  # type: ignore[type-arg]
         choices_form_class: type[forms.ChoiceField] | None = None,
         **kwargs: Any,
     ) -> forms.Field | None:
-        # TextField の Textarea ではなく、1 行の入力欄（平文の max_length 付き）にする
+        # TextField の Textarea ではなく、1 行の入力欄（平文の max_length 付き）にする。
+        # admin は TextField に AdminTextareaWidget を渡してくるので置き換える
+        widget = kwargs.get("widget")
+        if _is_textarea(widget):
+            kwargs["widget"] = forms.TextInput(attrs={"class": "vTextField"})
         return models.Field.formfield(
             self,
             form_class=form_class or forms.CharField,
@@ -91,3 +95,9 @@ class BlindIndexField(models.CharField):  # type: ignore[type-arg]
         value = crypto.blind_index(getattr(model_instance, self.source))
         setattr(model_instance, self.attname, value)
         return value
+
+
+def _is_textarea(widget: Any) -> bool:
+    if isinstance(widget, type):
+        return issubclass(widget, forms.Textarea)
+    return isinstance(widget, forms.Textarea)

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 17:07+0900\n"
+"POT-Creation-Date: 2026-10-16 17:45+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -201,6 +201,15 @@ msgstr "支援言語"
 msgid "support languages"
 msgstr "支援言語"
 
+msgid "ISO code"
+msgstr "ISO コード"
+
+msgid "country or region"
+msgstr "国・地域"
+
+msgid "countries and regions"
+msgstr "国・地域"
+
 msgid "full-time"
 msgstr "常勤"
 
@@ -257,6 +266,12 @@ msgstr "自機関・事務所・担当者の登録・編集"
 
 msgid "view audit logs"
 msgstr "監査ログの閲覧"
+
+msgid "view foreign workers"
+msgstr "外国人台帳の閲覧"
+
+msgid "register and update foreign workers"
+msgstr "外国人台帳の登録・更新"
 
 msgid "all data"
 msgstr "すべてのデータ"
@@ -522,6 +537,215 @@ msgstr "回復用コードでログインしました。残りは %(count)d 個�
 msgid "The code is incorrect."
 msgstr "コードが正しくありません。"
 
+msgid "void"
+msgstr "取り消す"
+
+msgid "void reason"
+msgstr "取り消しの理由"
+
+msgid "Enter the reason for voiding."
+msgstr "取り消しの理由を入力してください。"
+
+msgid ""
+"Name (partial match), or residence card / passport number (exact match)."
+msgstr ""
+"氏名（部分一致）、または在留カード番号・旅券番号（完全一致）で検索します。"
+
+msgid "Profile"
+msgstr "基本情報"
+
+msgid "Support"
+msgstr "支援"
+
+msgid "Record"
+msgstr "記録"
+
+msgid "status of residence"
+msgstr "在留資格"
+
+msgid "period of stay expires on"
+msgstr "在留期限"
+
+msgid "Foreign workers"
+msgstr "外国人台帳"
+
+msgid "confirmed by"
+msgstr "最終確認者"
+
+msgid "confirmed at"
+msgstr "確認日時"
+
+msgid "voided at"
+msgstr "取消日時"
+
+msgid "voided by"
+msgstr "取り消した人"
+
+msgid "male"
+msgstr "男"
+
+msgid "female"
+msgstr "女"
+
+msgid "before entry"
+msgstr "入国前"
+
+msgid "residing"
+msgstr "在留中"
+
+msgid "left job"
+msgstr "離職"
+
+msgid "returned home"
+msgstr "帰国"
+
+msgid "name (romaji)"
+msgstr "氏名（ローマ字）"
+
+msgid "name (kanji)"
+msgstr "氏名（漢字）"
+
+msgid "name (native script)"
+msgstr "氏名（母国語）"
+
+msgid "nationality or region"
+msgstr "国籍・地域"
+
+msgid "date of birth"
+msgstr "生年月日"
+
+msgid "sex"
+msgstr "性別"
+
+msgid "assigned staff"
+msgstr "担当者"
+
+msgid "status"
+msgstr "状態"
+
+msgid "foreign worker"
+msgstr "外国人"
+
+msgid "foreign workers"
+msgstr "外国人"
+
+msgid "Specified Skilled Worker (i)"
+msgstr "特定技能1号"
+
+msgid "Specified Skilled Worker (ii)"
+msgstr "特定技能2号"
+
+msgid "Designated Activities (transition)"
+msgstr "特定活動（移行準備）"
+
+msgid "Technical Intern Training (ii)"
+msgstr "技能実習2号"
+
+msgid "Technical Intern Training (iii)"
+msgstr "技能実習3号"
+
+msgid "Student"
+msgstr "留学"
+
+msgid "Other"
+msgstr "その他"
+
+msgid "Certificate of Eligibility"
+msgstr "在留資格認定証明書交付"
+
+msgid "Change of status of residence"
+msgstr "在留資格変更"
+
+msgid "Extension of period of stay"
+msgstr "在留期間更新"
+
+msgid "Residence card reissue (lost, damaged, etc.)"
+msgstr "在留カード再交付（紛失・汚損等）"
+
+msgid "Change of particulars (new card issued)"
+msgstr "記載事項変更（新カード交付）"
+
+msgid "residence card number"
+msgstr "在留カード番号"
+
+msgid "Leave blank before entry (no residence card yet)."
+msgstr "入国前（在留カード未交付）は空欄にします。"
+
+msgid "permitted on"
+msgstr "許可日"
+
+msgid "For card reissue and change of particulars, enter the issue date."
+msgstr "在留カード再交付・記載事項変更は交付日を入力します。"
+
+msgid "application type"
+msgstr "申請種別"
+
+msgid "residence record"
+msgstr "在留情報"
+
+msgid "residence records"
+msgstr "在留情報"
+
+msgid "This residence card number is registered to another foreign worker."
+msgstr "この在留カード番号は別の外国人に登録されています。"
+
+msgid "passport number"
+msgstr "旅券番号"
+
+msgid "issuing country or region"
+msgstr "発行国・地域"
+
+msgid "issued on"
+msgstr "発行日"
+
+msgid "expires on"
+msgstr "有効期限"
+
+msgid "passport record"
+msgstr "旅券"
+
+msgid "passport records"
+msgstr "旅券"
+
+msgid "This passport number is registered to another foreign worker."
+msgstr "この旅券番号は別の外国人に登録されています。"
+
+msgid "residential address"
+msgstr "住所"
+
+msgid "effective from"
+msgstr "適用開始日"
+
+msgid "worker address"
+msgstr "住所"
+
+msgid "worker addresses"
+msgstr "住所"
+
+msgid "email"
+msgstr "メールアドレス"
+
+msgid "emergency contact name"
+msgstr "緊急連絡先（氏名）"
+
+msgid "emergency contact relationship"
+msgstr "緊急連絡先（続柄）"
+
+msgid "emergency contact phone"
+msgstr "緊急連絡先（電話番号）"
+
+msgid "home country address"
+msgstr "母国の住所"
+
+msgid "home country phone"
+msgstr "母国の電話番号"
+
+msgid "contact"
+msgstr "連絡先"
+
+msgid "contacts"
+msgstr "連絡先"
+
 #, python-format
 msgid "File type “.%(ext)s” is not allowed. Allowed types: %(allowed)s."
 msgstr "「.%(ext)s」のファイルは登録できません。登録できる種類: %(allowed)s"
@@ -533,3 +757,27 @@ msgstr "ファイルが大きすぎます（%(size)s）。上限は %(max)s で�
 #, python-format
 msgid "File contents do not match the “.%(ext)s” extension."
 msgstr "ファイルの中身が拡張子「.%(ext)s」と一致しません。"
+
+msgid "Enter a passport number of 6 to 12 letters and digits."
+msgstr "旅券番号は英数字 6〜12 桁で入力してください。"
+
+msgid ""
+"Enter a residence card number as 2 letters, 8 digits and 2 letters (e.g. "
+"AB12345678CD)."
+msgstr ""
+"在留カード番号は英字 2 桁・数字 8 桁・英字 2 桁で入力してください（例: "
+"AB12345678CD）。"
+
+#, python-format
+msgid ""
+"This residence card number is registered to another foreign worker (ID: "
+"%(id)s)."
+msgstr "この在留カード番号は別の外国人（ID: %(id)s）に登録されています。"
+
+#, python-format
+msgid ""
+"This passport number is registered to another foreign worker (ID: %(id)s)."
+msgstr "この旅券番号は別の外国人（ID: %(id)s）に登録されています。"
+
+msgid "The expiry date must be after the start date."
+msgstr "期限は開始日より後の日付にしてください。"

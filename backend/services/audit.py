@@ -44,17 +44,40 @@ AUDITED_MODELS: frozenset[str] = frozenset(
         "core.supportlanguage",
         "core.attachment",
         "core.invitation",
+        "core.country",
+        "workers.foreignworker",
+        "workers.residencerecord",
+        "workers.passportrecord",
+        "workers.workeraddress",
+        "workers.workercontact",
     }
 )
 
-# 詳細の閲覧も記録するモデル（個人情報を含むもの。T07 で外国人関連を足す）
-VIEW_AUDITED_MODELS: frozenset[str] = frozenset({"core.user", "core.staff", "core.organization"})
+# 詳細の閲覧も記録するモデル（個人情報を含むもの）。外国人の履歴は外国人の詳細画面に
+# インラインで出るため、外国人の閲覧として 1 件記録される
+# （履歴を単独で表示する画面を作るときも記録される）
+VIEW_AUDITED_MODELS: frozenset[str] = frozenset(
+    {
+        "core.user",
+        "core.staff",
+        "core.organization",
+        "workers.foreignworker",
+        "workers.residencerecord",
+        "workers.passportrecord",
+        "workers.workeraddress",
+        "workers.workercontact",
+    }
+)
 
 # apps.* のうち記録しないモデルと理由（記録漏れ検出テストで全モデルの分類を確認する）
 EXCLUDED_MODELS: Mapping[str, str] = {
     "core.auditlog": "監査ログ自身",
     "core.recoverycodedevice": "MFA 端末（ADR-0001）。設定・リセットはイベントで記録",
     "core.recoverycode": "MFA 端末（ADR-0001）。ハッシュのみで内容は記録しない",
+    "workers.latestresidencerecord": "最新行の DB ビュー（読み取り専用）",
+    "workers.latestpassportrecord": "最新行の DB ビュー（読み取り専用）",
+    "workers.latestworkeraddress": "最新行の DB ビュー（読み取り専用）",
+    "workers.latestworkercontact": "最新行の DB ビュー（読み取り専用）",
 }
 
 # 値を記録しない列（変わったことだけ "***" で残す）

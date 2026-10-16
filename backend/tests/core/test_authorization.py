@@ -29,6 +29,8 @@ def test_initial_role_matrix() -> None:
     assert authorization.actions_of(staff_user) == {
         Action.ADMIN_ACCESS,
         Action.ORGANIZATION_VIEW,
+        Action.WORKERS_VIEW,
+        Action.WORKERS_MANAGE,
     }
 
 
