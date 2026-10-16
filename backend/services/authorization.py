@@ -66,6 +66,26 @@ DJANGO_PERMISSION_ACTIONS: dict[str, Action] = {
     **_model_permissions("core.invitation", view=Action.USERS_MANAGE),
     **_model_permissions("core.auditlog", view=Action.AUDIT_VIEW),
     **_model_permissions(
+        "filings.filing",
+        view=Action.FILINGS_VIEW,
+        add=Action.FILINGS_MANAGE,
+        change=Action.FILINGS_MANAGE,
+    ),
+    # Django-Q2 の実行予定・結果（管理者のみ）
+    **_model_permissions(
+        "django_q.schedule",
+        view=Action.SYSTEM_MANAGE,
+        add=Action.SYSTEM_MANAGE,
+        change=Action.SYSTEM_MANAGE,
+        delete=Action.SYSTEM_MANAGE,
+    ),
+    **_model_permissions(
+        "django_q.success", view=Action.SYSTEM_MANAGE, delete=Action.SYSTEM_MANAGE
+    ),
+    **_model_permissions(
+        "django_q.failure", view=Action.SYSTEM_MANAGE, delete=Action.SYSTEM_MANAGE
+    ),
+    **_model_permissions(
         "core.userrole",
         view=Action.USERS_MANAGE,
         add=Action.USERS_MANAGE,

@@ -12,10 +12,12 @@ dependencies = [
     # ModelAdmin[...] / ModelForm[...] を実行時に使うため（settings で monkeypatch()）。django-stubs と同版。
     "django-stubs-ext==5.2.9",
     "django-otp==1.7.4",
+    "django-q2==1.11.1",
     "django-storages[s3]==1.14.6",
     "jpholiday==1.0.3",
     "psycopg[binary]==3.3.6",
     "qrcode==8.2",
+    "redis==8.1.0",
 ]
 
 [tool.uv]

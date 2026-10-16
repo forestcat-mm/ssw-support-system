@@ -18,6 +18,21 @@ services:
       mailpit:
         condition: service_started
 
+  # Django-Q2 のワーカー（日次の起票などのジョブを実行する。ADR-0005）
+  qcluster:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file: .env
+    command: python manage.py qcluster
+    volumes:
+      - ./:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
   db:
     image: postgres:16
     environment:

@@ -1,7 +1,7 @@
 COMPOSE := docker compose
 MANAGE := $(COMPOSE) exec web python manage.py
 
-.PHONY: env up down build logs migrate admin shell psql lock test lint format messages
+.PHONY: filings env up down build logs migrate admin shell psql lock test lint format messages
 
 env:        ## .env を作る・足りないキーを補う・鍵を生成する（既存の値は変えない）
 	python3 scripts/init_env.py
@@ -41,6 +41,9 @@ lint:       ## 静的検査（ruff check / ruff format --check / mypy）
 
 format:     ## 整形と自動修正
 	$(COMPOSE) exec web sh -c 'ruff format . && ruff check --fix .'
+
+filings:    ## 日次の届出タスクの起票を手で実行する（DATE=YYYY-MM-DD で基準日を指定できる）
+	$(MANAGE) create_scheduled_filings $(if $(DATE),--date $(DATE),)
 
 messages:   ## UI 文言を .po に抽出し .mo にコンパイルする（.po と .mo の両方をコミットする）
 	$(COMPOSE) exec web sh -c 'python manage.py makemessages -l ja --no-location --no-obsolete && python manage.py compilemessages -l ja'

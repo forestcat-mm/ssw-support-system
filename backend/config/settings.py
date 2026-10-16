@@ -36,10 +36,12 @@ INSTALLED_APPS = [
     "django_otp",
     "django_otp.plugins.otp_totp",
     "axes",
+    "django_q",
     "apps.core",
     "apps.workers",
     "apps.hosts",
     "apps.contracts",
+    "apps.filings",
 ]
 
 MIDDLEWARE = [
@@ -84,8 +86,17 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 FIELD_ENCRYPTION_KEYS: list[str] = env.list("FIELD_ENCRYPTION_KEYS")
 BLIND_INDEX_KEY: str = env.str("BLIND_INDEX_KEY")
 
-# --- Redis（ジョブ実行基盤。Django-Q2 は組み込むタスクで設定する） ---
+# --- ジョブ実行（Django-Q2 + Redis。ADR-0005）。日次の起票などを qcluster が実行する ---
 REDIS_URL: str = env.str("REDIS_URL")
+Q_CLUSTER = {
+    "name": "ssw",
+    "workers": 2,
+    "timeout": 600,
+    "retry": 900,
+    "max_attempts": 3,
+    "catch_up": False,  # 止まっていた間の回数分は実行しない（日次コマンドは冪等で、次回で追いつく）
+    "redis": REDIS_URL,
+}
 
 # --- メール（開発は Mailpit、本番は自社 SMTP） ---
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

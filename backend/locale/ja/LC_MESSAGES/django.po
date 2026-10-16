@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 18:42+0900\n"
+"POT-Creation-Date: 2026-10-16 19:34+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -845,6 +845,15 @@ msgstr "雇用契約台帳の登録・更新"
 msgid "cancel the termination of employment contracts"
 msgstr "雇用契約の終了の取り消し"
 
+msgid "view filing tasks"
+msgstr "届出タスクの閲覧"
+
+msgid "register and update filing tasks"
+msgstr "届出タスクの登録・更新"
+
+msgid "manage background jobs"
+msgstr "ジョブ（実行予定・結果）の管理"
+
 msgid "all data"
 msgstr "すべてのデータ"
 
@@ -940,6 +949,9 @@ msgstr "暗号化鍵のローテーション"
 
 msgid "rebuild blind indexes"
 msgstr "検索用インデックスの作り直し"
+
+msgid "change of filing task status"
+msgstr "届出タスクの状態変更"
 
 msgid "occurred at"
 msgstr "日時"
@@ -1109,6 +1121,221 @@ msgstr "回復用コードでログインしました。残りは %(count)d 個�
 msgid "The code is incorrect."
 msgstr "コードが正しくありません。"
 
+msgid "not yet open"
+msgstr "受付前"
+
+msgid "open"
+msgstr "対応期間中"
+
+msgid "within 14 days"
+msgstr "14日以内"
+
+msgid "within 7 days"
+msgstr "7日以内"
+
+msgid "overdue"
+msgstr "超過"
+
+msgid "immigration notification"
+msgstr "入管への届出"
+
+msgid "immigration application"
+msgstr "入管への申請"
+
+msgid "internal task"
+msgstr "内部タスク"
+
+msgid "registered support organization"
+msgstr "登録支援機関"
+
+msgid "internal"
+msgstr "内部"
+
+msgid "category"
+msgstr "区別"
+
+msgid "filer"
+msgstr "届出主体"
+
+msgid "corrected basis date"
+msgstr "訂正後の起算日"
+
+msgid ""
+"Correct the basis date (e.g. the date of the event) and recalculate the due "
+"date."
+msgstr "起算日（事由が生じた日など）を訂正し、期限を計算し直します。"
+
+msgid "reason for correction"
+msgstr "訂正の理由"
+
+msgid "Enter the reason for correction."
+msgstr "訂正の理由を入力してください。"
+
+msgid "The date the event occurred."
+msgstr "事由が生じた日。"
+
+msgid "Select exactly one target."
+msgstr "対象を 1 つだけ選んでください。"
+
+msgid "Deadline"
+msgstr "期限"
+
+msgid "level"
+msgstr "警告レベル（残り日数）"
+
+msgid "trigger details"
+msgstr "事由の詳細"
+
+msgid "required"
+msgstr "届出が必要"
+
+msgid "needs review"
+msgstr "要否の確認が必要"
+
+msgid "The same task already exists."
+msgstr "同じ届出タスクがすでにあります。"
+
+msgid "Filings and tasks"
+msgstr "届出・申請タスク"
+
+msgid "application for extension of period of stay"
+msgstr "在留期間更新許可申請"
+
+msgid "notification of change of employment contract"
+msgstr "雇用契約変更届出"
+
+msgid "notification of termination of employment contract"
+msgstr "雇用契約終了届出"
+
+msgid "notification of conclusion of a new employment contract"
+msgstr "新たな雇用契約締結届出"
+
+msgid "notification of difficulty in acceptance"
+msgstr "受入れ困難届出"
+
+msgid "notification of change of support plan"
+msgstr "支援計画変更届出"
+
+msgid "notification of missing worker, etc."
+msgstr "行方不明等届出"
+
+msgid "notification of difficulty in implementing support (form 3-7)"
+msgstr "支援実施困難時の届出（参考様式第3-7号）"
+
+msgid "periodic notification (host organization)"
+msgstr "定期届出（受入れ機関）"
+
+msgid "periodic notification (registered support organization)"
+msgstr "定期届出（登録支援機関）"
+
+msgid "renewal of registration (own organization)"
+msgstr "自機関の登録更新"
+
+msgid "renewal of membership certificate or cooperation confirmation"
+msgstr "加入証明・協力確認書の更新"
+
+msgid "check of passport renewal"
+msgstr "旅券更新の確認"
+
+msgid "renewal of support contract"
+msgstr "支援委託契約の更新"
+
+msgid "check of employment contract expiry (termination not registered)"
+msgstr "雇用契約の期間満了確認（終了未登録）"
+
+msgid "not started"
+msgstr "未着手"
+
+msgid "in progress"
+msgstr "対応中"
+
+msgid "submitted"
+msgstr "提出済"
+
+msgid "not required"
+msgstr "不要"
+
+msgid "cancelled"
+msgstr "取消"
+
+msgid "employment contract terminated"
+msgstr "雇用契約の終了"
+
+msgid "employment contract changed"
+msgstr "雇用契約の変更"
+
+msgid "new employment contract concluded"
+msgstr "新たな雇用契約の締結"
+
+msgid "period of stay approaching expiry"
+msgstr "在留期限の接近"
+
+msgid "periodic notification period"
+msgstr "定期届出の期間"
+
+msgid "registration renewal period opened"
+msgstr "登録更新の受付開始"
+
+msgid "document approaching expiry"
+msgstr "有効期限の接近"
+
+msgid "passport approaching expiry"
+msgstr "旅券の有効期限の接近"
+
+msgid "support contract approaching end"
+msgstr "支援委託契約の終了の接近"
+
+msgid "employment contract period approaching end"
+msgstr "雇用契約の期間満了の接近"
+
+msgid "registered manually"
+msgstr "手動で起票"
+
+msgid "trigger"
+msgstr "事由"
+
+msgid "needs review of whether filing is required"
+msgstr "要否の確認が必要"
+
+msgid "deadline kind"
+msgstr "期限の種類"
+
+msgid "basis date"
+msgstr "起算日"
+
+msgid "opens on"
+msgstr "受付・着手日"
+
+msgid "legal due date"
+msgstr "法令上の期限"
+
+msgid "due date (before holiday adjustment)"
+msgstr "期限（閉庁日の繰り延べ前）"
+
+msgid "final deadline"
+msgstr "最終の限度"
+
+msgid "reason"
+msgstr "理由"
+
+msgid "submitted on"
+msgstr "提出日"
+
+msgid "receipt number"
+msgstr "受理番号"
+
+msgid "assignee"
+msgstr "担当者"
+
+msgid "note"
+msgstr "メモ"
+
+msgid "filing task"
+msgstr "届出タスク"
+
+msgid "filing tasks"
+msgstr "届出タスク"
+
 msgid "Support contracts entered on this page overlap each other."
 msgstr "この画面で入力した支援委託契約どうしの期間が重なっています。"
 
@@ -1201,9 +1428,6 @@ msgstr "加入状況"
 
 msgid "municipality"
 msgstr "提出先の市区町村"
-
-msgid "submitted on"
-msgstr "提出日"
 
 msgid "cooperation confirmation"
 msgstr "協力確認書"
@@ -1487,6 +1711,159 @@ msgstr "ファイルが大きすぎます（%(size)s）。上限は %(max)s で�
 #, python-format
 msgid "File contents do not match the “.%(ext)s” extension."
 msgstr "ファイルの中身が拡張子「.%(ext)s」と一致しません。"
+
+msgid "The contract period is shortened."
+msgstr "雇用契約期間を短くする。"
+
+msgid "Whether the contract is renewed changes."
+msgstr "契約の更新の有無を変更する。"
+
+msgid "The renewal criteria change."
+msgstr "更新の判断基準を変更する。"
+
+msgid "The renewal limit changes."
+msgstr "更新上限を変更する。"
+
+msgid "The workplace (site) changes."
+msgstr "就業の場所（事業所）を変更する。"
+
+msgid "The possible change of workplace changes."
+msgstr "就業の場所の変更の範囲を変更する。"
+
+msgid "The operation category changes."
+msgstr "業務区分を変更する。"
+
+msgid ""
+"The duties change (filing is required if the worker no longer does SSW work)."
+msgstr ""
+"業務の内容を変更する（特定技能外国人が従事する業務に従事しなくなる場合は届出"
+"が必要）。"
+
+msgid "The one-year variable working hours system is adopted or abolished."
+msgstr "1年単位の変形労働時間制を採用または廃止する。"
+
+msgid "Scheduled working hours or days change."
+msgstr "所定労働時間数または所定労働日数を変更する。"
+
+msgid "Whether there is overtime work changes."
+msgstr "所定時間外労働の有無を変更する。"
+
+msgid ""
+"Annual holidays decrease (not required if only because of leap years, "
+"calendar or statutory holiday changes)."
+msgstr ""
+"年間合計休日日数を少なくする（平年・うるう年、暦、法令による祝日の変更による"
+"ものは届出不要）。"
+
+msgid "Annual paid leave decreases."
+msgstr "年次有給休暇の日数を減らす。"
+
+msgid "Paid leave before 6 months is abolished."
+msgstr "継続勤務6か月未満の年次有給休暇を廃止する。"
+
+msgid "Paid leave before 6 months decreases."
+msgstr "継続勤務6か月未満の年次有給休暇を減らす。"
+
+msgid "Other leave is abolished."
+msgstr "その他の休暇を廃止する。"
+
+msgid "Other leave changes."
+msgstr "その他の休暇を変更する。"
+
+msgid "The way the base wage is paid changes."
+msgstr "基本賃金の支給方法（月給・日給・時間給）を変更する。"
+
+msgid "The base wage decreases."
+msgstr "基本賃金を減額する。"
+
+msgid "An allowance is abolished."
+msgstr "手当を廃止する。"
+
+msgid "An allowance decreases."
+msgstr "手当の額を減額する。"
+
+msgid "Fixed overtime pay is introduced or abolished."
+msgstr "固定残業代制度を導入または廃止する。"
+
+msgid "The calculation method of an allowance changes."
+msgstr "手当の計算方法を変更する。"
+
+msgid "A premium wage rate or leave allowance rate decreases."
+msgstr "割増賃金率または休業手当の率を減らす。"
+
+msgid "The payment method changes from bank transfer to cash."
+msgstr "賃金支払方法を口座振込から通貨払に変更する。"
+
+msgid ""
+"Whether there are deductions under a labor-management agreement changes."
+msgstr "労使協定に基づく賃金支払時の控除の有無を変更する。"
+
+msgid "A deduction item is added."
+msgstr "賃金支払時に控除する項目を増やす。"
+
+msgid ""
+"A deduction is abolished (filing is required if the worker's own cost "
+"increases)."
+msgstr ""
+"控除を廃止する（その結果、本人の実費負担が増える・新たに生じる場合は届出が必"
+"要）。"
+
+msgid "A deduction amount increases."
+msgstr "控除額を増やす。"
+
+msgid "A pay raise, bonus or retirement allowance is abolished."
+msgstr "昇給・賞与・退職金を「有」から「無」に変更する。"
+
+msgid ""
+"A pay raise, bonus or retirement allowance changes (not required if only the "
+"timing changes)."
+msgstr ""
+"昇給・賞与・退職金の内容を変更する（支給時期のみの変更は届出不要、減額は届出"
+"が必要）。"
+
+msgid "Matters concerning resignation change."
+msgstr "退職に関する事項を変更する。"
+
+msgid "Health insurance or employees' pension coverage changes."
+msgstr "健康保険・厚生年金保険の適用を変更する。"
+
+msgid "Labor insurance becomes applicable."
+msgstr "労働保険の適用事業所となる。"
+
+msgid "Labor insurance is no longer applicable."
+msgstr "労働保険の適用がなくなる。"
+
+msgid ""
+"The periodic health check interval changes (required if longer than one "
+"year)."
+msgstr ""
+"定期健康診断の間隔を変更する（1年を超える期間にする場合は届出が必要）。"
+
+msgid ""
+"The basis date is the termination date. If the event (e.g. notice of "
+"dismissal) occurred earlier, correct the basis date."
+msgstr ""
+"起算日を契約の終了日にしています。受入れ困難の事由（解雇の予告など）がそれよ"
+"り前に生じた場合は、起算日を訂正してください。"
+
+msgid "The termination of the employment contract was cancelled."
+msgstr "雇用契約の終了が取り消されました。"
+
+#, python-format
+msgid "The status cannot be changed from %(from)s to %(to)s."
+msgstr "状態を「%(from)s」から「%(to)s」に変更することはできません。"
+
+msgid "Enter the submission date."
+msgstr "提出日を入力してください。"
+
+msgid "Enter the receipt number."
+msgstr "受理番号を入力してください。"
+
+msgid "Enter the reason."
+msgstr "理由を入力してください。"
+
+msgid "Only open tasks can be changed."
+msgstr "未着手・対応中のタスクだけを変更できます。"
 
 #, python-format
 msgid "These operation categories do not belong to the site's field: %(names)s"

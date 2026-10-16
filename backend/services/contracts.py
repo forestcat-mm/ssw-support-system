@@ -183,6 +183,7 @@ def add_version(
     return version
 
 
+@transaction.atomic
 def terminate(
     contract: EmploymentContract,
     *,
@@ -206,9 +207,12 @@ def terminate(
             "updated_at",
         ]
     )
-    # T11: ここで「終了から 14 日以内の届出」を自動起票する
+    from services import filings  # services.filings が本モジュールを呼ぶため循環を避ける
+
+    filings.on_contract_terminated(contract, by=by)
 
 
+@transaction.atomic
 def cancel_termination(contract: EmploymentContract, *, by: User | None) -> None:
     """終了の登録を取り消す（入力ミスの訂正。管理者のみ。期間の重なりを確かめる）。"""
     validate_no_overlap(
@@ -218,6 +222,7 @@ def cancel_termination(contract: EmploymentContract, *, by: User | None) -> None
         None,
         exclude_contract_id=contract.pk,
     )
+    terminated_on = contract.terminated_on
     contract.terminated_on = None
     contract.termination_reason = ""
     contract.termination_note = ""
@@ -231,6 +236,17 @@ def cancel_termination(contract: EmploymentContract, *, by: User | None) -> None
             "updated_at",
         ]
     )
+    if terminated_on is not None:
+        from services import filings
+
+        filings.on_termination_cancelled(contract, terminated_on=terminated_on, by=by)
+
+
+def complete_version(version: EmploymentContractVersion, *, by: User | None) -> None:
+    """版の明細・業務区分を保存し終えた後に呼ぶ（変更届出・新たな契約締結の届出を起票する）。"""
+    from services import filings
+
+    filings.on_version_added(version, by=by)
 
 
 # --- 差分・金額 ------------------------------------------------------------------

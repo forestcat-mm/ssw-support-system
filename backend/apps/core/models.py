@@ -289,6 +289,9 @@ class Action(models.TextChoices):
     CONTRACTS_VIEW = "contracts.view", _("view employment contracts")
     CONTRACTS_MANAGE = "contracts.manage", _("register and update employment contracts")
     CONTRACTS_REOPEN = "contracts.reopen", _("cancel the termination of employment contracts")
+    FILINGS_VIEW = "filings.view", _("view filing tasks")
+    FILINGS_MANAGE = "filings.manage", _("register and update filing tasks")
+    SYSTEM_MANAGE = "system.manage", _("manage background jobs")
 
 
 class DataScope(models.TextChoices):
@@ -446,6 +449,7 @@ class AuditAction(models.TextChoices):
     RECOVERY_CODES_REGENERATE = "recovery_codes_regenerate", _("regenerate recovery codes")
     ENCRYPTION_KEY_ROTATION = "encryption_key_rotation", _("rotate encryption keys")
     BLIND_INDEX_REBUILD = "blind_index_rebuild", _("rebuild blind indexes")
+    FILING_TRANSITION = "filing_transition", _("change of filing task status")
 
 
 class AppendOnlyError(Exception):

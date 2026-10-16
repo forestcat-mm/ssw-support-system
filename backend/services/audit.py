@@ -63,6 +63,7 @@ AUDITED_MODELS: frozenset[str] = frozenset(
         "contracts.employmentcontractshift",
         "contracts.employmentcontractallowance",
         "contracts.employmentcontractdeduction",
+        "filings.filing",
     }
 )
 
@@ -91,6 +92,7 @@ VIEW_AUDITED_MODELS: frozenset[str] = frozenset(
         "contracts.employmentcontractshift",
         "contracts.employmentcontractallowance",
         "contracts.employmentcontractdeduction",
+        "filings.filing",
     }
 )
 

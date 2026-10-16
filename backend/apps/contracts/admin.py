@@ -546,6 +546,12 @@ class EmploymentContractVersionAdmin(TrackedModelAdmin[EmploymentContractVersion
             by=_actor(request),
         )
 
+    def save_related(self, request: HttpRequest, form: Any, formsets: Any, change: bool) -> None:
+        super().save_related(request, form, formsets, change)
+        if not change:
+            # 明細・業務区分の保存後に、届出が必要な変更かを判定して起票する（T11）
+            contracts.complete_version(form.instance, by=_actor(request))
+
     def has_delete_permission(self, request: HttpRequest, obj: Any = None) -> bool:
         return False
 
