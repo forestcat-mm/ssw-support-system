@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 18:21+0900\n"
+"POT-Creation-Date: 2026-10-16 18:42+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -14,6 +14,557 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "status"
+msgstr "状態"
+
+msgid "Only administrators can cancel a termination."
+msgstr "終了の取り消しは管理者だけができます。"
+
+msgid "Termination"
+msgstr "終了"
+
+msgid "Record"
+msgstr "記録"
+
+msgid "host site"
+msgstr "事業所"
+
+msgid "base wage (yen)"
+msgstr "基本賃金（円）"
+
+msgid "new version"
+msgstr "新しい版"
+
+msgid "Add a new version"
+msgstr "新しい版を追加"
+
+msgid "employment contract"
+msgstr "雇用契約"
+
+msgid "Leave blank to create a new contract with version 1."
+msgstr "空欄にすると、新しい契約を 1 版目として作成します。"
+
+msgid "foreign worker"
+msgstr "外国人"
+
+msgid "host organization"
+msgstr "受入れ機関"
+
+msgid ""
+"Select an existing contract, or a foreign worker and a host organization."
+msgstr "既存の雇用契約を選ぶか、外国人と受入れ機関を選んでください。"
+
+msgid "Contract"
+msgstr "契約"
+
+msgid "Change"
+msgstr "変更"
+
+msgid "I. Contract period"
+msgstr "Ⅰ．雇用契約期間"
+
+msgid "II. Workplace"
+msgstr "Ⅱ．就業の場所"
+
+msgid "III. Duties"
+msgstr "Ⅲ．従事すべき業務の内容"
+
+msgid "IV. Working hours"
+msgstr "Ⅳ．労働時間等"
+
+msgid "V. Holidays"
+msgstr "Ⅴ．休日"
+
+msgid "VI. Leave"
+msgstr "Ⅵ．休暇"
+
+msgid "VII. Wages"
+msgstr "Ⅶ．賃金"
+
+msgid "VIII. Resignation"
+msgstr "Ⅷ．退職に関する事項"
+
+msgid "IX. Others"
+msgstr "Ⅸ．その他"
+
+msgid "Equal pay"
+msgstr "日本人と同等以上の報酬の根拠"
+
+msgid "changes from the previous version"
+msgstr "前の版からの変更点"
+
+msgid "field"
+msgstr "項目"
+
+msgid "before"
+msgstr "変更前"
+
+msgid "after"
+msgstr "変更後"
+
+msgid "approximate monthly payment (yen)"
+msgstr "1か月当たりの支払概算額（円）"
+
+msgid "approximate take-home pay (yen)"
+msgstr "手取り支給額（円）"
+
+msgid "shifts"
+msgstr "交代制の勤務時間"
+
+msgid "allowances"
+msgstr "諸手当"
+
+msgid "deductions"
+msgstr "賃金支払時の控除"
+
+msgid "Employment contracts"
+msgstr "雇用契約台帳"
+
+msgid "expiry of contract period"
+msgstr "契約満了"
+
+msgid "voluntary resignation"
+msgstr "自己都合退職"
+
+msgid "dismissal or company reasons"
+msgstr "会社都合"
+
+msgid "change of job"
+msgstr "転職"
+
+msgid "other"
+msgstr "その他"
+
+msgid "starts on"
+msgstr "開始日"
+
+msgid "ends on"
+msgstr "終了日"
+
+msgid "terminated on"
+msgstr "終了日"
+
+msgid "termination reason"
+msgstr "終了理由"
+
+msgid "termination note"
+msgstr "終了のメモ"
+
+msgid "employment contracts"
+msgstr "雇用契約"
+
+msgid "The termination date must be on or after the start date."
+msgstr "終了日は開始日以降の日付にしてください。"
+
+msgid "Select the termination reason."
+msgstr "終了理由を選んでください。"
+
+msgid ""
+"This period overlaps another employment contract of the same foreign worker."
+msgstr "同じ外国人のほかの雇用契約と期間が重なっています。"
+
+msgid "monthly salary"
+msgstr "月給"
+
+msgid "daily wage"
+msgstr "日給"
+
+msgid "hourly wage"
+msgstr "時間給"
+
+msgid "renewed automatically"
+msgstr "自動的に更新する"
+
+msgid "may be renewed"
+msgstr "更新する場合があり得る"
+
+msgid "not renewed"
+msgstr "契約の更新はしない"
+
+msgid "workload at the end of the contract period"
+msgstr "契約期間満了時の業務量"
+
+msgid "work performance and attitude"
+msgstr "労働者の勤務成績、態度"
+
+msgid "ability to perform the work"
+msgstr "労働者の業務を遂行する能力"
+
+msgid "business condition of the company"
+msgstr "会社の経営状況"
+
+msgid "progress of the work"
+msgstr "従事している業務の進捗状況"
+
+msgid "one-week unit"
+msgstr "1週間単位"
+
+msgid "one-month unit"
+msgstr "1か月単位"
+
+msgid "one-year unit"
+msgstr "1年単位"
+
+msgid "Monday"
+msgstr "月曜日"
+
+msgid "Tuesday"
+msgstr "火曜日"
+
+msgid "Wednesday"
+msgstr "水曜日"
+
+msgid "Thursday"
+msgstr "木曜日"
+
+msgid "Friday"
+msgstr "金曜日"
+
+msgid "Saturday"
+msgstr "土曜日"
+
+msgid "Sunday"
+msgstr "日曜日"
+
+msgid "bank transfer"
+msgstr "口座振込"
+
+msgid "cash"
+msgstr "通貨払"
+
+msgid "employees' pension insurance"
+msgstr "厚生年金"
+
+msgid "health insurance"
+msgstr "健康保険"
+
+msgid "employment insurance"
+msgstr "雇用保険"
+
+msgid "workers' accident compensation insurance"
+msgstr "労災保険"
+
+msgid "national pension"
+msgstr "国民年金"
+
+msgid "national health insurance"
+msgstr "国民健康保険"
+
+msgid "version"
+msgstr "版"
+
+msgid "change reason"
+msgstr "変更理由"
+
+msgid "changed on"
+msgstr "変更日"
+
+msgid "The date the change takes effect (the start date for version 1)."
+msgstr ""
+"変更の効力が生じる日（1 版目は契約の開始日）。随時届出の起算日になります。"
+
+msgid "signed on"
+msgstr "締結日"
+
+msgid "Date of conclusion or agreement."
+msgstr "契約を締結した日、または変更に合意した日。"
+
+msgid "expected entry date"
+msgstr "入国予定日"
+
+msgid "renewal"
+msgstr "契約の更新の有無"
+
+msgid "renewal criteria"
+msgstr "更新の判断基準"
+
+msgid "other renewal criteria"
+msgstr "更新の判断基準（その他）"
+
+msgid "has renewal limit"
+msgstr "更新上限あり"
+
+msgid "renewal limit (times)"
+msgstr "更新上限（回）"
+
+msgid "renewal limit (total years)"
+msgstr "更新上限（通算契約期間・年）"
+
+msgid "possible change of workplace"
+msgstr "就業の場所の変更の範囲"
+
+msgid "Leave blank if there is no possibility of change."
+msgstr "変更の可能性がない場合は空欄にします。"
+
+msgid "operation categories"
+msgstr "業務区分"
+
+msgid "duties"
+msgstr "業務の内容"
+
+msgid "possible change of duties"
+msgstr "業務の変更の範囲"
+
+msgid "start time"
+msgstr "始業時刻"
+
+msgid "end time"
+msgstr "終業時刻"
+
+msgid "daily working hours (minutes)"
+msgstr "1日の所定労働時間（分）"
+
+msgid "variable working hours system"
+msgstr "変形労働時間制"
+
+msgid ""
+"Leave blank if not applied. One-year unit requires the calendar and "
+"agreement."
+msgstr ""
+"適用しない場合は空欄にします。1年単位の場合は、年間カレンダーと労使協定書の写"
+"しを添付します。"
+
+msgid "break (minutes)"
+msgstr "休憩時間（分）"
+
+msgid "weekly working hours (minutes)"
+msgstr "週の所定労働時間（分）"
+
+msgid "monthly working hours (minutes)"
+msgstr "月の所定労働時間（分）"
+
+msgid "annual working hours (minutes)"
+msgstr "年の所定労働時間（分）"
+
+msgid "weekly working days"
+msgstr "週の所定労働日数"
+
+msgid "monthly working days"
+msgstr "月の所定労働日数"
+
+msgid "annual working days"
+msgstr "年の所定労働日数"
+
+msgid "overtime work"
+msgstr "所定時間外労働あり"
+
+msgid "regular holidays (weekdays)"
+msgstr "定例の休日（曜日）"
+
+msgid "national holidays are days off"
+msgstr "日本の国民の祝日を休日とする"
+
+msgid "other regular holidays"
+msgstr "定例の休日（その他）"
+
+msgid "annual holidays"
+msgstr "年間合計休日日数"
+
+msgid "irregular holidays"
+msgstr "非定例の休日"
+
+msgid "annual paid leave after 6 months (days)"
+msgstr "年次有給休暇（6か月継続勤務した場合・日）"
+
+msgid "paid leave before 6 months"
+msgstr "継続勤務6か月未満の年次有給休暇あり"
+
+msgid "paid leave before 6 months: after (months)"
+msgstr "継続勤務6か月未満の年次有給休暇（経過月数）"
+
+msgid "paid leave before 6 months: days"
+msgstr "継続勤務6か月未満の年次有給休暇（日数）"
+
+msgid "other paid leave"
+msgstr "その他の休暇（有給）"
+
+msgid "other unpaid leave"
+msgstr "その他の休暇（無給）"
+
+msgid "temporary return home leave (notes)"
+msgstr "一時帰国休暇（補足）"
+
+msgid ""
+"The form states that leave is granted within paid and other leave. Write "
+"only additional arrangements."
+msgstr ""
+"様式には「年次有給休暇・その他の休暇の範囲内で取得させる」と記載されます。そ"
+"れ以外の取り決めがある場合だけ書きます。"
+
+msgid "wage type"
+msgstr "基本賃金の区分"
+
+msgid "hourly equivalent (yen)"
+msgstr "1時間当たりの金額（円）"
+
+msgid "For monthly or daily wage."
+msgstr "月給・日給の場合。"
+
+msgid "monthly equivalent (yen)"
+msgstr "1か月当たりの金額（円）"
+
+msgid "For daily or hourly wage."
+msgstr "日給・時間給の場合。"
+
+msgid "overtime premium, statutory, up to 60 h/month (%)"
+msgstr "割増賃金率：所定時間外・法定超月60時間以内（％）"
+
+msgid "overtime premium, statutory, over 60 h/month (%)"
+msgstr "割増賃金率：所定時間外・法定超月60時間超（％）"
+
+msgid "overtime premium beyond scheduled hours (%)"
+msgstr "割増賃金率：所定時間外・所定超（％）"
+
+msgid "holiday premium, statutory holiday (%)"
+msgstr "割増賃金率：法定休日（％）"
+
+msgid "holiday premium, non-statutory holiday (%)"
+msgstr "割増賃金率：法定外休日（％）"
+
+msgid "late-night premium (%)"
+msgstr "割増賃金率：深夜（％）"
+
+msgid "wage closing day"
+msgstr "賃金締切日"
+
+msgid "e.g. end of month, 15th"
+msgstr "例: 毎月末日、毎月15日"
+
+msgid "wage payment day"
+msgstr "賃金支払日"
+
+msgid "e.g. 25th of the following month"
+msgstr "例: 翌月25日"
+
+msgid "payment method"
+msgstr "賃金支払方法"
+
+msgid "deductions under labor-management agreement"
+msgstr "労使協定に基づく賃金支払時の控除あり"
+
+msgid "pay raise"
+msgstr "昇給あり"
+
+msgid "pay raise (timing, amount)"
+msgstr "昇給（時期、金額等）"
+
+msgid "bonus"
+msgstr "賞与あり"
+
+msgid "bonus (timing, amount)"
+msgstr "賞与（時期、金額等）"
+
+msgid "retirement allowance"
+msgstr "退職金あり"
+
+msgid "retirement allowance (timing, amount)"
+msgstr "退職金（時期、金額等）"
+
+msgid "leave allowance rate (%)"
+msgstr "休業手当（率・％）"
+
+msgid "notice period for voluntary resignation (days)"
+msgstr "自己都合退職の届出（退職する何日前・日）"
+
+msgid "social and labor insurance"
+msgstr "社会保険・労働保険の加入・適用状況"
+
+msgid "other insurance"
+msgstr "社会保険・労働保険（その他）"
+
+msgid "health check at hiring (month)"
+msgstr "雇入れ時の健康診断（年月）"
+
+msgid "first periodic health check (month)"
+msgstr "初回の定期健康診断（年月）"
+
+msgid "periodic health check interval"
+msgstr "定期健康診断の間隔"
+
+msgid "e.g. every year"
+msgstr "例: 1年ごと"
+
+msgid "contact for explanation of treatment differences"
+msgstr "待遇の相違の説明を求める窓口"
+
+msgid "Department, title and name of the person in charge, contact."
+msgstr "部署名、担当者職氏名、連絡先。"
+
+msgid "contact for employment management consultation"
+msgstr "雇用管理の改善等に関する相談窓口"
+
+msgid "where the work rules can be checked"
+msgstr "就業規則を確認できる場所・方法"
+
+msgid "comparable Japanese worker (position, wage rules)"
+msgstr "比較対象の日本人（職位・賃金規程など）"
+
+msgid "comparable Japanese worker's wage (yen)"
+msgstr "比較対象の日本人の報酬（円）"
+
+msgid "employment contract version"
+msgstr "雇用契約の版"
+
+msgid "employment contract versions"
+msgstr "雇用契約の版"
+
+msgid "The end date must be on or after the start date."
+msgstr "終了日は開始日以降の日付にしてください。"
+
+msgid "applies to"
+msgstr "適用日"
+
+msgid "shift"
+msgstr "交代制の勤務時間"
+
+msgid "name"
+msgstr "名称"
+
+msgid "amount per month (yen)"
+msgstr "金額（月額・円）"
+
+msgid "calculation method"
+msgstr "計算方法"
+
+msgid "fixed overtime pay: hours covered"
+msgstr "固定残業代：時間外労働の時間数"
+
+msgid "Only for fixed overtime pay."
+msgstr "固定残業代の場合だけ入力します。"
+
+msgid "allowance"
+msgstr "手当"
+
+msgid "tax"
+msgstr "税金"
+
+msgid "social insurance premiums"
+msgstr "社会保険料"
+
+msgid "employment insurance premiums"
+msgstr "雇用保険料"
+
+msgid "food"
+msgstr "食費"
+
+msgid "housing"
+msgstr "居住費"
+
+msgid "utilities"
+msgstr "水道光熱費"
+
+msgid "kind"
+msgstr "種別"
+
+msgid "For other."
+msgstr "その他の場合の名称。"
+
+msgid "approximate amount per month (yen)"
+msgstr "金額（月額の概算・円）"
+
+msgid "deduction"
+msgstr "控除"
 
 msgid "Personal info"
 msgstr "個人情報"
@@ -65,15 +616,6 @@ msgstr "ファイル"
 
 msgid "changes"
 msgstr "変更内容"
-
-msgid "field"
-msgstr "項目"
-
-msgid "before"
-msgstr "変更前"
-
-msgid "after"
-msgstr "変更後"
 
 msgid "Support organization management"
 msgstr "登録支援機関 業務管理"
@@ -137,8 +679,12 @@ msgstr "協力確認書"
 msgid "Support entrustment contract"
 msgstr "支援委託契約書"
 
-msgid "kind"
-msgstr "種別"
+msgid "Evidence of pay equal to or higher than Japanese workers"
+msgstr "日本人と同等以上の報酬の根拠資料"
+
+msgid ""
+"Annual calendar and labor-management agreement for variable working hours"
+msgstr "変形労働時間制の年間カレンダー・労使協定書"
 
 msgid "original filename"
 msgstr "元のファイル名"
@@ -160,9 +706,6 @@ msgstr "添付ファイル"
 
 msgid "attachments"
 msgstr "添付ファイル"
-
-msgid "name"
-msgstr "名称"
 
 msgid "registration number"
 msgstr "登録支援機関登録番号"
@@ -292,6 +835,15 @@ msgstr "受入れ機関台帳の登録・更新"
 
 msgid "edit master data (countries, fields, categories)"
 msgstr "マスタの編集（国・地域、分野、業務区分）"
+
+msgid "view employment contracts"
+msgstr "雇用契約台帳の閲覧"
+
+msgid "register and update employment contracts"
+msgstr "雇用契約台帳の登録・更新"
+
+msgid "cancel the termination of employment contracts"
+msgstr "雇用契約の終了の取り消し"
 
 msgid "all data"
 msgstr "すべてのデータ"
@@ -566,9 +1118,6 @@ msgstr "代表者"
 msgid "Contact"
 msgstr "連絡先"
 
-msgid "Record"
-msgstr "記録"
-
 msgid "Host organizations"
 msgstr "受入れ機関台帳"
 
@@ -602,9 +1151,6 @@ msgstr "適用開始日"
 msgid "operation category"
 msgstr "業務区分"
 
-msgid "operation categories"
-msgstr "業務区分"
-
 msgid "corporation"
 msgstr "法人"
 
@@ -631,9 +1177,6 @@ msgstr "代表者の氏名"
 
 msgid "portal users"
 msgstr "ポータルのユーザー"
-
-msgid "host organization"
-msgstr "受入れ機関"
 
 msgid "host organizations"
 msgstr "受入れ機関"
@@ -677,9 +1220,6 @@ msgstr "日本標準産業分類コード"
 msgid "Enter 2 to 4 digits (e.g. 09, 0991, 2194)."
 msgstr "数字 2〜4 桁で入力してください（例: 09、0991、2194）。"
 
-msgid "host site"
-msgstr "事業所"
-
 msgid "host sites"
 msgstr "事業所"
 
@@ -689,12 +1229,6 @@ msgstr "全部委託"
 msgid "concluded on"
 msgstr "締結日"
 
-msgid "starts on"
-msgstr "開始日"
-
-msgid "ends on"
-msgstr "終了日"
-
 msgid "scope"
 msgstr "委託の範囲"
 
@@ -703,9 +1237,6 @@ msgstr "支援委託契約"
 
 msgid "support contracts"
 msgstr "支援委託契約"
-
-msgid "The end date must be on or after the start date."
-msgstr "終了日は開始日以降の日付にしてください。"
 
 msgid ""
 "This period overlaps another support contract of the same host organization."
@@ -790,12 +1321,6 @@ msgstr "性別"
 
 msgid "assigned staff"
 msgstr "担当者"
-
-msgid "status"
-msgstr "状態"
-
-msgid "foreign worker"
-msgstr "外国人"
 
 msgid "foreign workers"
 msgstr "外国人"
@@ -916,6 +1441,34 @@ msgstr "連絡先"
 
 msgid "contacts"
 msgstr "連絡先"
+
+msgid "scheduled"
+msgstr "予定"
+
+msgid "terminated"
+msgstr "終了"
+
+#, python-format
+msgid ""
+"This period overlaps the employment contract (ID: %(id)s) of the same "
+"foreign worker."
+msgstr "同じ外国人の雇用契約（ID: %(id)s）と期間が重なっています。"
+
+msgid ""
+"The workplace must be a site of the contracting host organization (no "
+"dispatch)."
+msgstr ""
+"就業の場所は、契約の相手の受入れ機関の事業所にしてください（派遣は不可）。"
+
+#, python-format
+msgid "These operation categories are not registered for the site: %(names)s"
+msgstr "事業所に登録されていない業務区分です: %(names)s"
+
+msgid "Enter the reason for the change."
+msgstr "変更理由を入力してください。"
+
+msgid "Enter a note for the termination reason."
+msgstr "終了理由のメモを入力してください。"
 
 msgid "Enter a 13-digit corporate number."
 msgstr "法人番号は数字 13 桁で入力してください。"

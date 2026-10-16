@@ -87,6 +87,14 @@ class AttachmentKind(models.TextChoices):
     )
     COOPERATION_CONFIRMATION = "cooperation_confirmation", _("Letter of cooperation confirmation")
     SUPPORT_CONTRACT = "support_contract", _("Support entrustment contract")
+    EQUAL_PAY_EVIDENCE = (
+        "equal_pay_evidence",
+        _("Evidence of pay equal to or higher than Japanese workers"),
+    )
+    VARIABLE_HOURS_DOCUMENTS = (
+        "variable_hours_documents",
+        _("Annual calendar and labor-management agreement for variable working hours"),
+    )
 
 
 class Attachment(TrackedModel):
@@ -278,6 +286,9 @@ class Action(models.TextChoices):
     HOSTS_VIEW = "hosts.view", _("view host organizations")
     HOSTS_MANAGE = "hosts.manage", _("register and update host organizations")
     MASTERS_MANAGE = "masters.manage", _("edit master data (countries, fields, categories)")
+    CONTRACTS_VIEW = "contracts.view", _("view employment contracts")
+    CONTRACTS_MANAGE = "contracts.manage", _("register and update employment contracts")
+    CONTRACTS_REOPEN = "contracts.reopen", _("cancel the termination of employment contracts")
 
 
 class DataScope(models.TextChoices):

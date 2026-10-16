@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import Any
 
 from django import forms
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Lookup, Transform
 
@@ -101,3 +102,27 @@ def _is_textarea(widget: Any) -> bool:
     if isinstance(widget, type):
         return issubclass(widget, forms.Textarea)
     return isinstance(widget, forms.Textarea)
+
+
+class ChoiceArrayField(ArrayField):  # type: ignore[type-arg]
+    """選択肢の複数選択（PostgreSQL の配列）。フォームではチェックボックスの一覧にする。
+
+    例: 雇用条件書の「更新の判断基準」「休日の曜日」「社会保険の加入状況」。
+    """
+
+    def formfield(
+        self,
+        form_class: type[forms.Field] | None = None,
+        choices_form_class: type[forms.ChoiceField] | None = None,
+        **kwargs: Any,
+    ) -> Any:
+        defaults: dict[str, Any] = {
+            "form_class": form_class or forms.TypedMultipleChoiceField,
+            "choices": self.base_field.choices,
+            "coerce": self.base_field.to_python,
+            "widget": forms.CheckboxSelectMultiple,
+            "required": not self.blank,
+        }
+        defaults.update(kwargs)
+        # ArrayField.formfield は SimpleArrayField を使うため、Field.formfield を直接呼ぶ
+        return models.Field.formfield(self, **defaults)

@@ -57,6 +57,12 @@ AUDITED_MODELS: frozenset[str] = frozenset(
         "hosts.hostcooperationconfirmation",
         "hosts.hostsite",
         "hosts.supportcontract",
+        # 雇用契約（報酬を含む）
+        "contracts.employmentcontract",
+        "contracts.employmentcontractversion",
+        "contracts.employmentcontractshift",
+        "contracts.employmentcontractallowance",
+        "contracts.employmentcontractdeduction",
     }
 )
 
@@ -79,6 +85,12 @@ VIEW_AUDITED_MODELS: frozenset[str] = frozenset(
         "hosts.hostcooperationconfirmation",
         "hosts.hostsite",
         "hosts.supportcontract",
+        # 雇用契約（報酬を含む）
+        "contracts.employmentcontract",
+        "contracts.employmentcontractversion",
+        "contracts.employmentcontractshift",
+        "contracts.employmentcontractallowance",
+        "contracts.employmentcontractdeduction",
     }
 )
 
