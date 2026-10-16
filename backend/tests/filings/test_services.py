@@ -336,7 +336,7 @@ def test_renewed_support_contract_is_not_flagged() -> None:
     )
 
 
-def test_only_latest_certificate_is_checked() -> None:
+def test_membership_certificate_is_checked_once_via_membership() -> None:
     from django.core.files.base import ContentFile
 
     from apps.core.models import AttachmentKind
@@ -344,15 +344,38 @@ def test_only_latest_certificate_is_checked() -> None:
     from tests.conftest import PDF_BYTES
 
     membership = HostMembership.objects.create(
-        host_organization=make_host(), field=field("food_manufacturing"), joined_on=date(2024, 4, 1)
+        host_organization=make_host(),
+        field=field("food_manufacturing"),
+        joined_on=date(2024, 4, 1),
+        valid_until=date(2026, 11, 10),
     )
+    create_attachment(
+        target=membership,
+        kind=AttachmentKind.MEMBERSHIP_CERTIFICATE,
+        file=ContentFile(PDF_BYTES, name="c.pdf"),
+        created_by=None,
+        valid_until=date(2026, 11, 10),
+    )
+    created = filings.create_scheduled(date(2026, 10, 16)).created
+    assert [(f.kind, f.target) for f in created] == [("membership_renewal", membership)]
+
+
+def test_only_latest_certificate_is_checked() -> None:
+    """有効期限の欄が行に無い添付（自機関の協議会の証明書など）は、最新の添付だけを見る。"""
+    from django.core.files.base import ContentFile
+
+    from apps.core.models import AttachmentKind
+    from services.attachments import create_attachment
+    from tests.conftest import PDF_BYTES
+
+    organization = make_organization(registration_expires_on=date(2031, 3, 31))
     for valid_until in (date(2026, 3, 31), date(2027, 3, 31)):
         create_attachment(
-            target=membership,
-            kind=AttachmentKind.MEMBERSHIP_CERTIFICATE,
+            target=organization,
+            kind=AttachmentKind.FOOD_COUNCIL_CERTIFICATE,
             file=ContentFile(PDF_BYTES, name="c.pdf"),
             created_by=None,
             valid_until=valid_until,
         )
     created = filings.create_scheduled(date(2027, 3, 1)).created
-    assert [(f.kind, f.basis_on) for f in created] == [("membership_renewal", date(2027, 3, 31))]
+    assert [f.basis_on for f in created if f.kind == "membership_renewal"] == [date(2027, 3, 31)]

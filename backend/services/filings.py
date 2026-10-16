@@ -461,9 +461,16 @@ def create_scheduled(today: date, *, by: User | None = None) -> ScheduledResult:
 
 
 def _latest_attachments_with_expiry() -> list[Attachment]:
-    """同じ対象・同じ種別の添付のうち最新のもの（差し替え前の古い証明書は見ない）。"""
+    """同じ対象・同じ種別の添付のうち最新のもの（差し替え前の古い証明書は見ない）。
+
+    加入状況（HostMembership）の証明書は、加入状況の有効期限で起票するので対象外にする
+    （同じ証明書のタスクを 2 件作らないため）。
+    """
+    membership_type = ContentType.objects.get_for_model(HostMembership)
     latest: dict[tuple[int, int, str], Attachment] = {}
-    for attachment in Attachment.objects.order_by("created_at", "pk"):
+    for attachment in Attachment.objects.exclude(content_type=membership_type).order_by(
+        "created_at", "pk"
+    ):
         latest[(attachment.content_type_id, attachment.object_id, attachment.kind)] = attachment
     return [a for a in latest.values() if a.valid_until is not None]
 

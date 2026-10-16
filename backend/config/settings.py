@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "apps.hosts",
     "apps.contracts",
     "apps.filings",
+    "apps.seed",
 ]
 
 MIDDLEWARE = [
@@ -80,6 +81,9 @@ WSGI_APPLICATION = "config.wsgi.application"
 # --- データベース ---
 DATABASES = {"default": env.db("DATABASE_URL")}
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# --- ダミーデータ（seed_dummy）。DEBUG かつ true のときだけ実行できる（本番には入れない）---
+ALLOW_DUMMY_DATA: bool = env.bool("ALLOW_DUMMY_DATA", default=False)
 
 # --- 列暗号化（第8章）。鍵は環境変数で渡し、既定値は持たない（make env で生成）---
 # 先頭の鍵で暗号化し、すべての鍵で復号を試す。ローテーション手順は services/crypto.py。
