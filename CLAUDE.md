@@ -63,6 +63,7 @@
 - 日付は `date`、日時は timezone-aware `datetime`（Asia/Tokyo）。
 - 期限ルールは `services/deadlines.py` に関数として定義し、テストで固定日付を使って検証する。
 - テストは pytest + pytest-django。新しいモデル・サービスには必ずテストを付ける。
+- 監査対象モデル（`services/audit.py` の `AUDITED_MODELS`）では `bulk_create` / `QuerySet.update()` を使わない（シグナルを通らず監査ログに残らない）。必要な場合は `audit.event()` で囲み、イベントとして手動で記録する。
 - コミットは 1 タスク 1 コミット。メッセージは `feat: ` / `fix: ` / `chore: ` / `docs: ` の接頭辞。
 
 ## 作業の進め方
