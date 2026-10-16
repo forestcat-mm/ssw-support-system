@@ -1,0 +1,12 @@
+{% extends "admin/base.html" %}{% load i18n static %}
+{# 管理画面の見た目を業務画面のトークン（D: Officevibe）に揃える（T15a）。外部テーマは入れない #}
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title }}{% endblock %}
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'ui/tokens.css' %}">
+<link rel="stylesheet" href="{% static 'ui/admin-theme.css' %}">
+{% endblock %}
+{% block branding %}
+<div id="site-name"><a href="{% url 'admin:index' %}">{{ site_header }}</a></div>
+<a class="admin-back-to-app" href="{% url 'home' %}">← {% translate "Back to business screens" %}</a>
+{% endblock %}
+{% block nav-global %}{% endblock %}

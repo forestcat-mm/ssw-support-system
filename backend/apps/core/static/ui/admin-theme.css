@@ -1,0 +1,143 @@
+/*
+ * 管理画面（Django admin）の CSS 変数に、業務画面のトークン（tokens.css）を流し込む（T15a）。
+ * 色・罫線・フォントは業務画面と同じ。admin のダークモードは使わず、常にこの配色にする。
+ */
+:root,
+html[data-theme="light"],
+html[data-theme="dark"],
+html[data-theme="auto"] {
+  color-scheme: light;
+  --primary: var(--palette-navy);
+  --secondary: var(--palette-navy);
+  --accent: #ffffff;
+  --primary-fg: #ffffff;
+
+  --body-fg: var(--color-ink);
+  --body-bg: var(--color-surface);
+  --body-quiet-color: var(--color-graphite);
+  --body-medium-color: var(--color-ink-2);
+  --body-loud-color: var(--color-ink);
+
+  --header-color: rgba(255, 255, 255, 0.85);
+  --header-branding-color: #ffffff;
+  --header-bg: var(--palette-navy);
+  --header-link-color: #ffffff;
+
+  --breadcrumbs-fg: var(--color-graphite);
+  --breadcrumbs-link-fg: var(--color-link);
+  --breadcrumbs-bg: var(--color-canvas);
+
+  --link-fg: var(--color-link);
+  --link-hover-color: var(--palette-navy);
+  --link-selected-fg: var(--palette-navy);
+
+  --hairline-color: var(--color-line);
+  --border-color: var(--color-line-strong);
+
+  --error-fg: var(--level-overdue-fg);
+  --message-success-bg: var(--notice-success-bg);
+  --message-warning-bg: var(--level-within-7-bg);
+  --message-error-bg: var(--notice-error-bg);
+
+  --darkened-bg: var(--color-canvas);
+  --selected-bg: var(--palette-lavender);
+  --selected-row: var(--palette-lavender);
+
+  --button-fg: #ffffff;
+  --button-bg: var(--button-primary-bg);
+  --button-hover-bg: var(--button-primary-hover-bg);
+  --default-button-bg: var(--button-primary-bg);
+  --default-button-hover-bg: var(--button-primary-hover-bg);
+  --close-button-bg: var(--color-graphite);
+  --close-button-hover-bg: var(--color-ink);
+  --delete-button-bg: var(--level-overdue-fg);
+  --delete-button-hover-bg: var(--level-overdue-fg);
+
+  --object-tools-fg: var(--button-primary-fg);
+  --object-tools-bg: var(--button-primary-bg);
+  --object-tools-hover-bg: var(--button-primary-hover-bg);
+
+  --font-family-primary: var(--font-sans);
+  --font-family-monospace: var(--font-mono);
+}
+
+body {
+  background: var(--color-canvas);
+  line-height: var(--leading-body);
+}
+
+:lang(zh-Hans) {
+  font-family: var(--font-sans-zh);
+}
+
+/* ヘッダー: 濃紺。業務画面へ戻るリンクを並べる */
+#header {
+  gap: var(--space-16);
+}
+
+#branding {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+}
+
+#site-name {
+  font-weight: 600;
+  letter-spacing: var(--tracking-heading);
+}
+
+.admin-back-to-app,
+.admin-back-to-app:visited {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: var(--text-table);
+}
+
+.admin-back-to-app:hover {
+  color: #ffffff;
+}
+
+/* 常に明るい配色にするため、ダークモードの切り替えは出さない */
+.theme-toggle {
+  display: none;
+}
+
+/* 罫線はクリーム、角丸は業務画面と同じ */
+.module,
+#changelist-filter,
+.inline-group {
+  border: 1px solid var(--color-line-structure);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.module h2,
+.module caption,
+.inline-group h2 {
+  background: var(--palette-navy);
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="url"],
+input[type="date"],
+input[type="search"],
+select,
+textarea,
+.vTextField {
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-input);
+}
+
+.button,
+input[type="submit"],
+input[type="button"],
+.submit-row input,
+a.button {
+  border-radius: var(--button-radius);
+}
+
+#nav-sidebar .current-model {
+  background: var(--palette-lavender);
+}

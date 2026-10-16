@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 22:42+0900\n"
+"POT-Creation-Date: 2026-10-16 22:56+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -622,6 +622,10 @@ msgstr "登録支援機関 業務管理"
 
 msgid "Management"
 msgstr "管理"
+
+#, python-format
+msgid "%(name)s management site"
+msgstr "%(name)s 管理画面"
 
 msgid "Organization and users"
 msgstr "自機関・ユーザー"
@@ -2369,6 +2373,9 @@ msgstr "取り消しました。"
 
 msgid "Deactivated the foreign worker."
 msgstr "外国人を無効化しました。"
+
+msgid "Back to business screens"
+msgstr "業務画面へ戻る"
 
 msgid "scheduled"
 msgstr "予定"
