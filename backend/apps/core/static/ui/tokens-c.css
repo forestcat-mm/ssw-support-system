@@ -1,0 +1,158 @@
+/*
+ * 比較セット C: Workable（https://styles.refero.design/style/0ab4c544-6147-4998-8365-3a0f6191e54f）
+ * 温かい白のキャンバスに白いカード、薄い罫線。影なし。主要操作は Forest Teal、角丸 8px。
+ * 7日以内＝ピーチ、14日以内＝バター、対応期間中＝ティールの枠線のみ。超過は原則の例外として彩度を抑えた赤（色相は 5 セット共通）。
+ * ミッドナイトバイオレット #1d0953 とグラデーションは UI に使わない。
+ */
+:root {
+  /* --- 元の色（このセットの名前付きの色。下の役割から参照する） --- */
+  --palette-canvas: #fbfaf8;
+  --palette-white: #ffffff;
+  --palette-ink: #0f161e;
+  --palette-slate: #3d3e45;
+  --palette-steel: #6f7073;
+  --palette-fog: #a3a4a7;
+  --palette-line: #efefef;
+  --palette-control: #d4d4d6;
+  --palette-teal: #004038;
+  --palette-teal-hover: #00332d;
+  --palette-teal-tint: #e5eeec;
+  --palette-peach: #fef1e1;
+  --palette-butter: #fde8ce;
+  --palette-lavender: #e5d3f7;
+  --palette-sky: #bee9f4;
+  --palette-red-tint: #f8e4e2;
+  --palette-red-ink: #7e2b25;
+
+  /* --- 面 --- */
+  --color-canvas: var(--palette-canvas);
+  --color-surface: var(--palette-white);
+  --color-band: var(--palette-canvas);
+  --color-field: var(--palette-white);
+
+  /* --- 文字 --- */
+  --color-ink: var(--palette-ink);
+  --color-text-body: var(--palette-slate);
+  --color-ink-2: var(--palette-slate);
+  --color-graphite: var(--palette-steel);
+  --color-ash: var(--palette-fog);
+
+  /* --- 罫線 --- */
+  --color-line: var(--palette-line);
+  --color-line-structure: var(--palette-line);
+  --color-line-strong: var(--palette-control);
+
+  /* --- 強調（フォーカス・アクティブ・リンク） --- */
+  --color-accent: var(--palette-teal);
+  --color-link: var(--palette-teal);
+  --link-decoration: none;
+  --focus-width: 2px;
+  --focus-offset: -1px;
+
+  /* --- 上のバー・ナビ --- */
+  --topbar-bg: var(--palette-white);
+  --nav-bg: var(--palette-white);
+  --nav-fg: var(--palette-slate);
+  --nav-hover-bg: var(--palette-canvas);
+  --nav-hover-fg: var(--palette-ink);
+  --nav-active-bg: var(--palette-teal-tint);
+  --nav-active-fg: var(--palette-teal);
+  --nav-active-indicator: none;
+  --nav-mobile-fg: var(--palette-ink);
+
+  /* --- ボタン --- */
+  --button-radius: 8px;
+  --button-shadow: none;
+  --button-primary-bg: var(--palette-teal);
+  --button-primary-hover-bg: var(--palette-teal-hover);
+  --button-primary-fg: #ffffff;
+  --button-secondary-bg: transparent;
+  --button-secondary-hover-bg: var(--palette-teal-tint);
+  --button-secondary-border: var(--palette-teal);
+  --button-secondary-fg: var(--palette-teal);
+  --button-neutral-bg: var(--palette-white);
+  --button-neutral-hover-bg: var(--palette-canvas);
+  --button-neutral-border: var(--palette-control);
+  --button-neutral-fg: var(--palette-ink);
+  --button-danger-bg: var(--palette-red-tint);
+  --button-danger-border: transparent;
+  --button-danger-fg: var(--palette-red-ink);
+
+  /* --- カード・入力欄・表 --- */
+  --card-shadow: none;
+  --input-border: var(--palette-control);
+  --input-focus-border: var(--palette-teal);
+  --input-error-border: var(--palette-red-ink);
+  --input-disabled-bg: var(--palette-canvas);
+  --table-cell-padding-y: 6px; /* 行高 36px 前後 */
+
+  /* --- 警告レベル --- */
+  --level-overdue-bg: var(--palette-red-tint);
+  --level-overdue-fg: var(--palette-red-ink);
+  --level-within-7-bg: var(--palette-peach);
+  --level-within-7-fg: var(--palette-ink);
+  --level-within-7-mark: var(--palette-ink);
+  --level-within-14-bg: var(--palette-butter);
+  --level-within-14-fg: var(--palette-ink);
+  --level-open-border: var(--palette-teal);
+  --level-open-fg: var(--palette-ink);
+  --level-not-yet-fg: var(--palette-steel);
+
+  /* --- お知らせ・エラー --- */
+  --notice-info-bg: var(--palette-teal-tint);
+  --notice-error-bg: var(--palette-red-tint);
+  --notice-error-fg: var(--palette-red-ink);
+  --notice-success-bg: var(--palette-teal-tint);
+
+  /* --- 分野・外国人の状態 --- */
+  --field-industrial-bg: var(--palette-sky);
+  --field-industrial-fg: var(--palette-ink);
+  --field-food-bg: var(--palette-lavender);
+  --field-food-fg: var(--palette-ink);
+  --status-pre-entry-bg: var(--palette-teal-tint);
+  --status-pre-entry-fg: var(--palette-teal);
+
+  /* --- 文字（B〜E 共通: system-ui ベースの日本語・中国語スタック。外部読み込みなし） --- */
+  --font-sans: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+    "Yu Gothic UI", "Yu Gothic", Meiryo, "Noto Sans CJK JP", "Noto Sans JP", sans-serif;
+  --font-sans-zh: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", "Noto Sans CJK SC",
+    "Noto Sans SC", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Noto Sans Mono", monospace;
+
+  --text-caption: 12px;
+  --text-table: 14px;
+  --text-body: 15px;
+  --text-subheading: 18px;
+  --text-heading: 24px;
+  --leading-body: 1.6;
+  --leading-heading: 1.3;
+  --tracking-heading: -0.01em; /* 20px 以上の見出しだけ */
+  --weight-heading: 600;
+  --weight-subheading: 500;
+
+  /* --- 余白（基本単位 4px） --- */
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-48: 48px;
+
+  /* --- 角丸 --- */
+  --radius-card: 12px;
+  --radius-input: 8px;
+  --radius-pill: 99px;
+  --radius-badge: var(--radius-pill);
+
+  /* --- 影 --- */
+  --shadow-float: none;
+  --popover-border: var(--palette-line);
+
+  /* --- レイアウト --- */
+  --layout-max: 1200px;
+  --layout-nav: 220px;
+  --layout-topbar: 56px;
+  --control-height: 36px;
+}

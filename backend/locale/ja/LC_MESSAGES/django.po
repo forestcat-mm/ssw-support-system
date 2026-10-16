@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 20:38+0900\n"
+"POT-Creation-Date: 2026-10-16 21:16+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -1162,11 +1162,25 @@ msgid "Register"
 msgstr "登録する"
 
 msgid ""
-"Design tokens and components of the business screens (based on the Aboard "
-"design tokens). Only administrators can open this page."
+"Design tokens and components of the business screens. Only administrators "
+"can open this page."
+msgstr "業務画面のデザイントークンと部品の見本です。管理者だけが開けます。"
+
+msgid "Design comparison"
+msgstr "デザインの比較"
+
+msgid "Design sets"
+msgstr "デザインのセット"
+
+msgid "source"
+msgstr "出典"
+
+msgid ""
+"The set applies only to this page. After choosing one, replace tokens.css "
+"with the chosen file and delete the others."
 msgstr ""
-"業務画面のデザイントークンと部品の見本です（Aboard のデザイントークンを基準に"
-"しています）。管理者だけが開けます。"
+"切り替えはこの画面だけに当たります。1 つに決めたら、選んだファイルで tokens."
+"css を置き換え、ほかのセットは削除します。"
 
 msgid "Colors"
 msgstr "色"
@@ -1174,11 +1188,11 @@ msgstr "色"
 msgid "Typography"
 msgstr "文字"
 
-msgid "Page heading 24px / 600"
-msgstr "ページの見出し 24px / 600"
+msgid "Page heading 24px"
+msgstr "ページの見出し 24px"
 
-msgid "Section heading 18px / 500"
-msgstr "区切りの見出し 18px / 500"
+msgid "Section heading 18px"
+msgstr "区切りの見出し 18px"
 
 msgid ""
 "Body text 15px / line height 1.6. Japanese and Chinese text keep normal "
@@ -1216,11 +1230,11 @@ msgid "Disabled"
 msgstr "使えない状態"
 
 msgid ""
-"Primary: one or two per screen. Ghost: only next to a primary button. "
-"Neutral: secondary actions. Danger: always behind a confirmation page."
+"Primary: one or two per screen. Secondary: only next to a primary button. "
+"Neutral: other actions. Irreversible: always behind a confirmation page."
 msgstr ""
-"主要: 1 画面に 1〜2 個。ゴースト: 主要ボタンと並べるときだけ。中立: 主要でな"
-"い操作。危険: 必ず確認の画面をはさむ。"
+"主要: 1 画面に 1〜2 個。二次: 主要ボタンと並べるときだけ。中立: そのほかの操"
+"作。取り返しのつかない操作: 必ず確認の画面をはさむ。"
 
 msgid "Deadline levels"
 msgstr "警告レベル"
@@ -1244,9 +1258,6 @@ msgstr ""
 msgid "Tags and status"
 msgstr "タグと状態"
 
-msgid "Table"
-msgstr "表"
-
 msgid "Search"
 msgstr "検索"
 
@@ -1258,6 +1269,12 @@ msgstr "すべての受入れ機関"
 
 msgid "nationality or region"
 msgstr "国籍・地域"
+
+msgid "residence card number"
+msgstr "在留カード番号"
+
+msgid "monthly wage"
+msgstr "月給"
 
 msgid "period of stay expires on"
 msgstr "在留期限"
@@ -1274,8 +1291,11 @@ msgstr "氏名（ローマ字）"
 msgid "required field"
 msgstr "必須"
 
-msgid "residence card number"
-msgstr "在留カード番号"
+msgid "(focused)"
+msgstr "（フォーカス中）"
+
+msgid "Spaces, hyphens and full-width characters are normalized when saved."
+msgstr "空白・ハイフン・全角の文字は、保存するときに整えます。"
 
 msgid ""
 "Enter a residence card number as 2 letters, 8 digits and 2 letters (e.g. "
@@ -1284,11 +1304,8 @@ msgstr ""
 "在留カード番号は英字 2 桁・数字 8 桁・英字 2 桁で入力してください（例: "
 "AB12345678CD）。"
 
-msgid "Spaces, hyphens and full-width characters are normalized when saved."
-msgstr "空白・ハイフン・全角の文字は、保存するときに整えます。"
-
-msgid "void reason"
-msgstr "取り消しの理由"
+msgid "ID (assigned automatically)"
+msgstr "ID（自動で付与）"
 
 msgid "Detail"
 msgstr "詳細"
@@ -1349,17 +1366,97 @@ msgstr "回復用コードでログインしました。残りは %(count)d 個�
 msgid "The code is incorrect."
 msgstr "コードが正しくありません。"
 
+msgid "Neutral canvas, Signal Blue for primary actions only, pastel statuses."
+msgstr "無彩色のキャンバス。Signal Blue は主要操作だけ。状態はパステル。"
+
+msgid "Three warm surfaces, black pill buttons, no colored buttons."
+msgstr "暖かい 3 段の面。黒いピル型のボタン。色付きボタンなし。"
+
+msgid ""
+"White cards on a warm canvas, Forest Teal for primary actions, no shadows."
+msgstr "暖かいキャンバスに白いカード。主要操作は Forest Teal。影なし。"
+
+msgid ""
+"Navy navigation and primary buttons, cobalt for focus and links, cream lines."
+msgstr "ナビと主要ボタンは濃紺。フォーカスとリンクはコバルト。罫線はクリーム。"
+
+msgid ""
+"Three gray surfaces, black structural lines, teal for focus only, 6px "
+"corners."
+msgstr ""
+"グレーの 3 段の面。構造の区切りは黒。ティールはフォーカスだけ。角丸 6px。"
+
+msgid "page background"
+msgstr "ページの背景"
+
+msgid "cards and tables"
+msgstr "カード・表"
+
+msgid "bands and row hover"
+msgstr "帯・行のホバー"
+
+msgid "input background"
+msgstr "入力欄の地"
+
+msgid "headings and UI text"
+msgstr "見出し・UI の文字"
+
+msgid "body text"
+msgstr "本文"
+
+msgid "strong secondary text"
+msgstr "強い補足"
+
+msgid "secondary text"
+msgstr "補足の文字"
+
+msgid "faintest text, disabled"
+msgstr "最弱の文字・無効"
+
+msgid "structural lines"
+msgstr "構造の罫線"
+
+msgid "light lines"
+msgstr "軽い罫線"
+
+msgid "input borders"
+msgstr "入力欄の枠"
+
+msgid "focus and active state"
+msgstr "フォーカス・アクティブ"
+
+msgid "primary button"
+msgstr "主要ボタン"
+
+msgid "navigation background"
+msgstr "ナビの背景"
+
 msgid "overdue"
 msgstr "超過"
 
 msgid "within 7 days"
 msgstr "7日以内"
 
-msgid "Butter, bold, with a dot"
-msgstr "Butter、太字、左に印"
-
 msgid "within 14 days"
 msgstr "14日以内"
+
+msgid "open (outline)"
+msgstr "対応期間中（枠線）"
+
+msgid "industrial products field"
+msgstr "工業製品製造業分野"
+
+msgid "food manufacturing field"
+msgstr "飲食料品製造業分野"
+
+msgid "deactivated"
+msgstr "無効化済み"
+
+msgid "fill"
+msgstr "塗り"
+
+msgid "fill, bold, with a dot"
+msgstr "塗り・太字・左に印"
 
 msgid "open"
 msgstr "対応期間中"
@@ -1373,41 +1470,17 @@ msgstr "受付前"
 msgid "date only"
 msgstr "日付の文字のみ"
 
-msgid "page background"
-msgstr "ページの背景"
+#, python-format
+msgid "Overdue: %(count)s"
+msgstr "超過 %(count)s人"
 
-msgid "cards and tables"
-msgstr "カード・表"
+#, python-format
+msgid "Within 7 days: %(count)s"
+msgstr "7日以内 %(count)s人"
 
-msgid "text"
-msgstr "文字"
-
-msgid "secondary text"
-msgstr "補足の文字"
-
-msgid "borders of inputs, disabled"
-msgstr "入力欄の枠線、使えない状態"
-
-msgid "primary actions and active state only"
-msgstr "主要操作とアクティブな状態だけ"
-
-msgid "active menu, before entry"
-msgstr "アクティブなメニュー、入国前"
-
-msgid "overdue, errors, danger"
-msgstr "超過、エラー、危険な操作"
-
-msgid "within 14 days, success"
-msgstr "14日以内、完了の知らせ"
-
-msgid "industrial products field"
-msgstr "工業製品製造業分野"
-
-msgid "food manufacturing field"
-msgstr "飲食料品製造業分野"
-
-msgid "deactivated"
-msgstr "無効化済み"
+#, python-format
+msgid "Within 14 days: %(count)s"
+msgstr "14日以内 %(count)s人"
 
 msgid "immigration notification"
 msgstr "入管への届出"
@@ -1744,6 +1817,9 @@ msgstr "ダミーデータの台帳"
 
 msgid "void"
 msgstr "取り消す"
+
+msgid "void reason"
+msgstr "取り消しの理由"
 
 msgid "Enter the reason for voiding."
 msgstr "取り消しの理由を入力してください。"

@@ -2,39 +2,116 @@
  * デザイントークン（業務画面）。基準は Aboard の DESIGN.md の配色・文字・余白・罫線・影。
  * 業務画面向けの読み替え: カードの角丸 24→12px、カード内の余白 40→16〜24px、行間 1.6（日本語・中国語）。
  * Signal Blue は主要操作とアクティブ状態だけ。パステルは状態バッジと分野の色分けだけに使う。
+ *
+ * base.css・components.css は「役割」の変数（--button-primary-bg など）だけを参照する。
+ * 比較セット（tokens-b.css〜tokens-e.css）は同じ変数をすべて定義し直しているので、
+ * 採用したセットのファイルでこのファイルを置き換えれば全画面が切り替わる。
  */
 :root {
-  /* 色: ニュートラル */
-  --color-canvas: #fafafa;
-  --color-surface: #ffffff;
-  --color-ink: #262626;
-  --color-graphite: #757577;
-  --color-ash: #aeaeaf;
-  --color-line: rgba(0, 0, 0, 0.08);
-  --color-line-strong: #aeaeaf;
+  /* --- 元の色（このセットの名前付きの色。下の役割から参照する） --- */
+  --palette-canvas: #fafafa;
+  --palette-white: #ffffff;
+  --palette-ink: #262626;
+  --palette-graphite: #757577;
+  --palette-ash: #aeaeaf;
+  --palette-signal: #008ae8;
+  --palette-signal-hover: #0077c9;
+  --palette-sky: #e0f2fe;
+  --palette-blush: #fbcfe8;
+  --palette-butter: #ffe77a;
+  --palette-mint: #b6edee;
+  --palette-lavender: #e6dafd;
+  --palette-powder: #afe4ff;
 
-  /* 色: 強調（彩度の高い唯一の色） */
-  --color-signal: #008ae8;
-  --color-signal-hover: #0077c9;
-  --color-sky: #e0f2fe;
+  /* --- 面 --- */
+  --color-canvas: var(--palette-canvas); /* ページの背景 */
+  --color-surface: var(--palette-white); /* カード・表 */
+  --color-band: var(--palette-canvas); /* 帯・行のホバー・中立のタグ */
+  --color-field: var(--palette-white); /* 入力欄の地 */
 
-  /* 色: パステル（状態・分野） */
-  --color-blush: #fbcfe8;
-  --color-butter: #ffe77a;
-  --color-mint: #b6edee;
-  --color-lavender: #e6dafd;
-  --color-powder: #afe4ff;
+  /* --- 文字 --- */
+  --color-ink: var(--palette-ink); /* 主な文字・見出し・UI */
+  --color-text-body: var(--palette-ink); /* 本文 */
+  --color-ink-2: var(--palette-ink); /* 強い補足 */
+  --color-graphite: var(--palette-graphite); /* 補足 */
+  --color-ash: var(--palette-ash); /* 最弱・無効・プレースホルダ */
 
-  /* 警告レベル（T10 の assess。繰り延べ前の期限が基準） */
-  --level-overdue: var(--color-blush);
-  --level-within-7: var(--color-butter);
-  --level-within-14: var(--color-mint);
+  /* --- 罫線 --- */
+  --color-line: rgba(0, 0, 0, 0.08); /* 表の行区切り・軽い区切り */
+  --color-line-structure: rgba(0, 0, 0, 0.08); /* カード・ナビ・上のバーの枠 */
+  --color-line-strong: var(--palette-ash); /* 入力欄・中立ボタンの枠 */
 
-  /* 分野 */
-  --field-industrial: var(--color-powder);
-  --field-food: var(--color-lavender);
+  /* --- 強調（フォーカス・アクティブ・リンク） --- */
+  --color-accent: var(--palette-signal);
+  --color-link: var(--palette-signal);
+  --link-decoration: none;
+  --focus-width: 2px;
+  --focus-offset: -1px;
 
-  /* 文字 */
+  /* --- 上のバー・ナビ --- */
+  --topbar-bg: var(--palette-white);
+  --nav-bg: var(--palette-white);
+  --nav-fg: var(--palette-graphite);
+  --nav-hover-bg: var(--palette-canvas);
+  --nav-hover-fg: var(--palette-ink);
+  --nav-active-bg: var(--palette-sky);
+  --nav-active-fg: var(--palette-signal);
+  --nav-active-indicator: none; /* box-shadow の値（左の印など） */
+  --nav-mobile-fg: var(--palette-ink);
+
+  /* --- ボタン --- */
+  --button-radius: var(--radius-pill);
+  --button-shadow: none;
+  --button-primary-bg: var(--palette-signal);
+  --button-primary-hover-bg: var(--palette-signal-hover);
+  --button-primary-fg: #ffffff;
+  --button-secondary-bg: transparent; /* .button--ghost */
+  --button-secondary-hover-bg: transparent;
+  --button-secondary-border: var(--palette-signal);
+  --button-secondary-fg: var(--palette-signal);
+  --button-neutral-bg: var(--palette-white);
+  --button-neutral-hover-bg: var(--palette-canvas);
+  --button-neutral-border: var(--palette-ash);
+  --button-neutral-fg: var(--palette-ink);
+  --button-danger-bg: var(--palette-blush);
+  --button-danger-border: transparent;
+  --button-danger-fg: var(--palette-ink);
+
+  /* --- カード・入力欄・表 --- */
+  --card-shadow: none;
+  --input-border: var(--palette-ash);
+  --input-focus-border: var(--palette-signal);
+  --input-error-border: var(--palette-ink);
+  --input-disabled-bg: var(--palette-canvas);
+  --table-cell-padding-y: var(--space-8);
+
+  /* --- 警告レベル（T10 の assess。繰り延べ前の期限が基準） --- */
+  --level-overdue-bg: var(--palette-blush);
+  --level-overdue-fg: var(--palette-ink);
+  --level-within-7-bg: var(--palette-butter);
+  --level-within-7-fg: var(--palette-ink);
+  --level-within-7-mark: var(--palette-ink); /* 左の印 */
+  --level-within-14-bg: var(--palette-mint);
+  --level-within-14-fg: var(--palette-ink);
+  --level-open-border: var(--palette-ash); /* 塗りなし、枠線だけ */
+  --level-open-fg: var(--palette-ink);
+  --level-not-yet-fg: var(--palette-graphite); /* 日付の文字だけ */
+
+  /* --- お知らせ・エラー --- */
+  --notice-info-bg: var(--palette-sky);
+  --notice-error-bg: var(--palette-blush);
+  --notice-error-fg: var(--palette-ink);
+  --notice-success-bg: var(--palette-mint);
+
+  /* --- 分野・外国人の状態 --- */
+  --field-industrial-bg: var(--palette-powder);
+  --field-industrial-fg: var(--palette-ink);
+  --field-food-bg: var(--palette-lavender);
+  --field-food-fg: var(--palette-ink);
+  --status-pre-entry-bg: var(--palette-sky);
+  --status-pre-entry-fg: var(--palette-ink);
+
+  /* --- 文字 --- */
   --font-sans: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN",
     "Yu Gothic UI", "Yu Gothic", Meiryo, "Noto Sans CJK JP", "Noto Sans JP", sans-serif;
   --font-sans-zh: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC",
@@ -49,8 +126,10 @@
   --leading-body: 1.6;
   --leading-heading: 1.3;
   --tracking-heading: -0.01em;
+  --weight-heading: 600;
+  --weight-subheading: 500;
 
-  /* 余白（Aboard のスケール） */
+  /* --- 余白（基本単位 4px） --- */
   --space-4: 4px;
   --space-8: 8px;
   --space-12: 12px;
@@ -60,15 +139,17 @@
   --space-32: 32px;
   --space-48: 48px;
 
-  /* 角丸 */
+  /* --- 角丸 --- */
   --radius-card: 12px;
   --radius-input: 10px;
   --radius-pill: 99px;
+  --radius-badge: var(--radius-pill);
 
-  /* 影（浮いた要素だけ。カード・表には付けない） */
+  /* --- 影（浮いた要素だけ。カード・表には付けない） --- */
   --shadow-float: 0 4px 16px rgba(205, 205, 205, 0.5);
+  --popover-border: transparent;
 
-  /* レイアウト */
+  /* --- レイアウト --- */
   --layout-max: 1200px;
   --layout-nav: 220px;
   --layout-topbar: 56px;

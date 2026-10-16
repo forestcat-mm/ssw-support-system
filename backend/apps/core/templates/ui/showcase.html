@@ -1,5 +1,6 @@
-{% extends "ui/base.html" %}{% load i18n ui %}
+{% extends "ui/base.html" %}{% load i18n static ui %}
 {% block title %}{% translate "UI components" %}{% endblock %}
+{% block tokens %}{% if design_set.stylesheet %}<link rel="stylesheet" href="{% static design_set.stylesheet %}">{% endif %}{% endblock %}
 {% block heading %}{% translate "UI components" %}{% endblock %}
 {% block actions %}
   <a class="button button--neutral" href="#tokens">{% translate "Back" %}</a>
@@ -8,17 +9,28 @@
 {% endblock %}
 {% block content %}
 <div class="stack">
-  <p class="muted">{% translate "Design tokens and components of the business screens (based on the Aboard design tokens). Only administrators can open this page." %}</p>
+  <p class="muted">{% translate "Design tokens and components of the business screens. Only administrators can open this page." %}</p>
+
+  <section class="card" id="design-sets">
+    <div class="card__header"><h2 class="card__title">{% translate "Design comparison" %}</h2></div>
+    <nav class="tabs" aria-label="{% translate 'Design sets' %}">
+      {% for item in design_sets %}
+        <a class="tabs__link" href="?theme={{ item.key }}"{% if item.key == design_set.key %} aria-current="page"{% endif %}>{{ item.key|upper }} {{ item.name }}</a>
+      {% endfor %}
+    </nav>
+    <p data-design-set="{{ design_set.key }}">{{ design_set.summary }}{% if design_set.source %} <a class="caption" href="{{ design_set.source }}" rel="noreferrer">{% translate "source" %}</a>{% endif %}</p>
+    <p class="caption">{% translate "The set applies only to this page. After choosing one, replace tokens.css with the chosen file and delete the others." %}</p>
+  </section>
 
   <section class="card" id="tokens">
     <div class="card__header"><h2 class="card__title">{% translate "Colors" %}</h2></div>
     <div class="swatches">
-      {% for name, var, hex, use in colors %}
+      {% for var, use in swatches %}
         <div class="swatch">
           <div class="swatch__chip" style="background: var({{ var }})"></div>
-          <strong>{{ name }}</strong>
-          <span class="mono">{{ hex }}</span>
-          <span class="muted">{{ use }}</span>
+          <strong>{{ use }}</strong>
+          <span class="mono" data-token="{{ var }}"></span>
+          <span class="muted mono">{{ var }}</span>
         </div>
       {% endfor %}
     </div>
@@ -27,8 +39,8 @@
   <section class="card">
     <div class="card__header"><h2 class="card__title">{% translate "Typography" %}</h2></div>
     <div class="stack">
-      <p class="text-heading">{% translate "Page heading 24px / 600" %}</p>
-      <p class="text-subheading">{% translate "Section heading 18px / 500" %}</p>
+      <p class="text-heading">{% translate "Page heading 24px" %}</p>
+      <p class="text-subheading">{% translate "Section heading 18px" %}</p>
       <p>{% translate "Body text 15px / line height 1.6. Japanese and Chinese text keep normal letter spacing." %}</p>
       <p class="caption">{% translate "Caption 12px (secondary text)" %}</p>
       <p>{% translate "Chinese (Simplified) is shown with a Chinese font:" %} <span lang="zh-Hans">王芳 · 张伟 · 刘静</span> / {% translate "Japanese font:" %} 王芳・張偉・劉静</p>
@@ -46,7 +58,7 @@
       <button class="button button--neutral button--small" type="button">{% translate "Void" %}</button>
       <button class="button button--primary" type="button" disabled>{% translate "Disabled" %}</button>
     </div>
-    <p class="caption">{% translate "Primary: one or two per screen. Ghost: only next to a primary button. Neutral: secondary actions. Danger: always behind a confirmation page." %}</p>
+    <p class="caption">{% translate "Primary: one or two per screen. Secondary: only next to a primary button. Neutral: other actions. Irreversible: always behind a confirmation page." %}</p>
   </section>
 
   <section class="card">
@@ -73,8 +85,15 @@
     </div>
   </section>
 
-  <section>
-    <h2 style="margin-bottom: var(--space-12)">{% translate "Table" %}</h2>
+  <section id="sample-list">
+    <div class="page-header">
+      <div class="page-header__title"><h2 class="text-heading">{% translate "Foreign workers" %}</h2></div>
+      <div class="page-header__actions">
+        {% for css, text in level_counts %}<span class="badge {{ css }}">{{ text }}</span>{% endfor %}
+        <button class="button button--ghost" type="button">{% translate "Export" %}</button>
+        <button class="button button--primary" type="button">{% translate "Register" %}</button>
+      </div>
+    </div>
     <form class="filter-bar" role="search" onsubmit="return false">
       <label class="visually-hidden" for="sample-q">{% translate "Search" %}</label>
       <input class="input" id="sample-q" type="search" placeholder="{% translate 'Name or residence card number' %}">
@@ -86,17 +105,20 @@
       <table class="table">
         <thead><tr>
           <th>{% translate "name" %}</th><th>{% translate "nationality or region" %}</th><th>{% translate "host organization" %}</th>
+          <th>{% translate "residence card number" %}</th><th>{% translate "monthly wage" %}</th>
           <th>{% translate "period of stay expires on" %}</th><th>{% translate "assigned staff" %}</th><th>{% translate "status" %}</th>
         </tr></thead>
         <tbody>
           {% for row in rows %}
-            <tr{% if row.voided %} class="is-voided"{% endif %}>
-              <td><a href="#tokens">{{ row.kanji }}</a> <span class="caption">{{ row.romaji }}</span></td>
+            <tr>
+              <td>{% if row.kanji %}<a href="#sample-list" lang="zh-Hans">{{ row.kanji }}</a> {% endif %}<span class="caption">{{ row.romaji }}</span></td>
               <td>{{ row.nationality }}</td>
               <td>{{ row.host }}</td>
+              <td class="mono">{{ row.card|default:"—" }}</td>
+              <td class="mono">{{ row.wage }}</td>
               <td><span class="mono">{{ row.deadline.unadjusted_due_on|date:"Y-m-d" }}</span> {% level_badge row.deadline %}</td>
               <td>{{ row.staff }}</td>
-              <td>{% worker_status row.status row.status_label %}</td>
+              <td>{% worker_status row.status row.status_label row.deactivated %}</td>
             </tr>
           {% endfor %}
         </tbody>
@@ -112,19 +134,19 @@
           <label class="form-row__label" for="f1">{% translate "name (romaji)" %} <span class="form-row__required">{% translate "required field" %}</span></label>
           <input class="input" id="f1" value="WANG FANG">
         </div>
-        <div class="form-row form-row--error">
-          <label class="form-row__label" for="f2">{% translate "residence card number" %}</label>
-          <input class="input mono" id="f2" value="A1234567" aria-describedby="f2-error">
-          <span class="form-row__error" id="f2-error">{% translate "Enter a residence card number as 2 letters, 8 digits and 2 letters (e.g. AB12345678CD)." %}</span>
-        </div>
         <div class="form-row">
-          <label class="form-row__label" for="f3">{% translate "period of stay expires on" %}</label>
-          <input class="input" id="f3" type="date" value="2027-04-01">
+          <label class="form-row__label" for="f2">{% translate "period of stay expires on" %} <span class="form-row__required">{% translate "(focused)" %}</span></label>
+          <input class="input is-focus mono" id="f2" value="2027-04-01">
           <span class="form-row__help">{% translate "Spaces, hyphens and full-width characters are normalized when saved." %}</span>
         </div>
+        <div class="form-row form-row--error">
+          <label class="form-row__label" for="f3">{% translate "residence card number" %}</label>
+          <input class="input mono" id="f3" value="A1234567" aria-describedby="f3-error">
+          <span class="form-row__error" id="f3-error">{% translate "Enter a residence card number as 2 letters, 8 digits and 2 letters (e.g. AB12345678CD)." %}</span>
+        </div>
         <div class="form-row">
-          <label class="form-row__label" for="f4">{% translate "void reason" %}</label>
-          <textarea class="textarea" id="f4"></textarea>
+          <label class="form-row__label" for="f4">{% translate "ID (assigned automatically)" %}</label>
+          <input class="input mono" id="f4" value="W-000123" disabled>
         </div>
         <div class="cluster"><button class="button button--primary" type="submit">{% translate "Save" %}</button><a class="button button--neutral" href="#tokens">{% translate "Cancel" %}</a></div>
       </form>
@@ -152,4 +174,11 @@
   </div>
   <div class="card"><div class="empty">{% translate "No foreign workers match the conditions." %}</div></div>
 </div>
+<script>
+  // 色見本の値は、いま当たっている CSS 変数から読む（どのセットでも同じテンプレートで済む）
+  const rootStyle = getComputedStyle(document.documentElement);
+  document.querySelectorAll("[data-token]").forEach((element) => {
+    element.textContent = rootStyle.getPropertyValue(element.dataset.token).trim();
+  });
+</script>
 {% endblock %}

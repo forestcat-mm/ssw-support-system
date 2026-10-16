@@ -1,6 +1,8 @@
 """業務画面の共通部分（トップ・ナビ・部品の見本・権限エラー・バッジ）。"""
 
+import re
 from datetime import date, timedelta
+from pathlib import Path
 
 import pytest
 from django.template import Context, Template
@@ -91,3 +93,53 @@ def test_level_badge_shows_legal_due_date_when_adjusted() -> None:
 def test_no_role_user_gets_styled_403() -> None:
     client = verified_client(make_user("norole"))
     assert client.get("/ui/").status_code == 403
+
+
+STATIC_UI = Path(__file__).resolve().parents[2] / "apps" / "core" / "static" / "ui"
+
+
+def role_variables(css_file: str) -> set[str]:
+    """CSS ファイルで定義している役割の変数（セットごとの名前付きの色 --palette-* は除く）。"""
+    text = (STATIC_UI / css_file).read_text()
+    names = re.findall(r"^\s*(--[a-z0-9-]+)\s*:", text, re.MULTILINE)
+    return {name for name in names if not name.startswith("--palette-")}
+
+
+@pytest.mark.parametrize("key", ["b", "c", "d", "e"])
+def test_design_sets_define_the_same_variables_as_tokens_css(key: str) -> None:
+    # 採用したセットで tokens.css を置き換えても、変数の抜けで見た目が崩れない
+    assert role_variables(f"tokens-{key}.css") == role_variables("tokens.css")
+
+
+def test_components_use_only_variables_defined_in_tokens_css() -> None:
+    used = set()
+    for css_file in ("base.css", "components.css"):
+        used |= set(re.findall(r"var\((--[a-z0-9-]+)\)", (STATIC_UI / css_file).read_text()))
+    assert used <= role_variables("tokens.css")
+
+
+def test_showcase_switches_design_set_by_query(admin_client: Client) -> None:
+    default = admin_client.get("/ui/").content.decode()
+    assert "tokens-" not in default
+    assert 'data-design-set="a"' in default
+
+    page = admin_client.get("/ui/?theme=d").content.decode()
+    assert '<link rel="stylesheet" href="/static/ui/tokens-d.css">' in page
+    assert 'href="?theme=d" aria-current="page"' in page
+
+    unknown = admin_client.get("/ui/?theme=zzz").content.decode()
+    assert 'data-design-set="a"' in unknown and "tokens-" not in unknown
+
+
+def test_business_screens_do_not_use_design_sets(admin_client: Client) -> None:
+    assert "tokens-" not in admin_client.get("/?theme=d").content.decode()
+
+
+def test_showcase_sample_list_has_30_rows(admin_client: Client) -> None:
+    context = admin_client.get("/ui/").context
+    assert len(context["rows"]) == 30
+    assert all(
+        re.fullmatch(r"[A-Z]{2}\d{8}[A-Z]{2}", row["card"])
+        for row in context["rows"]
+        if row["card"]
+    )
