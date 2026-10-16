@@ -98,6 +98,35 @@ DJANGO_PERMISSION_ACTIONS: dict[str, Action] = {
         perm: action
         for model in (
             "core.country",
+            "hosts.specifiedskillfield",
+            "hosts.operationcategory",
+        )
+        for perm, action in _model_permissions(
+            model,
+            view=Action.ORGANIZATION_VIEW,
+            add=Action.MASTERS_MANAGE,
+            change=Action.MASTERS_MANAGE,
+        ).items()
+    },
+    **{
+        perm: action
+        for model in (
+            "hosts.hostorganization",
+            "hosts.hostmembership",
+            "hosts.hostcooperationconfirmation",
+            "hosts.hostsite",
+            "hosts.supportcontract",
+        )
+        for perm, action in _model_permissions(
+            model,
+            view=Action.HOSTS_VIEW,
+            add=Action.HOSTS_MANAGE,
+            change=Action.HOSTS_MANAGE,
+        ).items()
+    },
+    **{
+        perm: action
+        for model in (
             "core.organization",
             "core.office",
             "core.staff",

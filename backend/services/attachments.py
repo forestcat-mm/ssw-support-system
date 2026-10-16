@@ -11,10 +11,13 @@ from django.db import models
 from apps.core.models import Attachment, AttachmentKind, User
 from services.files import MB, FilePolicy, sha256_of, validate_file
 
+DOCUMENT_POLICY = FilePolicy(extensions=frozenset({"pdf", "png", "jpg", "jpeg"}), max_bytes=10 * MB)
+
 POLICIES: dict[AttachmentKind, FilePolicy] = {
-    AttachmentKind.FOOD_COUNCIL_CERTIFICATE: FilePolicy(
-        extensions=frozenset({"pdf", "png", "jpg", "jpeg"}), max_bytes=10 * MB
-    ),
+    AttachmentKind.FOOD_COUNCIL_CERTIFICATE: DOCUMENT_POLICY,
+    AttachmentKind.MEMBERSHIP_CERTIFICATE: DOCUMENT_POLICY,
+    AttachmentKind.COOPERATION_CONFIRMATION: DOCUMENT_POLICY,
+    AttachmentKind.SUPPORT_CONTRACT: DOCUMENT_POLICY,
 }
 
 

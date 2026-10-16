@@ -3,7 +3,6 @@ from typing import Any
 from django import forms
 from django.contrib import admin
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.validators import MaxLengthValidator
 from django.db.models import QuerySet
 from django.forms import ModelForm
 from django.http import HttpRequest
@@ -11,6 +10,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core.admin import TRACKED_READONLY_FIELDS, TrackedModelAdmin
 from apps.core.admin_filters import DateRangeFilter
+from apps.core.forms import allow_formatted_number_input
 from apps.core.models import User
 from services import passport, residence_card, workers
 
@@ -24,16 +24,6 @@ from .models import (
 )
 
 VOID_READONLY_FIELDS: tuple[str, ...] = ("voided_at", "voided_by", "void_reason")
-
-# 番号は空白・ハイフン付きでも入力できるようにし、正規化した後に形式（桁数）を検査する
-NUMBER_INPUT_MAX_LENGTH = 30
-
-
-def _allow_formatted_number_input(field: forms.Field) -> None:
-    assert isinstance(field, forms.CharField)
-    field.max_length = NUMBER_INPUT_MAX_LENGTH
-    field.validators = [v for v in field.validators if not isinstance(v, MaxLengthValidator)]
-    field.widget.attrs["maxlength"] = str(NUMBER_INPUT_MAX_LENGTH)
 
 
 class HistoryInlineForm(forms.ModelForm[Any]):
@@ -78,7 +68,7 @@ class ResidenceRecordForm(HistoryInlineForm):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        _allow_formatted_number_input(self.fields["card_number"])
+        allow_formatted_number_input(self.fields["card_number"])
 
     def clean_card_number(self) -> str:
         value = residence_card.normalize(self.cleaned_data.get("card_number") or "")
@@ -104,7 +94,7 @@ class PassportRecordForm(HistoryInlineForm):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        _allow_formatted_number_input(self.fields["number"])
+        allow_formatted_number_input(self.fields["number"])
 
     def clean_number(self) -> str:
         value = passport.normalize(self.cleaned_data.get("number") or "")

@@ -50,6 +50,13 @@ AUDITED_MODELS: frozenset[str] = frozenset(
         "workers.passportrecord",
         "workers.workeraddress",
         "workers.workercontact",
+        "hosts.specifiedskillfield",
+        "hosts.operationcategory",
+        "hosts.hostorganization",
+        "hosts.hostmembership",
+        "hosts.hostcooperationconfirmation",
+        "hosts.hostsite",
+        "hosts.supportcontract",
     }
 )
 
@@ -66,6 +73,12 @@ VIEW_AUDITED_MODELS: frozenset[str] = frozenset(
         "workers.passportrecord",
         "workers.workeraddress",
         "workers.workercontact",
+        # 受入れ機関は代表者の氏名を含む。加入・協力確認書・事業所・契約は受入れ機関の詳細として扱う
+        "hosts.hostorganization",
+        "hosts.hostmembership",
+        "hosts.hostcooperationconfirmation",
+        "hosts.hostsite",
+        "hosts.supportcontract",
     }
 )
 

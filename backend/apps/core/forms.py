@@ -1,6 +1,7 @@
 from typing import Any
 
 from django import forms
+from django.core.validators import MaxLengthValidator
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import Role, Staff, User
@@ -49,3 +50,14 @@ class InvitationForm(forms.ModelForm[User]):
         if User.objects.filter(email__iexact=email).exists():
             raise forms.ValidationError(_("A user with this email address already exists."))
         return email
+
+
+def allow_formatted_number_input(field: forms.Field, max_length: int = 30) -> None:
+    """番号（在留カード番号・旅券番号・法人番号）を空白・ハイフン付きでも入力できるようにする。
+
+    桁数は正規化した後の形式検査で確かめる（フォームの max_length で先に弾かない）。
+    """
+    assert isinstance(field, forms.CharField)
+    field.max_length = max_length
+    field.validators = [v for v in field.validators if not isinstance(v, MaxLengthValidator)]
+    field.widget.attrs["maxlength"] = str(max_length)

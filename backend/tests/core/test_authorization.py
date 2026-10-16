@@ -31,6 +31,8 @@ def test_initial_role_matrix() -> None:
         Action.ORGANIZATION_VIEW,
         Action.WORKERS_VIEW,
         Action.WORKERS_MANAGE,
+        Action.HOSTS_VIEW,
+        Action.HOSTS_MANAGE,
     }
 
 

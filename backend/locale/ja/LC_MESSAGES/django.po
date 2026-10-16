@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 17:45+0900\n"
+"POT-Creation-Date: 2026-10-16 18:21+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -125,6 +125,17 @@ msgstr "更新者"
 
 msgid "Food Industry SSW Council membership certificate"
 msgstr "食品産業特定技能協議会 構成員証明書"
+
+msgid ""
+"Membership certificate of host organization (council / registered "
+"corporation)"
+msgstr "受入れ機関の加入証明（協議会の構成員証明書・登録法人の会員名簿の写し）"
+
+msgid "Letter of cooperation confirmation"
+msgstr "協力確認書"
+
+msgid "Support entrustment contract"
+msgstr "支援委託契約書"
 
 msgid "kind"
 msgstr "種別"
@@ -272,6 +283,15 @@ msgstr "外国人台帳の閲覧"
 
 msgid "register and update foreign workers"
 msgstr "外国人台帳の登録・更新"
+
+msgid "view host organizations"
+msgstr "受入れ機関台帳の閲覧"
+
+msgid "register and update host organizations"
+msgstr "受入れ機関台帳の登録・更新"
+
+msgid "edit master data (countries, fields, categories)"
+msgstr "マスタの編集（国・地域、分野、業務区分）"
 
 msgid "all data"
 msgstr "すべてのデータ"
@@ -537,6 +557,160 @@ msgstr "回復用コードでログインしました。残りは %(count)d 個�
 msgid "The code is incorrect."
 msgstr "コードが正しくありません。"
 
+msgid "Support contracts entered on this page overlap each other."
+msgstr "この画面で入力した支援委託契約どうしの期間が重なっています。"
+
+msgid "Representative"
+msgstr "代表者"
+
+msgid "Contact"
+msgstr "連絡先"
+
+msgid "Record"
+msgstr "記録"
+
+msgid "Host organizations"
+msgstr "受入れ機関台帳"
+
+msgid "registered corporation"
+msgstr "登録法人"
+
+msgid "council"
+msgstr "協議会"
+
+msgid "competent ministry"
+msgstr "所管省庁"
+
+msgid "membership type"
+msgstr "加入先の種類"
+
+msgid "membership body"
+msgstr "加入先"
+
+msgid "registered support organization must also be a member"
+msgstr "登録支援機関（自機関）にも加入を求める"
+
+msgid "specified skill field"
+msgstr "分野"
+
+msgid "specified skill fields"
+msgstr "分野"
+
+msgid "valid from"
+msgstr "適用開始日"
+
+msgid "operation category"
+msgstr "業務区分"
+
+msgid "operation categories"
+msgstr "業務区分"
+
+msgid "corporation"
+msgstr "法人"
+
+msgid "sole proprietor"
+msgstr "個人事業主"
+
+msgid "entity type"
+msgstr "法人・個人の区別"
+
+msgid "name (kana)"
+msgstr "名称（カナ）"
+
+msgid "corporate number"
+msgstr "法人番号"
+
+msgid "13 digits. Leave blank for a sole proprietor."
+msgstr "13 桁。個人事業主は空欄にします。"
+
+msgid "representative title"
+msgstr "代表者の役職"
+
+msgid "representative name"
+msgstr "代表者の氏名"
+
+msgid "portal users"
+msgstr "ポータルのユーザー"
+
+msgid "host organization"
+msgstr "受入れ機関"
+
+msgid "host organizations"
+msgstr "受入れ機関"
+
+msgid "A host organization with this corporate number exists."
+msgstr "この法人番号の受入れ機関はすでに登録されています。"
+
+msgid "Enter the corporate number of a corporation."
+msgstr "法人の場合は法人番号を入力してください。"
+
+msgid "joined on"
+msgstr "加入日"
+
+msgid "member number"
+msgstr "会員番号"
+
+msgid "membership"
+msgstr "加入状況"
+
+msgid "memberships"
+msgstr "加入状況"
+
+msgid "municipality"
+msgstr "提出先の市区町村"
+
+msgid "submitted on"
+msgstr "提出日"
+
+msgid "cooperation confirmation"
+msgstr "協力確認書"
+
+msgid "cooperation confirmations"
+msgstr "協力確認書"
+
+msgid "A confirmation for this municipality already exists."
+msgstr "この市区町村の協力確認書はすでに登録されています。"
+
+msgid "Japan Standard Industrial Classification code"
+msgstr "日本標準産業分類コード"
+
+msgid "Enter 2 to 4 digits (e.g. 09, 0991, 2194)."
+msgstr "数字 2〜4 桁で入力してください（例: 09、0991、2194）。"
+
+msgid "host site"
+msgstr "事業所"
+
+msgid "host sites"
+msgstr "事業所"
+
+msgid "full entrustment"
+msgstr "全部委託"
+
+msgid "concluded on"
+msgstr "締結日"
+
+msgid "starts on"
+msgstr "開始日"
+
+msgid "ends on"
+msgstr "終了日"
+
+msgid "scope"
+msgstr "委託の範囲"
+
+msgid "support contract"
+msgstr "支援委託契約"
+
+msgid "support contracts"
+msgstr "支援委託契約"
+
+msgid "The end date must be on or after the start date."
+msgstr "終了日は開始日以降の日付にしてください。"
+
+msgid ""
+"This period overlaps another support contract of the same host organization."
+msgstr "同じ受入れ機関のほかの支援委託契約と期間が重なっています。"
+
 msgid "void"
 msgstr "取り消す"
 
@@ -556,9 +730,6 @@ msgstr "基本情報"
 
 msgid "Support"
 msgstr "支援"
-
-msgid "Record"
-msgstr "記録"
 
 msgid "status of residence"
 msgstr "在留資格"
@@ -746,6 +917,12 @@ msgstr "連絡先"
 msgid "contacts"
 msgstr "連絡先"
 
+msgid "Enter a 13-digit corporate number."
+msgstr "法人番号は数字 13 桁で入力してください。"
+
+msgid "The corporate number is invalid (check digit does not match)."
+msgstr "法人番号が正しくありません（検査用数字が一致しません）。"
+
 #, python-format
 msgid "File type “.%(ext)s” is not allowed. Allowed types: %(allowed)s."
 msgstr "「.%(ext)s」のファイルは登録できません。登録できる種類: %(allowed)s"
@@ -757,6 +934,10 @@ msgstr "ファイルが大きすぎます（%(size)s）。上限は %(max)s で�
 #, python-format
 msgid "File contents do not match the “.%(ext)s” extension."
 msgstr "ファイルの中身が拡張子「.%(ext)s」と一致しません。"
+
+#, python-format
+msgid "These operation categories do not belong to the site's field: %(names)s"
+msgstr "事業所の分野に属さない業務区分です: %(names)s"
 
 msgid "Enter a passport number of 6 to 12 letters and digits."
 msgstr "旅券番号は英数字 6〜12 桁で入力してください。"

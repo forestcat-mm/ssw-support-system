@@ -81,6 +81,12 @@ class AttachmentKind(models.TextChoices):
         "food_council_certificate",
         _("Food Industry SSW Council membership certificate"),
     )
+    MEMBERSHIP_CERTIFICATE = (
+        "membership_certificate",
+        _("Membership certificate of host organization (council / registered corporation)"),
+    )
+    COOPERATION_CONFIRMATION = "cooperation_confirmation", _("Letter of cooperation confirmation")
+    SUPPORT_CONTRACT = "support_contract", _("Support entrustment contract")
 
 
 class Attachment(TrackedModel):
@@ -269,6 +275,9 @@ class Action(models.TextChoices):
     AUDIT_VIEW = "audit.view", _("view audit logs")
     WORKERS_VIEW = "workers.view", _("view foreign workers")
     WORKERS_MANAGE = "workers.manage", _("register and update foreign workers")
+    HOSTS_VIEW = "hosts.view", _("view host organizations")
+    HOSTS_MANAGE = "hosts.manage", _("register and update host organizations")
+    MASTERS_MANAGE = "masters.manage", _("edit master data (countries, fields, categories)")
 
 
 class DataScope(models.TextChoices):

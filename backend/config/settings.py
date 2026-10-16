@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "axes",
     "apps.core",
     "apps.workers",
+    "apps.hosts",
 ]
 
 MIDDLEWARE = [

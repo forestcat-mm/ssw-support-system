@@ -25,6 +25,7 @@ from .admin_filters import DateRangeFilter
 from .forms import InvitationForm
 from .models import (
     Attachment,
+    AttachmentKind,
     AuditLog,
     Country,
     Invitation,
@@ -40,7 +41,7 @@ from .models import (
 )
 from .views import invitation_url_builder
 
-TRACKED_READONLY_FIELDS = ("created_at", "created_by", "updated_at", "updated_by")
+TRACKED_READONLY_FIELDS: tuple[str, ...] = ("created_at", "created_by", "updated_at", "updated_by")
 
 _M = TypeVar("_M", bound=Model)
 
@@ -293,11 +294,19 @@ class AttachmentInlineForm(forms.ModelForm[Attachment]):
 
 
 class AttachmentInline(GenericTabularInline):
+    """添付欄。kinds を指定すると、その画面で使う種別だけを選べる。"""
+
     model = Attachment
     form = AttachmentInlineForm
     extra = 0
     can_delete = False
     readonly_fields = ("original_filename", "size", "created_at", "created_by")
+    kinds: tuple[AttachmentKind, ...] = ()
+
+    def formfield_for_choice_field(self, db_field: Any, request: HttpRequest, **kwargs: Any) -> Any:
+        if db_field.name == "kind" and self.kinds:
+            kwargs["choices"] = [(kind.value, kind.label) for kind in self.kinds]
+        return super().formfield_for_choice_field(db_field, request, **kwargs)
 
 
 @admin.register(Attachment)
@@ -339,11 +348,15 @@ class AttachmentAdmin(TrackedModelAdmin[Attachment]):
         return False
 
 
+class OrganizationAttachmentInline(AttachmentInline):
+    kinds = (AttachmentKind.FOOD_COUNCIL_CERTIFICATE,)
+
+
 @admin.register(Organization)
 class OrganizationAdmin(TrackedModelAdmin[Organization]):
     list_display = ("name", "registration_number", "registration_expires_on")
     readonly_fields = TRACKED_READONLY_FIELDS
-    inlines = [AttachmentInline]
+    inlines = [OrganizationAttachmentInline]
 
     def has_add_permission(self, request: HttpRequest) -> bool:
         return super().has_add_permission(request) and not Organization.objects.exists()
