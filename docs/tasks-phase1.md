@@ -1,7 +1,7 @@
 # 段階1（基盤）タスク一覧
 
 各タスクは 1 セッション・1 コミットで完結させる。順序どおりに進める。
-ゲート: 「担当者が日常利用を開始できる」＝ T01〜T14 完了、ダミーデータで台帳とダッシュボードが回る。
+ゲート: 「担当者が日常利用を開始できる」＝ T01〜T15 完了、ダミーデータで台帳とダッシュボードが回る（結果は末尾の「段階1の完了確認」）。
 
 | # | タスク | 仕様書 | 完了条件 |
 |---|---|---|---|
@@ -22,10 +22,44 @@
 | T15 | 段階1の仕上げ（admin の整理・管理者向けの設定画面・README と運用手順）。a → b → c の順に、段階ごとにコミットを分ける | — | 下の a〜c の完了条件 |
 | T15a | （旧 T13g）admin の整理: Django admin の CSS 変数に D のトークンを流し込む CSS を 1 枚足す（濃紺のヘッダー・クリームの罫線・業務画面と同じフォント。外部テーマは入れない）。管理者ロールの admin のメニューから開発者向けの項目（アクセス試行〔axes〕・Django Q・ダミーデータの台帳〔seed〕）を隠す（権限は変えない）。アプリ名・モデル名を業務の言葉の日本語に揃え、ヘッダーに業務画面へ戻るリンクを置く | 第9章 | 管理者の admin に開発者向けの項目が出ず、見た目が業務画面と揃う |
 | T15b | （旧 T16）管理者向けの「設定」画面（業務画面側、ナビの「設定」、管理者のみ）: ユーザー（一覧・招待・無効化と再有効化・MFA リセット・ロック解除。T04 のサービスを呼ぶ）、担当者（一覧・追加・編集・ユーザーとの紐づけ）、自機関（名称・登録番号・登録期限・所在地・食品産業特定技能協議会の加入日と構成員証明書の差し替え）、事務所（一覧・追加・編集）、監査ログ（読み取り専用の検索: 操作者・操作種別・対象・期間）。すべて監査ログの対象で、削除はどこにもない。各画面の先頭に 1〜2 行の説明を置く。完了後、admin は開発者とマスタ（分野・業務区分・国、段階3の様式マスタ）用にする | 第4章、第8章 | 管理者が admin を開かずに日常の設定を行える |
-| T15c | （旧 T15）README（起動・テスト・ダミー投入・e2e・design-shots の手順、`docs/dummy-data.md` へのリンク、`.env.example` と対応した環境変数の一覧）と `docs/operations.md`（管理者向けの運用手順。T15b の設定画面を前提に書く）。運用手順の内容: 退職時は「ユーザー無効化」と「Staff の is_active オフ」の両方を行う（連動しない）／管理者は 2 人以上置く／端末紛失時（回復用コード → 管理者の MFA リセット → 最後の手段 `reset_mfa`）／ロック解除（T15b の設定画面）／年 1 回（年末まで）jpholiday を更新し、翌年の祝日（法改正・特例を含む）が正しいかを確認する／誤って無効化した外国人は、管理者が admin の外国人の画面の「無効化を外す」（理由は必須。監査ログに元の無効化の理由と外した理由が残る）で戻す（無効化のときに取り消された在留情報・旅券は新しい行として登録し直す。日付で起票される届出タスクは翌朝の日次の起票か `make filings` で起票し直され、それ以外は手で起票する）／ダミーデータの説明は `docs/dummy-data.md` にリンクする／様式改正時の様式マスタ更新手順の枠（段階3で埋める）。本番準備の項目を段階1ゲート後にやることとして整理し、段階1の完了条件を 1 つずつ確認して結果を書く | — | 新しい PC で README どおりに起動できる |
+| T15c | （旧 T15）README（起動・テスト・ダミー投入・e2e・design-shots の手順、`docs/dummy-data.md` へのリンク、`.env.example` と対応した環境変数の一覧）と `docs/operations.md`（管理者向けの運用手順。T15b の設定画面を前提に書く）。運用手順の内容: 退職時は「ユーザー無効化」と「Staff の is_active オフ」の両方を行う（連動しない）／管理者は 2 人以上置く／端末紛失時（回復用コード → 管理者の MFA リセット → 最後の手段 `reset_mfa`）／ロック解除（T15b の設定画面）／年 1 回（年末まで）jpholiday を更新し、翌年の祝日（法改正・特例を含む）が正しいかを確認する／誤って無効化した外国人は、管理者が外国人詳細の「無効化を外す」（理由は必須。監査ログに元の無効化の理由と外した理由が残る。admin にも同じ操作がある）で戻す（無効化のときに取り消された在留情報・旅券は新しい行として登録し直す。日付で起票される届出タスクは翌朝の日次の起票か `make filings` で起票し直され、それ以外は手で起票する）／ダミーデータの説明は `docs/dummy-data.md` にリンクする／様式改正時の様式マスタ更新手順の枠（段階3で埋める）。本番準備の項目を段階1ゲート後にやることとして整理し、段階1の完了条件を 1 つずつ確認して結果を書く | — | 新しい PC で README どおりに起動できる |
 
-## 本番準備（本番サーバー決定時、`docker-compose.prod.yml` 作成と同時に対応）
+## 段階1の完了確認（2026-10-16）
+
+各タスクの完了条件を、自動テスト（`make test` 544 件・`make e2e` 20 件、いずれもグリーン）と手元の操作で確かめた結果。
+
+| # | 完了条件 | 確かめ方 | 結果 |
+|---|---|---|---|
+| T01 | `make up` → admin にログインできる | 手元で `make up` → ログイン → `/admin/` を表示。`tests/core/test_role_access.py`（ログイン画面から TOTP まで通して admin を開く） | 達成 |
+| T02 | `make lint` と `make test` が両方グリーン | `make lint`（ruff・ruff format・mypy strict）と `make test` を実行 | 達成 |
+| T03 | admin で登録できる。Organization は 1 行制約 | `tests/core/test_organization.py`（2 行目を DB が拒否）・`test_office.py`・`test_staff.py`。T15b 以降、日常の登録は業務画面の「設定」 | 達成 |
+| T04 | 2 ロールでログイン・権限差を確認 | `tests/core/test_role_access.py::test_two_roles_sign_in_and_see_different_permissions`、e2e の支援担当者・管理者のテスト | 達成 |
+| T05 | 外国人詳細の閲覧・添付のダウンロード・MFA リセット（画面・コマンド）・ユーザーの無効化が監査ログに残る | `tests/workers/test_admin.py::test_viewing_worker_detail_is_audited`、`tests/core/test_audit_admin.py::test_download_returns_file_and_is_logged`、`tests/core/test_audit.py::test_mfa_reset_from_command_is_logged_without_actor`、`tests/core/test_settings_screens.py::test_reset_mfa`、`tests/core/test_users.py` | 達成 |
+| T06 | DB を直接見ても平文が見えない | `tests/core/test_crypto.py::test_database_does_not_contain_plaintext` | 達成 |
+| T07 | 在留期限を更新すると新しい行が増え、最新が一覧に出る。外国人詳細の閲覧が監査ログに残る | `tests/workers/test_admin.py::test_renewal_adds_a_row_and_list_shows_latest_expiry`、e2e の `test_register_then_add_residence_and_see_expiry_in_list`、`test_open_detail_from_list_and_switch_tabs` | 達成 |
+| T08 | 2 社・各 1 事業所を登録できる | `tests/hosts/test_admin.py::test_register_two_hosts_with_one_site_each` | 達成（登録は admin。業務画面は閲覧のみで、登録は段階2） |
+| T09 | 報酬の変更で版が増え、差分が取れる | `tests/contracts/test_admin.py::test_wage_change_adds_version_with_diff`、外国人詳細の契約タブ（`test_contract_view_shows_latest_version_and_diff_from_previous`） | 達成 |
+| T10 | 固定日付のテストがグリーン | `tests/test_deadlines.py` | 達成 |
+| T11 | 契約の終了を登録すると 14 日期限の届出タスクが自動で起票される | `tests/filings/test_services.py::test_termination_creates_14_day_filing_rolled_over_holidays` | 達成 |
+| T12 | 何度実行しても同じ件数で再現する | `tests/seed/test_seed_dummy.py::test_counts_and_running_twice_does_not_add_rows`・`test_reset_recreates_the_same_content_for_the_same_base_date` | 達成 |
+| T13 | ダミー 30 人を一覧から辿れる | e2e の `test_dummy_30_workers_fit_one_line_per_row`（30 行・行の高さが揃う）と、一覧 → 詳細 → タブの切り替え | 達成 |
+| T14 | ダミーデータで超過・7日以内・14日以内・対応期間中が出る | `tests/filings/test_dashboard.py::test_dummy_data_shows_unregistered_expiry_and_recently_left_workers`、e2e の `test_filter_overdue_and_start_the_task`。手元のダミーデータで超過 1・7日以内 3・14日以内 4・対応期間中 8 | 達成（色は D の採用に合わせ、Blush・Butter・Mint Foam を低彩度の赤・琥珀・緑に読み替え。`docs/design/README.md`） |
+| T15a | 管理者の admin に開発者向けの項目が出ず、見た目が業務画面と揃う | `tests/core/test_admin_theme.py`。admin の画面を目視 | 達成 |
+| T15b | 管理者が admin を開かずに日常の設定を行える | `tests/core/test_settings_screens.py`、e2e の `test_admin_invites_a_user_and_unlocks_another`。`docs/operations.md` の手順はすべて業務画面の操作 | 達成（ロールの変更と、受入れ機関・雇用契約の登録は admin に残る。前者は開発者向け、後者は段階2で業務画面へ） |
+| T15c | 新しい PC で README どおりに起動できる | 別のディレクトリにリポジトリを展開し、`make env` で `.env` と鍵が作られることを確認。`make up` → `make migrate` → `make admin` → ログインは、この PC の環境で確認 | 一部確認（`make up` 以降は、ポートが空いた別の PC で確かめる必要がある） |
+| ゲート | 担当者が日常利用を開始できる（T01〜T15 完了、ダミーデータで台帳とダッシュボードが回る） | 上の各行。ダミーデータの外国人一覧・受入れ機関・ダッシュボード・届出の処理を e2e で通す | 達成（本番での利用開始は、次の「段階1ゲート後にやること」の後） |
+
+## 段階1ゲート後にやること（本番準備。本番サーバーを決めたら `docker-compose.prod.yml` の作成と同時に対応）
+
+段階1の機能は手元（Docker Compose）で完成している。本番で使い始める前に、次を上から順に片づける。
+
+### 1. サーバーとデプロイ
 - [ ] `docker-compose.prod.yml` を作成する（`./:/app` マウントの解除、`runserver` → gunicorn）
+- [ ] 本番イメージは `uv sync --frozen --no-dev` でビルドし、ruff / mypy / pytest などの開発用依存を入れない
+- [ ] 静的ファイル（業務画面の CSS、admin）を本番で配信する: `STATIC_ROOT` を決めてイメージのビルド時に `collectstatic` を実行し、gunicorn の前段（または WhiteNoise）で配信する。手元は `runserver` が配信している
+- [ ] 本番でも `qcluster`（Django-Q2）を動かし、止まったら気づけるよう監視する（日次の届出タスクの起票が止まるため。ADR-0005）
+
+### 2. 通信・認証
 - [ ] `manage.py check --deploy` の警告を解消する。手元（http）はオフのまま、本番は環境変数でオンにする形にする
   - W004 `SECURE_HSTS_SECONDS`
   - W008 `SECURE_SSL_REDIRECT`（Cloudflare Tunnel 経由のため `SECURE_PROXY_SSL_HEADER` と合わせて検討）
@@ -33,18 +67,24 @@
   - W016 `CSRF_COOKIE_SECURE`
   - W018 `DJANGO_DEBUG=false`
   - W009 本番の `DJANGO_SECRET_KEY` を生成値にする（手元でダミー値のまま起動すると出る）
-- [ ] 本番イメージは `uv sync --frozen --no-dev` でビルドし、ruff / mypy / pytest などの開発用依存を入れない
 - [ ] 接続元 IP: 本番は `TRUST_CF_CONNECTING_IP=true`（監査ログと django-axes が `services/client_ip.py` を共有。T05 で実装済み）。サーバーのポートを開けず Cloudflare Tunnel 経由でしか届かないことを確認してから true にする。そのうえで、ユーザー名単位のロックに IP 単位の条件（パスワードスプレー対策）を加えるか判断し、`SILENCED_SYSTEM_CHECKS` の `axes.W006` を見直す
+
+- [ ] メールを自社 SMTP にする（`EMAIL_HOST` など。外部の通知サービスは使わない）。招待メールが届き、送信元（`DEFAULT_FROM_EMAIL`）が自社のドメインになっていることを確認する
+
+### 3. DB・鍵・バックアップ
 - [ ] マイグレーション用ユーザーが PostgreSQL 拡張 `btree_gist`（外国人台帳の排他制約で使用。信頼済み拡張なので DB の所有者・CREATE 権限で作成可）を作れることを確認する。マネージド DB（RDS 等）へ移るときは拡張の対応を確認する
-- [ ] 監査ログを DB ユーザーの権限でも追記専用にする: マイグレーション用ユーザー（テーブル所有者）とアプリ用ユーザーを分け、アプリ用ユーザーから `core_auditlog` の UPDATE / DELETE / TRUNCATE を REVOKE する（INSERT・SELECT のみ）。トリガー（`core_auditlog_append_only`）とあわせて二重に禁止する
+- [ ] 本番の DB はアプリ専用ユーザー（スーパーユーザー権限・CREATEDB なし）で接続する。テスト用 DB の作成権限は開発環境だけにする
 - [ ] 暗号化鍵（`FIELD_ENCRYPTION_KEYS`）・ブラインドインデックス鍵（`BLIND_INDEX_KEY`）の保管場所と復旧手順を決めて文書にする。鍵を失うと暗号化した全データが読めなくなるため、DB バックアップとは別の場所に保管し、2 人以上がアクセスできるようにする。ローテーション手順（新しい鍵を先頭に足す → `rotate_encryption_keys` → `--check` が 0 件 → 旧鍵を外す）も同じ文書に置く
 - [ ] DB バックアップを必ず暗号化し、その鍵もバックアップとは別の場所に保管する（ADR-0003: TOTP 秘密鍵とパスワードのハッシュが同時に漏れるのを防ぐ）
-- [ ] 漏洩が疑われたときの手順を文書にする（`reset_mfa --all --yes` で全員の MFA をリセット、パスワードの再設定、暗号化鍵のローテーション）
-- [ ] 本番でも `qcluster`（Django-Q2）を動かし、止まったら気づけるよう監視する（日次の届出タスクの起票が止まるため。ADR-0005）
+
+### 4. 監査ログ・ファイル
+- [ ] 監査ログを DB ユーザーの権限でも追記専用にする: マイグレーション用ユーザー（テーブル所有者）とアプリ用ユーザーを分け、アプリ用ユーザーから `core_auditlog` の UPDATE / DELETE / TRUNCATE を REVOKE する（INSERT・SELECT のみ）。トリガー（`core_auditlog_append_only`）とあわせて二重に禁止する
 - [ ] 監査ログを改変不可の保存先へ日次で書き出す（第8章・第10章。例: S3 Object Lock のコンプライアンスモード、保持 5 年以上）。保存先の決定と同時に対応し、Django-Q のジョブにする
 - [ ] ファイル保存を S3 互換ストレージにする（`DJANGO_STORAGE_BACKEND=storages.backends.s3.S3Storage` と `DJANGO_STORAGE_OPTIONS`。非公開バケット・署名付き URL・上書き禁止を実ストレージで確認）
-- [ ] 静的ファイル（業務画面の CSS、admin）を本番で配信する: `STATIC_ROOT` を決めてイメージのビルド時に `collectstatic` を実行し、gunicorn の前段（または WhiteNoise）で配信する。手元は `runserver` が配信している
-- [ ] 本番の DB はアプリ専用ユーザー（スーパーユーザー権限・CREATEDB なし）で接続する。テスト用 DB の作成権限は開発環境だけにする
+
+### 5. 手順書
+- [ ] 漏洩が疑われたときの手順を `docs/operations.md` に足す（`reset_mfa --all --yes` で全員の MFA をリセット、パスワードの再設定、暗号化鍵のローテーション）
+
 - 完了条件: 本番用の環境変数で `check --deploy` の警告が 0 件。本番イメージに開発用依存が無く、アプリの DB ユーザーが SUPERUSER / CREATEDB を持たない。添付のアップロード・ダウンロードが S3 互換ストレージで動く。アプリの DB ユーザーで `core_auditlog` を UPDATE / DELETE / TRUNCATE すると権限エラーになる
 
 ## 将来運用
@@ -52,6 +92,7 @@
 
 ## 段階2 以降の見出し（詳細は着手時に分解）
 - 段階2: SupportPlan / SupportPlanItem / SupportRecord（面談は本人用・上司用で別行）、相談記録の分類、証跡添付、キャリアアッププラン・実務経験証明書の交付記録
+  - パスワードを忘れたときの再設定を業務画面に足す（自社 SMTP でリンクを送る。段階1では `changepassword` コマンドで管理者が仮のパスワードを設定する。`docs/operations.md`）
   - 外国人の状態を離職・帰国に変えるときの日付（離職日・帰国日）の入力を必須にするか、運用後に判断する（T13d では必須にせず、いつ変えたかは監査ログの前後の値で追う）
   - 外国人詳細の履歴タブに、行ごとの「全桁を表示」を足す（過去の在留カード番号・旅券番号を入管照会や過去書類との突き合わせで使うため。押したときだけ復号し、監査ログに 1 件残す。置き場は `workers/components/history_row.html` の `data-number-actions`）
 - 段階3: forms_engine（FormTemplate / FormMapping / GeneratedDocument）、Word→PDF 変換サービス、支援計画書・事前ガイダンス確認書（日中2言語）、生成前バリデーション

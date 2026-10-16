@@ -51,4 +51,4 @@
 - `base.css`・`components.css` は、`tokens.css` で定義する役割の変数（`--button-primary-bg`、`--nav-bg`、`--level-overdue-bg` など）だけを参照する。
   - 色を変えるときは `tokens.css` だけを直す。
   - テストで、参照している変数がすべて定義されていることを確かめている（`tests/ui/test_layout.py`）。
-- admin（管理画面）にはテーマを当てない。
+- 管理画面（admin）は、admin の CSS 変数に同じトークンを流し込む `admin-theme.css` を 1 枚当てて見た目を揃える（T15a。外部テーマは使わない）。
