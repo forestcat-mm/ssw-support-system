@@ -131,19 +131,14 @@ class ManualFilingForm(forms.ModelForm[Filing]):
 
     def clean(self) -> dict[str, Any]:
         cleaned = super().clean() or {}
-        targets = [
-            t
-            for t in (
-                cleaned.get("target_contract"),
-                cleaned.get("target_worker"),
-                cleaned.get("target_host"),
+        try:
+            cleaned["target"] = filings.manual_target(
+                worker=cleaned.get("target_worker"),
+                contract=cleaned.get("target_contract"),
+                host=cleaned.get("target_host"),
             )
-            if t is not None
-        ]
-        if len(targets) != 1:
-            self.add_error(None, _("Select exactly one target."))
-        else:
-            cleaned["target"] = targets[0]
+        except forms.ValidationError as error:
+            self.add_error(None, error)
         return cleaned
 
 
@@ -317,11 +312,7 @@ class FilingAdmin(TrackedModelAdmin[Filing]):
             obj.__dict__.update(filing.__dict__)
             return
         stored = Filing.objects.get(pk=obj.pk)
-        if (stored.assignee_id, stored.note) != (obj.assignee_id, obj.note):
-            stored.assignee_id = obj.assignee_id
-            stored.note = obj.note
-            stored.updated_by = actor
-            stored.save(update_fields=["assignee", "note", "updated_by", "updated_at"])
+        filings.update_details(stored, by=actor, assignee=obj.assignee, note=obj.note)
         new_basis_on: date | None = form.cleaned_data.get("new_basis_on")
         if new_basis_on:
             filings.rebase(
@@ -336,12 +327,14 @@ class FilingAdmin(TrackedModelAdmin[Filing]):
                 receipt_number=obj.receipt_number,
                 reason=obj.status_reason,
             )
-        elif (stored.submitted_on, stored.receipt_number) != (obj.submitted_on, obj.receipt_number):
-            stored.submitted_on = obj.submitted_on
-            stored.receipt_number = obj.receipt_number
-            stored.updated_by = actor
-            stored.save(
-                update_fields=["submitted_on", "receipt_number", "updated_by", "updated_at"]
+        else:
+            filings.update_details(
+                stored,
+                by=actor,
+                assignee=stored.assignee,
+                note=stored.note,
+                submitted_on=obj.submitted_on,
+                receipt_number=obj.receipt_number,
             )
 
     def has_delete_permission(self, request: HttpRequest, obj: Any = None) -> bool:

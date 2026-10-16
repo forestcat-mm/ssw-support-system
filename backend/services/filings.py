@@ -585,3 +585,56 @@ def rebase(filing: Filing, basis_on: date, *, by: User | None, reason: str) -> N
         filing.final_on = deadline.final_on
         filing.updated_by = by
         filing.save()
+
+
+# --- 業務画面と admin の共通（T14）------------------------------------------------------
+
+
+def update_details(
+    filing: Filing,
+    *,
+    by: User | None,
+    assignee: Staff | None,
+    note: str,
+    submitted_on: date | None = None,
+    receipt_number: str | None = None,
+) -> bool:
+    """担当者・メモと、提出日・受理番号の書き直し（状態は変えない）。変わったときだけ保存して True。
+
+    提出日・受理番号は None なら変えない。監査ログには届出タスクの更新として変更前後が残る。
+    """
+    values: dict[str, Any] = {"assignee_id": assignee.pk if assignee else None, "note": note}
+    if submitted_on is not None:
+        values["submitted_on"] = submitted_on
+    if receipt_number is not None:
+        values["receipt_number"] = receipt_number.strip()
+    changed = [name for name, value in values.items() if getattr(filing, name) != value]
+    if not changed:
+        return False
+    for name in changed:
+        setattr(filing, name, values[name])
+    filing.updated_by = by
+    filing.save(
+        update_fields=[name.removesuffix("_id") for name in changed] + ["updated_by", "updated_at"]
+    )
+    return True
+
+
+def manual_target(
+    *,
+    worker: ForeignWorker | None,
+    contract: EmploymentContract | None,
+    host: HostOrganization | None,
+) -> models.Model:
+    """手動の起票の対象（外国人・雇用契約・受入れ機関のちょうど 1 つ）。無効化済みの人は不可。"""
+    targets = [target for target in (contract, worker, host) if target is not None]
+    if len(targets) != 1:
+        raise ValidationError(_("Select exactly one target."), code="target")
+    target = targets[0]
+    owner = _worker_of(target)
+    if owner is not None and owner.deactivated_at is not None:
+        raise ValidationError(
+            _("Filing tasks cannot be created for a deactivated foreign worker."),
+            code="deactivated",
+        )
+    return target

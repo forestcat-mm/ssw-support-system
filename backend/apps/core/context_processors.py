@@ -17,16 +17,14 @@ class NavItem:
     label: Any
     url_name: str
     action: Action | None
-    match: str  # この接頭辞の画面でアクティブにする（"" は完全一致）
+    match: str | tuple[str, ...]  # この接頭辞の画面でアクティブにする（"" は完全一致）
 
 
 NAV_ITEMS: tuple[NavItem, ...] = (
-    NavItem(_("Dashboard"), "home", None, ""),
+    # 届出タスクの処理（filings:）はダッシュボードから開くので、ダッシュボードをアクティブにする
+    NavItem(_("Dashboard"), "home", Action.FILINGS_VIEW, ("home", "filings:")),
     NavItem(_("Foreign workers"), "workers:list", Action.WORKERS_VIEW, "workers:"),
     NavItem(_("Host organizations"), "hosts:list", Action.HOSTS_VIEW, "hosts:"),
-    NavItem(
-        _("Filing tasks"), "admin:filings_filing_changelist", Action.FILINGS_VIEW, "admin:filings"
-    ),
     NavItem(_("Management site"), "admin:index", Action.USERS_MANAGE, "admin:index"),
     NavItem(_("UI components"), "ui_showcase", Action.SYSTEM_MANAGE, "ui_showcase"),
 )
@@ -46,6 +44,7 @@ def ui(request: HttpRequest) -> dict[str, Any]:
             url = reverse(item.url_name)
         except NoReverseMatch:
             continue  # まだ作っていない画面（T13b 以降で追加）
-        active = current == item.url_name if not item.match else current.startswith(item.match)
+        prefixes = (item.match,) if isinstance(item.match, str) else item.match
+        active = current == item.url_name if not item.match else current.startswith(prefixes)
         items.append({"label": item.label, "url": url, "active": active})
     return {"nav_items": items, "organization_name": organization_display_name()}

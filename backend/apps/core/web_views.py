@@ -1,4 +1,4 @@
-"""業務画面の共通の画面（トップ・部品の見本）。"""
+"""業務画面の共通の画面（部品の見本）。トップは期限ダッシュボード（apps.filings.views）。"""
 
 from datetime import date, timedelta
 from typing import Any
@@ -13,13 +13,6 @@ from apps.core.permissions import ActionRequiredMixin
 from apps.hosts.models import SpecifiedSkillField
 from apps.workers.models import WorkerStatus
 from services import deadlines
-
-
-class HomeView(ActionRequiredMixin, TemplateView):
-    """ログイン後のトップ（T14 で期限ダッシュボードに差し替える）。"""
-
-    template_name = "ui/home.html"
-
 
 # 色見本に出す役割（値はページの CSS 変数から読むので、どのセットでも同じ一覧で済む）
 SWATCHES = [

@@ -1,0 +1,20 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Create a filing task" %}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{{ back_url }}">← {% translate "Back to dashboard" %}</a></p>
+  <h1>{% translate "Create a filing task" %}</h1>
+{% endblock %}
+{% block content %}
+<form class="form" method="post" novalidate id="filing-create">
+  {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+  {% include "ui/components/form_errors.html" %}
+  <section class="card stack">
+    <p class="caption">{% translate "Select exactly one target: a foreign worker, an employment contract or a host organization. The due date is calculated from the kind and the basis date." %}</p>
+    {% for field in form %}{% form_field field %}{% endfor %}
+  </section>
+  <div class="form-actions">
+    <button class="button button--primary" type="submit">{% translate "Create" %}</button>
+    <a class="button button--neutral" href="{{ back_url }}">{% translate "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,5 +1,6 @@
 {% extends "workers/detail_base.html" %}{% load i18n %}
 {% block tab_content %}
+{% if can_create_filing %}<p><a class="button button--neutral button--small" href="{% url 'filings:create' %}?worker={{ worker.pk }}">{% translate "Create a filing task" %}</a></p>{% endif %}
 {% if filing_rows %}
   {% include "ui/components/filing_table.html" with rows=filing_rows %}
 {% else %}

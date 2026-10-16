@@ -1,0 +1,73 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{{ filing.get_kind_display }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{{ back_url }}">← {% translate "Back to dashboard" %}</a></p>
+  <h1>{{ filing.get_kind_display }}</h1>
+  <div class="cluster"><span class="status" id="filing-status">{{ filing.get_status_display }}</span><span class="caption">{{ category_label }} · {{ row.filer_label }}</span></div>
+{% endblock %}
+{% block content %}
+<div class="stack">
+  <div class="grid-2">
+    <section class="card" id="filing-info">
+      <div class="card__header"><h2 class="card__title">{% translate "Task" %}</h2></div>
+      <dl class="fields">
+        <dt>{% translate "target" %}</dt><dd>{% if row.target_url_name %}<a href="{% url row.target_url_name row.target_pk %}">{{ row.target_label }}</a>{% else %}{{ row.target_label }}{% endif %}{% if filing.worker and row.target_label != filing.target_repr %} <span class="caption">{{ filing.target_repr }}</span>{% endif %}</dd>
+        <dt>{% translate "trigger" %}</dt><dd>{{ filing.get_trigger_display }}</dd>
+        <dt>{% translate "basis date" %}</dt><dd class="mono">{{ filing.basis_on|date:"Y-m-d" }}</dd>
+        {% if filing.opens_on %}<dt>{% translate "opens on" %}</dt><dd class="mono">{{ filing.opens_on|date:"Y-m-d" }}</dd>{% endif %}
+        <dt>{% translate "due date" %}</dt><dd>{% due_date row.deadline badge=row.is_open %}</dd>
+        {% if row.deadline.adjusted %}<dt>{% translate "legal due date" %}</dt><dd class="mono">{{ filing.due_on|date:"Y-m-d" }}</dd>{% endif %}
+        {% if filing.final_on %}<dt>{% translate "final deadline" %}</dt><dd class="mono">{{ filing.final_on|date:"Y-m-d" }}</dd>{% endif %}
+        <dt>{% translate "assignee" %}</dt><dd>{{ filing.assignee.name|default:_("not assigned") }}</dd>
+        <dt>{% translate "submitted on" %}</dt><dd class="mono">{{ filing.submitted_on|date:"Y-m-d"|default:"—" }}</dd>
+        <dt>{% translate "receipt number" %}</dt><dd class="mono">{{ filing.receipt_number|default:"—" }}</dd>
+        {% if filing.status_reason %}<dt>{% translate "reason" %}</dt><dd>{{ filing.status_reason }}</dd>{% endif %}
+        {% if filing.note %}<dt>{% translate "note" %}</dt><dd>{{ filing.note|linebreaksbr }}</dd>{% endif %}
+      </dl>
+      {% if findings.required or findings.review %}
+      <h3 style="margin-top: var(--space-16)">{% translate "Changes that need a notification" %}</h3>
+      <ul>
+        {% for finding in findings.required %}<li><strong>{{ finding.item }}</strong>: {{ finding.message }}</li>{% endfor %}
+        {% for finding in findings.review %}<li><span class="caption">{% translate "needs review" %}</span> <strong>{{ finding.item }}</strong>: {{ finding.message }}</li>{% endfor %}
+      </ul>
+      {% endif %}
+    </section>
+
+    {% if can_manage %}
+    <div class="stack">
+      {% if transition_form %}
+      <section class="card" id="transition">
+        <div class="card__header"><h2 class="card__title">{% translate "Change status" %}</h2></div>
+        <form class="form" method="post" novalidate>
+          {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}"><input type="hidden" name="form" value="transition">
+          {% include "ui/components/form_errors.html" with form=transition_form %}
+          {% for field in transition_form %}{% form_field field %}{% endfor %}
+          <div class="form-actions"><button class="button button--primary" type="submit">{% translate "Change status" %}</button></div>
+        </form>
+      </section>
+      {% endif %}
+      <section class="card" id="details">
+        <div class="card__header"><h2 class="card__title">{% translate "Assignee and note" %}</h2></div>
+        <form class="form" method="post" novalidate>
+          {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}"><input type="hidden" name="form" value="details">
+          {% include "ui/components/form_errors.html" with form=details_form %}
+          {% for field in details_form %}{% form_field field %}{% endfor %}
+          <div class="form-actions"><button class="button button--neutral" type="submit">{% translate "Save" %}</button></div>
+        </form>
+      </section>
+      {% if rebase_form %}
+      <details class="card form-section" id="rebase"{% if rebase_form.errors %} open{% endif %}>
+        <summary><h2>{% translate "Correct the basis date" %}</h2></summary>
+        <form class="form" method="post" novalidate>
+          {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}"><input type="hidden" name="form" value="rebase">
+          {% include "ui/components/form_errors.html" with form=rebase_form %}
+          {% for field in rebase_form %}{% form_field field %}{% endfor %}
+          <div class="form-actions"><button class="button button--neutral" type="submit">{% translate "Recalculate the due date" %}</button></div>
+        </form>
+      </details>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

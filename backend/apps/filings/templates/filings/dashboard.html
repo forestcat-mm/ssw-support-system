@@ -1,0 +1,40 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Dashboard" %}{% endblock %}
+{% block heading %}{% translate "Dashboard" %}{% endblock %}
+{% block actions %}{% if can_manage %}<a class="button button--neutral" href="{% url 'filings:create' %}">{% translate "Create a filing task" %}</a>{% endif %}{% endblock %}
+{% block content %}
+<div class="cluster" id="level-counts" style="margin-bottom: var(--space-16)">
+  {% for level, count, selected in level_counts %}
+    <a class="badge {% if level == 'overdue' %}badge--overdue{% elif level == 'within_7' %}badge--within-7{% elif level == 'within_14' %}badge--within-14{% else %}badge--open{% endif %}"
+       href="?{{ chip_query }}&amp;level={{ level }}" data-level-count="{{ level }}"{% if selected %} aria-current="true"{% endif %}>
+      {% if level == 'overdue' %}{% blocktranslate context "filing tasks" %}Overdue: {{ count }}{% endblocktranslate %}{% elif level == 'within_7' %}{% blocktranslate context "filing tasks" %}Within 7 days: {{ count }}{% endblocktranslate %}{% elif level == 'within_14' %}{% blocktranslate context "filing tasks" %}Within 14 days: {{ count }}{% endblocktranslate %}{% else %}{% blocktranslate context "filing tasks" %}Open: {{ count }}{% endblocktranslate %}{% endif %}
+    </a>
+  {% endfor %}
+  <span class="caption">|</span>
+  <a class="badge badge--open" href="?{{ chip_query }}&amp;status=submitted" data-awaiting-receipt{% if awaiting_selected %} aria-current="true"{% endif %}>{% blocktranslate count counter=awaiting_receipt %}Awaiting receipt: {{ counter }}{% plural %}Awaiting receipt: {{ counter }}{% endblocktranslate %}</a>
+</div>
+
+<form class="filter-bar" method="get" role="search">
+  {% for bound in form %}
+    <div class="form-row">
+      <label class="form-row__label" for="{{ bound.id_for_label }}">{{ bound.label }}</label>
+      {% if bound.name == "assignee" %}
+        <select class="select" name="assignee" id="{{ bound.id_for_label }}">
+          {% for value, label in bound.field.choices %}<option value="{{ value }}"{% if value|stringformat:"s" == selected_assignee %} selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      {% else %}{{ bound }}{% endif %}
+    </div>
+  {% endfor %}
+  <div class="cluster">
+    <button class="button button--neutral" type="submit">{% translate "Filter" %}</button>
+    <a class="button button--neutral button--small" href="{% url 'home' %}">{% translate "Clear" %}</a>
+  </div>
+</form>
+
+<p class="caption" data-count="{{ rows|length }}">{% blocktranslate count counter=rows|length %}{{ counter }} task{% plural %}{{ counter }} tasks{% endblocktranslate %}</p>
+{% if rows %}
+  {% include "ui/components/filing_table.html" with rows=rows show_target=True table_id="dashboard-filings" %}
+{% else %}
+  <div class="card"><div class="empty">{% translate "No filing tasks match the conditions." %}</div></div>
+{% endif %}
+{% endblock %}

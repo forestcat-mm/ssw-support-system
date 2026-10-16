@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 22:29+0900\n"
+"POT-Creation-Date: 2026-10-16 22:42+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -635,9 +635,6 @@ msgstr "外国人台帳"
 msgid "Host organizations"
 msgstr "受入れ機関台帳"
 
-msgid "Filing tasks"
-msgstr "届出タスク"
-
 msgid "Management site"
 msgstr "管理画面"
 
@@ -1164,6 +1161,9 @@ msgstr "届出主体"
 msgid "due date"
 msgstr "期限"
 
+msgid "assignee"
+msgstr "担当者"
+
 msgid "submitted on"
 msgstr "提出日"
 
@@ -1171,11 +1171,11 @@ msgstr "提出日"
 msgid "legal: %(day)s"
 msgstr "法令上の期限: %(day)s"
 
+msgid "not assigned"
+msgstr "未割当"
+
 msgid "required field"
 msgstr "必須"
-
-msgid "The deadline dashboard is being prepared. Use the menu on the left."
-msgstr "期限ダッシュボードは準備中です。左のメニューから画面を開いてください。"
 
 msgid "Back"
 msgstr "戻る"
@@ -1491,9 +1491,6 @@ msgstr "訂正の理由を入力してください。"
 msgid "The date the event occurred."
 msgstr "事由が生じた日。"
 
-msgid "Select exactly one target."
-msgstr "対象を 1 つだけ選んでください。"
-
 msgid "Deadline"
 msgstr "期限"
 
@@ -1511,6 +1508,63 @@ msgstr "同じ届出タスクがすでにあります。"
 
 msgid "Filings and tasks"
 msgstr "届出・申請タスク"
+
+msgid "deadline level"
+msgstr "警告レベル"
+
+msgid "All levels"
+msgstr "すべてのレベル"
+
+msgid "All kinds"
+msgstr "すべての種別"
+
+msgid "All filers"
+msgstr "すべての届出主体"
+
+msgid "Not started and in progress"
+msgstr "未着手・対応中"
+
+msgid "Awaiting receipt (submitted)"
+msgstr "受理待ち（提出済）"
+
+msgid "Completed (accepted or not required)"
+msgstr "完了（受理済・不要）"
+
+msgid "Cancelled"
+msgstr "取消"
+
+msgid "All statuses"
+msgstr "すべての状態"
+
+msgid "All staff"
+msgstr "すべての担当者"
+
+msgid "Assigned to me"
+msgstr "自分の担当"
+
+msgid "Not assigned"
+msgstr "担当者なし"
+
+msgid "new status"
+msgstr "変更後の状態"
+
+msgid "receipt number"
+msgstr "受理番号"
+
+msgid "reason"
+msgstr "理由"
+
+msgid "Required when the task is not required or cancelled."
+msgstr "「不要」「取消」にするときは必須です。"
+
+msgid "basis date"
+msgstr "起算日"
+
+msgid "If blank, the staff member assigned to the foreign worker is used."
+msgstr "空欄なら外国人の担当者が入ります。"
+
+msgid "note"
+msgstr "メモ"
 
 msgid "application for extension of period of stay"
 msgstr "在留期間更新許可申請"
@@ -1614,9 +1668,6 @@ msgstr "要否の確認が必要"
 msgid "deadline kind"
 msgstr "期限の種類"
 
-msgid "basis date"
-msgstr "起算日"
-
 msgid "opens on"
 msgstr "受付・着手日"
 
@@ -1629,23 +1680,95 @@ msgstr "期限（閉庁日の繰り延べ前）"
 msgid "final deadline"
 msgstr "最終の限度"
 
-msgid "reason"
-msgstr "理由"
-
-msgid "receipt number"
-msgstr "受理番号"
-
-msgid "assignee"
-msgstr "担当者"
-
-msgid "note"
-msgstr "メモ"
-
 msgid "filing task"
 msgstr "届出タスク"
 
 msgid "filing tasks"
 msgstr "届出タスク"
+
+msgid "Create a filing task"
+msgstr "届出を起票"
+
+#, python-format
+msgctxt "filing tasks"
+msgid "Overdue: %(count)s"
+msgstr "超過 %(count)s件"
+
+#, python-format
+msgctxt "filing tasks"
+msgid "Within 7 days: %(count)s"
+msgstr "7日以内 %(count)s件"
+
+#, python-format
+msgctxt "filing tasks"
+msgid "Within 14 days: %(count)s"
+msgstr "14日以内 %(count)s件"
+
+#, python-format
+msgctxt "filing tasks"
+msgid "Open: %(count)s"
+msgstr "対応期間中 %(count)s件"
+
+#, python-format
+msgid "Awaiting receipt: %(counter)s"
+msgid_plural "Awaiting receipt: %(counter)s"
+msgstr[0] "受理待ち %(counter)s件"
+
+msgid "Clear"
+msgstr "条件を消す"
+
+#, python-format
+msgid "%(counter)s task"
+msgid_plural "%(counter)s tasks"
+msgstr[0] "%(counter)s件"
+
+msgid "No filing tasks match the conditions."
+msgstr "条件に合う届出タスクはありません。"
+
+msgid "Back to dashboard"
+msgstr "ダッシュボードへ戻る"
+
+msgid "Task"
+msgstr "タスク"
+
+msgid "Changes that need a notification"
+msgstr "届出が必要な変更"
+
+msgid "Change status"
+msgstr "状態を変更する"
+
+msgid "Assignee and note"
+msgstr "担当者・メモ"
+
+msgid "Correct the basis date"
+msgstr "起算日の訂正"
+
+msgid "Recalculate the due date"
+msgstr "期限を計算し直す"
+
+msgid ""
+"Select exactly one target: a foreign worker, an employment contract or a "
+"host organization. The due date is calculated from the kind and the basis "
+"date."
+msgstr ""
+"対象は、外国人・雇用契約・受入れ機関のどれか 1 つを選んでください。期限は種別"
+"と起算日から計算します。"
+
+msgid "Create"
+msgstr "起票する"
+
+msgid "This form has already been submitted."
+msgstr "このフォームはすでに送信されています。"
+
+#, python-format
+msgid "Changed the status to %(status)s."
+msgstr "状態を「%(status)s」にしました。"
+
+msgid "Recalculated the due date."
+msgstr "期限を計算し直しました。"
+
+msgid "Created the filing task."
+msgstr "届出タスクを起票しました。"
 
 msgid "Support contracts entered on this page overlap each other."
 msgstr "この画面で入力した支援委託契約どうしの期間が重なっています。"
@@ -1889,17 +2012,8 @@ msgstr "無効化を外す理由"
 msgid "Before entry and residing"
 msgstr "入国前・在留中"
 
-msgid "All statuses"
-msgstr "すべての状態"
-
 msgid "All fields"
 msgstr "すべての分野"
-
-msgid "deadline level"
-msgstr "警告レベル"
-
-msgid "All levels"
-msgstr "すべてのレベル"
 
 msgid "order"
 msgstr "並び順"
@@ -1912,15 +2026,6 @@ msgstr "氏名（ローマ字）順"
 
 msgid "Include deactivated"
 msgstr "無効化済みを含む"
-
-msgid "All staff"
-msgstr "すべての担当者"
-
-msgid "Assigned to me"
-msgstr "自分の担当"
-
-msgid "Not assigned"
-msgstr "担当者なし"
 
 msgid "Example: the card number was entered incorrectly."
 msgstr "例: 在留カード番号を誤って入力した。"
@@ -2096,9 +2201,6 @@ msgstr ""
 msgid "(scheduled)"
 msgstr "（予定）"
 
-msgid "not assigned"
-msgstr "未割当"
-
 msgid "Deactivate a foreign worker"
 msgstr "外国人の無効化"
 
@@ -2223,9 +2325,6 @@ msgstr "履歴はありません。"
 msgid "Name or residence card / passport number"
 msgstr "氏名、在留カード番号・旅券番号"
 
-msgid "Clear"
-msgstr "条件を消す"
-
 msgid "Register a foreign worker"
 msgstr "外国人の登録"
 
@@ -2257,9 +2356,6 @@ msgstr "住所（任意）"
 
 msgid "Contact (optional)"
 msgstr "連絡先（任意）"
-
-msgid "This form has already been submitted."
-msgstr "このフォームはすでに送信されています。"
 
 msgid "Registered the foreign worker."
 msgstr "外国人を登録しました。"
@@ -2487,6 +2583,12 @@ msgstr "理由を入力してください。"
 
 msgid "Only open tasks can be changed."
 msgstr "未着手・対応中のタスクだけを変更できます。"
+
+msgid "Select exactly one target."
+msgstr "対象を 1 つだけ選んでください。"
+
+msgid "Filing tasks cannot be created for a deactivated foreign worker."
+msgstr "無効化した外国人の届出タスクは起票できません。"
 
 #, python-format
 msgid "These operation categories do not belong to the site's field: %(names)s"

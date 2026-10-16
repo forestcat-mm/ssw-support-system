@@ -201,6 +201,9 @@ class WorkerFilingsView(WorkerDetailView):
     def tab_context(self, context: dict[str, Any]) -> dict[str, Any]:
         rows = worker_detail.worker_filings(self.worker)
         context["filing_rows"] = rows
+        context["can_create_filing"] = workers.is_active(self.worker) and authorization.has_action(
+            self.request.user, Action.FILINGS_MANAGE
+        )
         return {"shown": {"filings": [row.filing.pk for row in rows]}}
 
 

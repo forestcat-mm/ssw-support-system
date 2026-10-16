@@ -17,6 +17,7 @@ from typing import Any
 from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
@@ -25,7 +26,7 @@ from apps.contracts.models import (
     EmploymentContract,
     EmploymentContractVersion,
 )
-from apps.filings.models import Filing, FilingStatus
+from apps.filings.models import FilingStatus
 from apps.workers.models import (
     ForeignWorker,
     HistoryRecord,
@@ -38,7 +39,7 @@ from apps.workers.models import (
     WorkerAddress,
     WorkerContact,
 )
-from services import contracts, deadlines, filings
+from services import contracts, dashboard, deadlines, filings
 
 # --- 基本 -----------------------------------------------------------------------
 
@@ -246,29 +247,7 @@ def diff_rows(old: EmploymentContractVersion, new: EmploymentContractVersion) ->
 # --- 届出 -----------------------------------------------------------------------
 
 
-@dataclass(frozen=True)
-class FilingRow:
-    """届出タスクの 1 行（外国人詳細の届出タブと T14 のダッシュボードで共通）。"""
-
-    filing: Filing
-    filer_label: str
-    deadline: deadlines.Deadline
-    is_open: bool  # 未着手・対応中（警告バッジを出す）
-
-
-def filing_rows(items: Iterable[Filing]) -> list[FilingRow]:
-    return [
-        FilingRow(
-            filing=filing,
-            filer_label=str(filings.FILER_LABELS[filings.definition(filing.kind).filer]),
-            deadline=filings.deadline_of(filing),
-            is_open=FilingStatus(filing.status) in filings.OPEN_STATUSES,
-        )
-        for filing in items
-    ]
-
-
-def worker_filings(worker: ForeignWorker) -> list[FilingRow]:
+def worker_filings(worker: ForeignWorker) -> list[dashboard.FilingRow]:
     """未完了を期限の近い順に先に、完了・取消はその後に新しい順で。"""
     items = list(worker.filings.select_related("assignee"))
     open_items = sorted(
@@ -280,7 +259,7 @@ def worker_filings(worker: ForeignWorker) -> list[FilingRow]:
         key=lambda f: (f.unadjusted_due_on, f.pk),
         reverse=True,
     )
-    return filing_rows([*open_items, *closed])
+    return dashboard.filing_rows([*open_items, *closed], timezone.localdate())
 
 
 # --- 履歴 -----------------------------------------------------------------------
