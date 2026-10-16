@@ -301,6 +301,35 @@ a.badge:hover {
   background: var(--color-band);
 }
 
+/* 一覧の表: どの行も 1 行に収める（長い文字列は省略記号＋ title で全文） */
+.table--list td {
+  white-space: nowrap;
+}
+
+.truncate-line {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+  max-width: 7em;
+  min-width: 0;
+}
+
+.truncate-line--wide {
+  max-width: 13em;
+}
+
+.truncate-line > * {
+  flex: none;
+}
+
+.truncate-line > .truncate {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .table .is-voided td {
   color: var(--color-ash);
 }

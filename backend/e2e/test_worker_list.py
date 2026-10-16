@@ -1,10 +1,14 @@
 """通しのテスト: 外国人一覧（T13b）。"""
 
 from datetime import timedelta
+from io import StringIO
+from pathlib import Path
 
 import pytest
+from django.core.management import call_command
 from django.utils import timezone
 from playwright.sync_api import Page, expect
+from pytest_django.fixtures import Settings
 
 from apps.core.models import Country, User
 from e2e.conftest import SignIn
@@ -72,3 +76,41 @@ def test_rows_have_the_same_height_for_any_script(
     heights = rows.evaluate_all(ROW_HEIGHTS)
     assert max(heights) - min(heights) < 0.5, heights
     assert page.evaluate("document.documentElement.scrollWidth") <= width
+
+
+@pytest.fixture
+def dummy_data(settings: Settings, tmp_path: Path) -> None:
+    """seed_dummy の 30 人（受入れ機関名・担当者名が長い実際に近いデータ）。"""
+    settings.DEBUG = True
+    settings.ALLOW_DUMMY_DATA = True
+    settings.STORAGES = {
+        **settings.STORAGES,
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+            "OPTIONS": {"location": str(tmp_path / "media")},
+        },
+    }
+    call_command("seed_dummy", stdout=StringIO())
+
+
+@pytest.mark.usefixtures("dummy_data")
+@pytest.mark.parametrize("width", [1366, 390])
+def test_dummy_30_workers_fit_one_line_per_row(
+    page: Page, sign_in: SignIn, support_staff: User, width: int
+) -> None:
+    page.set_viewport_size({"width": width, "height": 900})
+    sign_in(support_staff)
+    page.goto(page.url.rstrip("/") + "/workers/?status=all")
+    rows = page.locator("#worker-list tbody tr")
+    expect(rows).to_have_count(30)
+    heights = rows.evaluate_all(ROW_HEIGHTS)
+    assert max(heights) - min(heights) < 0.5, heights
+    assert 34 <= heights[0] <= 40, heights[0]
+    # 省略しても title で全文が読める
+    host = page.locator("#worker-list .truncate-line--wide").first
+    assert "株式会社" in (host.get_attribute("title") or "")
+    assert page.evaluate("document.documentElement.scrollWidth") <= width
+    if width >= 1366:
+        # PC 幅では表の全列が見える（表の中の横スクロールも出ない）
+        wrap = page.locator(".table-wrap")
+        assert wrap.evaluate("element => element.scrollWidth <= element.clientWidth")
