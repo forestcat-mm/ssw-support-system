@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 19:57+0900\n"
+"POT-Creation-Date: 2026-10-16 20:38+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -626,6 +626,24 @@ msgstr "管理"
 msgid "Organization and users"
 msgstr "自機関・ユーザー"
 
+msgid "Dashboard"
+msgstr "ダッシュボード"
+
+msgid "Foreign workers"
+msgstr "外国人台帳"
+
+msgid "Host organizations"
+msgstr "受入れ機関台帳"
+
+msgid "Filing tasks"
+msgstr "届出タスク"
+
+msgid "Management site"
+msgstr "管理画面"
+
+msgid "UI components"
+msgstr "部品の見本"
+
 msgid "6-digit code"
 msgstr "6 桁のコード"
 
@@ -980,6 +998,14 @@ msgstr "監査ログ"
 msgid "audit logs"
 msgstr "監査ログ"
 
+msgid "Access denied"
+msgstr "アクセスできません"
+
+msgid ""
+"You do not have permission to open this page. Ask an administrator if you "
+"need access."
+msgstr "この画面を開く権限がありません。必要な場合は管理者に依頼してください。"
+
 #, python-format
 msgid ""
 "Hello %(name)s,\n"
@@ -1111,6 +1137,208 @@ msgstr "終了日"
 msgid "Filter"
 msgstr "絞り込む"
 
+msgid "Skip to content"
+msgstr "本文へ移動"
+
+msgid "Sign out"
+msgstr "ログアウト"
+
+msgid "Main menu"
+msgstr "メインメニュー"
+
+msgid "Menu"
+msgstr "メニュー"
+
+msgid "The deadline dashboard is being prepared. Use the menu on the left."
+msgstr "期限ダッシュボードは準備中です。左のメニューから画面を開いてください。"
+
+msgid "Back"
+msgstr "戻る"
+
+msgid "Export"
+msgstr "書き出す"
+
+msgid "Register"
+msgstr "登録する"
+
+msgid ""
+"Design tokens and components of the business screens (based on the Aboard "
+"design tokens). Only administrators can open this page."
+msgstr ""
+"業務画面のデザイントークンと部品の見本です（Aboard のデザイントークンを基準に"
+"しています）。管理者だけが開けます。"
+
+msgid "Colors"
+msgstr "色"
+
+msgid "Typography"
+msgstr "文字"
+
+msgid "Page heading 24px / 600"
+msgstr "ページの見出し 24px / 600"
+
+msgid "Section heading 18px / 500"
+msgstr "区切りの見出し 18px / 500"
+
+msgid ""
+"Body text 15px / line height 1.6. Japanese and Chinese text keep normal "
+"letter spacing."
+msgstr "本文 15px／行間 1.6。日本語・中国語の本文は字間を詰めません。"
+
+msgid "Caption 12px (secondary text)"
+msgstr "補足 12px（補足の文字）"
+
+msgid "Chinese (Simplified) is shown with a Chinese font:"
+msgstr "中国語（簡体字）は中国語のフォントで表示します:"
+
+msgid "Japanese font:"
+msgstr "日本語のフォント:"
+
+msgid "Numbers use a monospaced font:"
+msgstr "番号類は等幅のフォントで表示します:"
+
+msgid "Buttons"
+msgstr "ボタン"
+
+msgid "Save"
+msgstr "保存する"
+
+msgid "Save and add another"
+msgstr "保存して続けて登録"
+
+msgid "Deactivate"
+msgstr "無効化する"
+
+msgid "Void"
+msgstr "取り消す"
+
+msgid "Disabled"
+msgstr "使えない状態"
+
+msgid ""
+"Primary: one or two per screen. Ghost: only next to a primary button. "
+"Neutral: secondary actions. Danger: always behind a confirmation page."
+msgstr ""
+"主要: 1 画面に 1〜2 個。ゴースト: 主要ボタンと並べるときだけ。中立: 主要でな"
+"い操作。危険: 必ず確認の画面をはさむ。"
+
+msgid "Deadline levels"
+msgstr "警告レベル"
+
+msgid "level"
+msgstr "警告レベル（残り日数）"
+
+msgid "badge"
+msgstr "バッジ"
+
+msgid "rule"
+msgstr "表示のルール"
+
+msgid ""
+"Colors follow the due date before holiday adjustment. Text is always shown "
+"so that color is not the only signal."
+msgstr ""
+"色は閉庁日の繰り延べ前の期限を基準にします。色だけに頼らないよう、必ず文字を"
+"併記します。"
+
+msgid "Tags and status"
+msgstr "タグと状態"
+
+msgid "Table"
+msgstr "表"
+
+msgid "Search"
+msgstr "検索"
+
+msgid "Name or residence card number"
+msgstr "氏名または在留カード番号"
+
+msgid "All host organizations"
+msgstr "すべての受入れ機関"
+
+msgid "nationality or region"
+msgstr "国籍・地域"
+
+msgid "period of stay expires on"
+msgstr "在留期限"
+
+msgid "assigned staff"
+msgstr "担当者"
+
+msgid "Form"
+msgstr "入力欄"
+
+msgid "name (romaji)"
+msgstr "氏名（ローマ字）"
+
+msgid "required field"
+msgstr "必須"
+
+msgid "residence card number"
+msgstr "在留カード番号"
+
+msgid ""
+"Enter a residence card number as 2 letters, 8 digits and 2 letters (e.g. "
+"AB12345678CD)."
+msgstr ""
+"在留カード番号は英字 2 桁・数字 8 桁・英字 2 桁で入力してください（例: "
+"AB12345678CD）。"
+
+msgid "Spaces, hyphens and full-width characters are normalized when saved."
+msgstr "空白・ハイフン・全角の文字は、保存するときに整えます。"
+
+msgid "void reason"
+msgstr "取り消しの理由"
+
+msgid "Detail"
+msgstr "詳細"
+
+msgid "sample"
+msgstr "見本"
+
+msgid "Sections"
+msgstr "区分"
+
+msgid "Basic"
+msgstr "基本"
+
+msgid "Filings"
+msgstr "届出"
+
+msgid "History"
+msgstr "履歴"
+
+msgid "name (kanji)"
+msgstr "氏名（漢字）"
+
+msgid "name (native script)"
+msgstr "氏名（母国語）"
+
+msgid "Saved."
+msgstr "保存しました。"
+
+msgid "This residence card number is registered to another foreign worker."
+msgstr "この在留カード番号は別の外国人に登録されています。"
+
+msgid ""
+"Floating panels (menus, confirmation dialogs) are the only elements with a "
+"shadow."
+msgstr "影を付けるのは、浮いた要素（メニュー・確認のダイアログ）だけです。"
+
+msgid "No foreign workers match the conditions."
+msgstr "条件に合う外国人はいません。"
+
+#, python-format
+msgid "Overdue %(days)s d"
+msgstr "超過 %(days)s日"
+
+msgid "Due today"
+msgstr "今日まで"
+
+#, python-format
+msgid "%(days)s d left"
+msgstr "あと%(days)s日"
+
 msgid "The code is incorrect. Check the time on your device."
 msgstr "コードが正しくありません。端末の時刻がずれていないか確認してください。"
 
@@ -1121,20 +1349,65 @@ msgstr "回復用コードでログインしました。残りは %(count)d 個�
 msgid "The code is incorrect."
 msgstr "コードが正しくありません。"
 
-msgid "not yet open"
-msgstr "受付前"
-
-msgid "open"
-msgstr "対応期間中"
-
-msgid "within 14 days"
-msgstr "14日以内"
+msgid "overdue"
+msgstr "超過"
 
 msgid "within 7 days"
 msgstr "7日以内"
 
-msgid "overdue"
-msgstr "超過"
+msgid "Butter, bold, with a dot"
+msgstr "Butter、太字、左に印"
+
+msgid "within 14 days"
+msgstr "14日以内"
+
+msgid "open"
+msgstr "対応期間中"
+
+msgid "outline only"
+msgstr "枠線のみ"
+
+msgid "not yet open"
+msgstr "受付前"
+
+msgid "date only"
+msgstr "日付の文字のみ"
+
+msgid "page background"
+msgstr "ページの背景"
+
+msgid "cards and tables"
+msgstr "カード・表"
+
+msgid "text"
+msgstr "文字"
+
+msgid "secondary text"
+msgstr "補足の文字"
+
+msgid "borders of inputs, disabled"
+msgstr "入力欄の枠線、使えない状態"
+
+msgid "primary actions and active state only"
+msgstr "主要操作とアクティブな状態だけ"
+
+msgid "active menu, before entry"
+msgstr "アクティブなメニュー、入国前"
+
+msgid "overdue, errors, danger"
+msgstr "超過、エラー、危険な操作"
+
+msgid "within 14 days, success"
+msgstr "14日以内、完了の知らせ"
+
+msgid "industrial products field"
+msgstr "工業製品製造業分野"
+
+msgid "food manufacturing field"
+msgstr "飲食料品製造業分野"
+
+msgid "deactivated"
+msgstr "無効化済み"
 
 msgid "immigration notification"
 msgstr "入管への届出"
@@ -1179,9 +1452,6 @@ msgstr "対象を 1 つだけ選んでください。"
 
 msgid "Deadline"
 msgstr "期限"
-
-msgid "level"
-msgstr "警告レベル（残り日数）"
 
 msgid "trigger details"
 msgstr "事由の詳細"
@@ -1345,9 +1615,6 @@ msgstr "代表者"
 msgid "Contact"
 msgstr "連絡先"
 
-msgid "Host organizations"
-msgstr "受入れ機関台帳"
-
 msgid "registered corporation"
 msgstr "登録法人"
 
@@ -1478,9 +1745,6 @@ msgstr "ダミーデータの台帳"
 msgid "void"
 msgstr "取り消す"
 
-msgid "void reason"
-msgstr "取り消しの理由"
-
 msgid "Enter the reason for voiding."
 msgstr "取り消しの理由を入力してください。"
 
@@ -1497,12 +1761,6 @@ msgstr "支援"
 
 msgid "status of residence"
 msgstr "在留資格"
-
-msgid "period of stay expires on"
-msgstr "在留期限"
-
-msgid "Foreign workers"
-msgstr "外国人台帳"
 
 msgid "confirmed by"
 msgstr "最終確認者"
@@ -1534,26 +1792,11 @@ msgstr "離職"
 msgid "returned home"
 msgstr "帰国"
 
-msgid "name (romaji)"
-msgstr "氏名（ローマ字）"
-
-msgid "name (kanji)"
-msgstr "氏名（漢字）"
-
-msgid "name (native script)"
-msgstr "氏名（母国語）"
-
-msgid "nationality or region"
-msgstr "国籍・地域"
-
 msgid "date of birth"
 msgstr "生年月日"
 
 msgid "sex"
 msgstr "性別"
-
-msgid "assigned staff"
-msgstr "担当者"
 
 msgid "foreign workers"
 msgstr "外国人"
@@ -1594,9 +1837,6 @@ msgstr "在留カード再交付（紛失・汚損等）"
 msgid "Change of particulars (new card issued)"
 msgstr "記載事項変更（新カード交付）"
 
-msgid "residence card number"
-msgstr "在留カード番号"
-
 msgid "Leave blank before entry (no residence card yet)."
 msgstr "入国前（在留カード未交付）は空欄にします。"
 
@@ -1614,9 +1854,6 @@ msgstr "在留情報"
 
 msgid "residence records"
 msgstr "在留情報"
-
-msgid "This residence card number is registered to another foreign worker."
-msgstr "この在留カード番号は別の外国人に登録されています。"
 
 msgid "passport number"
 msgstr "旅券番号"
@@ -1880,13 +2117,6 @@ msgstr "事業所の分野に属さない業務区分です: %(names)s"
 
 msgid "Enter a passport number of 6 to 12 letters and digits."
 msgstr "旅券番号は英数字 6〜12 桁で入力してください。"
-
-msgid ""
-"Enter a residence card number as 2 letters, 8 digits and 2 letters (e.g. "
-"AB12345678CD)."
-msgstr ""
-"在留カード番号は英字 2 桁・数字 8 桁・英字 2 桁で入力してください（例: "
-"AB12345678CD）。"
 
 #, python-format
 msgid ""

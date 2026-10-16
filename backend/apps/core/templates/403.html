@@ -1,0 +1,8 @@
+{% extends "ui/base.html" %}{% load i18n %}
+{% block title %}{% translate "Access denied" %}{% endblock %}
+{% block heading %}{% translate "Access denied" %}{% endblock %}
+{% block content %}
+<div class="card">
+  <p>{% translate "You do not have permission to open this page. Ask an administrator if you need access." %}</p>
+</div>
+{% endblock %}

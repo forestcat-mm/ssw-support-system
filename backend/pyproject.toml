@@ -33,6 +33,11 @@ dev = [
     "pytest-django==4.14.0",
     "ruff==0.17.1",
 ]
+# 通しのテスト（make e2e のコンテナだけで入れる）
+e2e = [
+    "playwright==1.63.0",
+    "pytest-playwright==0.10.0",
+]
 
 [tool.ruff]
 target-version = "py312"
@@ -52,7 +57,7 @@ exclude = ["/migrations/"]
 django_settings_module = "config.settings_test"
 
 [[tool.mypy.overrides]]
-module = ["environ", "environ.*", "django_otp.*", "axes.*", "qrcode", "qrcode.*"]
+module = ["environ", "environ.*", "django_otp.*", "axes.*", "qrcode", "qrcode.*", "playwright.*", "jpholiday"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

@@ -1,0 +1,155 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "UI components" %}{% endblock %}
+{% block heading %}{% translate "UI components" %}{% endblock %}
+{% block actions %}
+  <a class="button button--neutral" href="#tokens">{% translate "Back" %}</a>
+  <button class="button button--ghost" type="button">{% translate "Export" %}</button>
+  <button class="button button--primary" type="button">{% translate "Register" %}</button>
+{% endblock %}
+{% block content %}
+<div class="stack">
+  <p class="muted">{% translate "Design tokens and components of the business screens (based on the Aboard design tokens). Only administrators can open this page." %}</p>
+
+  <section class="card" id="tokens">
+    <div class="card__header"><h2 class="card__title">{% translate "Colors" %}</h2></div>
+    <div class="swatches">
+      {% for name, var, hex, use in colors %}
+        <div class="swatch">
+          <div class="swatch__chip" style="background: var({{ var }})"></div>
+          <strong>{{ name }}</strong>
+          <span class="mono">{{ hex }}</span>
+          <span class="muted">{{ use }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card__header"><h2 class="card__title">{% translate "Typography" %}</h2></div>
+    <div class="stack">
+      <p class="text-heading">{% translate "Page heading 24px / 600" %}</p>
+      <p class="text-subheading">{% translate "Section heading 18px / 500" %}</p>
+      <p>{% translate "Body text 15px / line height 1.6. Japanese and Chinese text keep normal letter spacing." %}</p>
+      <p class="caption">{% translate "Caption 12px (secondary text)" %}</p>
+      <p>{% translate "Chinese (Simplified) is shown with a Chinese font:" %} <span lang="zh-Hans">王芳 · 张伟 · 刘静</span> / {% translate "Japanese font:" %} 王芳・張偉・劉静</p>
+      <p>{% translate "Numbers use a monospaced font:" %} <span class="mono">AB12345678CD</span> · <span class="mono">7999900000010</span> · <span class="mono">2026-10-16</span> · <span class="mono">¥220,000</span></p>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card__header"><h2 class="card__title">{% translate "Buttons" %}</h2></div>
+    <div class="cluster">
+      <button class="button button--primary" type="button">{% translate "Save" %}</button>
+      <button class="button button--ghost" type="button">{% translate "Save and add another" %}</button>
+      <button class="button button--neutral" type="button">{% translate "Cancel" %}</button>
+      <button class="button button--danger" type="button">{% translate "Deactivate" %}</button>
+      <button class="button button--neutral button--small" type="button">{% translate "Void" %}</button>
+      <button class="button button--primary" type="button" disabled>{% translate "Disabled" %}</button>
+    </div>
+    <p class="caption">{% translate "Primary: one or two per screen. Ghost: only next to a primary button. Neutral: secondary actions. Danger: always behind a confirmation page." %}</p>
+  </section>
+
+  <section class="card">
+    <div class="card__header"><h2 class="card__title">{% translate "Deadline levels" %}</h2></div>
+    <div class="table-scroll">
+    <table class="table">
+      <thead><tr><th>{% translate "level" %}</th><th>{% translate "badge" %}</th><th>{% translate "rule" %}</th></tr></thead>
+      <tbody>
+        {% for label, deadline, rule in deadlines %}
+          <tr><td>{{ label }}</td><td>{% level_badge deadline %}</td><td class="muted">{{ rule }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    <p class="caption">{% translate "Colors follow the due date before holiday adjustment. Text is always shown so that color is not the only signal." %}</p>
+  </section>
+
+  <section class="card">
+    <div class="card__header"><h2 class="card__title">{% translate "Tags and status" %}</h2></div>
+    <div class="cluster">
+      {% for field in fields %}{% field_tag field %}{% endfor %}
+      {% for code, label in statuses %}{% worker_status code label %}{% endfor %}
+      {% worker_status "residing" deactivated_label True %}
+    </div>
+  </section>
+
+  <section>
+    <h2 style="margin-bottom: var(--space-12)">{% translate "Table" %}</h2>
+    <form class="filter-bar" role="search" onsubmit="return false">
+      <label class="visually-hidden" for="sample-q">{% translate "Search" %}</label>
+      <input class="input" id="sample-q" type="search" placeholder="{% translate 'Name or residence card number' %}">
+      <label class="visually-hidden" for="sample-host">{% translate "host organization" %}</label>
+      <select class="select" id="sample-host"><option>{% translate "All host organizations" %}</option></select>
+      <button class="button button--neutral" type="button">{% translate "Filter" %}</button>
+    </form>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr>
+          <th>{% translate "name" %}</th><th>{% translate "nationality or region" %}</th><th>{% translate "host organization" %}</th>
+          <th>{% translate "period of stay expires on" %}</th><th>{% translate "assigned staff" %}</th><th>{% translate "status" %}</th>
+        </tr></thead>
+        <tbody>
+          {% for row in rows %}
+            <tr{% if row.voided %} class="is-voided"{% endif %}>
+              <td><a href="#tokens">{{ row.kanji }}</a> <span class="caption">{{ row.romaji }}</span></td>
+              <td>{{ row.nationality }}</td>
+              <td>{{ row.host }}</td>
+              <td><span class="mono">{{ row.deadline.unadjusted_due_on|date:"Y-m-d" }}</span> {% level_badge row.deadline %}</td>
+              <td>{{ row.staff }}</td>
+              <td>{% worker_status row.status row.status_label %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="grid-2">
+    <section class="card">
+      <div class="card__header"><h2 class="card__title">{% translate "Form" %}</h2></div>
+      <form class="form" onsubmit="return false">
+        <div class="form-row">
+          <label class="form-row__label" for="f1">{% translate "name (romaji)" %} <span class="form-row__required">{% translate "required field" %}</span></label>
+          <input class="input" id="f1" value="WANG FANG">
+        </div>
+        <div class="form-row form-row--error">
+          <label class="form-row__label" for="f2">{% translate "residence card number" %}</label>
+          <input class="input mono" id="f2" value="A1234567" aria-describedby="f2-error">
+          <span class="form-row__error" id="f2-error">{% translate "Enter a residence card number as 2 letters, 8 digits and 2 letters (e.g. AB12345678CD)." %}</span>
+        </div>
+        <div class="form-row">
+          <label class="form-row__label" for="f3">{% translate "period of stay expires on" %}</label>
+          <input class="input" id="f3" type="date" value="2027-04-01">
+          <span class="form-row__help">{% translate "Spaces, hyphens and full-width characters are normalized when saved." %}</span>
+        </div>
+        <div class="form-row">
+          <label class="form-row__label" for="f4">{% translate "void reason" %}</label>
+          <textarea class="textarea" id="f4"></textarea>
+        </div>
+        <div class="cluster"><button class="button button--primary" type="submit">{% translate "Save" %}</button><a class="button button--neutral" href="#tokens">{% translate "Cancel" %}</a></div>
+      </form>
+    </section>
+    <section class="card">
+      <div class="card__header"><h2 class="card__title">{% translate "Detail" %}</h2><span class="tag tag--industrial">{% translate "sample" %}</span></div>
+      <nav class="tabs" aria-label="{% translate 'Sections' %}">
+        <a class="tabs__link" href="#tokens" aria-current="page">{% translate "Basic" %}</a>
+        <a class="tabs__link" href="#tokens">{% translate "Contract" %}</a>
+        <a class="tabs__link" href="#tokens">{% translate "Filings" %}</a>
+        <a class="tabs__link" href="#tokens">{% translate "History" %}</a>
+      </nav>
+      <dl class="fields">
+        <dt>{% translate "name (kanji)" %}</dt><dd>王芳</dd>
+        <dt>{% translate "name (native script)" %}</dt><dd lang="zh-Hans">王芳</dd>
+        <dt>{% translate "residence card number" %}</dt><dd class="mono">AB12345678CD</dd>
+        <dt>{% translate "period of stay expires on" %}</dt><dd><span class="mono">2027-04-01</span></dd>
+      </dl>
+      <ul class="messages" style="margin-top: var(--space-16)">
+        <li class="message message--success">{% translate "Saved." %}</li>
+        <li class="message message--warning">{% translate "This residence card number is registered to another foreign worker." %}</li>
+      </ul>
+      <div class="popover" style="margin-top: var(--space-16)">{% translate "Floating panels (menus, confirmation dialogs) are the only elements with a shadow." %}</div>
+    </section>
+  </div>
+  <div class="card"><div class="empty">{% translate "No foreign workers match the conditions." %}</div></div>
+</div>
+{% endblock %}

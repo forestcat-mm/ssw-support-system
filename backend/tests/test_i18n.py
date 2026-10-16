@@ -1,12 +1,15 @@
-"""UI 文言リソースの更新漏れ検出（.po と .mo の不一致、未翻訳ラベル）。"""
+"""UI 文言リソースの更新漏れ検出（.po と .mo の不一致、未翻訳、make messages の実行忘れ）。"""
 
 import gettext
+import re
+import shutil
 import subprocess
 from pathlib import Path
 
 import pytest
 from django.apps import apps
 from django.conf import settings
+from django.core.management import call_command
 from django.db.models import Model
 from django.utils import translation
 from django.utils.functional import Promise
@@ -51,3 +54,56 @@ def test_app_labels_are_translated(model: type[Model]) -> None:
 def test_po_has_no_fuzzy_entries(po: Path) -> None:
     """fuzzy は .mo に入らず、印だけ消すと誤訳が出るため残さない。"""
     assert "#, fuzzy" not in po.read_text(encoding="utf-8")
+
+
+def parse_po(path: Path) -> dict[str, str]:
+    """.po を {msgid: msgstr} に読む（複数行・複数形は先頭の形だけ。ヘッダーは除く）。"""
+    entries: dict[str, str] = {}
+    msgid: list[str] | None = None
+    msgstr: list[str] | None = None
+    current: list[str] | None = None
+
+    def flush() -> None:
+        if msgid is not None and "".join(msgid):
+            entries["".join(msgid)] = "".join(msgstr or [])
+
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.startswith("msgid "):
+            flush()
+            msgid, msgstr = [_unquote(line[6:])], None
+            current = msgid
+        elif line.startswith("msgid_plural "):
+            current = None
+        elif line.startswith("msgstr ") or line.startswith("msgstr[0] "):
+            msgstr = [_unquote(line.split(" ", 1)[1])]
+            current = msgstr
+        elif line.startswith("msgstr["):
+            current = None
+        elif line.startswith('"') and current is not None:
+            current.append(_unquote(line))
+    flush()
+    return entries
+
+
+def _unquote(text: str) -> str:
+    return re.sub(r'^"|"$', "", text.strip())
+
+
+@pytest.mark.parametrize("po", PO_FILES, ids=str)
+def test_po_has_no_untranslated_entries(po: Path) -> None:
+    untranslated = [msgid for msgid, msgstr in parse_po(po).items() if not msgstr]
+    assert untranslated == [], "訳が空の行がある。.po に訳を書いて make messages を実行する"
+
+
+def test_po_is_up_to_date_with_sources(tmp_path: Path, settings: object) -> None:
+    """コードとテンプレートから抽出し直した msgid が、コミット済みの .po と一致する。"""
+    locale = Path(settings.LOCALE_PATHS[0])  # type: ignore[attr-defined]
+    work = tmp_path / "locale"
+    shutil.copytree(locale, work)
+    settings.LOCALE_PATHS = [work]  # type: ignore[attr-defined]
+    call_command("makemessages", locale=["ja"], no_location=True, no_obsolete=True, verbosity=0)
+    for po in PO_FILES:
+        fresh = work / po.relative_to(locale)
+        missing = set(parse_po(fresh)) - set(parse_po(po))
+        stale = set(parse_po(po)) - set(parse_po(fresh))
+        assert (missing, stale) == (set(), set()), "make messages を実行して .po をコミットする"

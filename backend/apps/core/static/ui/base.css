@@ -1,0 +1,249 @@
+/* 要素の基本と、共通レイアウト（左のナビ・上のバー・本文）。 */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 中国語（簡体字）の表記は中国語のフォントで表示する（日本語のフォントだと字形が変わる・欠ける） */
+:lang(zh-Hans),
+:lang(zh-CN) {
+  font-family: var(--font-sans-zh);
+}
+
+h1,
+h2,
+h3,
+.text-heading,
+.text-subheading {
+  margin: 0;
+  line-height: var(--leading-heading);
+}
+
+h1,
+.text-heading {
+  font-size: var(--text-heading);
+  font-weight: 600;
+  letter-spacing: var(--tracking-heading);
+}
+
+h2,
+.text-subheading {
+  font-size: var(--text-subheading);
+  font-weight: 500;
+}
+
+h3 {
+  font-size: var(--text-body);
+  font-weight: 600;
+}
+
+a {
+  color: var(--color-signal);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-signal);
+  outline-offset: 2px;
+}
+
+.mono,
+code {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.95em;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  color: var(--color-graphite);
+}
+
+.caption {
+  font-size: var(--text-caption);
+  color: var(--color-graphite);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+}
+
+.skip-link:focus {
+  left: var(--space-16);
+  top: var(--space-8);
+  z-index: 10;
+  background: var(--color-surface);
+  padding: var(--space-8) var(--space-12);
+  box-shadow: var(--shadow-float);
+}
+
+/* --- レイアウト ------------------------------------------------------------------ */
+
+.app {
+  display: grid;
+  /* minmax(0, 1fr): 幅の広い表があっても本文の列が画面からはみ出さない（表は .table-wrap の中で横に送る） */
+  grid-template-columns: var(--layout-nav) minmax(0, 1fr);
+  grid-template-rows: var(--layout-topbar) 1fr;
+  min-height: 100vh;
+}
+
+.topbar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  padding: 0 var(--space-24);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-line);
+}
+
+.topbar__org {
+  font-weight: 600;
+  font-size: var(--text-body);
+}
+
+.topbar__spacer {
+  flex: 1;
+}
+
+.topbar__user {
+  color: var(--color-graphite);
+  font-size: var(--text-table);
+}
+
+.nav {
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-line);
+  padding: var(--space-16) var(--space-12);
+}
+
+.nav__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-4);
+}
+
+.nav__link {
+  display: block;
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-pill);
+  color: var(--color-graphite);
+  font-size: var(--text-table);
+  font-weight: 500;
+}
+
+.nav__link:hover {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.nav__link[aria-current="page"] {
+  background: var(--color-sky);
+  color: var(--color-signal);
+}
+
+.nav__mobile {
+  display: none;
+}
+
+.main {
+  padding: var(--space-24);
+  min-width: 0;
+}
+
+.main__inner {
+  max-width: var(--layout-max);
+}
+
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-16);
+  margin-bottom: var(--space-24);
+}
+
+.page-header__title {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.page-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.stack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-16);
+}
+
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  align-items: center;
+}
+
+/* 960px 未満: ナビを上部の折りたたみにする（第9章「レスポンシブ」） */
+@media (max-width: 959px) {
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: var(--layout-topbar) auto 1fr;
+  }
+
+  .nav {
+    border-right: 0;
+    border-bottom: 1px solid var(--color-line);
+    padding: var(--space-8) var(--space-16);
+  }
+
+  .nav__desktop {
+    display: none;
+  }
+
+  .nav__mobile {
+    display: block;
+  }
+
+  .main {
+    padding: var(--space-16);
+  }
+}

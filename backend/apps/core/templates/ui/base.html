@@ -1,0 +1,55 @@
+{% load i18n static %}<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{% endblock %} | {{ organization_name|default:"" }}</title>
+  <link rel="stylesheet" href="{% static 'ui/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'ui/base.css' %}">
+  <link rel="stylesheet" href="{% static 'ui/components.css' %}">
+</head>
+<body>
+<a class="skip-link" href="#main">{% translate "Skip to content" %}</a>
+<div class="app">
+  <header class="topbar">
+    <span class="topbar__org">{{ organization_name }}</span>
+    <span class="topbar__spacer"></span>
+    {% if user.is_authenticated %}
+      <span class="topbar__user">{{ user.get_username }}</span>
+      <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}
+        <button class="button button--neutral button--small" type="submit">{% translate "Sign out" %}</button>
+      </form>
+    {% endif %}
+  </header>
+  <nav class="nav" aria-label="{% translate 'Main menu' %}">
+    <ul class="nav__list nav__desktop">
+      {% for item in nav_items %}
+        <li><a class="nav__link" href="{{ item.url }}"{% if item.active %} aria-current="page"{% endif %}>{{ item.label }}</a></li>
+      {% endfor %}
+    </ul>
+    <details class="nav__mobile">
+      <summary>{% translate "Menu" %}</summary>
+      <ul class="nav__list">
+        {% for item in nav_items %}
+          <li><a class="nav__link" href="{{ item.url }}"{% if item.active %} aria-current="page"{% endif %}>{{ item.label }}</a></li>
+        {% endfor %}
+      </ul>
+    </details>
+  </nav>
+  <main class="main" id="main">
+    <div class="main__inner">
+      {% if messages %}
+        <ul class="messages">
+          {% for message in messages %}<li class="message message--{{ message.tags }}">{{ message }}</li>{% endfor %}
+        </ul>
+      {% endif %}
+      <div class="page-header">
+        <div class="page-header__title">{% block page_header %}<h1>{% block heading %}{% endblock %}</h1>{% endblock %}</div>
+        <div class="page-header__actions">{% block actions %}{% endblock %}</div>
+      </div>
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+</div>
+</body>
+</html>

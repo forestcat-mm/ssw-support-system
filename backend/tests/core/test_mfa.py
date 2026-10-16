@@ -146,7 +146,7 @@ def test_next_parameter_rejects_external_urls() -> None:
         "/accounts/mfa/verify/", {"code": totp_token(device), "next": "https://evil.example/"}
     )
     assert response.status_code == 302
-    assert response["Location"] == "/admin/"
+    assert response["Location"] == "/"  # LOGIN_REDIRECT_URL（業務画面のトップ）
 
 
 def test_totp_issuer_uses_organization_name() -> None:

@@ -71,6 +71,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "apps.core.context_processors.ui",
             ],
         },
     },
@@ -119,7 +120,7 @@ AUTHENTICATION_BACKENDS = [
     "apps.core.backends.RoleBackend",
 ]
 LOGIN_URL = "accounts:login"
-LOGIN_REDIRECT_URL = "/admin/"
+LOGIN_REDIRECT_URL = "/"  # 業務画面のトップ。管理画面へはナビの「管理画面」から
 
 # ログイン失敗によるロック（第8章）。
 # 前段の Cloudflare 経由では IP が当てにならないため、ユーザー名単位でロックする。

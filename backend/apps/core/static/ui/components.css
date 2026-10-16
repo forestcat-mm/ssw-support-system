@@ -1,0 +1,436 @@
+/* 部品（ボタン・バッジ・カード・表・入力欄・タブ・メッセージ）。 */
+
+/* --- ボタン（ピル型） --------------------------------------------------------------- */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  height: var(--control-height);
+  padding: 0 var(--space-20);
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: var(--text-table);
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.button:hover {
+  text-decoration: none;
+}
+
+/* 主要操作（1 画面に 1〜2 個まで） */
+.button--primary {
+  background: var(--color-signal);
+  color: #ffffff;
+}
+
+.button--primary:hover {
+  background: var(--color-signal-hover);
+}
+
+/* ゴースト（主要操作と並べるときだけ） */
+.button--ghost {
+  background: transparent;
+  border-color: var(--color-signal);
+  color: var(--color-signal);
+}
+
+/* 中立（戻る・取り消すなど主要でない操作。Aboard に業務画面向けに追加） */
+.button--neutral {
+  background: var(--color-surface);
+  border-color: var(--color-line-strong);
+  color: var(--color-ink);
+}
+
+.button--neutral:hover {
+  background: var(--color-canvas);
+}
+
+/* 取り返しのつかない操作（必ず確認の画面をはさむ） */
+.button--danger {
+  background: var(--color-blush);
+  color: var(--color-ink);
+}
+
+.button--small {
+  height: 28px;
+  padding: 0 var(--space-12);
+  font-size: var(--text-caption);
+}
+
+.button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* --- バッジ・タグ ------------------------------------------------------------------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 2px var(--space-12);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-caption);
+  font-weight: 500;
+  line-height: 1.6;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  color: var(--color-ink);
+}
+
+/* 警告レベル。色だけに頼らず、必ず文字（「超過 5日」「あと3日」）を併記する */
+.badge--overdue {
+  background: var(--level-overdue);
+}
+
+.badge--within-7 {
+  background: var(--level-within-7);
+  font-weight: 700;
+}
+
+.badge--within-7::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-ink);
+}
+
+.badge--within-14 {
+  background: var(--level-within-14);
+}
+
+.badge--open {
+  border-color: var(--color-line-strong);
+  background: transparent;
+}
+
+/* 受付前は日付の文字だけ */
+.badge--not-yet {
+  padding-left: 0;
+  padding-right: 0;
+  color: var(--color-graphite);
+  font-weight: 400;
+}
+
+.tag {
+  display: inline-flex;
+  padding: 2px var(--space-12);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-caption);
+  font-weight: 500;
+  white-space: nowrap;
+  background: var(--color-canvas);
+  border: 1px solid var(--color-line);
+}
+
+.tag--industrial {
+  background: var(--field-industrial);
+  border-color: transparent;
+}
+
+.tag--food {
+  background: var(--field-food);
+  border-color: transparent;
+}
+
+.status {
+  display: inline-flex;
+  padding: 2px var(--space-12);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-caption);
+  border: 1px solid var(--color-line-strong);
+  white-space: nowrap;
+}
+
+.status--pre-entry {
+  background: var(--color-sky);
+  border-color: transparent;
+}
+
+.status--left,
+.status--returned {
+  color: var(--color-graphite);
+  border-color: var(--color-line);
+}
+
+.status--deactivated {
+  color: var(--color-ash);
+  text-decoration: line-through;
+  border-color: var(--color-line);
+}
+
+/* --- カード ------------------------------------------------------------------------- */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  padding: var(--space-20) var(--space-24);
+}
+
+.card--compact {
+  padding: var(--space-16);
+}
+
+.card__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  margin-bottom: var(--space-12);
+}
+
+.card__title {
+  flex: 1;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-16);
+}
+
+@media (max-width: 959px) {
+  .grid-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* 項目と値の一覧 */
+.fields {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--space-8) var(--space-24);
+  margin: 0;
+  font-size: var(--text-table);
+}
+
+.fields dt {
+  color: var(--color-graphite);
+}
+
+.fields dd {
+  margin: 0;
+}
+
+/* --- 表 ----------------------------------------------------------------------------- */
+.table-wrap {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  overflow-x: auto;
+}
+
+/* カードの中の表（枠なし）。狭い画面では表だけを横に送る */
+.table-scroll {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-table);
+}
+
+.table th,
+.table td {
+  padding: var(--space-8) var(--space-12);
+  text-align: left;
+  border-bottom: 1px solid var(--color-line);
+  vertical-align: middle;
+}
+
+.table th {
+  font-size: var(--text-caption);
+  font-weight: 500;
+  color: var(--color-graphite);
+  white-space: nowrap;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.table tbody tr:hover {
+  background: var(--color-canvas);
+}
+
+.table .is-voided td {
+  color: var(--color-ash);
+}
+
+.table .is-voided td:not(:last-child) {
+  text-decoration: line-through;
+}
+
+/* --- 入力欄 ------------------------------------------------------------------------- */
+.form {
+  display: grid;
+  gap: var(--space-16);
+  max-width: 720px;
+}
+
+.form-row {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.form-row__label {
+  font-size: var(--text-table);
+  font-weight: 500;
+}
+
+.form-row__required {
+  color: var(--color-graphite);
+  font-weight: 400;
+  font-size: var(--text-caption);
+}
+
+.form-row__help {
+  font-size: var(--text-caption);
+  color: var(--color-graphite);
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  min-height: var(--control-height);
+  padding: 0 var(--space-12);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-input);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--text-table);
+}
+
+.textarea {
+  padding: var(--space-8) var(--space-12);
+  min-height: 88px;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: 2px solid var(--color-signal);
+  outline-offset: -1px;
+  border-color: var(--color-signal);
+}
+
+.form-row--error .input,
+.form-row--error .select,
+.form-row--error .textarea {
+  border-color: var(--color-ink);
+}
+
+.form-row__error {
+  font-size: var(--text-caption);
+  background: var(--color-blush);
+  border-radius: var(--radius-input);
+  padding: var(--space-4) var(--space-8);
+}
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  align-items: end;
+  margin-bottom: var(--space-16);
+}
+
+.filter-bar .input,
+.filter-bar .select {
+  width: auto;
+  min-width: 160px;
+}
+
+/* --- タブ（詳細画面。段階2以降に「支援記録」「帳票」を足す） -------------------------- */
+.tabs {
+  display: flex;
+  gap: var(--space-4);
+  border-bottom: 1px solid var(--color-line);
+  margin-bottom: var(--space-16);
+}
+
+.tabs__link {
+  padding: var(--space-8) var(--space-16);
+  color: var(--color-graphite);
+  font-size: var(--text-table);
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.tabs__link:hover {
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.tabs__link[aria-current="page"] {
+  color: var(--color-ink);
+  border-bottom-color: var(--color-signal);
+}
+
+/* --- メッセージ・空の状態 --------------------------------------------------------------- */
+.messages {
+  list-style: none;
+  margin: 0 0 var(--space-16);
+  padding: 0;
+  display: grid;
+  gap: var(--space-8);
+}
+
+.message {
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--radius-card);
+  background: var(--color-sky);
+  font-size: var(--text-table);
+}
+
+.message--warning,
+.message--error {
+  background: var(--color-blush);
+}
+
+.message--success {
+  background: var(--color-mint);
+}
+
+.empty {
+  padding: var(--space-32);
+  text-align: center;
+  color: var(--color-graphite);
+}
+
+/* --- 浮いた要素（影はここだけ） ---------------------------------------------------------- */
+.popover {
+  background: var(--color-surface);
+  border-radius: var(--radius-input);
+  box-shadow: var(--shadow-float);
+  padding: var(--space-12);
+}
+
+/* --- 見本の画面だけで使う ---------------------------------------------------------------- */
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-16);
+  align-items: start;
+}
+
+.swatch {
+  display: grid;
+  gap: var(--space-4);
+  font-size: var(--text-caption);
+}
+
+.swatch__chip {
+  height: 48px;
+  border-radius: var(--radius-input);
+  border: 1px solid var(--color-line);
+}

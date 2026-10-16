@@ -1,7 +1,7 @@
 COMPOSE := docker compose
 MANAGE := $(COMPOSE) exec web python manage.py
 
-.PHONY: seed seed-reset filings env up down build logs migrate admin shell psql lock test lint format messages
+.PHONY: e2e seed seed-reset filings env up down build logs migrate admin shell psql lock test lint format messages
 
 env:        ## .env を作る・足りないキーを補う・鍵を生成する（既存の値は変えない）
 	python3 scripts/init_env.py
@@ -35,6 +35,9 @@ lock:       ## pyproject.toml の変更を uv.lock に反映する（その後 m
 
 test:       ## テストを実行する（先に make up）
 	$(COMPOSE) exec web pytest
+
+e2e:        ## 通しのテスト（Playwright、Chromium）。初回はイメージのビルドに時間がかかる
+	$(COMPOSE) --profile e2e run --rm e2e
 
 lint:       ## 静的検査（ruff check / ruff format --check / mypy）
 	$(COMPOSE) exec web sh -c 'ruff check . && ruff format --check . && mypy .'
