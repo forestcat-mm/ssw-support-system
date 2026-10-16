@@ -21,6 +21,17 @@
 | T14 | 画面: 期限ダッシュボード（担当者別、7日/14日/超過の3色、種別フィルタ） | 第5章 F06 | ダミーデータで赤・黄・緑が出る |
 | T15 | README（起動・テスト・ダミー投入の手順）と ADR テンプレート | — | 新しい PC で README どおりに起動できる |
 
+## 本番準備（本番サーバー決定時、`docker-compose.prod.yml` 作成と同時に対応）
+- [ ] `docker-compose.prod.yml` を作成する（`./:/app` マウントの解除、`runserver` → gunicorn）
+- [ ] `manage.py check --deploy` の警告を解消する。手元（http）はオフのまま、本番は環境変数でオンにする形にする
+  - W004 `SECURE_HSTS_SECONDS`
+  - W008 `SECURE_SSL_REDIRECT`（Cloudflare Tunnel 経由のため `SECURE_PROXY_SSL_HEADER` と合わせて検討）
+  - W012 `SESSION_COOKIE_SECURE`
+  - W016 `CSRF_COOKIE_SECURE`
+  - W018 `DJANGO_DEBUG=false`
+  - W009 本番の `DJANGO_SECRET_KEY` を生成値にする（手元でダミー値のまま起動すると出る）
+- 完了条件: 本番用の環境変数で `check --deploy` の警告が 0 件
+
 ## 段階2 以降の見出し（詳細は着手時に分解）
 - 段階2: SupportPlan / SupportPlanItem / SupportRecord（面談は本人用・上司用で別行）、相談記録の分類、証跡添付、キャリアアッププラン・実務経験証明書の交付記録
 - 段階3: forms_engine（FormTemplate / FormMapping / GeneratedDocument）、Word→PDF 変換サービス、支援計画書・事前ガイダンス確認書（日中2言語）、生成前バリデーション
