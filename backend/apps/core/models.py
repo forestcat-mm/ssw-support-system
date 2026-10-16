@@ -290,6 +290,8 @@ class Action(models.TextChoices):
     CONTRACTS_VIEW = "contracts.view", _("view employment contracts")
     CONTRACTS_MANAGE = "contracts.manage", _("register and update employment contracts")
     CONTRACTS_REOPEN = "contracts.reopen", _("cancel the termination of employment contracts")
+    SUPPORT_VIEW = "support.view", _("view support plans and records")
+    SUPPORT_MANAGE = "support.manage", _("register support plans and records")
     FILINGS_VIEW = "filings.view", _("view filing tasks")
     FILINGS_MANAGE = "filings.manage", _("register and update filing tasks")
     SYSTEM_MANAGE = "system.manage", _("manage background jobs")

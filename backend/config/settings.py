@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "apps.hosts",
     "apps.contracts",
     "apps.filings",
+    "apps.support",
     "apps.seed",
 ]
 

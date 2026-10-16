@@ -1,0 +1,34 @@
+"""支援計画・支援実績の権限（T16）。閲覧・登録は両ロール。"""
+
+from django.apps.registry import Apps
+from django.db import migrations
+from django.db.backends.base.schema import BaseDatabaseSchemaEditor
+
+PERMISSIONS = {
+    "admin": ["support.view", "support.manage"],
+    "support_staff": ["support.view", "support.manage"],
+}
+
+
+def add(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
+    Role = apps.get_model("core", "Role")
+    RolePermission = apps.get_model("core", "RolePermission")
+    for role_code, actions in PERMISSIONS.items():
+        for role in Role.objects.filter(code=role_code):
+            for action in actions:
+                RolePermission.objects.get_or_create(role=role, action=action)
+
+
+def remove(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
+    apps.get_model("core", "RolePermission").objects.filter(
+        action__in=["support.view", "support.manage"]
+    ).delete()
+
+
+class Migration(migrations.Migration):
+    dependencies = [
+        ("support", "0001_initial"),
+        ("core", "0020_support_actions"),
+    ]
+
+    operations = [migrations.RunPython(add, remove)]

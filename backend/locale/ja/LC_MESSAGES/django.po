@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 23:06+0900\n"
+"POT-Creation-Date: 2026-10-17 08:48+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -872,6 +872,12 @@ msgstr "雇用契約台帳の登録・更新"
 
 msgid "cancel the termination of employment contracts"
 msgstr "雇用契約の終了の取り消し"
+
+msgid "view support plans and records"
+msgstr "支援計画・支援実績の閲覧"
+
+msgid "register support plans and records"
+msgstr "支援計画・支援実績の登録"
 
 msgid "view filing tasks"
 msgstr "届出タスクの閲覧"
@@ -2230,6 +2236,238 @@ msgstr "ダミーデータの台帳"
 msgid "dummy data records"
 msgstr "ダミーデータの台帳"
 
+msgid "Support"
+msgstr "支援"
+
+msgid "standard plan"
+msgstr "標準の計画"
+
+msgid "support plan"
+msgstr "支援計画"
+
+msgid "support plans"
+msgstr "支援計画"
+
+msgid "standard support plan"
+msgstr "標準の支援計画"
+
+msgid "online"
+msgstr "オンライン"
+
+msgid "in person"
+msgstr "対面"
+
+msgid "applies from"
+msgstr "適用開始日"
+
+msgid "prepared on"
+msgstr "作成日"
+
+msgid "name of the person responsible for preparation"
+msgstr "作成責任者の氏名"
+
+msgid "language of the translation given to the worker"
+msgstr "本人に交付する翻訳文の言語"
+
+msgid "worker's preference for periodic interviews"
+msgstr "定期面談の実施方法についての本人の希望"
+
+msgid "support plan version"
+msgstr "支援計画の版"
+
+msgid "support plan versions"
+msgstr "支援計画の版"
+
+msgid "support item"
+msgstr "支援項目"
+
+msgid "interpreter (organization and name)"
+msgstr "通訳者の所属・氏名"
+
+msgid "Only when someone other than the support staff interprets."
+msgstr "支援担当者以外の人が通訳を担う場合だけ書きます。"
+
+msgid "planned hours in total"
+msgstr "実施予定時間（合計）"
+
+msgid "support plan item"
+msgstr "支援計画の項目"
+
+msgid "support plan items"
+msgstr "支援計画の項目"
+
+msgid "row"
+msgstr "欄"
+
+msgid "support content"
+msgstr "支援内容"
+
+msgid "Only for the free-entry rows."
+msgstr "自由記入の欄だけ書きます。"
+
+msgid "planned"
+msgstr "実施予定"
+
+msgid "timing, or reason for not implementing"
+msgstr "実施時期（「無」の場合は実施しない理由）"
+
+msgid "outsourced to a third party"
+msgstr "第三者への委託"
+
+msgid ""
+"Only when the host organization outsources part of the support to a third "
+"party other than the registered support organization."
+msgstr ""
+"受入れ機関が支援の一部を登録支援機関以外の第三者に委託する場合だけ「有」にし"
+"ます（様式の注意 5）。"
+
+msgid "support staff in charge"
+msgstr "支援担当者"
+
+msgid "name of the contractor"
+msgstr "委託先の氏名"
+
+msgid "title of the contractor"
+msgstr "委託先の役職"
+
+msgid "address of the contractor"
+msgstr "委託先の住所"
+
+msgid "methods"
+msgstr "実施方法"
+
+msgid "notes on methods"
+msgstr "実施方法の記述"
+
+msgid "Text for “other”, airports and means of transfer."
+msgstr "「その他」の内容、空港名、送迎方法を書きます。"
+
+msgid "method (text)"
+msgstr "実施方法（文章）"
+
+msgid "For rows without check boxes."
+msgstr "チェック欄の無い区分で書きます。"
+
+msgid "notes when different for each content"
+msgstr "支援内容ごとに異なる場合の記載"
+
+msgid "support plan activity"
+msgstr "支援計画の細目"
+
+msgid "support plan activities"
+msgstr "支援計画の細目"
+
+msgid "secured at the time of the application"
+msgstr "申請の時点で確保しているもの"
+
+msgid "to be secured after the application"
+msgstr "申請の後に確保するもの"
+
+msgid "owned property"
+msgstr "自己所有物件"
+
+msgid "leased property"
+msgstr "借上物件"
+
+msgid "when secured"
+msgstr "確保の時点"
+
+msgid "room area: 7.5 m² or more per person"
+msgstr "居室の広さ: 1人当たり7.5㎡以上"
+
+msgid "number of occupants"
+msgstr "同居人数"
+
+msgid "bedroom area: 4.5 m² or more per person"
+msgstr "寝室の広さ: 1人当たり4.5㎡以上"
+
+msgid "housing costs collected"
+msgstr "居住費の徴収"
+
+msgid "housing costs per month (yen)"
+msgstr "居住費（1か月当たり・円）"
+
+msgid "type of accommodation"
+msgstr "宿泊施設の種類"
+
+msgid "explanation that the cost is appropriate"
+msgstr "費用が適正な額であることの説明"
+
+msgid "housing outline"
+msgstr "住居の概要"
+
+msgid "housing outlines"
+msgstr "住居の概要"
+
+msgid "phone"
+msgstr "電話"
+
+msgid "hours"
+msgstr "対応時間"
+
+msgid "consultation methods"
+msgstr "相談方法"
+
+msgid "other method"
+msgstr "その他の方法"
+
+msgid "methods in an emergency"
+msgstr "緊急時の方法"
+
+msgid "phone number in an emergency"
+msgstr "緊急時の電話番号"
+
+msgid "email in an emergency"
+msgstr "緊急時のメール"
+
+msgid "other method in an emergency"
+msgstr "緊急時のその他の方法"
+
+msgid "consultation desk"
+msgstr "相談・苦情の受付"
+
+msgid "consultation desks"
+msgstr "相談・苦情の受付"
+
+msgid "location of the workplace"
+msgstr "活動する事業所の所在地"
+
+msgid "residence of the worker"
+msgstr "住居地"
+
+msgid "website"
+msgstr "ホームページ"
+
+msgid "place"
+msgstr "場所"
+
+msgid "same as the workplace"
+msgstr "事業所と同じ"
+
+msgid "Only for the residence."
+msgstr "住居地の欄だけ使います。"
+
+msgid "prefecture"
+msgstr "都道府県"
+
+msgid "checked on"
+msgstr "確認日"
+
+msgid "how checked"
+msgstr "確認方法"
+
+msgid "other method (details)"
+msgstr "その他の方法（内容）"
+
+msgid "remarks"
+msgstr "備考"
+
+msgid "check of coexistence measures"
+msgstr "共生施策の確認"
+
+msgid "checks of coexistence measures"
+msgstr "共生施策の確認"
+
 msgid "void"
 msgstr "取り消す"
 
@@ -2249,9 +2487,6 @@ msgstr ""
 
 msgid "Profile"
 msgstr "基本情報"
-
-msgid "Support"
-msgstr "支援"
 
 msgid "status of residence"
 msgstr "在留資格"
@@ -2843,6 +3078,90 @@ msgstr "事業所の分野に属さない業務区分です: %(names)s"
 
 msgid "Enter a passport number of 6 to 12 letters and digits."
 msgstr "旅券番号は英数字 6〜12 桁で入力してください。"
+
+msgid "pre-entry guidance"
+msgstr "事前ガイダンス"
+
+msgid "transfer on entry and departure"
+msgstr "出入国時の送迎"
+
+msgid "housing and contracts for daily life"
+msgstr "住居確保・生活に必要な契約の支援"
+
+msgid "life orientation"
+msgstr "生活オリエンテーション"
+
+msgid "accompanying to public procedures"
+msgstr "公的手続への同行"
+
+msgid "opportunities to learn Japanese"
+msgstr "日本語学習の機会の提供"
+
+msgid "consultations and complaints"
+msgstr "相談・苦情への対応"
+
+msgid "exchange with Japanese people"
+msgstr "日本人との交流促進"
+
+msgid "support for changing jobs"
+msgstr "転職支援"
+
+msgid "periodic interviews and reports to authorities"
+msgstr "定期面談・行政機関への通報"
+
+msgid "video call"
+msgstr "テレビ電話装置"
+
+msgid "video call or watching videos such as DVDs"
+msgstr "テレビ電話やDVD等の動画視聴等"
+
+msgid "airport of arrival"
+msgstr "出迎え空港等"
+
+msgid "airport of departure"
+msgstr "出国予定空港等"
+
+msgid "means of transfer"
+msgstr "送迎方法"
+
+msgid "information on the procedure"
+msgstr "手続に係る情報提供"
+
+msgid "accompanying to the procedure as needed"
+msgstr "必要に応じて手続に同行"
+
+msgid "All ten support items are required."
+msgstr "10項目すべてが必要です。"
+
+msgid "The rows of the support plan do not match the form."
+msgstr "支援計画の欄が様式と合っていません。"
+
+msgid "Planned hours are only for guidance and orientation."
+msgstr "実施予定時間は、事前ガイダンスと生活オリエンテーションだけに書きます。"
+
+msgid "Enter the support content."
+msgstr "支援内容を入力してください。"
+
+msgid "Enter the reason for not implementing."
+msgstr "実施しない理由を入力してください。"
+
+msgid "Enter the name and address of the contractor."
+msgstr "委託先の氏名と住所を入力してください。"
+
+msgid "Select methods from the form."
+msgstr "実施方法は様式の選択肢から選んでください。"
+
+msgid "Fill in the details of the method."
+msgstr "実施方法の内容（その他・空港名・送迎方法）を入力してください。"
+
+msgid "Enter each place only once."
+msgstr "場所は 1 回ずつ入力してください。"
+
+msgid "The date must be on or after the date of the previous version."
+msgstr "前の版の適用開始日以降の日付にしてください。"
+
+msgid "A support plan for this host organization already exists."
+msgstr "この受入れ機関の支援計画はすでにあります。"
 
 msgid "yes"
 msgstr "あり"
