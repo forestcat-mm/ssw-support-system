@@ -1,7 +1,7 @@
 COMPOSE := docker compose
 MANAGE := $(COMPOSE) exec web python manage.py
 
-.PHONY: up down build logs migrate superuser shell psql lock
+.PHONY: up down build logs migrate superuser shell psql lock test lint format
 
 up:         ## コンテナを起動する
 	$(COMPOSE) up -d
@@ -29,3 +29,12 @@ psql:       ## DB に psql で入る
 
 lock:       ## pyproject.toml の変更を uv.lock に反映する（その後 make build）
 	$(COMPOSE) run --rm --no-deps web uv lock
+
+test:       ## テストを実行する（先に make up）
+	$(COMPOSE) exec web pytest
+
+lint:       ## 静的検査（ruff check / ruff format --check / mypy）
+	$(COMPOSE) exec web sh -c 'ruff check . && ruff format --check . && mypy .'
+
+format:     ## 整形と自動修正
+	$(COMPOSE) exec web sh -c 'ruff format . && ruff check --fix .'
