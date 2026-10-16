@@ -52,6 +52,7 @@
 │   └── tests/
 ├── templates/forms/           # 入管配布の Word/Excel テンプレート（版ごとにフォルダ）
 ├── mappings/                  # 様式ごとのマッピング定義 JSON
+├── scripts/                   # 手元用の補助スクリプト（init_env.py など。標準ライブラリのみ）
 ├── docker-compose.yml
 ├── docker-compose.prod.yml
 └── .env.example
@@ -74,6 +75,7 @@
 
 ## よく使うコマンド
 ```
+make env       # .env を作る・足りないキーを補う・鍵を生成する（既存の値は変えない）
 make up        # docker compose up -d
 make migrate   # python manage.py migrate
 make admin     # 管理者ロールのユーザーを作る（superuser は使わない）

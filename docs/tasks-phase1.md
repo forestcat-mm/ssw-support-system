@@ -10,8 +10,8 @@
 | T03 | `core`: カスタム User（AbstractUser のみ）, 共通列（作成/更新日時・者）, Organization（1行。自社名・登録番号・ロゴ・食品協議会加入日）, Office, Staff, SupportLanguage（支援言語選択肢）, Attachment（django-storages 経由、種別ごとの拡張子・サイズ制限）、UI 文言の ja リソース | 第6章, 第7章, 第9章 | admin で登録できる。Organization は1行制約 |
 | T04 | `core`: User（T03 で作成済み）の拡張、UserRole（管理者・支援担当者。行で追加できる構造）、TOTP 多要素認証、招待・無効化（ユーザーは削除せず `is_active` で無効化。作成者・更新者の参照が PROTECT のため）。T04a 権限判定・無効化／T04b TOTP・回復用コード・ロック・セッション／T04c 招待の 3 コミット | 第4章, 第8章 | 2 ロールでログイン・権限差を確認 |
 | T05 | `core`: AuditLog（閲覧・作成・更新・削除・エクスポートを記録するミドルウェア＋ヘルパ）、添付ファイルのダウンロードビュー（認可・監査付き。公開 URL は作らない）。T04 の `TODO(T05)` を解消: MFA リセット（管理者のアクション・管理コマンド `reset_mfa` の両方）、ユーザー無効化・再有効化、招待を必ず記録 | 第8章 | 外国人詳細の閲覧・添付のダウンロードがログに残る。MFA リセット（画面・コマンド）が記録される。無効化したユーザーの監査ログが残る |
-| T06 | 暗号化フィールド（在留カード番号・パスポート番号・口座）。鍵は環境変数。あわせて django-otp の TOTP 秘密鍵（`otp_totp_totpdevice.key`、現在は平文）を暗号化できるか検討し結果を報告 | 第8章 | DB 直接参照で平文が見えない |
-| T07 | `workers`: ForeignWorker, ResidenceRecord（履歴）, WorkerAddress / Contact（履歴）、「最新行」ビュー。各モデルを `services/audit.py` の `AUDITED_MODELS`（個人情報を含むものは `VIEW_AUDITED_MODELS` にも）に登録し、詳細画面から `audit.record_view()` を呼ぶ | 第7章, 第8章 | 在留期限を更新すると新行が増え、最新が一覧に出る。外国人詳細の閲覧が監査ログに残る |
+| T06 | 暗号化フィールド型（`EncryptedCharField`・検索用の `BlindIndexField`。実際の列は T07 以降）。鍵は環境変数（`FIELD_ENCRYPTION_KEYS`・`BLIND_INDEX_KEY`、`make env` で生成）。鍵のローテーション（`rotate_encryption_keys`）とブラインドインデックスの作り直し（`rebuild_blind_indexes`）。TOTP 秘密鍵は平文のまま（ADR-0003）、漏洩時の `reset_mfa --all` | 第8章 | DB 直接参照で平文が見えない |
+| T07 | `workers`: ForeignWorker, ResidenceRecord（履歴）, WorkerAddress / Contact（履歴）、「最新行」ビュー。各モデルを `services/audit.py` の `AUDITED_MODELS`（個人情報を含むものは `VIEW_AUDITED_MODELS` にも）に登録し、詳細画面から `audit.record_view()` を呼ぶ。**パスポートは foreign_workers の単一列ではなく、在留情報と同じ履歴テーブル `passport_records`**（番号〔`EncryptedCharField`〕・発行国・発行日・有効期限・番号の `BlindIndexField`）。在留カード番号・パスポート番号は更新のたびに変わり、同一人物に複数の履歴行が残る前提で、二重登録防止の一意性は「同じ番号（ブラインドインデックス）が別の人に紐づかない」ことを意味する（同一人物の複数行は許す。単純な unique 制約にはしない） | 第7章, 第8章 | 在留期限を更新すると新行が増え、最新が一覧に出る。外国人詳細の閲覧が監査ログに残る |
 | T08 | `hosts`: HostOrganization, HostSite（産業分類コード・分野・登録法人/協議会加入日・証明書添付）, SupportContract | 第6章「上乗せ要件」, 第7章 | 2社・各1事業所を登録できる |
 | T09 | `contracts`: EmploymentContract（版管理：変更は新版、`version` と `change_reason`） | 第7章 | 報酬変更で版が増え、差分が取れる |
 | T10 | `services/deadlines.py`: 在留期限（3か月前）・定期面談（3か月）・随時届出（14日）・定期届出（4/1–5/31）・登録更新（6か月前）の期限計算＋テスト | 第5章 F06/F07 | 固定日付テストがグリーン |
@@ -19,7 +19,7 @@
 | T12 | 管理コマンド `seed_dummy`: 受入れ機関2社（工業製品製造業・飲食料品製造業）、外国人30人（中国籍中心、在留期限・入国日をばらす）、契約、面談予定 | 第11章 | 何度実行しても同じ件数で再現 |
 | T13 | 画面: 外国人一覧（検索・絞込）／詳細／編集、受入れ機関一覧／詳細 | 第5章 F01/F02 | ダミー30人を一覧から辿れる |
 | T14 | 画面: 期限ダッシュボード（担当者別、7日/14日/超過の3色、種別フィルタ） | 第5章 F06 | ダミーデータで赤・黄・緑が出る |
-| T15 | README（起動・テスト・ダミー投入の手順）と ADR テンプレート。運用手順も書く: 退職時は「ユーザー無効化」と「Staff の is_active オフ」の両方を行う（連動しない）／管理者は 2 人以上置く／端末紛失時（回復用コード → 管理者の MFA リセット → 最後の手段 `reset_mfa`）／ロック解除（admin のアクセス試行の削除） | — | 新しい PC で README どおりに起動できる |
+| T15 | README（起動・テスト・ダミー投入の手順。起動は `make env` → `make up` → `make migrate` → `make admin`）と ADR テンプレート。運用手順も書く: 退職時は「ユーザー無効化」と「Staff の is_active オフ」の両方を行う（連動しない）／管理者は 2 人以上置く／端末紛失時（回復用コード → 管理者の MFA リセット → 最後の手段 `reset_mfa`）／ロック解除（admin のアクセス試行の削除） | — | 新しい PC で README どおりに起動できる |
 
 ## 本番準備（本番サーバー決定時、`docker-compose.prod.yml` 作成と同時に対応）
 - [ ] `docker-compose.prod.yml` を作成する（`./:/app` マウントの解除、`runserver` → gunicorn）
@@ -33,6 +33,9 @@
 - [ ] 本番イメージは `uv sync --frozen --no-dev` でビルドし、ruff / mypy / pytest などの開発用依存を入れない
 - [ ] 接続元 IP: 本番は `TRUST_CF_CONNECTING_IP=true`（監査ログと django-axes が `services/client_ip.py` を共有。T05 で実装済み）。サーバーのポートを開けず Cloudflare Tunnel 経由でしか届かないことを確認してから true にする。そのうえで、ユーザー名単位のロックに IP 単位の条件（パスワードスプレー対策）を加えるか判断し、`SILENCED_SYSTEM_CHECKS` の `axes.W006` を見直す
 - [ ] 監査ログを DB ユーザーの権限でも追記専用にする: マイグレーション用ユーザー（テーブル所有者）とアプリ用ユーザーを分け、アプリ用ユーザーから `core_auditlog` の UPDATE / DELETE / TRUNCATE を REVOKE する（INSERT・SELECT のみ）。トリガー（`core_auditlog_append_only`）とあわせて二重に禁止する
+- [ ] 暗号化鍵（`FIELD_ENCRYPTION_KEYS`）・ブラインドインデックス鍵（`BLIND_INDEX_KEY`）の保管場所と復旧手順を決めて文書にする。鍵を失うと暗号化した全データが読めなくなるため、DB バックアップとは別の場所に保管し、2 人以上がアクセスできるようにする。ローテーション手順（新しい鍵を先頭に足す → `rotate_encryption_keys` → `--check` が 0 件 → 旧鍵を外す）も同じ文書に置く
+- [ ] DB バックアップを必ず暗号化し、その鍵もバックアップとは別の場所に保管する（ADR-0003: TOTP 秘密鍵とパスワードのハッシュが同時に漏れるのを防ぐ）
+- [ ] 漏洩が疑われたときの手順を文書にする（`reset_mfa --all --yes` で全員の MFA をリセット、パスワードの再設定、暗号化鍵のローテーション）
 - [ ] 監査ログを改変不可の保存先へ日次で書き出す（第8章・第10章。例: S3 Object Lock のコンプライアンスモード、保持 5 年以上）。保存先の決定と同時に対応し、Django-Q のジョブにする
 - [ ] ファイル保存を S3 互換ストレージにする（`DJANGO_STORAGE_BACKEND=storages.backends.s3.S3Storage` と `DJANGO_STORAGE_OPTIONS`。非公開バケット・署名付き URL・上書き禁止を実ストレージで確認）
 - [ ] 本番の DB はアプリ専用ユーザー（スーパーユーザー権限・CREATEDB なし）で接続する。テスト用 DB の作成権限は開発環境だけにする
