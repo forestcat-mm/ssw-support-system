@@ -1,0 +1,35 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Host organizations" %}{% endblock %}
+{% block heading %}{% translate "Host organizations" %}{% endblock %}
+{% block content %}
+{% if rows %}
+<div class="table-wrap">
+  <table class="table table--list" id="host-list">
+    <thead><tr>
+      <th>{% translate "name" %}</th>
+      <th>{% translate "specified skill field" %}</th>
+      <th>{% translate "sites" %}</th>
+      <th>{% translate "foreign workers" %}</th>
+      <th>{% translate "membership valid until" %}</th>
+      <th>{% translate "cooperation confirmation valid until" %}</th>
+      <th>{% translate "support contract ends on" %}</th>
+    </tr></thead>
+    <tbody>
+      {% for row in rows %}
+        <tr data-host="{{ row.host.pk }}">
+          <td><span class="truncate-line truncate-line--full" title="{{ row.host.name }}"><a class="truncate" href="{% url 'hosts:detail' row.host.pk %}">{{ row.host.name }}</a></span></td>
+          <td><span class="cluster">{% for skill_field in row.fields %}{% field_tag skill_field %}{% empty %}<span class="muted">—</span>{% endfor %}</span></td>
+          <td class="num">{{ row.site_count }}</td>
+          <td class="num">{{ row.worker_count }}</td>
+          <td>{% due_date row.membership_deadline %}</td>
+          <td>{% due_date row.cooperation_deadline %}</td>
+          <td>{% if row.support_contract and not row.support_contract.ends_on %}<span class="muted">{% translate "no end date" %}</span>{% else %}{% due_date row.support_contract_deadline %}{% endif %}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card"><div class="empty">{% translate "No host organizations are registered." %}</div></div>
+{% endif %}
+{% endblock %}

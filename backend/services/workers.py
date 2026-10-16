@@ -8,16 +8,18 @@ from __future__ import annotations
 
 import datetime
 from collections.abc import Iterable, Mapping
+from dataclasses import dataclass
 from datetime import date
 from typing import Any
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Model
+from django.db.models import Model, QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from apps.core.models import User
+from apps.core.models import AuditAction, User
+from apps.filings.models import Filing, FilingStatus
 from apps.workers.models import (
     ConfirmedValue,
     ForeignWorker,
@@ -26,7 +28,7 @@ from apps.workers.models import (
     ResidenceRecord,
     WorkerStatus,
 )
-from services import crypto, passport, residence_card
+from services import audit, crypto, filings, passport, residence_card
 
 
 def conflicting_worker_id(
@@ -196,3 +198,109 @@ def worker_ids_by_document_number(query: str) -> set[int]:
         "worker_id", flat=True
     )
     return set(residence) | set(passports)
+
+
+# --- 無効化（T13e）---------------------------------------------------------------
+
+
+def active_workers() -> QuerySet[ForeignWorker]:
+    """無効化していない外国人。一覧・検索・日次の起票・ダッシュボードは必ずこれを起点にする。"""
+    return ForeignWorker.objects.filter(deactivated_at__isnull=True)
+
+
+def is_active(worker: ForeignWorker) -> bool:
+    return worker.deactivated_at is None
+
+
+@dataclass(frozen=True)
+class DeactivationEffects:
+    """無効化で取り消す行と、取消にする届出タスク（確認画面で先に見せる）。"""
+
+    residence_records: list[ResidenceRecord]
+    passport_records: list[PassportRecord]
+    filings: list[Any]
+
+
+def deactivation_effects(worker: ForeignWorker) -> DeactivationEffects:
+    return DeactivationEffects(
+        residence_records=list(worker.residence_records.filter(voided_at__isnull=True)),
+        passport_records=list(worker.passport_records.filter(voided_at__isnull=True)),
+        filings=list(
+            Filing.objects.filter(worker=worker, status__in=filings.OPEN_STATUSES).order_by(
+                "unadjusted_due_on", "pk"
+            )
+        ),
+    )
+
+
+@transaction.atomic
+def deactivate(worker: ForeignWorker, *, by: User | None, reason: str) -> DeactivationEffects:
+    """外国人を無効化する。取り消していない在留情報・旅券を取り消し、未完了の届出タスクを取消にする。
+
+    監査ログは「外国人の無効化」の 1 件にまとめる（中の取消・状態の変更はその変更前後に入れる）。
+    """
+    if worker.deactivated_at is not None:
+        raise ValidationError(_("This foreign worker is already deactivated."), code="deactivated")
+    if not reason.strip():
+        raise ValidationError(_("Enter the reason for deactivation."), code="reason")
+    effects = deactivation_effects(worker)
+    cascade_reason = _("Deactivation of the foreign worker")
+    with audit.event(AuditAction.WORKER_DEACTIVATE, target=worker, actor=by) as event:
+        worker.deactivated_at = timezone.now()
+        worker.deactivated_by = by
+        worker.deactivation_reason = reason.strip()
+        worker.updated_by = by
+        worker.save(
+            update_fields=[
+                "deactivated_at",
+                "deactivated_by",
+                "deactivation_reason",
+                "updated_by",
+                "updated_at",
+            ]
+        )
+        for record in [*effects.residence_records, *effects.passport_records]:
+            void_record(record, by=by, reason=cascade_reason)
+        for filing in effects.filings:
+            filings.validate_transition(filing, FilingStatus.CANCELLED, reason=cascade_reason)
+            event.changes.setdefault("cancelled_filings", []).append(
+                [filing.pk, filing.kind, filing.status]
+            )
+            filing.status = FilingStatus.CANCELLED
+            filing.status_reason = cascade_reason
+            filing.updated_by = by
+            filing.save(update_fields=["status", "status_reason", "updated_by", "updated_at"])
+        event.changes["voided_residence_records"] = [r.pk for r in effects.residence_records]
+        event.changes["voided_passport_records"] = [r.pk for r in effects.passport_records]
+    return effects
+
+
+@transaction.atomic
+def reactivate(worker: ForeignWorker, *, by: User | None, reason: str) -> None:
+    """無効化を取り消す（誤って無効化したとき。admin から管理者だけが行う）。
+
+    無効化のときに取り消した在留情報・旅券と届出タスクは戻さない（新しい行として登録し直す）。
+    監査ログには元の無効化の理由と、取り消しの理由の両方を残す。
+    """
+    if worker.deactivated_at is None:
+        raise ValidationError(_("This foreign worker is not deactivated."), code="active")
+    if not reason.strip():
+        raise ValidationError(_("Enter the reason for cancelling the deactivation."), code="reason")
+    context = {
+        "deactivation_reason": worker.deactivation_reason,
+        "reactivation_reason": reason.strip(),
+    }
+    with audit.event(AuditAction.WORKER_REACTIVATE, target=worker, actor=by, context=context):
+        worker.deactivated_at = None
+        worker.deactivated_by = None
+        worker.deactivation_reason = ""
+        worker.updated_by = by
+        worker.save(
+            update_fields=[
+                "deactivated_at",
+                "deactivated_by",
+                "deactivation_reason",
+                "updated_by",
+                "updated_at",
+            ]
+        )

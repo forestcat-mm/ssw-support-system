@@ -9,6 +9,7 @@ urlpatterns = [
     path("ui/", UiShowcaseView.as_view(), name="ui_showcase"),
     path("accounts/", include("apps.core.urls")),
     path("workers/", include("apps.workers.urls")),
+    path("hosts/", include("apps.hosts.urls")),
     path(
         "attachments/<int:pk>/download/",
         AttachmentDownloadView.as_view(),

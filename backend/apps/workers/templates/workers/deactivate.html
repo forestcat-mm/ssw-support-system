@@ -1,0 +1,30 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Deactivate a foreign worker" %} | {{ worker }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{% url 'workers:detail' worker.pk %}">← {{ worker }}</a></p>
+  <h1>{% translate "Deactivate a foreign worker" %}</h1>
+{% endblock %}
+{% block content %}
+<div class="stack form">
+  <p class="message message--warning">{% translate "Deactivated workers are excluded from the list, search, daily filing tasks and the dashboard. The following records and filing tasks are voided or cancelled at the same time and are not restored automatically." %}</p>
+  <section class="card" id="effects">
+    <div class="card__header"><h2 class="card__title">{% translate "What will change" %}</h2></div>
+    <dl class="fields">
+      <dt>{% translate "residence records to void" %}</dt>
+      <dd>{% for record in effects.residence_records %}<span class="mono">{{ record.expires_on|date:"Y-m-d" }}</span> {{ record.get_status_of_residence_display }}{% if not forloop.last %}<br>{% endif %}{% empty %}<span class="muted">{% translate "None." %}</span>{% endfor %}</dd>
+      <dt>{% translate "passports to void" %}</dt>
+      <dd>{% for record in effects.passport_records %}<span class="mono">{{ record.expires_on|date:"Y-m-d" }}</span> {{ record.issuing_country }}{% if not forloop.last %}<br>{% endif %}{% empty %}<span class="muted">{% translate "None." %}</span>{% endfor %}</dd>
+      <dt>{% translate "filing tasks to cancel" %}</dt>
+      <dd>{% for filing in effects.filings %}{{ filing.get_kind_display }} <span class="mono">{{ filing.unadjusted_due_on|date:"Y-m-d" }}</span>{% if not forloop.last %}<br>{% endif %}{% empty %}<span class="muted">{% translate "None." %}</span>{% endfor %}</dd>
+    </dl>
+  </section>
+  <form class="form" method="post" novalidate id="deactivate-form">
+    {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+    {% for field in form %}{% form_field field %}{% endfor %}
+    <div class="form-actions">
+      <button class="button button--danger" type="submit">{% translate "Deactivate" %}</button>
+      <a class="button button--neutral" href="{% url 'workers:detail' worker.pk %}">{% translate "Cancel" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

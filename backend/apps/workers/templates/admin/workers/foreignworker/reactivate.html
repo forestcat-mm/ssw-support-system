@@ -1,0 +1,11 @@
+{% extends "admin/base_site.html" %}{% load i18n %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="{% url 'admin:index' %}">{% translate "Home" %}</a> › <a href="{% url 'admin:workers_foreignworker_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a> › <a href="{{ change_url }}">{{ original }}</a> › {{ title }}</div>{% endblock %}
+{% block content %}
+<p>{% blocktranslate with reason=original.deactivation_reason %}Deactivation reason: {{ reason }}{% endblocktranslate %}</p>
+<p>{% translate "Residence records, passports and filing tasks that were voided or cancelled when deactivating are not restored. Register them again as new records." %}</p>
+<form method="post">{% csrf_token %}
+  {{ form.as_p }}
+  <input type="submit" value="{% translate 'Cancel deactivation' %}">
+  <a href="{{ change_url }}">{% translate "Back" %}</a>
+</form>
+{% endblock %}

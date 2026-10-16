@@ -76,8 +76,12 @@ class WorkerListForm(forms.Form):
         ],
     )
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
+    include_deactivated = forms.BooleanField(label=_("Include deactivated"), required=False)
+
+    def __init__(self, *args: Any, can_see_deactivated: bool = False, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
+        if not can_see_deactivated:
+            del self.fields["include_deactivated"]
         staff_members = Staff.objects.filter(is_active=True).order_by("name_kana", "name")
         staff_field = self.fields["staff"]
         assert isinstance(staff_field, forms.ChoiceField)
@@ -88,7 +92,7 @@ class WorkerListForm(forms.Form):
             *[(str(member.pk), member.name) for member in staff_members],
         ]
         for name, bound_field in self.fields.items():
-            if name != "q":
+            if name not in ("q", "include_deactivated"):
                 bound_field.widget.attrs["class"] = "select"
 
     def to_query(self, user: User) -> WorkerListQuery:
@@ -122,6 +126,7 @@ class WorkerListForm(forms.Form):
             field_id=skill_field.pk if skill_field else None,
             level=deadlines.Level(level) if level else None,
             order=data.get("order") or Order.EXPIRY,
+            include_deactivated=bool(data.get("include_deactivated")),
         )
 
 
@@ -282,6 +287,19 @@ class VoidForm(StyledFormMixin, forms.Form):
         max_length=200,
         widget=forms.Textarea(attrs={"rows": 3}),
         help_text=_("Example: the card number was entered incorrectly."),
+    )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.style_fields()
+
+
+class DeactivateForm(StyledFormMixin, forms.Form):
+    reason = forms.CharField(
+        label=_("deactivation reason"),
+        max_length=200,
+        widget=forms.Textarea(attrs={"rows": 3}),
+        help_text=_("Example: registered twice by mistake."),
     )
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:

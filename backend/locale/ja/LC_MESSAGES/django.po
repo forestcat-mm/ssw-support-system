@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 22:14+0900\n"
+"POT-Creation-Date: 2026-10-16 22:29+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -845,6 +845,9 @@ msgstr "外国人台帳の閲覧"
 msgid "register and update foreign workers"
 msgstr "外国人台帳の登録・更新"
 
+msgid "deactivate foreign workers"
+msgstr "外国人を無効化する"
+
 msgid "view host organizations"
 msgstr "受入れ機関台帳の閲覧"
 
@@ -952,6 +955,12 @@ msgstr "ユーザー無効化"
 
 msgid "reactivate user"
 msgstr "ユーザー再有効化"
+
+msgid "deactivate foreign worker"
+msgstr "外国人の無効化"
+
+msgid "cancel deactivation of foreign worker"
+msgstr "外国人の無効化の取り消し"
 
 msgid "reset two-factor authentication"
 msgstr "多要素認証のリセット"
@@ -1365,6 +1374,9 @@ msgstr "7日以内 %(count)s人"
 msgid "Within 14 days: %(count)s"
 msgstr "14日以内 %(count)s人"
 
+msgid "not in effect"
+msgstr "適用期間外"
+
 msgid "The code is incorrect. Check the time on your device."
 msgstr "コードが正しくありません。端末の時刻がずれていないか確認してください。"
 
@@ -1762,6 +1774,74 @@ msgid ""
 "This period overlaps another support contract of the same host organization."
 msgstr "同じ受入れ機関のほかの支援委託契約と期間が重なっています。"
 
+#, python-format
+msgid "+%(counter)s older"
+msgid_plural "+%(counter)s older"
+msgstr[0] "ほか古い%(counter)s件"
+
+msgid "Back to list"
+msgstr "一覧へ戻る"
+
+msgid "Open in management site"
+msgstr "管理画面で開く"
+
+msgid "Basic information"
+msgstr "基本情報"
+
+msgid "representative"
+msgstr "代表者"
+
+msgid "Support contracts"
+msgstr "支援委託契約"
+
+msgid "period"
+msgstr "期間"
+
+msgid "Attachments"
+msgstr "添付"
+
+msgid "no end date"
+msgstr "期限なし"
+
+msgid "Not registered."
+msgstr "未登録"
+
+msgid "Sites and operation categories"
+msgstr "事業所と業務区分"
+
+msgid "Memberships"
+msgstr "加入状況"
+
+msgid "Cooperation confirmations"
+msgstr "協力確認書"
+
+#, python-format
+msgid "%(counter)s person"
+msgid_plural "%(counter)s people"
+msgstr[0] "%(counter)s人"
+
+msgid ""
+"No foreign workers have an employment contract with this host organization."
+msgstr "この受入れ機関と雇用契約のある外国人はいません。"
+
+msgid "sites"
+msgstr "事業所"
+
+msgid "foreign workers"
+msgstr "外国人"
+
+msgid "membership valid until"
+msgstr "加入の有効期限"
+
+msgid "cooperation confirmation valid until"
+msgstr "協力確認書の期限"
+
+msgid "support contract ends on"
+msgstr "支援委託契約の終了日"
+
+msgid "No host organizations are registered."
+msgstr "受入れ機関は登録されていません。"
+
 msgid "Dummy data (development)"
 msgstr "ダミーデータ（開発用）"
 
@@ -1780,6 +1860,9 @@ msgstr "取り消しの理由"
 msgid "Enter the reason for voiding."
 msgstr "取り消しの理由を入力してください。"
 
+msgid "deactivation"
+msgstr "無効化"
+
 msgid ""
 "Name (partial match), or residence card / passport number (exact match)."
 msgstr ""
@@ -1793,6 +1876,15 @@ msgstr "支援"
 
 msgid "status of residence"
 msgstr "在留資格"
+
+msgid "Cancel deactivation"
+msgstr "無効化を外す"
+
+msgid "Cancelled the deactivation."
+msgstr "無効化を外しました。"
+
+msgid "reason for cancelling the deactivation"
+msgstr "無効化を外す理由"
 
 msgid "Before entry and residing"
 msgstr "入国前・在留中"
@@ -1818,6 +1910,9 @@ msgstr "在留期限の近い順"
 msgid "Name (romaji)"
 msgstr "氏名（ローマ字）順"
 
+msgid "Include deactivated"
+msgstr "無効化済みを含む"
+
 msgid "All staff"
 msgstr "すべての担当者"
 
@@ -1829,6 +1924,12 @@ msgstr "担当者なし"
 
 msgid "Example: the card number was entered incorrectly."
 msgstr "例: 在留カード番号を誤って入力した。"
+
+msgid "deactivation reason"
+msgstr "無効化の理由"
+
+msgid "Example: registered twice by mistake."
+msgstr "例: 誤って二重に登録した。"
 
 msgid "confirmed by"
 msgstr "最終確認者"
@@ -1865,9 +1966,6 @@ msgstr "生年月日"
 
 msgid "sex"
 msgstr "性別"
-
-msgid "foreign workers"
-msgstr "外国人"
 
 msgid "Specified Skilled Worker (i)"
 msgstr "特定技能1号"
@@ -1980,26 +2078,74 @@ msgstr "連絡先"
 msgid "contacts"
 msgstr "連絡先"
 
-msgid "Back to list"
-msgstr "一覧へ戻る"
+msgid "Home"
+msgstr "ホーム"
+
+#, python-format
+msgid "Deactivation reason: %(reason)s"
+msgstr "無効化の理由: %(reason)s"
+
+msgid ""
+"Residence records, passports and filing tasks that were voided or cancelled "
+"when deactivating are not restored. Register them again as new records."
+msgstr ""
+"無効化のときに取り消した在留情報・旅券と、取消にした届出タスクは戻りません。"
+"新しい行として登録し直してください（日付で起票される届出タスクは翌朝の日次の"
+"起票で起票し直されます）。"
+
+msgid "(scheduled)"
+msgstr "（予定）"
+
+msgid "not assigned"
+msgstr "未割当"
+
+msgid "Deactivate a foreign worker"
+msgstr "外国人の無効化"
+
+msgid ""
+"Deactivated workers are excluded from the list, search, daily filing tasks "
+"and the dashboard. The following records and filing tasks are voided or "
+"cancelled at the same time and are not restored automatically."
+msgstr ""
+"無効化した外国人は、一覧・検索・日次の起票・ダッシュボードの対象から外れま"
+"す。次の行と届出タスクも同時に取り消し・取消にし、無効化を外しても自動では戻"
+"りません。"
+
+msgid "What will change"
+msgstr "同時に変わるもの"
+
+msgid "residence records to void"
+msgstr "取り消す在留情報"
+
+msgid "None."
+msgstr "なし"
+
+msgid "passports to void"
+msgstr "取り消す旅券"
+
+msgid "filing tasks to cancel"
+msgstr "取消にする届出タスク"
 
 msgid "Edit"
 msgstr "編集"
 
+#, python-format
+msgid ""
+"This foreign worker was deactivated on %(day)s by %(by)s. Reason: "
+"%(reason)s. Deactivated workers are excluded from the list, search, daily "
+"filing tasks and the dashboard."
+msgstr ""
+"この外国人は %(day)s に %(by)s が無効化しました。理由: %(reason)s。一覧・検"
+"索・日次の起票・ダッシュボードの対象から外れています。"
+
 msgid "Personal information"
 msgstr "本人の情報"
-
-msgid "not assigned"
-msgstr "未割当"
 
 msgid "Residence (latest)"
 msgstr "在留情報（最新）"
 
 msgid "Add"
 msgstr "追加"
-
-msgid "Not registered."
-msgstr "未登録"
 
 msgid "Passport (latest)"
 msgstr "旅券（最新）"
@@ -2030,9 +2176,6 @@ msgstr "（下に表示中）"
 msgid "Version %(number)s"
 msgstr "第%(number)s版"
 
-msgid "period"
-msgstr "期間"
-
 msgid "approximate monthly payment"
 msgstr "1か月の支払概算額"
 
@@ -2041,12 +2184,6 @@ msgstr "手取り支給額（概算）"
 
 msgid "Allowances and deductions"
 msgstr "手当・控除"
-
-msgid "None."
-msgstr "なし"
-
-msgid "Attachments"
-msgstr "添付"
 
 msgid "Versions"
 msgstr "版の一覧"
@@ -2089,19 +2226,8 @@ msgstr "氏名、在留カード番号・旅券番号"
 msgid "Clear"
 msgstr "条件を消す"
 
-#, python-format
-msgid "%(counter)s person"
-msgid_plural "%(counter)s people"
-msgstr[0] "%(counter)s人"
-
-msgid "(scheduled)"
-msgstr "（予定）"
-
 msgid "Register a foreign worker"
 msgstr "外国人の登録"
-
-msgid "Basic information"
-msgstr "基本情報"
 
 msgid "Void a record"
 msgstr "履歴の取消"
@@ -2144,6 +2270,9 @@ msgstr "保存しました: %(what)s"
 
 msgid "Voided the record."
 msgstr "取り消しました。"
+
+msgid "Deactivated the foreign worker."
+msgstr "外国人を無効化しました。"
 
 msgid "scheduled"
 msgstr "予定"
@@ -2405,3 +2534,18 @@ msgid ""
 msgstr ""
 "この画面を開いた後に、ほかの人がこの外国人を更新しました。画面を開き直して、"
 "もう一度入力してください。"
+
+msgid "This foreign worker is already deactivated."
+msgstr "この外国人はすでに無効化されています。"
+
+msgid "Enter the reason for deactivation."
+msgstr "無効化の理由を入力してください。"
+
+msgid "Deactivation of the foreign worker"
+msgstr "外国人の無効化"
+
+msgid "This foreign worker is not deactivated."
+msgstr "この外国人は無効化されていません。"
+
+msgid "Enter the reason for cancelling the deactivation."
+msgstr "無効化を外す理由を入力してください。"

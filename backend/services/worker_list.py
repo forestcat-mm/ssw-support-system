@@ -47,6 +47,7 @@ class WorkerListQuery:
     field_id: int | None = None
     level: deadlines.Level | None = None
     order: str = Order.EXPIRY
+    include_deactivated: bool = False  # 無効化済みも出す（管理者だけが選べる）
 
 
 @dataclass(frozen=True)
@@ -132,9 +133,8 @@ def display_name(worker: ForeignWorker) -> tuple[str, str, str]:
 
 
 def list_workers(user: User, query: WorkerListQuery, today: date) -> WorkerList:
-    queryset = authorization.scope(user, ForeignWorker.objects.all()).select_related(
-        "nationality", "assigned_staff"
-    )
+    base = ForeignWorker.objects.all() if query.include_deactivated else workers.active_workers()
+    queryset = authorization.scope(user, base).select_related("nationality", "assigned_staff")
     if query.statuses:
         queryset = queryset.filter(status__in=query.statuses)
     if query.unassigned_only:

@@ -20,6 +20,7 @@ from apps.core.permissions import ActionRequiredMixin
 from apps.core.web_forms import consume_once_token, once_context
 from apps.workers.forms import (
     RECORD_FORMS,
+    DeactivateForm,
     HistoryRecordForm,
     VoidForm,
     WorkerForm,
@@ -58,7 +59,10 @@ class WorkerListView(ActionRequiredMixin, TemplateView):
         user = self.request.user
         assert isinstance(user, User)
         self.request.session[LIST_QUERY_SESSION_KEY] = self.request.GET.urlencode()
-        form = WorkerListForm(self.request.GET)
+        form = WorkerListForm(
+            self.request.GET,
+            can_see_deactivated=authorization.has_action(user, Action.WORKERS_DEACTIVATE),
+        )
         query = form.to_query(user)
         result = worker_list.list_workers(user, query, timezone.localdate())
         audit.record_list_view(
@@ -129,6 +133,7 @@ class WorkerDetailView(ActionRequiredMixin, TemplateView):
         )
         self.worker = get_object_or_404(queryset, pk=kwargs["pk"])
         name, name_lang, romaji = worker_list.display_name(self.worker)
+        active = workers.is_active(self.worker)
         list_query = self.request.session.get(LIST_QUERY_SESSION_KEY, "")
         context.update(
             worker=self.worker,
@@ -146,7 +151,8 @@ class WorkerDetailView(ActionRequiredMixin, TemplateView):
                 if tab.action is None or authorization.has_action(user, tab.action)
             ],
             back_url=reverse("workers:list") + (f"?{list_query}" if list_query else ""),
-            can_manage=authorization.has_action(user, Action.WORKERS_MANAGE),
+            can_manage=active and authorization.has_action(user, Action.WORKERS_MANAGE),
+            can_deactivate=active and authorization.has_action(user, Action.WORKERS_DEACTIVATE),
         )
         shown = self.tab_context(context)
         audit.record_view(self.worker, context={"tab": self.tab, **shown})
@@ -253,8 +259,12 @@ class WorkerFormView(ActionRequiredMixin, View):
         return redirect(redirect_to)
 
     def worker(self, request: HttpRequest, pk: int) -> ForeignWorker:
+        """対象の外国人。無効化済みの人は編集・追加・取消・無効化の対象にしない（403）。"""
         queryset = authorization.scope(request.user, ForeignWorker.objects.all())
-        return get_object_or_404(queryset, pk=pk)
+        worker = get_object_or_404(queryset, pk=pk)
+        if not workers.is_active(worker):
+            raise PermissionDenied
+        return worker
 
 
 class WorkerCreateView(WorkerFormView):
@@ -402,3 +412,32 @@ class RecordVoidView(WorkerFormView):
                 messages.success(request, _("Voided the record."))
                 return redirect(history_url)
         return self.render(request, worker=worker, entry=entry, form=form)
+
+
+class WorkerDeactivateView(WorkerFormView):
+    """外国人の無効化（管理者のみ・理由必須）。この画面が確認画面で、影響を先に見せる。"""
+
+    required_action = Action.WORKERS_DEACTIVATE
+    template_name = "workers/deactivate.html"
+
+    def get(self, request: HttpRequest, pk: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        effects = workers.deactivation_effects(worker)
+        return self.render(request, worker=worker, effects=effects, form=DeactivateForm())
+
+    def post(self, request: HttpRequest, pk: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        detail = reverse("workers:detail", args=[pk])
+        if not consume_once_token(request):
+            return self.already_submitted(request, detail)
+        form = DeactivateForm(request.POST)
+        if form.is_valid():
+            try:
+                workers.deactivate(worker, by=_actor(request), reason=form.cleaned_data["reason"])
+            except ValidationError as error:
+                form.add_error("reason", error)
+            else:
+                messages.success(request, _("Deactivated the foreign worker."))
+                return redirect(detail)
+        effects = workers.deactivation_effects(worker)
+        return self.render(request, worker=worker, effects=effects, form=form)

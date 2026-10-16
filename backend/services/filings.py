@@ -244,6 +244,16 @@ def create(
     return filing, True
 
 
+def create_if_active(
+    kind: FilingKind, *, target: models.Model, **kwargs: Any
+) -> tuple[Filing | None, bool]:
+    """自動の起票の入口。無効化した外国人の届出は作らない（T13e）。手での起票は create()。"""
+    worker = _worker_of(target)
+    if worker is not None and worker.deactivated_at is not None:
+        return None, False
+    return create(kind, target=target, **kwargs)
+
+
 def on_contract_terminated(contract: EmploymentContract, *, by: User | None) -> list[Filing]:
     """契約の終了 → 終了届出。
 
@@ -254,8 +264,8 @@ def on_contract_terminated(contract: EmploymentContract, *, by: User | None) -> 
         "termination_reason": contract.termination_reason,
         "termination_note": contract.termination_note,
     }
-    created = [
-        create(
+    candidates = [
+        create_if_active(
             FilingKind.CONTRACT_TERMINATION,
             target=contract,
             basis_on=contract.terminated_on,
@@ -265,8 +275,8 @@ def on_contract_terminated(contract: EmploymentContract, *, by: User | None) -> 
         )[0]
     ]
     if contract.termination_reason not in NO_DIFFICULTY_REASONS:
-        created.append(
-            create(
+        candidates.append(
+            create_if_active(
                 FilingKind.ACCEPTANCE_DIFFICULTY,
                 target=contract,
                 basis_on=contract.terminated_on,
@@ -279,6 +289,7 @@ def on_contract_terminated(contract: EmploymentContract, *, by: User | None) -> 
                 ),
             )[0]
         )
+    created = [filing for filing in candidates if filing is not None]
     return created
 
 
@@ -324,7 +335,7 @@ def on_version_added(version: EmploymentContractVersion, *, by: User | None) -> 
         "version": version.version,
         "previous_version": previous.version,
     }
-    filing, _created = create(
+    filing, _created = create_if_active(
         FilingKind.CONTRACT_CHANGE,
         target=contract,
         basis_on=version.changed_on,
@@ -354,7 +365,7 @@ def _on_contract_concluded(
     )
     if not rehired:
         return None
-    filing, _created = create(
+    filing, _created = create_if_active(
         FilingKind.CONTRACT_NEW,
         target=contract,
         basis_on=version.signed_on or version.starts_on,
@@ -381,14 +392,19 @@ def create_scheduled(today: date, *, by: User | None = None) -> ScheduledResult:
         deadline = definition(kind).deadline(basis_on)
         if deadline.opens_on is not None and today < deadline.opens_on:
             return
-        filing, created = create(kind, target=target, basis_on=basis_on, trigger=trigger, by=by)
+        filing, created = create_if_active(
+            kind, target=target, basis_on=basis_on, trigger=trigger, by=by
+        )
+        if filing is None:
+            return
         if created:
             result.created.append(filing)
         else:
             result.existing += 1
 
+    # 無効化した外国人は対象にしない（念のため create_if_active でも外す）
     for latest in LatestResidenceRecord.objects.select_related("record", "worker").filter(
-        worker__status=WorkerStatus.RESIDING
+        worker__status=WorkerStatus.RESIDING, worker__deactivated_at__isnull=True
     ):
         add(
             FilingKind.RESIDENCE_RENEWAL,
@@ -398,7 +414,8 @@ def create_scheduled(today: date, *, by: User | None = None) -> ScheduledResult:
         )
 
     for latest_passport in LatestPassportRecord.objects.select_related("record").filter(
-        worker__status__in=[WorkerStatus.PRE_ENTRY, WorkerStatus.RESIDING]
+        worker__status__in=[WorkerStatus.PRE_ENTRY, WorkerStatus.RESIDING],
+        worker__deactivated_at__isnull=True,
     ):
         add(
             FilingKind.PASSPORT_CHECK,
@@ -448,7 +465,9 @@ def create_scheduled(today: date, *, by: User | None = None) -> ScheduledResult:
             )
 
     for contract in EmploymentContract.objects.filter(
-        terminated_on__isnull=True, current_ends_on__isnull=False
+        terminated_on__isnull=True,
+        current_ends_on__isnull=False,
+        worker__deactivated_at__isnull=True,
     ):
         assert contract.current_ends_on is not None
         add(

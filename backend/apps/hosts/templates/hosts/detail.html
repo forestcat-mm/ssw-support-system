@@ -1,0 +1,99 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{{ host.name }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{% url 'hosts:list' %}">← {% translate "Back to list" %}</a></p>
+  <h1>{{ host.name }}</h1>
+{% endblock %}
+{% block actions %}{% if can_open_admin %}<a class="button button--neutral" href="{% url 'admin:hosts_hostorganization_change' host.pk %}">{% translate "Open in management site" %}</a>{% endif %}{% endblock %}
+{% block content %}
+<div class="stack">
+  <div class="grid-2">
+    <section class="card" id="host-basic">
+      <div class="card__header"><h2 class="card__title">{% translate "Basic information" %}</h2></div>
+      <dl class="fields">
+        <dt>{% translate "corporate number" %}</dt><dd class="mono">{{ host.corporate_number|default:"—" }}</dd>
+        <dt>{% translate "representative" %}</dt><dd>{{ host.representative_title }} {{ host.representative_name }}</dd>
+        <dt>{% translate "address" %}</dt><dd>〒{{ host.postal_code }} {{ host.address }}</dd>
+        <dt>{% translate "phone number" %}</dt><dd class="mono">{{ host.phone_number|default:"—" }}</dd>
+      </dl>
+    </section>
+
+    <section class="card" id="support-contracts">
+      <div class="card__header"><h2 class="card__title">{% translate "Support contracts" %}</h2></div>
+      {% if detail.support_contracts %}
+      <div class="table-scroll"><table class="table table--list">
+        <thead><tr><th>{% translate "period" %}</th><th>{% translate "scope" %}</th><th>{% translate "ends on" %}</th><th>{% translate "Attachments" %}</th></tr></thead>
+        <tbody>{% for row in detail.support_contracts %}
+          <tr{% if row.item == detail.current_support_contract %} aria-current="true"{% endif %}>
+            <td class="mono">{{ row.item.starts_on|date:"Y-m-d" }} – {{ row.item.ends_on|date:"Y-m-d"|default:"" }}</td>
+            <td>{{ row.item.get_scope_display }}</td>
+            <td>{% if row.deadline %}{% due_date row.deadline %}{% elif not row.item.ends_on %}<span class="muted">{% translate "no end date" %}</span>{% else %}<span class="mono muted">{{ row.item.ends_on|date:"Y-m-d" }}</span>{% endif %}</td>
+            <td>{% include "hosts/components/attachment_links.html" with attachments=row.attachments %}</td>
+          </tr>{% endfor %}</tbody>
+      </table></div>
+      {% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}
+    </section>
+  </div>
+
+  <section class="card" id="sites">
+    <div class="card__header"><h2 class="card__title">{% translate "Sites and operation categories" %}</h2></div>
+    {% if detail.sites %}
+    <div class="table-scroll"><table class="table table--list">
+      <thead><tr><th>{% translate "name" %}</th><th>{% translate "specified skill field" %}</th><th>{% translate "operation categories" %}</th><th>{% translate "address" %}</th></tr></thead>
+      <tbody>{% for site in detail.sites %}
+        <tr{% if not site.is_active %} class="is-voided"{% endif %}>
+          <td>{{ site.name }}</td>
+          <td>{% field_tag site.field %}</td>
+          <td>{% for category in site.categories.all %}{% category_label category today %}{% if not forloop.last %}、{% endif %}{% empty %}—{% endfor %}</td>
+          <td><span class="truncate-line truncate-line--wide" title="〒{{ site.postal_code }} {{ site.address }}"><span class="truncate">〒{{ site.postal_code }} {{ site.address }}</span></span></td>
+        </tr>{% endfor %}</tbody>
+    </table></div>
+    {% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}
+  </section>
+
+  <div class="grid-2">
+    <section class="card" id="memberships">
+      <div class="card__header"><h2 class="card__title">{% translate "Memberships" %}</h2></div>
+      {% if detail.memberships %}
+      <div class="table-scroll"><table class="table table--list">
+        <thead><tr><th>{% translate "specified skill field" %}</th><th>{% translate "joined on" %}</th><th>{% translate "valid until" %}</th><th>{% translate "Attachments" %}</th></tr></thead>
+        <tbody>{% for row in detail.memberships %}
+          <tr>
+            <td>{{ row.item.field.membership_body_name }}</td>
+            <td class="mono">{{ row.item.joined_on|date:"Y-m-d" }}</td>
+            <td>{% due_date row.deadline %}</td>
+            <td>{% include "hosts/components/attachment_links.html" with attachments=row.attachments %}</td>
+          </tr>{% endfor %}</tbody>
+      </table></div>
+      {% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}
+    </section>
+
+    <section class="card" id="cooperation">
+      <div class="card__header"><h2 class="card__title">{% translate "Cooperation confirmations" %}</h2></div>
+      {% if detail.cooperation_confirmations %}
+      <div class="table-scroll"><table class="table table--list">
+        <thead><tr><th>{% translate "municipality" %}</th><th>{% translate "submitted on" %}</th><th>{% translate "valid until" %}</th><th>{% translate "Attachments" %}</th></tr></thead>
+        <tbody>{% for row in detail.cooperation_confirmations %}
+          <tr>
+            <td>{{ row.item.municipality }}</td>
+            <td class="mono">{{ row.item.submitted_on|date:"Y-m-d" }}</td>
+            <td>{% due_date row.deadline %}</td>
+            <td>{% include "hosts/components/attachment_links.html" with attachments=row.attachments %}</td>
+          </tr>{% endfor %}</tbody>
+      </table></div>
+      {% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}
+    </section>
+  </div>
+
+  {% if with_workers %}
+  <section id="host-workers">
+    <h2 style="margin-bottom: var(--space-12)">{% translate "Foreign workers" %} <span class="caption">{% blocktranslate count counter=detail.workers|length %}{{ counter }} person{% plural %}{{ counter }} people{% endblocktranslate %}</span></h2>
+    {% if detail.workers %}
+      {% include "workers/components/worker_table.html" with rows=detail.workers table_id="host-worker-list" %}
+    {% else %}
+      <div class="card"><div class="empty">{% translate "No foreign workers have an employment contract with this host organization." %}</div></div>
+    {% endif %}
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

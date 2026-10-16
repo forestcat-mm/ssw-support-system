@@ -119,3 +119,15 @@ def form_field(bound: Any) -> dict[str, Any]:
     elif bound.help_text:
         bound.field.widget.attrs["aria-describedby"] = f"{bound.auto_id}-help"
     return {"field": bound}
+
+
+@register.simple_tag
+def category_label(category: Any, today: date) -> str:
+    """業務区分の名称。適用期間外なら印を付ける（飲食料品製造業は 2027-04-01 に切り替わる）。"""
+    in_effect = (category.valid_from is None or category.valid_from <= today) and (
+        category.valid_until is None or category.valid_until >= today
+    )
+    if in_effect:
+        return str(category.name)
+    note = _("not in effect")
+    return f"{category.name}（{note}）"

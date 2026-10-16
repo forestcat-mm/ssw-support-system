@@ -94,6 +94,22 @@ class ForeignWorker(TrackedModel, ConfirmedValue):
     status = models.CharField(
         _("status"), max_length=16, choices=WorkerStatus.choices, default=WorkerStatus.PRE_ENTRY
     )
+    # 無効化（誤登録・重複などで台帳の対象から外す。状態とは別の軸。T13e）
+    deactivated_at = models.DateTimeField(
+        _("deactivated at"), null=True, blank=True, editable=False
+    )
+    deactivated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("deactivated by"),
+        on_delete=models.PROTECT,
+        related_name="+",
+        null=True,
+        blank=True,
+        editable=False,
+    )
+    deactivation_reason = models.CharField(
+        _("deactivation reason"), max_length=200, blank=True, editable=False
+    )
     # 将来の本人ポータル用（MVP では空のまま）
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,

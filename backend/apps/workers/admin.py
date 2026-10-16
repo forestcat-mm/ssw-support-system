@@ -2,17 +2,23 @@ from typing import Any
 
 from django import forms
 from django.contrib import admin
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.db.models import QuerySet
 from django.forms import ModelForm
-from django.http import HttpRequest
+from django.http import HttpRequest, HttpResponse
+from django.shortcuts import get_object_or_404, redirect
+from django.template.response import TemplateResponse
+from django.urls import URLPattern, path, reverse
+from django.utils import timezone
+from django.utils.formats import date_format
+from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.admin import TRACKED_READONLY_FIELDS, TrackedModelAdmin
 from apps.core.admin_filters import DateRangeFilter
 from apps.core.forms import allow_formatted_number_input
-from apps.core.models import User
-from services import workers
+from apps.core.models import Action, User
+from services import authorization, workers
 
 from .models import (
     ForeignWorker,
@@ -162,6 +168,21 @@ class WorkerContactInline(HistoryInline):
     readonly_fields = (*VOID_READONLY_FIELDS, "confirmed_by", "confirmed_at")
 
 
+class DeactivatedFilter(admin.SimpleListFilter):
+    title = _("deactivation")
+    parameter_name = "deactivated"
+
+    def lookups(self, request: HttpRequest, model_admin: Any) -> list[tuple[str, Any]]:
+        return [("no", _("active")), ("yes", _("deactivated"))]
+
+    def queryset(self, request: HttpRequest, queryset: QuerySet[Any]) -> QuerySet[Any]:
+        if self.value() == "no":
+            return queryset.filter(deactivated_at__isnull=True)
+        if self.value() == "yes":
+            return queryset.filter(deactivated_at__isnull=False)
+        return queryset
+
+
 @admin.register(ForeignWorker)
 class ForeignWorkerAdmin(TrackedModelAdmin[ForeignWorker]):
     """外国人台帳。履歴（在留・旅券・住所・連絡先）は上書きせず行を足す。削除はしない。"""
@@ -176,6 +197,7 @@ class ForeignWorkerAdmin(TrackedModelAdmin[ForeignWorker]):
         "latest_expires_on",
     )
     list_filter = (
+        DeactivatedFilter,
         "status",
         "nationality",
         "assigned_staff",
@@ -191,13 +213,18 @@ class ForeignWorkerAdmin(TrackedModelAdmin[ForeignWorker]):
             _("Profile"),
             {"fields": ("nationality", "birth_date", "sex", "support_language")},
         ),
-        (_("Support"), {"fields": ("status", "assigned_staff")}),
+        (_("Support"), {"fields": ("status", "assigned_staff", "deactivation")}),
         (
             _("Record"),
             {"fields": ("confirmed_by", "confirmed_at", *TRACKED_READONLY_FIELDS)},
         ),
     )
-    readonly_fields = ("confirmed_by", "confirmed_at", *TRACKED_READONLY_FIELDS)
+    readonly_fields = (
+        "confirmed_by",
+        "confirmed_at",
+        "deactivation",
+        *TRACKED_READONLY_FIELDS,
+    )
     inlines = [
         ResidenceRecordInline,
         PassportRecordInline,
@@ -230,6 +257,51 @@ class ForeignWorkerAdmin(TrackedModelAdmin[ForeignWorker]):
     def has_delete_permission(self, request: HttpRequest, obj: ForeignWorker | None = None) -> bool:
         return False
 
+    @admin.display(description=_("deactivation"))
+    def deactivation(self, obj: ForeignWorker) -> str:
+        """無効化の状態。無効化済みなら、無効化を外す画面へのリンク（管理者のみ）。"""
+        if obj.deactivated_at is None:
+            return str(_("active"))
+        text = format_html(
+            "{} / {} / {}",
+            date_format(timezone.localtime(obj.deactivated_at), "Y-m-d H:i"),
+            obj.deactivated_by or "-",
+            obj.deactivation_reason,
+        )
+        url = reverse("admin:workers_foreignworker_reactivate", args=[obj.pk])
+        return format_html('{}<br><a href="{}">{}</a>', text, url, _("Cancel deactivation"))
+
+    def get_urls(self) -> list[URLPattern]:
+        return [
+            path(
+                "<int:object_id>/reactivate/",
+                self.admin_site.admin_view(self.reactivate_view),
+                name="workers_foreignworker_reactivate",
+            ),
+            *super().get_urls(),
+        ]
+
+    def reactivate_view(self, request: HttpRequest, object_id: int) -> HttpResponse:
+        """誤って無効化した外国人を戻す（管理者のみ・理由必須。T15 の運用手順）。"""
+        if not authorization.has_action(request.user, Action.WORKERS_DEACTIVATE):
+            raise PermissionDenied
+        worker = get_object_or_404(ForeignWorker, pk=object_id, deactivated_at__isnull=False)
+        change_url = reverse("admin:workers_foreignworker_change", args=[worker.pk])
+        form = ReactivateForm(request.POST or None)
+        if request.method == "POST" and form.is_valid():
+            workers.reactivate(worker, by=_actor(request), reason=form.cleaned_data["reason"])
+            self.message_user(request, _("Cancelled the deactivation."))
+            return redirect(change_url)
+        context = {
+            **self.admin_site.each_context(request),
+            "title": _("Cancel deactivation"),
+            "opts": self.model._meta,
+            "original": worker,
+            "form": form,
+            "change_url": change_url,
+        }
+        return TemplateResponse(request, "admin/workers/foreignworker/reactivate.html", context)
+
     def save_model(
         self, request: HttpRequest, obj: ForeignWorker, form: ModelForm[ForeignWorker], change: bool
     ) -> None:
@@ -255,6 +327,14 @@ class ForeignWorkerAdmin(TrackedModelAdmin[ForeignWorker]):
             instance.updated_by = actor
             workers.confirm(instance, by=actor)
             instance.save()
+
+
+class ReactivateForm(forms.Form):
+    reason = forms.CharField(
+        label=_("reason for cancelling the deactivation"),
+        max_length=200,
+        widget=forms.Textarea(attrs={"rows": 3, "cols": 60}),
+    )
 
 
 def _latest_residence(obj: ForeignWorker) -> ResidenceRecord | None:

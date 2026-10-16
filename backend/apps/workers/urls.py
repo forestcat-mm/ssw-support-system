@@ -12,6 +12,7 @@ urlpatterns = [
     path("<int:pk>/filings/", views.WorkerFilingsView.as_view(), name="filings"),
     path("<int:pk>/history/", views.WorkerHistoryView.as_view(), name="history"),
     path("<int:pk>/edit/", views.WorkerUpdateView.as_view(), name="edit"),
+    path("<int:pk>/deactivate/", views.WorkerDeactivateView.as_view(), name="deactivate"),
     path(
         "<int:pk>/<str:kind>/new/",
         views.RecordCreateView.as_view(),
