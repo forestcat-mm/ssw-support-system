@@ -3,7 +3,9 @@
 import pytest
 from django.test import Client
 
-from .factories import TEST_PASSWORD, make_office, make_user
+from apps.core.models import User
+
+from .factories import TEST_PASSWORD, make_office, make_totp_device, make_user, totp_token
 
 pytestmark = pytest.mark.django_db
 
@@ -47,21 +49,44 @@ def test_index_lists_only_permitted_models(support_staff_client: Client) -> None
     assert "Role" not in models
 
 
-def test_user_without_role_cannot_log_in_to_admin() -> None:
-    make_user("norole")
+def _sign_in(username: str) -> Client:
+    """ログイン画面からパスワード → TOTP の順にログインする。"""
+    user = User.objects.get(username=username)
+    device = make_totp_device(user)
     client = Client()
-    response = client.post(
-        "/admin/login/", {"username": "norole", "password": TEST_PASSWORD, "next": "/admin/"}
-    )
-    assert response.status_code == 200  # ログイン画面のまま
-    assert client.get("/admin/").status_code == 302
-
-
-def test_support_staff_logs_in_with_password() -> None:
-    make_user("tanto", roles=("support_staff",))
-    client = Client()
-    response = client.post(
-        "/admin/login/", {"username": "tanto", "password": TEST_PASSWORD, "next": "/admin/"}
-    )
+    response = client.post("/accounts/login/", {"username": username, "password": TEST_PASSWORD})
     assert response.status_code == 302
-    assert client.get("/admin/").status_code == 200
+    response = client.post("/accounts/mfa/verify/", {"code": totp_token(device), "next": "/admin/"})
+    assert response.status_code == 302
+    assert response["Location"] == "/admin/"
+    return client
+
+
+def test_two_roles_sign_in_and_see_different_permissions() -> None:
+    """2 ロールで実際にログインし、権限差を確認する（T04 完了条件）。"""
+    make_user("kanri", roles=("admin",))
+    make_user("tanto", roles=("support_staff",))
+    office = make_office()
+
+    admin = _sign_in("kanri")
+    staff = _sign_in("tanto")
+
+    for url, admin_status, staff_status in [
+        ("/admin/", 200, 200),
+        ("/admin/core/office/", 200, 200),
+        ("/admin/core/office/add/", 200, 403),
+        ("/admin/core/user/", 200, 403),
+        ("/admin/core/role/", 200, 403),
+        ("/admin/axes/accessattempt/", 200, 403),
+    ]:
+        assert admin.get(url).status_code == admin_status, url
+        assert staff.get(url).status_code == staff_status, url
+    change = f"/admin/core/office/{office.pk}/change/"
+    assert staff.post(change, {"name": "x", "postal_code": "1", "address": "x"}).status_code == 403
+
+
+def test_user_without_role_gets_403_after_sign_in() -> None:
+    make_user("norole")
+    client = _sign_in("norole")
+    # admin は未許可を /admin/login/ に回し、ログイン済みなら 403（ログイン画面との循環を防ぐ）
+    assert client.get("/admin/", follow=True).status_code == 403

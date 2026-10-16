@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 14:39+0900\n"
+"POT-Creation-Date: 2026-10-16 14:49+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -34,6 +34,9 @@ msgstr "%(user)s は最後の有効な管理者のため無効化できません
 msgid "Reactivate selected users"
 msgstr "選択したユーザーを再有効化"
 
+msgid "Reset two-factor authentication of selected users"
+msgstr "選択したユーザーの多要素認証をリセット"
+
 msgid "Support organization management"
 msgstr "登録支援機関 業務管理"
 
@@ -42,6 +45,12 @@ msgstr "管理"
 
 msgid "Organization and users"
 msgstr "自機関・ユーザー"
+
+msgid "6-digit code"
+msgstr "6 桁のコード"
+
+msgid "6-digit code or recovery code"
+msgstr "6 桁のコード または 回復用コード"
 
 msgid "deactivated at"
 msgstr "無効化日時"
@@ -228,6 +237,106 @@ msgstr "ユーザーのロール"
 
 msgid "user roles"
 msgstr "ユーザーのロール"
+
+msgid "recovery code set"
+msgstr "回復用コード一式"
+
+msgid "recovery code sets"
+msgstr "回復用コード一式"
+
+msgid "used at"
+msgstr "使用日時"
+
+msgid "recovery code"
+msgstr "回復用コード"
+
+msgid "recovery codes"
+msgstr "回復用コード"
+
+msgid "Account temporarily locked"
+msgstr "アカウントを一時的にロックしました"
+
+#, python-format
+msgid ""
+"Too many failed sign-in attempts. Try again in %(minutes)s minutes, or ask "
+"an administrator to unlock your account."
+msgstr ""
+"ログインの失敗が続いたため、ロックしました。%(minutes)s 分後にもう一度お試し"
+"いただくか、管理者にロック解除を依頼してください。"
+
+msgid "Back to sign in"
+msgstr "ログイン画面に戻る"
+
+msgid "Sign in"
+msgstr "ログイン"
+
+msgid "Next"
+msgstr "次へ"
+
+msgid "Set up two-factor authentication"
+msgstr "多要素認証の設定"
+
+msgid ""
+"Scan this QR code with an authenticator app (e.g. Google Authenticator, "
+"Microsoft Authenticator), then enter the 6-digit code it shows."
+msgstr ""
+"認証アプリ（Google Authenticator、Microsoft Authenticator など）でこの QR "
+"コードを読み取り、表示された 6 桁のコードを入力してください。"
+
+msgid "If you cannot scan the code, enter this key manually:"
+msgstr "読み取れない場合は、次のキーを手入力してください:"
+
+msgid "Confirm"
+msgstr "確定"
+
+msgid "Two-factor authentication"
+msgstr "多要素認証"
+
+msgid ""
+"Enter the 6-digit code from your authenticator app. If you lost your device, "
+"enter one of your recovery codes."
+msgstr ""
+"認証アプリに表示された 6 桁のコードを入力してください。端末を紛失した場合は、"
+"回復用コードを 1 つ入力してください。"
+
+msgid "Cancel"
+msgstr "キャンセル"
+
+msgid "Recovery codes"
+msgstr "回復用コード"
+
+msgid ""
+"Store these codes somewhere safe (print them or keep them in a password "
+"manager). Each code can be used once if you lose your authenticator device. "
+"They will not be shown again."
+msgstr ""
+"これらのコードを安全な場所に保管してください（印刷する、またはパスワード管理"
+"ツールに保存する）。認証アプリの端末を紛失したときに、それぞれ 1 回だけ使えま"
+"す。この画面は二度と表示されません。"
+
+msgid "I have saved these codes — continue"
+msgstr "保管しました — 続ける"
+
+#, python-format
+msgid "%(counter)s unused recovery code remains."
+msgid_plural "%(counter)s unused recovery codes remain."
+msgstr[0] "未使用の回復用コードは残り %(counter)s 個です。"
+
+msgid "Generating new codes invalidates all existing codes."
+msgstr "新しく作り直すと、今あるコードはすべて使えなくなります。"
+
+msgid "Generate new recovery codes"
+msgstr "回復用コードを作り直す"
+
+msgid "The code is incorrect. Check the time on your device."
+msgstr "コードが正しくありません。端末の時刻がずれていないか確認してください。"
+
+#, python-format
+msgid "You signed in with a recovery code. %(count)d codes remain."
+msgstr "回復用コードでログインしました。残りは %(count)d 個です。"
+
+msgid "The code is incorrect."
+msgstr "コードが正しくありません。"
 
 #, python-format
 msgid "File type “.%(ext)s” is not allowed. Allowed types: %(allowed)s."

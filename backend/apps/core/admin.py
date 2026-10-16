@@ -9,8 +9,10 @@ from django.db.models import Model, QuerySet
 from django.forms import ModelForm
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy as _
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from services.attachments import fill_file_metadata, validate_upload
+from services.mfa import reset_mfa
 from services.users import LastAdminError, deactivate_user, reactivate_user
 
 from .models import (
@@ -58,6 +60,7 @@ def _stamp(obj: Model, request: HttpRequest) -> None:
 
 
 admin.site.unregister(Group)  # Django 標準のグループは使わない（権限はロールで表す）
+admin.site.unregister(TOTPDevice)  # 端末の直接編集はさせない（MFA リセットのアクションで行う）
 
 
 class UserRoleInline(admin.TabularInline[UserRole, User]):
@@ -91,7 +94,7 @@ class UserAdmin(TrackedModelAdmin[User], DjangoUserAdmin[User]):
     )
     readonly_fields = ("is_active", "deactivated_at", "deactivated_by", "last_login", "date_joined")
     inlines = [UserRoleInline]
-    actions = ["deactivate", "reactivate"]
+    actions = ["deactivate", "reactivate", "reset_mfa"]
 
     def get_inlines(self, request: HttpRequest, obj: User | None) -> list[Any]:
         return [] if obj is None else list(self.inlines)
@@ -125,6 +128,13 @@ class UserAdmin(TrackedModelAdmin[User], DjangoUserAdmin[User]):
         actor = request.user if isinstance(request.user, User) else None
         for user in queryset.filter(is_active=False):
             reactivate_user(user, by=actor)
+
+    @admin.action(description=_("Reset two-factor authentication of selected users"))
+    def reset_mfa(self, request: HttpRequest, queryset: QuerySet[User]) -> None:
+        """端末紛失時。TOTP と回復用コードを削除し、次回ログインで再設定させる。"""
+        actor = request.user if isinstance(request.user, User) else None
+        for user in queryset:
+            reset_mfa(user, by=actor)  # TODO(T05): 監査ログ記録は services.mfa.reset_mfa 内で行う
 
 
 class RolePermissionInline(admin.TabularInline[RolePermission, Role]):

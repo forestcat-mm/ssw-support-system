@@ -5,7 +5,7 @@ from django.test import Client
 from pytest_django.fixtures import Settings
 
 from apps.core.models import User
-from tests.core.factories import make_user
+from tests.core.factories import make_user, verified_client
 
 PDF_BYTES = b"%PDF-1.4\n% test\n"
 PNG_BYTES = b"\x89PNG\r\n\x1a\n" + b"\x00" * 16
@@ -31,9 +31,7 @@ def admin_user(db: None) -> User:
 
 @pytest.fixture
 def admin_client(admin_user: User) -> Client:
-    client = Client()
-    client.force_login(admin_user)
-    return client
+    return verified_client(admin_user)
 
 
 @pytest.fixture
@@ -43,6 +41,4 @@ def support_staff_user(db: None) -> User:
 
 @pytest.fixture
 def support_staff_client(support_staff_user: User) -> Client:
-    client = Client()
-    client.force_login(support_staff_user)
-    return client
+    return verified_client(support_staff_user)

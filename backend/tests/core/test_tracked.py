@@ -3,7 +3,7 @@ from django.test import Client
 
 from apps.core.models import Office, User
 
-from .factories import make_user
+from .factories import make_user, verified_client
 
 pytestmark = pytest.mark.django_db
 
@@ -17,8 +17,7 @@ def test_admin_stamps_created_and_updated_by(admin_client: Client, admin_user: U
     assert office.updated_by == admin_user
 
     editor = make_user("editor", roles=("admin",))
-    client = Client()
-    client.force_login(editor)
+    client = verified_client(editor)
     data = OFFICE_FORM | {"name": "本社（移転後）", "is_active": "on"}
     assert client.post(f"/admin/core/office/{office.pk}/change/", data).status_code == 302
     office.refresh_from_db()

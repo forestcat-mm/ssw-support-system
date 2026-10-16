@@ -70,6 +70,12 @@ DJANGO_PERMISSION_ACTIONS: dict[str, Action] = {
         change=Action.USERS_MANAGE,
         delete=Action.USERS_MANAGE,
     ),
+    # ログイン試行の記録（django-axes）。ロック解除は AccessAttempt の削除で行う。
+    **_model_permissions(
+        "axes.accessattempt", view=Action.USERS_MANAGE, delete=Action.USERS_MANAGE
+    ),
+    **_model_permissions("axes.accesslog", view=Action.USERS_MANAGE),
+    **_model_permissions("axes.accessfailurelog", view=Action.USERS_MANAGE),
     **{
         perm: action
         for model in (

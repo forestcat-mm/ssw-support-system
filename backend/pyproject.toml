@@ -6,11 +6,14 @@ requires-python = "==3.12.*"
 # 直接依存は == で固定する。間接依存は uv.lock で固定する（更新は make lock）。
 dependencies = [
     "django==5.2.18",
+    "django-axes==8.3.1",
     "django-environ==0.14.0",
     # ModelAdmin[...] / ModelForm[...] を実行時に使うため（settings で monkeypatch()）。django-stubs と同版。
     "django-stubs-ext==5.2.9",
+    "django-otp==1.7.4",
     "django-storages[s3]==1.14.6",
     "psycopg[binary]==3.3.6",
+    "qrcode==8.2",
 ]
 
 [tool.uv]
@@ -45,7 +48,7 @@ exclude = ["/migrations/"]
 django_settings_module = "config.settings"
 
 [[tool.mypy.overrides]]
-module = ["environ", "environ.*"]
+module = ["environ", "environ.*", "django_otp.*", "axes.*", "qrcode", "qrcode.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

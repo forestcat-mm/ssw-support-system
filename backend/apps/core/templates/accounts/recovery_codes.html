@@ -1,0 +1,15 @@
+{% extends "accounts/base.html" %}{% load i18n %}
+{% block content %}
+<h1>{% translate "Recovery codes" %}</h1>
+{% if codes %}
+  <p>{% translate "Store these codes somewhere safe (print them or keep them in a password manager). Each code can be used once if you lose your authenticator device. They will not be shown again." %}</p>
+  <ol class="codes">{% for code in codes %}<li>{{ code }}</li>{% endfor %}</ol>
+  <p><a href="{{ next }}">{% translate "I have saved these codes — continue" %}</a></p>
+{% else %}
+  <p>{% blocktranslate count counter=remaining %}{{ counter }} unused recovery code remains.{% plural %}{{ counter }} unused recovery codes remain.{% endblocktranslate %}</p>
+  <form method="post">{% csrf_token %}
+    <p class="muted">{% translate "Generating new codes invalidates all existing codes." %}</p>
+    <button type="submit">{% translate "Generate new recovery codes" %}</button>
+  </form>
+{% endif %}
+{% endblock %}

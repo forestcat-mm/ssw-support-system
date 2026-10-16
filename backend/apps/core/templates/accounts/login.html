@@ -1,0 +1,11 @@
+{% extends "accounts/base.html" %}{% load i18n %}
+{% block content %}
+<h1>{% translate "Sign in" %}</h1>
+<form method="post">{% csrf_token %}
+  {{ form.non_field_errors }}
+  {{ form.username.label_tag }}{{ form.username }}{{ form.username.errors }}
+  {{ form.password.label_tag }}{{ form.password }}{{ form.password.errors }}
+  <input type="hidden" name="next" value="{{ next }}">
+  <button type="submit">{% translate "Next" %}</button>
+</form>
+{% endblock %}

@@ -6,12 +6,15 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Q
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django_otp.models import Device, ThrottlingMixin, TimestampMixin
 
+from services import recovery_codes
 from services.files import attachment_upload_to, logo_upload_to, validate_logo
 
 
-class User(AbstractUser):
+class User(AbstractUser):  # type: ignore[django-manager-missing]  # django-otp の端末は型情報なし
     """ログインユーザー。権限はロール（UserRole）だけで決まり、superuser は使わない。
 
     ユーザーは削除せず無効化する（services.users.deactivate_user）。
@@ -303,3 +306,56 @@ class UserRole(TrackedModel):
 
     def __str__(self) -> str:
         return f"{self.user}: {self.role}"
+
+
+class RecoveryCodeDevice(TimestampMixin, ThrottlingMixin, Device):  # type: ignore[misc]
+    """回復用コード（TOTP 端末を紛失したときの代替）。
+
+    django-otp の端末として扱い、セッションを検証済みにできる。
+
+    コードは平文で保存しない（RecoveryCode.code_hash）。使用済みのコードは used_at を入れて残す。
+    """
+
+    class Meta:
+        verbose_name = _("recovery code set")
+        verbose_name_plural = _("recovery code sets")
+
+    def get_throttle_factor(self) -> int:
+        return getattr(settings, "OTP_RECOVERY_CODE_THROTTLE_FACTOR", 1)
+
+    def verify_token(self, token: str) -> bool:
+        allowed, _info = self.verify_is_allowed()
+        if not allowed:
+            return False
+        match = None
+        if recovery_codes.looks_like_recovery_code(token):
+            match = self.codes.filter(
+                code_hash=recovery_codes.hash_code(token), used_at__isnull=True
+            ).first()
+        if match is None:
+            self.throttle_increment()
+            return False
+        match.used_at = timezone.now()
+        match.save(update_fields=["used_at"])
+        self.throttle_reset(commit=False)
+        self.set_last_used_timestamp(commit=False)
+        self.save()
+        return True
+
+
+class RecoveryCode(models.Model):
+    device = models.ForeignKey(RecoveryCodeDevice, on_delete=models.CASCADE, related_name="codes")
+    code_hash = models.CharField(max_length=64)
+    used_at = models.DateTimeField(_("used at"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("recovery code")
+        verbose_name_plural = _("recovery codes")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["device", "code_hash"], name="core_recoverycode_unique"
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.device}: {'used' if self.used_at else 'unused'}"

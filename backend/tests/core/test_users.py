@@ -11,21 +11,20 @@ from django.test import Client
 from apps.core.models import Staff, User
 from services.users import LastAdminError, deactivate_user, reactivate_user
 
-from .factories import TEST_PASSWORD, make_staff, make_user
+from .factories import TEST_PASSWORD, make_staff, make_user, verified_client
 
 pytestmark = pytest.mark.django_db
 
 
-def _logged_in_client(user: User) -> Client:
-    client = Client()
-    assert client.login(username=user.username, password=TEST_PASSWORD)
-    return client
+def _can_sign_in(username: str) -> bool:
+    response = Client().post("/accounts/login/", {"username": username, "password": TEST_PASSWORD})
+    return response.status_code == 302
 
 
 def test_deactivate_keeps_records_and_ends_sessions(admin_user: User) -> None:
     retiree = make_user("retiree", roles=("support_staff",))
     staff = make_staff(user=retiree)
-    client = _logged_in_client(retiree)
+    client = verified_client(retiree)
     assert client.get("/admin/").status_code == 200
 
     deactivate_user(retiree, by=admin_user)
@@ -40,7 +39,7 @@ def test_deactivate_keeps_records_and_ends_sessions(admin_user: User) -> None:
         s.get_decoded().get("_auth_user_id") == str(retiree.pk) for s in Session.objects.all()
     )
     # 再ログインできない
-    assert not Client().login(username="retiree", password=TEST_PASSWORD)
+    assert not _can_sign_in("retiree")
     # Staff は紐づいたまま残る（Staff の is_active は別運用）
     assert Staff.objects.get(pk=staff.pk).user == retiree
     # User は削除できない（Staff から PROTECT）
@@ -55,7 +54,7 @@ def test_reactivate(admin_user: User) -> None:
     user.refresh_from_db()
     assert user.is_active is True
     assert user.deactivated_at is None
-    assert Client().login(username="back", password=TEST_PASSWORD)
+    assert _can_sign_in("back")
 
 
 def test_last_active_admin_cannot_be_deactivated(admin_user: User) -> None:

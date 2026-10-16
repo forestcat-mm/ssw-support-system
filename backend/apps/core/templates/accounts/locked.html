@@ -1,0 +1,6 @@
+{% extends "accounts/base.html" %}{% load i18n durations %}
+{% block content %}
+<h1>{% translate "Account temporarily locked" %}</h1>
+<p class="error">{% blocktranslate with minutes=cooloff_timedelta|minutes %}Too many failed sign-in attempts. Try again in {{ minutes }} minutes, or ask an administrator to unlock your account.{% endblocktranslate %}</p>
+<p><a href="{% url 'accounts:login' %}">{% translate "Back to sign in" %}</a></p>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "accounts/base.html" %}{% load i18n %}
+{% block content %}
+<h1>{% translate "Two-factor authentication" %}</h1>
+<p>{% translate "Enter the 6-digit code from your authenticator app. If you lost your device, enter one of your recovery codes." %}</p>
+<form method="post">{% csrf_token %}
+  {{ form.code.label_tag }}{{ form.code }}{{ form.code.errors }}
+  <input type="hidden" name="next" value="{{ next }}">
+  <button type="submit">{% translate "Sign in" %}</button>
+</form>
+<form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}
+  <button type="submit">{% translate "Cancel" %}</button>
+</form>
+{% endblock %}

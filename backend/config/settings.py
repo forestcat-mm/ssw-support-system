@@ -5,6 +5,7 @@
 秘密情報や接続先には既定値を置かず、未設定なら起動時に ImproperlyConfigured で止める。
 """
 
+from datetime import timedelta
 from pathlib import Path
 
 import django_stubs_ext
@@ -31,6 +32,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_otp",
+    "django_otp.plugins.otp_totp",
+    "axes",
     "apps.core",
 ]
 
@@ -40,8 +44,11 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django_otp.middleware.OTPMiddleware",
+    "apps.core.middleware.MFARequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "axes.middleware.AxesMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -82,7 +89,29 @@ SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # --- 認証 ---
 AUTH_USER_MODEL = "core.User"
-AUTHENTICATION_BACKENDS = ["apps.core.backends.RoleBackend"]
+AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",  # 失敗回数によるロック（先頭に置く）
+    "apps.core.backends.RoleBackend",
+]
+LOGIN_URL = "accounts:login"
+LOGIN_REDIRECT_URL = "/admin/"
+
+# ログイン失敗によるロック（第8章）。
+# 前段の Cloudflare 経由では IP が当てにならないため、ユーザー名単位でロックする。
+# TOTP・回復用コードの入力ミスも同じ回数に数える（apps.core.views）。
+AXES_FAILURE_LIMIT: int = env.int("AUTH_LOCKOUT_FAILURE_LIMIT", default=5)
+AXES_COOLOFF_TIME = timedelta(minutes=env.int("AUTH_LOCKOUT_MINUTES", default=30))
+AXES_LOCKOUT_PARAMETERS = ["username"]
+AXES_RESET_ON_SUCCESS = True
+AXES_LOCKOUT_TEMPLATE = "accounts/locked.html"
+# axes.W006（IP をロック条件に含めない警告）は方針どおりのため抑止する。
+# 本番で接続元 IP（CF-Connecting-IP）を取れるようにした時点で IP 条件の追加を判断する（本番準備）。
+SILENCED_SYSTEM_CHECKS = ["axes.W006"]
+
+# 無操作でのセッション失効（第8章）。リクエストのたびに期限を延ばす。
+SESSION_COOKIE_AGE: int = env.int("SESSION_IDLE_TIMEOUT_MINUTES", default=30) * 60
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},

@@ -12,6 +12,6 @@ def test_locale_and_timezone_settings() -> None:
 
 
 @pytest.mark.django_db
-def test_admin_login_page_is_served(client: Client) -> None:
-    response = client.get("/admin/login/")
+def test_login_page_is_served(client: Client) -> None:
+    response = client.get("/accounts/login/")
     assert response.status_code == 200

@@ -1,0 +1,12 @@
+{% extends "accounts/base.html" %}{% load i18n %}
+{% block content %}
+<h1>{% translate "Set up two-factor authentication" %}</h1>
+<p>{% translate "Scan this QR code with an authenticator app (e.g. Google Authenticator, Microsoft Authenticator), then enter the 6-digit code it shows." %}</p>
+<div class="qr">{{ qr_svg|safe }}</div>
+<p class="muted">{% translate "If you cannot scan the code, enter this key manually:" %}<br><code>{{ secret }}</code></p>
+<form method="post">{% csrf_token %}
+  {{ form.token.label_tag }}{{ form.token }}{{ form.token.errors }}
+  <input type="hidden" name="next" value="{{ next }}">
+  <button type="submit">{% translate "Confirm" %}</button>
+</form>
+{% endblock %}
