@@ -84,4 +84,5 @@ make test      # pytest
 make lint      # ruff check . && ruff format --check . && mypy .
 make format    # ruff format . && ruff check --fix .
 make messages  # UI 文言の抽出とコンパイル（.po と .mo の両方をコミット）
+make filings   # 日次の届出タスクの起票を手で実行（DATE=YYYY-MM-DD で基準日を指定）
 ```
