@@ -7,7 +7,11 @@
 
 from pathlib import Path
 
+import django_stubs_ext
 import environ
+
+# ModelAdmin[...] などの型引数を実行時に許可する（django-stubs 推奨）。
+django_stubs_ext.monkeypatch()
 
 BASE_DIR = Path(__file__).resolve().parent.parent  # backend/
 REPO_ROOT = BASE_DIR.parent
@@ -27,6 +31,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "apps.core",
 ]
 
 MIDDLEWARE = [
@@ -76,6 +81,7 @@ DEFAULT_FROM_EMAIL: str = env.str("DEFAULT_FROM_EMAIL")
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # --- 認証 ---
+AUTH_USER_MODEL = "core.User"
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -88,7 +94,24 @@ LANGUAGE_CODE = "ja"
 TIME_ZONE = "Asia/Tokyo"
 USE_I18N = True
 USE_TZ = True
+LOCALE_PATHS = [BASE_DIR / "locale"]
 
 # --- 静的ファイル ---
 STATIC_URL = "static/"
 STATIC_ROOT = REPO_ROOT / "staticfiles"
+
+# --- ファイル保存（Attachment・ロゴ） ---
+# バックエンドとオプションを環境変数で渡し、コードを変えずに保存先を切り替える。
+#   手元: django.core.files.storage.FileSystemStorage + {"location": "/app/media"}
+#   本番: storages.backends.s3.S3Storage（django-storages）
+#         + {"bucket_name": ..., "endpoint_url": ...}
+# アップロードファイルは公開 URL で配信しない（認可・監査付きのダウンロードは T05）。
+STORAGES = {
+    "default": {
+        "BACKEND": env.str("DJANGO_STORAGE_BACKEND"),
+        "OPTIONS": env.json("DJANGO_STORAGE_OPTIONS", default={}),
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}

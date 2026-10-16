@@ -11,6 +11,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     UV_COMPILE_BYTECODE=1 \
     PATH="/opt/venv/bin:$PATH"
 
+# gettext: UI 文言の .po/.mo（makemessages / compilemessages）に使う。
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gettext \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN useradd --create-home --uid 1000 app \
     && mkdir -p /opt/venv /app \
     && chown app:app /opt/venv /app

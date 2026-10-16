@@ -7,6 +7,9 @@ requires-python = "==3.12.*"
 dependencies = [
     "django==5.2.18",
     "django-environ==0.14.0",
+    # ModelAdmin[...] / ModelForm[...] を実行時に使うため（settings で monkeypatch()）。django-stubs と同版。
+    "django-stubs-ext==5.2.9",
+    "django-storages[s3]==1.14.6",
     "psycopg[binary]==3.3.6",
 ]
 
@@ -16,9 +19,8 @@ package = false
 [dependency-groups]
 dev = [
     # django-stubs 5.2.x は Django 5.2 用。対応 mypy は >=1.13,<1.20（compatible-mypy extra の宣言）。
-    # django-stubs-ext は下限指定のみで 6.x が入るため、django-stubs と同じ版に固定する。
+    # django-stubs-ext は下限指定のみで 6.x が入るため、本体の依存で django-stubs と同じ版に固定している。
     "django-stubs==5.2.9",
-    "django-stubs-ext==5.2.9",
     "mypy==1.19.1",
     "pytest==9.1.1",
     "pytest-django==4.14.0",

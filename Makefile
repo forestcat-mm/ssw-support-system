@@ -1,7 +1,7 @@
 COMPOSE := docker compose
 MANAGE := $(COMPOSE) exec web python manage.py
 
-.PHONY: up down build logs migrate superuser shell psql lock test lint format
+.PHONY: up down build logs migrate superuser shell psql lock test lint format messages
 
 up:         ## コンテナを起動する
 	$(COMPOSE) up -d
@@ -38,3 +38,6 @@ lint:       ## 静的検査（ruff check / ruff format --check / mypy）
 
 format:     ## 整形と自動修正
 	$(COMPOSE) exec web sh -c 'ruff format . && ruff check --fix .'
+
+messages:   ## UI 文言を .po に抽出し .mo にコンパイルする（.po と .mo の両方をコミットする）
+	$(COMPOSE) exec web sh -c 'python manage.py makemessages -l ja --no-location --no-obsolete && python manage.py compilemessages -l ja'

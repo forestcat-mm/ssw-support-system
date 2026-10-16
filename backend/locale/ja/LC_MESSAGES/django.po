@@ -1,0 +1,178 @@
+# 業務管理システム UI 文言（日本語）。msgid は英語、msgstr に日本語を書く。
+# 更新: make messages（makemessages → 翻訳を記入 → compilemessages）
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: ssw-support-system\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-16 14:20+0900\n"
+"PO-Revision-Date: 2026-10-16 14:30+0900\n"
+"Last-Translator: ssw-support-system\n"
+"Language-Team: ja\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "Organization and users"
+msgstr "自機関・ユーザー"
+
+msgid "user"
+msgstr "ユーザー"
+
+msgid "users"
+msgstr "ユーザー"
+
+msgid "created at"
+msgstr "作成日時"
+
+msgid "updated at"
+msgstr "更新日時"
+
+msgid "created by"
+msgstr "作成者"
+
+msgid "updated by"
+msgstr "更新者"
+
+msgid "Food Industry SSW Council membership certificate"
+msgstr "食品産業特定技能協議会 構成員証明書"
+
+msgid "kind"
+msgstr "種別"
+
+msgid "file"
+msgstr "ファイル"
+
+msgid "original filename"
+msgstr "元のファイル名"
+
+msgid "size (bytes)"
+msgstr "サイズ（バイト）"
+
+msgid "SHA-256"
+msgstr "SHA-256"
+
+msgid "valid until"
+msgstr "有効期限"
+
+msgid "target type"
+msgstr "紐づく対象の種類"
+
+msgid "target ID"
+msgstr "紐づく対象のID"
+
+msgid "attachment"
+msgstr "添付ファイル"
+
+msgid "attachments"
+msgstr "添付ファイル"
+
+msgid "name"
+msgstr "名称"
+
+msgid "registration number"
+msgstr "登録支援機関登録番号"
+
+msgid "registration expiry date"
+msgstr "登録期限"
+
+msgid "postal code"
+msgstr "郵便番号"
+
+msgid "address"
+msgstr "所在地"
+
+msgid "Food Industry SSW Council joined on"
+msgstr "食品産業特定技能協議会 加入日"
+
+msgid "logo"
+msgstr "ロゴ"
+
+msgid "organization"
+msgstr "自機関"
+
+msgid "phone number"
+msgstr "電話番号"
+
+msgid "active"
+msgstr "有効"
+
+msgid "office"
+msgstr "事務所"
+
+msgid "offices"
+msgstr "事務所"
+
+msgid "code"
+msgstr "コード"
+
+msgid "display name"
+msgstr "表示名"
+
+msgid "sort order"
+msgstr "並び順"
+
+msgid "support language"
+msgstr "支援言語"
+
+msgid "support languages"
+msgstr "支援言語"
+
+msgid "full-time"
+msgstr "常勤"
+
+msgid "part-time"
+msgstr "非常勤"
+
+msgid "full name"
+msgstr "氏名"
+
+msgid "full name (kana)"
+msgstr "氏名（カナ）"
+
+msgid "support manager"
+msgstr "支援責任者"
+
+msgid "support staff"
+msgstr "支援担当者"
+
+msgid "employment type"
+msgstr "常勤区分"
+
+msgid "training course completed on"
+msgstr "養成講習修了日"
+
+msgid "has life consultation experience"
+msgstr "生活相談業務の経験あり"
+
+msgid "life consultation experience (details and period)"
+msgstr "生活相談業務の経験（内容・期間）"
+
+msgid "languages"
+msgstr "対応言語"
+
+msgid "login user"
+msgstr "ログインユーザー"
+
+msgid "staff member"
+msgstr "支援責任者・支援担当者"
+
+msgid "staff members"
+msgstr "支援責任者・支援担当者"
+
+msgid "Select at least one of support manager or support staff."
+msgstr "支援責任者・支援担当者のどちらか一方以上を選択してください。"
+
+#, python-format
+msgid "File type “.%(ext)s” is not allowed. Allowed types: %(allowed)s."
+msgstr "「.%(ext)s」のファイルは登録できません。登録できる種類: %(allowed)s"
+
+#, python-format
+msgid "File is too large (%(size)s). The maximum size is %(max)s."
+msgstr "ファイルが大きすぎます（%(size)s）。上限は %(max)s です。"
+
+#, python-format
+msgid "File contents do not match the “.%(ext)s” extension."
+msgstr "ファイルの中身が拡張子「.%(ext)s」と一致しません。"
