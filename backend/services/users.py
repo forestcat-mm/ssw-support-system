@@ -7,7 +7,8 @@ from django.contrib.sessions.models import Session
 from django.db import transaction
 from django.utils import timezone
 
-from apps.core.models import Role, User, UserRole
+from apps.core.models import AuditAction, Role, User, UserRole
+from services import audit
 from services.invitations import revoke_pending_invitations
 
 ADMIN_ROLE_CODE = "admin"
@@ -42,22 +43,22 @@ def deactivate_user(user: User, *, by: User | None) -> None:
         exclude=user
     ):
         raise LastAdminError(user.username)
-    user.is_active = False
-    user.deactivated_at = timezone.now()
-    user.deactivated_by = by
-    user.save(update_fields=["is_active", "deactivated_at", "deactivated_by"])
-    delete_sessions_of(user)
-    revoke_pending_invitations(user)
-    # TODO(T05): 監査ログに「ユーザー無効化」（対象・実行者）を記録する
+    with audit.event(AuditAction.DEACTIVATE, target=user, actor=by) as event:
+        user.is_active = False
+        user.deactivated_at = timezone.now()
+        user.deactivated_by = by
+        user.save(update_fields=["is_active", "deactivated_at", "deactivated_by"])
+        event.context["deleted_sessions"] = delete_sessions_of(user)
+        event.context["revoked_invitations"] = revoke_pending_invitations(user)
 
 
 @transaction.atomic
 def reactivate_user(user: User, *, by: User | None) -> None:
-    user.is_active = True
-    user.deactivated_at = None
-    user.deactivated_by = None
-    user.save(update_fields=["is_active", "deactivated_at", "deactivated_by"])
-    # TODO(T05): 監査ログに「ユーザー再有効化」（対象・実行者）を記録する
+    with audit.event(AuditAction.REACTIVATE, target=user, actor=by):
+        user.is_active = True
+        user.deactivated_at = None
+        user.deactivated_by = None
+        user.save(update_fields=["is_active", "deactivated_at", "deactivated_by"])
 
 
 def delete_sessions_of(user: User) -> int:

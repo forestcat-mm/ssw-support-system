@@ -19,7 +19,6 @@ class Command(BaseCommand):
             user = User.objects.get(username=options["username"])
         except User.DoesNotExist as error:
             raise CommandError(f"User not found: {options['username']}") from error
-        # TODO(T05): 監査ログ記録は services.mfa.reset_mfa 内で行う
-        #   （実行者なし＝管理コマンドからの実行として記録する）
-        reset_mfa(user, by=None)
+        # 監査ログには実行者なし・via="manage.py reset_mfa" で記録される
+        reset_mfa(user, by=None, via="manage.py reset_mfa")
         self.stdout.write(self.style.SUCCESS(f"Reset MFA for {user.username}"))

@@ -2,23 +2,30 @@ from typing import Any, TypeVar
 
 from django import forms
 from django.contrib import admin, messages
+from django.contrib.admin.utils import unquote
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.admin import GenericTabularInline
 from django.db.models import Model, QuerySet
 from django.forms import ModelForm
-from django.http import HttpRequest
+from django.http import HttpRequest, HttpResponse
+from django.urls import reverse
+from django.utils.html import format_html, format_html_join
+from django.utils.safestring import SafeString
 from django.utils.translation import gettext_lazy as _
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
+from services import audit
 from services.attachments import fill_file_metadata, validate_upload
 from services.invitations import InvitationStatus, invitation_status, invite_user, resend_invitation
 from services.mfa import reset_mfa
 from services.users import LastAdminError, deactivate_user, reactivate_user
 
+from .admin_filters import DateRangeFilter
 from .forms import InvitationForm
 from .models import (
     Attachment,
+    AuditLog,
     Invitation,
     Office,
     Organization,
@@ -38,7 +45,24 @@ _M = TypeVar("_M", bound=Model)
 
 
 class TrackedModelAdmin(admin.ModelAdmin[_M]):
-    """保存時に作成者・更新者をログインユーザーで埋める（インラインを含む）。"""
+    """保存時に作成者・更新者をログインユーザーで埋める（インラインを含む）。
+
+    個人情報を含むモデル（services.audit.VIEW_AUDITED_MODELS）は、詳細画面の表示を監査ログに残す。
+    """
+
+    def change_view(
+        self,
+        request: HttpRequest,
+        object_id: str,
+        form_url: str = "",
+        extra_context: dict[str, Any] | None = None,
+    ) -> HttpResponse:
+        response = super().change_view(request, object_id, form_url, extra_context)
+        if request.method == "GET" and response.status_code == 200:
+            obj = self.get_object(request, unquote(object_id))
+            if obj is not None:
+                audit.record_view(obj)
+        return response
 
     def save_model(self, request: HttpRequest, obj: _M, form: ModelForm[_M], change: bool) -> None:
         _stamp(obj, request)
@@ -205,7 +229,7 @@ class UserAdmin(TrackedModelAdmin[User], DjangoUserAdmin[User]):
         """端末紛失時。TOTP と回復用コードを削除し、次回ログインで再設定させる。"""
         actor = request.user if isinstance(request.user, User) else None
         for user in queryset:
-            reset_mfa(user, by=actor)  # TODO(T05): 監査ログ記録は services.mfa.reset_mfa 内で行う
+            reset_mfa(user, by=actor)  # 監査ログは reset_mfa の中で記録する
 
 
 class RolePermissionInline(admin.TabularInline[RolePermission, Role]):
@@ -223,6 +247,22 @@ class RoleAdmin(TrackedModelAdmin[Role]):
         return False
 
 
+class DownloadLinkWidget(forms.Widget):
+    """登録済みの添付は、公開 URL ではなく認可・監査付きのダウンロード画面へのリンクで見せる。"""
+
+    def __init__(self, attachment: Attachment) -> None:
+        super().__init__()
+        self.attachment = attachment
+
+    def render(self, name: str, value: Any, attrs: Any = None, renderer: Any = None) -> SafeString:
+        return download_link(self.attachment)
+
+
+def download_link(attachment: Attachment) -> SafeString:
+    url = reverse("attachment_download", args=[attachment.pk])
+    return format_html('<a href="{}">{}</a>', url, attachment.original_filename)
+
+
 class AttachmentInlineForm(forms.ModelForm[Attachment]):
     """新規行はファイルを検査してハッシュ等を埋める。既存行は種別・ファイルを変更不可にする。"""
 
@@ -235,6 +275,7 @@ class AttachmentInlineForm(forms.ModelForm[Attachment]):
         if self.instance.pk is not None:
             self.fields["kind"].disabled = True
             self.fields["file"].disabled = True
+            self.fields["file"].widget = DownloadLinkWidget(self.instance)
 
     def clean(self) -> dict[str, Any]:
         cleaned = super().clean() or {}
@@ -266,7 +307,7 @@ class AttachmentAdmin(TrackedModelAdmin[Attachment]):
     list_filter = ("kind",)
     fields = (
         "kind",
-        "file",
+        "download",
         "original_filename",
         "size",
         "sha256",
@@ -277,7 +318,7 @@ class AttachmentAdmin(TrackedModelAdmin[Attachment]):
     )
     readonly_fields = (
         "kind",
-        "file",
+        "download",
         "original_filename",
         "size",
         "sha256",
@@ -285,6 +326,10 @@ class AttachmentAdmin(TrackedModelAdmin[Attachment]):
         "object_id",
         *TRACKED_READONLY_FIELDS,
     )
+
+    @admin.display(description=_("file"))
+    def download(self, obj: Attachment) -> str:
+        return download_link(obj)
 
     def has_add_permission(self, request: HttpRequest) -> bool:
         return False
@@ -340,3 +385,67 @@ class StaffAdmin(TrackedModelAdmin[Staff]):
     search_fields = ("name", "name_kana")
     filter_horizontal = ("languages",)
     readonly_fields = TRACKED_READONLY_FIELDS
+
+
+@admin.register(AuditLog)
+class AuditLogAdmin(admin.ModelAdmin[AuditLog]):
+    """監査ログ（読み取り専用。閲覧は audit.view を持つ管理者のみ）。"""
+
+    list_display = (
+        "occurred_at",
+        "action",
+        "actor_username",
+        "content_type",
+        "object_repr",
+        "ip_address",
+    )
+    list_filter = (
+        ("occurred_at", DateRangeFilter),
+        "action",
+        "actor",
+        "content_type",
+    )
+    search_fields = ("actor_username", "object_repr", "object_id", "path")
+    date_hierarchy = "occurred_at"
+    list_select_related = ("content_type",)
+    fields = (
+        "occurred_at",
+        "action",
+        "actor",
+        "actor_username",
+        "content_type",
+        "object_id",
+        "object_repr",
+        "changes_table",
+        "context",
+        "ip_address",
+        "path",
+    )
+    readonly_fields = fields
+
+    @admin.display(description=_("changes"))
+    def changes_table(self, obj: AuditLog) -> str:
+        if not obj.changes:
+            return "-"
+        rows = format_html_join(
+            "",
+            "<tr><td>{}</td><td>{}</td><td>{}</td></tr>",
+            ((name, values[0], values[1]) for name, values in sorted(obj.changes.items())),
+        )
+        return format_html(
+            "<table><thead><tr><th>{}</th><th>{}</th><th>{}</th></tr></thead>"
+            "<tbody>{}</tbody></table>",
+            _("field"),
+            _("before"),
+            _("after"),
+            rows,
+        )
+
+    def has_add_permission(self, request: HttpRequest) -> bool:
+        return False
+
+    def has_change_permission(self, request: HttpRequest, obj: AuditLog | None = None) -> bool:
+        return False
+
+    def has_delete_permission(self, request: HttpRequest, obj: AuditLog | None = None) -> bool:
+        return False

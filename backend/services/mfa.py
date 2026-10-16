@@ -11,8 +11,8 @@ from django.db import transaction
 from django_otp.models import Device
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
-from apps.core.models import RecoveryCode, RecoveryCodeDevice, User
-from services import recovery_codes
+from apps.core.models import AuditAction, RecoveryCode, RecoveryCodeDevice, User
+from services import audit, recovery_codes
 from services.organization import organization_display_name
 from services.users import delete_sessions_of
 
@@ -110,10 +110,16 @@ def verify_second_factor(user: User, code: str) -> Device | None:
 
 
 @transaction.atomic
-def reset_mfa(user: User, *, by: User | None) -> None:
-    """TOTP 端末と回復用コードを削除し、次回ログインで再設定させる。セッションも切る。"""
-    TOTPDevice.objects.filter(user=user).delete()
-    RecoveryCodeDevice.objects.filter(user=user).delete()
-    delete_sessions_of(user)
-    # TODO(T05): 監査ログに「MFA リセット」を必ず記録する
-    #   （対象・実行者。管理コマンド reset_mfa からは by=None）
+def reset_mfa(user: User, *, by: User | None, via: str = "admin") -> None:
+    """TOTP 端末と回復用コードを削除し、次回ログインで再設定させる。セッションも切る。
+
+    必ず監査ログに残す（admin のアクションは via="admin"、管理コマンドは by=None）。
+    """
+    with audit.event(AuditAction.MFA_RESET, target=user, actor=by, context={"via": via}) as event:
+        totp = TOTPDevice.objects.filter(user=user)
+        recovery = RecoveryCodeDevice.objects.filter(user=user)
+        event.changes["totp_devices"] = [totp.count(), 0]
+        event.changes["unused_recovery_codes"] = [remaining_recovery_codes(user), 0]
+        totp.delete()
+        recovery.delete()
+        event.context["deleted_sessions"] = delete_sessions_of(user)

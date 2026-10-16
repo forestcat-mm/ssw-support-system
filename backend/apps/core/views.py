@@ -12,8 +12,9 @@ from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.signals import user_login_failed
-from django.http import HttpRequest, HttpResponse, HttpResponseBase
-from django.shortcuts import redirect, render
+from django.core.exceptions import PermissionDenied
+from django.http import FileResponse, Http404, HttpRequest, HttpResponse, HttpResponseBase
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -23,8 +24,8 @@ from django_otp import login as otp_login
 
 from apps.core.forms import SecondFactorForm, TokenForm
 from apps.core.middleware import mfa_exempt
-from apps.core.models import RecoveryCodeDevice, User
-from services import invitations, mfa
+from apps.core.models import Attachment, AuditAction, RecoveryCodeDevice, User
+from services import audit, authorization, invitations, mfa
 
 NEW_RECOVERY_CODES_SESSION_KEY = "new_recovery_codes"
 
@@ -195,3 +196,29 @@ def invitation_url_builder(request: HttpRequest) -> invitations.UrlBuilder:
         return request.build_absolute_uri(reverse("accounts:invitation_accept", args=[token]))
 
     return build
+
+
+@method_decorator(login_required, name="dispatch")
+class AttachmentDownloadView(View):
+    """添付のダウンロード。紐づく対象の閲覧権限で判定し、監査ログに残す。公開 URL は作らない。"""
+
+    def get(self, request: HttpRequest, pk: int) -> FileResponse:
+        attachment = get_object_or_404(Attachment.objects.select_related("content_type"), pk=pk)
+        target = attachment.target
+        if target is None:
+            raise Http404
+        content_type = attachment.content_type
+        perm = f"{content_type.app_label}.view_{content_type.model}"
+        if not authorization.has_django_permission(request.user, perm, target):
+            raise PermissionDenied
+        response = FileResponse(
+            attachment.file.open("rb"), as_attachment=True, filename=attachment.original_filename
+        )
+        audit.record(
+            AuditAction.DOWNLOAD,
+            target=attachment,
+            context={
+                "target": f"{content_type.app_label}.{content_type.model}:{attachment.object_id}"
+            },
+        )
+        return response

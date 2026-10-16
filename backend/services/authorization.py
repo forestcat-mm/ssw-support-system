@@ -64,6 +64,7 @@ DJANGO_PERMISSION_ACTIONS: dict[str, Action] = {
         delete=Action.USERS_MANAGE,
     ),
     **_model_permissions("core.invitation", view=Action.USERS_MANAGE),
+    **_model_permissions("core.auditlog", view=Action.AUDIT_VIEW),
     **_model_permissions(
         "core.userrole",
         view=Action.USERS_MANAGE,

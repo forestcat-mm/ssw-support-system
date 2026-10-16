@@ -1,4 +1,4 @@
-"""多要素認証の強制。ログイン済みでも TOTP 検証前は、許可したビュー以外に入れない。"""
+"""多要素認証の強制と、監査ログのリクエスト文脈。"""
 
 from collections.abc import Callable
 from typing import Any
@@ -8,6 +8,7 @@ from django.http import HttpRequest, HttpResponse
 from django.urls import reverse
 
 from apps.core.models import User
+from services import audit
 from services.mfa import has_confirmed_totp, is_verified
 
 
@@ -42,3 +43,14 @@ class MFARequiredMiddleware:
 def _is_exempt(view_func: Callable[..., Any]) -> bool:
     view_class = getattr(view_func, "view_class", None)
     return bool(getattr(view_func, "mfa_exempt", False) or getattr(view_class, "mfa_exempt", False))
+
+
+class AuditContextMiddleware:
+    """リクエスト中の監査ログに操作者・接続元 IP・パスを付ける。"""
+
+    def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]) -> None:
+        self.get_response = get_response
+
+    def __call__(self, request: HttpRequest) -> HttpResponse:
+        with audit.bind_request(request):
+            return self.get_response(request)

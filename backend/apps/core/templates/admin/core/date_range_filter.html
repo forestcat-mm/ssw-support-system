@@ -1,0 +1,12 @@
+{% load i18n %}
+<details data-filter-title="{{ title }}" open>
+  <summary>{% blocktranslate with filter_title=title %} By {{ filter_title }} {% endblocktranslate %}</summary>
+  {% for choice in choices %}
+  <form method="get" style="padding: 0 15px 10px;">
+    {% for key, value in choice.hidden %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endfor %}
+    <label>{% translate "From" %}<br><input type="date" name="{{ choice.since_name }}" value="{{ choice.since_value }}"></label><br>
+    <label>{% translate "To" %}<br><input type="date" name="{{ choice.until_name }}" value="{{ choice.until_value }}"></label><br>
+    <input type="submit" value="{% translate 'Filter' %}">
+  </form>
+  {% endfor %}
+</details>

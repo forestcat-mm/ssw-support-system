@@ -46,6 +46,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django_otp.middleware.OTPMiddleware",
     "apps.core.middleware.MFARequiredMiddleware",
+    "apps.core.middleware.AuditContextMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "axes.middleware.AxesMiddleware",
@@ -104,9 +105,13 @@ AXES_COOLOFF_TIME = timedelta(minutes=env.int("AUTH_LOCKOUT_MINUTES", default=30
 AXES_LOCKOUT_PARAMETERS = ["username"]
 AXES_RESET_ON_SUCCESS = True
 AXES_LOCKOUT_TEMPLATE = "accounts/locked.html"
+AXES_CLIENT_IP_CALLABLE = "services.client_ip.client_ip"  # 監査ログと同じ取り方
 # axes.W006（IP をロック条件に含めない警告）は方針どおりのため抑止する。
 # 本番で接続元 IP（CF-Connecting-IP）を取れるようにした時点で IP 条件の追加を判断する（本番準備）。
 SILENCED_SYSTEM_CHECKS = ["axes.W006"]
+
+# 接続元 IP（監査ログ・ロック）。Cloudflare Tunnel 経由でしか届かない本番でだけ true にする。
+TRUST_CF_CONNECTING_IP: bool = env.bool("TRUST_CF_CONNECTING_IP", default=False)
 
 # 無操作でのセッション失効（第8章）。リクエストのたびに期限を延ばす。
 SESSION_COOKIE_AGE: int = env.int("SESSION_IDLE_TIMEOUT_MINUTES", default=30) * 60

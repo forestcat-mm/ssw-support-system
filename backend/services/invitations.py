@@ -14,7 +14,8 @@ from django.db import transaction
 from django.template.loader import render_to_string
 from django.utils import timezone
 
-from apps.core.models import Invitation, Role, Staff, User, UserRole
+from apps.core.models import AuditAction, Invitation, Role, Staff, User, UserRole
+from services import audit
 from services.organization import organization_display_name
 
 INVITATION_TTL = timedelta(hours=72)
@@ -43,24 +44,36 @@ def invite_user(
     by: User | None,
     build_url: UrlBuilder,
 ) -> Invitation:
-    """未保存の User（氏名・メール等を入力済み）を、パスワード未設定のまま作成して招待する。"""
-    user.set_unusable_password()
-    user.save()
-    UserRole.objects.bulk_create(
-        UserRole(user=user, role=role, created_by=by, updated_by=by) for role in roles
-    )
-    if staff is not None:
-        staff.user = user
-        staff.updated_by = by
-        staff.save(update_fields=["user", "updated_by", "updated_at"])
-    return _issue(user, by=by, build_url=build_url)
+    """未保存の User（氏名・メール等を入力済み）を、パスワード未設定のまま作成して招待する。
+
+    監査ログは「招待」1 件にまとめ、ユーザーの作成内容・ロール・紐づけた Staff を含める。
+    """
+    roles = list(roles)
+    with audit.event(AuditAction.INVITE, target=user, actor=by) as event:
+        user.set_unusable_password()
+        user.save()
+        UserRole.objects.bulk_create(
+            UserRole(user=user, role=role, created_by=by, updated_by=by) for role in roles
+        )
+        event.changes["roles"] = [[], sorted(role.code for role in roles)]
+        if staff is not None:
+            staff.user = user
+            staff.updated_by = by
+            staff.save(update_fields=["user", "updated_by", "updated_at"])
+            event.context["linked_staff"] = {"id": staff.pk, "name": str(staff)}
+        invitation = _issue(user, by=by, build_url=build_url)
+        event.context["expires_at"] = invitation.expires_at
+    return invitation
 
 
 @transaction.atomic
 def resend_invitation(user: User, *, by: User | None, build_url: UrlBuilder) -> Invitation:
     """未受諾の招待を取り消して、新しいリンクを送る。"""
-    revoke_pending_invitations(user)
-    return _issue(user, by=by, build_url=build_url)
+    with audit.event(AuditAction.INVITE, target=user, actor=by, context={"resend": True}) as event:
+        event.context["revoked_invitations"] = revoke_pending_invitations(user)
+        invitation = _issue(user, by=by, build_url=build_url)
+        event.context["expires_at"] = invitation.expires_at
+    return invitation
 
 
 def revoke_pending_invitations(user: User) -> int:
@@ -88,10 +101,12 @@ def find_valid_invitation(token: str) -> Invitation | None:
 def accept_invitation(invitation: Invitation, password: str) -> User:
     user = invitation.user
     validate_password(password, user)
-    user.set_password(password)
-    user.save(update_fields=["password"])
-    invitation.accepted_at = timezone.now()
-    invitation.save(update_fields=["accepted_at", "updated_at"])
+    # 本人がリンクから設定する（ログイン前のため操作者を明示する）。パスワードは "***" で記録される
+    with audit.event(AuditAction.UPDATE, target=user, actor=user, context={"via": "invitation"}):
+        user.set_password(password)
+        user.save(update_fields=["password"])
+        invitation.accepted_at = timezone.now()
+        invitation.save(update_fields=["accepted_at", "updated_at"])
     return user
 
 
@@ -126,5 +141,4 @@ def _issue(user: User, *, by: User | None, build_url: UrlBuilder) -> Invitation:
     subject = render_to_string("accounts/email/invitation_subject.txt", context).strip()
     body = render_to_string("accounts/email/invitation_body.txt", context)
     send_mail(subject, body, None, [user.email])
-    # TODO(T05): 監査ログに「ユーザー招待」（対象・実行者）を記録する
     return invitation

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 14:54+0900\n"
+"POT-Creation-Date: 2026-10-16 16:19+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -60,6 +60,21 @@ msgstr "招待を送信しました: %(count)d 件"
 msgid "Reset two-factor authentication of selected users"
 msgstr "選択したユーザーの多要素認証をリセット"
 
+msgid "file"
+msgstr "ファイル"
+
+msgid "changes"
+msgstr "変更内容"
+
+msgid "field"
+msgstr "項目"
+
+msgid "before"
+msgstr "変更前"
+
+msgid "after"
+msgstr "変更後"
+
 msgid "Support organization management"
 msgstr "登録支援機関 業務管理"
 
@@ -113,9 +128,6 @@ msgstr "食品産業特定技能協議会 構成員証明書"
 
 msgid "kind"
 msgstr "種別"
-
-msgid "file"
-msgstr "ファイル"
 
 msgid "original filename"
 msgstr "元のファイル名"
@@ -243,6 +255,9 @@ msgstr "自機関・事務所・担当者の閲覧"
 msgid "edit organization, offices and staff"
 msgstr "自機関・事務所・担当者の登録・編集"
 
+msgid "view audit logs"
+msgstr "監査ログの閲覧"
+
 msgid "all data"
 msgstr "すべてのデータ"
 
@@ -293,6 +308,66 @@ msgstr "取消日時"
 
 msgid "invitations"
 msgstr "招待"
+
+msgid "view"
+msgstr "閲覧"
+
+msgid "create"
+msgstr "作成"
+
+msgid "update"
+msgstr "更新"
+
+msgid "delete"
+msgstr "削除"
+
+msgid "export"
+msgstr "エクスポート"
+
+msgid "generate document"
+msgstr "帳票生成"
+
+msgid "download"
+msgstr "ダウンロード"
+
+msgid "invite user"
+msgstr "ユーザー招待"
+
+msgid "deactivate user"
+msgstr "ユーザー無効化"
+
+msgid "reactivate user"
+msgstr "ユーザー再有効化"
+
+msgid "reset two-factor authentication"
+msgstr "多要素認証のリセット"
+
+msgid "occurred at"
+msgstr "日時"
+
+msgid "actor"
+msgstr "操作者"
+
+msgid "actor username"
+msgstr "操作者のユーザー名"
+
+msgid "target"
+msgstr "対象"
+
+msgid "context"
+msgstr "補足情報"
+
+msgid "IP address"
+msgstr "接続元 IP"
+
+msgid "path"
+msgstr "パス"
+
+msgid "audit log"
+msgstr "監査ログ"
+
+msgid "audit logs"
+msgstr "監査ログ"
 
 #, python-format
 msgid ""
@@ -411,6 +486,19 @@ msgstr "新しく作り直すと、今あるコードはすべて使えなくな
 
 msgid "Generate new recovery codes"
 msgstr "回復用コードを作り直す"
+
+#, python-format
+msgid " By %(filter_title)s "
+msgstr " %(filter_title)s で絞り込む "
+
+msgid "From"
+msgstr "開始日"
+
+msgid "To"
+msgstr "終了日"
+
+msgid "Filter"
+msgstr "絞り込む"
 
 msgid "The code is incorrect. Check the time on your device."
 msgstr "コードが正しくありません。端末の時刻がずれていないか確認してください。"

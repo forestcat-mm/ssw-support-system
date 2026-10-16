@@ -1,9 +1,15 @@
-"""自機関側のマスタ（仕様書第7章 organization / users / offices / staff / attachments）。"""
+"""自機関側のマスタと監査ログ。
+
+仕様書第7章 organization / users / offices / staff / attachments / audit_logs。
+"""
+
+from typing import Any
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
@@ -243,6 +249,7 @@ class Action(models.TextChoices):
     USERS_MANAGE = "users.manage", _("manage users, roles, invitations and MFA")
     ORGANIZATION_VIEW = "organization.view", _("view organization, offices and staff")
     ORGANIZATION_MANAGE = "organization.manage", _("edit organization, offices and staff")
+    AUDIT_VIEW = "audit.view", _("view audit logs")
 
 
 class DataScope(models.TextChoices):
@@ -382,3 +389,88 @@ class Invitation(TrackedModel):
 
     def __str__(self) -> str:
         return f"{self.user}: {self.created_at:%Y-%m-%d %H:%M}"
+
+
+class AuditAction(models.TextChoices):
+    VIEW = "view", _("view")
+    CREATE = "create", _("create")
+    UPDATE = "update", _("update")
+    DELETE = "delete", _("delete")
+    EXPORT = "export", _("export")
+    GENERATE = "generate", _("generate document")
+    DOWNLOAD = "download", _("download")
+    INVITE = "invite", _("invite user")
+    DEACTIVATE = "deactivate", _("deactivate user")
+    REACTIVATE = "reactivate", _("reactivate user")
+    MFA_RESET = "mfa_reset", _("reset two-factor authentication")
+
+
+class AppendOnlyError(Exception):
+    """監査ログは追記専用で、更新・削除できない。"""
+
+
+class AuditLogQuerySet(models.QuerySet["AuditLog"]):
+    def update(self, **kwargs: object) -> int:
+        raise AppendOnlyError("audit logs cannot be updated")
+
+    def delete(self) -> tuple[int, dict[str, int]]:
+        raise AppendOnlyError("audit logs cannot be deleted")
+
+
+class AuditLog(models.Model):
+    """監査ログ（第8章）。追記専用（モデルと DB トリガーで更新・削除を禁止）。
+
+    TrackedModel は継承しない（ADR-0002）。作成日時・作成者は occurred_at・actor が担う。
+    記録は services.audit から行う。
+    """
+
+    occurred_at = models.DateTimeField(_("occurred at"), default=timezone.now, db_index=True)
+    actor = models.ForeignKey(
+        User,
+        verbose_name=_("actor"),
+        on_delete=models.PROTECT,
+        related_name="+",
+        null=True,
+        blank=True,
+    )
+    actor_username = models.CharField(_("actor username"), max_length=150, blank=True)
+    action = models.CharField(_("action"), max_length=32, choices=AuditAction.choices)
+    content_type = models.ForeignKey(
+        ContentType,
+        verbose_name=_("target type"),
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+    )
+    object_id = models.CharField(_("target ID"), max_length=64, blank=True)
+    object_repr = models.CharField(_("target"), max_length=255, blank=True)
+    target = GenericForeignKey("content_type", "object_id")
+    changes = models.JSONField(_("changes"), default=dict, blank=True, encoder=DjangoJSONEncoder)
+    context = models.JSONField(_("context"), default=dict, blank=True, encoder=DjangoJSONEncoder)
+    ip_address = models.GenericIPAddressField(_("IP address"), null=True, blank=True)
+    path = models.CharField(_("path"), max_length=255, blank=True)
+
+    objects = AuditLogQuerySet.as_manager()
+
+    class Meta:
+        verbose_name = _("audit log")
+        verbose_name_plural = _("audit logs")
+        ordering = ["-occurred_at", "-id"]
+        indexes = [
+            models.Index(fields=["content_type", "object_id"]),
+            models.Index(fields=["actor", "occurred_at"]),
+            models.Index(fields=["action", "occurred_at"]),
+        ]
+
+    def __str__(self) -> str:
+        return (
+            f"{self.occurred_at:%Y-%m-%d %H:%M:%S} {self.get_action_display()} {self.object_repr}"
+        )
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        if not self._state.adding:
+            raise AppendOnlyError("audit logs cannot be updated")
+        super().save(*args, **kwargs)
+
+    def delete(self, *args: Any, **kwargs: Any) -> tuple[int, dict[str, int]]:
+        raise AppendOnlyError("audit logs cannot be deleted")
