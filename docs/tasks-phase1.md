@@ -8,9 +8,9 @@
 | T01 | Django プロジェクト + Docker Compose（web / db / redis / mailpit）+ `.env.example` + Makefile | 第10章 | `make up` → admin にログインできる |
 | T02 | ruff / mypy / pytest の設定と空テスト、`make lint` `make test` | 第10章 | 両方グリーン |
 | T03 | `core`: カスタム User（AbstractUser のみ）, 共通列（作成/更新日時・者）, Organization（1行。自社名・登録番号・ロゴ・食品協議会加入日）, Office, Staff, SupportLanguage（支援言語選択肢）, Attachment（django-storages 経由、種別ごとの拡張子・サイズ制限）、UI 文言の ja リソース | 第6章, 第7章, 第9章 | admin で登録できる。Organization は1行制約 |
-| T04 | `core`: User（T03 で作成済み）の拡張、UserRole（管理者・支援担当者。行で追加できる構造）、TOTP 多要素認証、招待・無効化（ユーザーは削除せず `is_active` で無効化。作成者・更新者の参照が PROTECT のため） | 第4章, 第8章 | 2 ロールでログイン・権限差を確認 |
-| T05 | `core`: AuditLog（閲覧・作成・更新・削除・エクスポートを記録するミドルウェア＋ヘルパ）、添付ファイルのダウンロードビュー（認可・監査付き。公開 URL は作らない） | 第8章 | 外国人詳細の閲覧・添付のダウンロードがログに残る |
-| T06 | 暗号化フィールド（在留カード番号・パスポート番号・口座）。鍵は環境変数 | 第8章 | DB 直接参照で平文が見えない |
+| T04 | `core`: User（T03 で作成済み）の拡張、UserRole（管理者・支援担当者。行で追加できる構造）、TOTP 多要素認証、招待・無効化（ユーザーは削除せず `is_active` で無効化。作成者・更新者の参照が PROTECT のため）。T04a 権限判定・無効化／T04b TOTP・回復用コード・ロック・セッション／T04c 招待の 3 コミット | 第4章, 第8章 | 2 ロールでログイン・権限差を確認 |
+| T05 | `core`: AuditLog（閲覧・作成・更新・削除・エクスポートを記録するミドルウェア＋ヘルパ）、添付ファイルのダウンロードビュー（認可・監査付き。公開 URL は作らない）。T04 の `TODO(T05)` を解消: MFA リセット（管理者のアクション・管理コマンド `reset_mfa` の両方）、ユーザー無効化・再有効化、招待を必ず記録 | 第8章 | 外国人詳細の閲覧・添付のダウンロードがログに残る。MFA リセット（画面・コマンド）が記録される。無効化したユーザーの監査ログが残る |
+| T06 | 暗号化フィールド（在留カード番号・パスポート番号・口座）。鍵は環境変数。あわせて django-otp の TOTP 秘密鍵（`otp_totp_totpdevice.key`、現在は平文）を暗号化できるか検討し結果を報告 | 第8章 | DB 直接参照で平文が見えない |
 | T07 | `workers`: ForeignWorker, ResidenceRecord（履歴）, WorkerAddress / Contact（履歴）、「最新行」ビュー | 第7章 | 在留期限を更新すると新行が増え、最新が一覧に出る |
 | T08 | `hosts`: HostOrganization, HostSite（産業分類コード・分野・登録法人/協議会加入日・証明書添付）, SupportContract | 第6章「上乗せ要件」, 第7章 | 2社・各1事業所を登録できる |
 | T09 | `contracts`: EmploymentContract（版管理：変更は新版、`version` と `change_reason`） | 第7章 | 報酬変更で版が増え、差分が取れる |
@@ -19,7 +19,7 @@
 | T12 | 管理コマンド `seed_dummy`: 受入れ機関2社（工業製品製造業・飲食料品製造業）、外国人30人（中国籍中心、在留期限・入国日をばらす）、契約、面談予定 | 第11章 | 何度実行しても同じ件数で再現 |
 | T13 | 画面: 外国人一覧（検索・絞込）／詳細／編集、受入れ機関一覧／詳細 | 第5章 F01/F02 | ダミー30人を一覧から辿れる |
 | T14 | 画面: 期限ダッシュボード（担当者別、7日/14日/超過の3色、種別フィルタ） | 第5章 F06 | ダミーデータで赤・黄・緑が出る |
-| T15 | README（起動・テスト・ダミー投入の手順）と ADR テンプレート | — | 新しい PC で README どおりに起動できる |
+| T15 | README（起動・テスト・ダミー投入の手順）と ADR テンプレート。運用手順も書く: 退職時は「ユーザー無効化」と「Staff の is_active オフ」の両方を行う（連動しない）／管理者は 2 人以上置く／端末紛失時（回復用コード → 管理者の MFA リセット → 最後の手段 `reset_mfa`）／ロック解除（admin のアクセス試行の削除） | — | 新しい PC で README どおりに起動できる |
 
 ## 本番準備（本番サーバー決定時、`docker-compose.prod.yml` 作成と同時に対応）
 - [ ] `docker-compose.prod.yml` を作成する（`./:/app` マウントの解除、`runserver` → gunicorn）
@@ -31,6 +31,7 @@
   - W018 `DJANGO_DEBUG=false`
   - W009 本番の `DJANGO_SECRET_KEY` を生成値にする（手元でダミー値のまま起動すると出る）
 - [ ] 本番イメージは `uv sync --frozen --no-dev` でビルドし、ruff / mypy / pytest などの開発用依存を入れない
+- [ ] django-axes が接続元 IP を `CF-Connecting-IP` から取るよう設定し、ユーザー名単位のロックに IP 単位の条件（パスワードスプレー対策）を加えるか判断する。判断後に `SILENCED_SYSTEM_CHECKS` の `axes.W006` を見直す
 - [ ] ファイル保存を S3 互換ストレージにする（`DJANGO_STORAGE_BACKEND=storages.backends.s3.S3Storage` と `DJANGO_STORAGE_OPTIONS`。非公開バケット・署名付き URL・上書き禁止を実ストレージで確認）
 - [ ] 本番の DB はアプリ専用ユーザー（スーパーユーザー権限・CREATEDB なし）で接続する。テスト用 DB の作成権限は開発環境だけにする
 - 完了条件: 本番用の環境変数で `check --deploy` の警告が 0 件。本番イメージに開発用依存が無く、アプリの DB ユーザーが SUPERUSER / CREATEDB を持たない。添付のアップロード・ダウンロードが S3 互換ストレージで動く

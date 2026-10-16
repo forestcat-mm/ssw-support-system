@@ -75,6 +75,7 @@
 ```
 make up        # docker compose up -d
 make migrate   # python manage.py migrate
+make admin     # 管理者ロールのユーザーを作る（superuser は使わない）
 make seed      # python manage.py seed_dummy  （外国人30人・受入れ機関2社）
 make test      # pytest
 make lint      # ruff check . && ruff format --check . && mypy .
