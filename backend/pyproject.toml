@@ -13,6 +13,7 @@ dependencies = [
     "django-stubs-ext==5.2.9",
     "django-otp==1.7.4",
     "django-storages[s3]==1.14.6",
+    "jpholiday==1.0.3",
     "psycopg[binary]==3.3.6",
     "qrcode==8.2",
 ]
