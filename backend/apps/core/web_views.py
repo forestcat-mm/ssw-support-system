@@ -1,6 +1,5 @@
 """業務画面の共通の画面（トップ・部品の見本）。"""
 
-from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Any
 
@@ -21,59 +20,6 @@ class HomeView(ActionRequiredMixin, TemplateView):
 
     template_name = "ui/home.html"
 
-
-@dataclass(frozen=True)
-class DesignSet:
-    """見本の画面で見比べるデザインのセット（T13a。1 つに決めたら不採用のセットは削除する）。"""
-
-    key: str
-    name: str
-    source: str
-    stylesheet: str | None  # tokens.css の後ろに重ねるファイル（A は tokens.css そのもの）
-    summary: Any  # 遅延翻訳の文字列
-
-
-DESIGN_SETS = [
-    DesignSet(
-        "a",
-        "Aboard",
-        "",
-        None,
-        gettext_lazy("Neutral canvas, Signal Blue for primary actions only, pastel statuses."),
-    ),
-    DesignSet(
-        "b",
-        "ElevenLabs",
-        "https://styles.refero.design/style/031056ff-7af1-46db-8daa-115f731c5d26",
-        "ui/tokens-b.css",
-        gettext_lazy("Three warm surfaces, black pill buttons, no colored buttons."),
-    ),
-    DesignSet(
-        "c",
-        "Workable",
-        "https://styles.refero.design/style/0ab4c544-6147-4998-8365-3a0f6191e54f",
-        "ui/tokens-c.css",
-        gettext_lazy("White cards on a warm canvas, Forest Teal for primary actions, no shadows."),
-    ),
-    DesignSet(
-        "d",
-        "Officevibe",
-        "https://styles.refero.design/style/ced1c98f-d489-48f7-a01f-1fa59a07b706",
-        "ui/tokens-d.css",
-        gettext_lazy(
-            "Navy navigation and primary buttons, cobalt for focus and links, cream lines."
-        ),
-    ),
-    DesignSet(
-        "e",
-        "Glide",
-        "https://styles.refero.design/style/a80cb179-2d90-4896-b52d-4e674b421498",
-        "ui/tokens-e.css",
-        gettext_lazy(
-            "Three gray surfaces, black structural lines, teal for focus only, 6px corners."
-        ),
-    ),
-]
 
 # 色見本に出す役割（値はページの CSS 変数から読むので、どのセットでも同じ一覧で済む）
 SWATCHES = [
@@ -206,20 +152,13 @@ def sample_rows(today: date) -> list[dict[str, Any]]:
 
 
 class UiShowcaseView(ActionRequiredMixin, TemplateView):
-    """部品の見本（管理者のみ）。デザインの確認と、部品を足すときの見本に使う。
-
-    ?theme=b〜e で比較セットのトークンを重ねる（T13a。この画面だけに当たり、admin には当てない）。
-    """
+    """部品の見本（管理者のみ）。デザインの確認と、部品を足すときの見本に使う。"""
 
     template_name = "ui/showcase.html"
     required_action = Action.SYSTEM_MANAGE
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        sets = {design_set.key: design_set for design_set in DESIGN_SETS}
-        context["design_sets"] = DESIGN_SETS
-        context["design_set"] = sets.get(self.request.GET.get("theme", ""), DESIGN_SETS[0])
-
         today = timezone.localdate()
         context["deadlines"] = [
             (_("overdue"), deadlines.residence_expiry(today - timedelta(days=5)), _("fill")),

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 21:16+0900\n"
+"POT-Creation-Date: 2026-10-16 21:25+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -1166,22 +1166,6 @@ msgid ""
 "can open this page."
 msgstr "業務画面のデザイントークンと部品の見本です。管理者だけが開けます。"
 
-msgid "Design comparison"
-msgstr "デザインの比較"
-
-msgid "Design sets"
-msgstr "デザインのセット"
-
-msgid "source"
-msgstr "出典"
-
-msgid ""
-"The set applies only to this page. After choosing one, replace tokens.css "
-"with the chosen file and delete the others."
-msgstr ""
-"切り替えはこの画面だけに当たります。1 つに決めたら、選んだファイルで tokens."
-"css を置き換え、ほかのセットは削除します。"
-
 msgid "Colors"
 msgstr "色"
 
@@ -1365,26 +1349,6 @@ msgstr "回復用コードでログインしました。残りは %(count)d 個�
 
 msgid "The code is incorrect."
 msgstr "コードが正しくありません。"
-
-msgid "Neutral canvas, Signal Blue for primary actions only, pastel statuses."
-msgstr "無彩色のキャンバス。Signal Blue は主要操作だけ。状態はパステル。"
-
-msgid "Three warm surfaces, black pill buttons, no colored buttons."
-msgstr "暖かい 3 段の面。黒いピル型のボタン。色付きボタンなし。"
-
-msgid ""
-"White cards on a warm canvas, Forest Teal for primary actions, no shadows."
-msgstr "暖かいキャンバスに白いカード。主要操作は Forest Teal。影なし。"
-
-msgid ""
-"Navy navigation and primary buttons, cobalt for focus and links, cream lines."
-msgstr "ナビと主要ボタンは濃紺。フォーカスとリンクはコバルト。罫線はクリーム。"
-
-msgid ""
-"Three gray surfaces, black structural lines, teal for focus only, 6px "
-"corners."
-msgstr ""
-"グレーの 3 段の面。構造の区切りは黒。ティールはフォーカスだけ。角丸 6px。"
 
 msgid "page background"
 msgstr "ページの背景"

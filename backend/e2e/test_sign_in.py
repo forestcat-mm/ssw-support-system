@@ -1,6 +1,5 @@
 """通しのテスト 1: ログイン → MFA → 業務画面のトップ（T13b で外国人一覧まで確かめる）。"""
 
-import pytest
 from playwright.sync_api import Page, expect
 
 from apps.core.models import User
@@ -25,27 +24,15 @@ def test_admin_sees_ui_components(page: Page, sign_in: SignIn, administrator: Us
     expect(page.locator('[data-level="overdue"]').first).to_be_visible()
 
 
-# 比較セットごとの主要ボタンの塗り（tokens.css / tokens-b.css〜tokens-e.css）
-PRIMARY_BUTTON = {
-    "a": "rgb(0, 138, 232)",
-    "b": "rgb(0, 0, 0)",
-    "c": "rgb(0, 64, 56)",
-    "d": "rgb(12, 23, 84)",
-    "e": "rgb(0, 0, 0)",
-}
-
-
-@pytest.mark.parametrize("theme", sorted(PRIMARY_BUTTON))
-def test_design_sets_switch_and_fit_phone_width(
-    page: Page, sign_in: SignIn, administrator: User, theme: str
-) -> None:
+def test_ui_components_fit_phone_width(page: Page, sign_in: SignIn, administrator: User) -> None:
     # 第9章「レスポンシブ」: スマートフォンの幅でページが横にはみ出さない（表は表の中で送る）
     page.set_viewport_size({"width": 390, "height": 844})
     sign_in(administrator)
-    page.goto(page.url.rstrip("/") + f"/ui/?theme={theme}")
+    page.goto(page.url.rstrip("/") + "/ui/")
     expect(page.get_by_role("heading", level=1)).to_have_text("部品の見本")
+    # 採用したデザイン（D: Officevibe）の主要ボタンは濃紺
     expect(page.locator("#sample-list .button--primary")).to_have_css(
-        "background-color", PRIMARY_BUTTON[theme]
+        "background-color", "rgb(12, 23, 84)"
     )
     expect(page.locator('[data-token="--color-canvas"]')).not_to_be_empty()
     assert page.evaluate("document.documentElement.scrollWidth") <= 390

@@ -1,6 +1,5 @@
-{% extends "ui/base.html" %}{% load i18n static ui %}
+{% extends "ui/base.html" %}{% load i18n ui %}
 {% block title %}{% translate "UI components" %}{% endblock %}
-{% block tokens %}{% if design_set.stylesheet %}<link rel="stylesheet" href="{% static design_set.stylesheet %}">{% endif %}{% endblock %}
 {% block heading %}{% translate "UI components" %}{% endblock %}
 {% block actions %}
   <a class="button button--neutral" href="#tokens">{% translate "Back" %}</a>
@@ -10,17 +9,6 @@
 {% block content %}
 <div class="stack">
   <p class="muted">{% translate "Design tokens and components of the business screens. Only administrators can open this page." %}</p>
-
-  <section class="card" id="design-sets">
-    <div class="card__header"><h2 class="card__title">{% translate "Design comparison" %}</h2></div>
-    <nav class="tabs" aria-label="{% translate 'Design sets' %}">
-      {% for item in design_sets %}
-        <a class="tabs__link" href="?theme={{ item.key }}"{% if item.key == design_set.key %} aria-current="page"{% endif %}>{{ item.key|upper }} {{ item.name }}</a>
-      {% endfor %}
-    </nav>
-    <p data-design-set="{{ design_set.key }}">{{ design_set.summary }}{% if design_set.source %} <a class="caption" href="{{ design_set.source }}" rel="noreferrer">{% translate "source" %}</a>{% endif %}</p>
-    <p class="caption">{% translate "The set applies only to this page. After choosing one, replace tokens.css with the chosen file and delete the others." %}</p>
-  </section>
 
   <section class="card" id="tokens">
     <div class="card__header"><h2 class="card__title">{% translate "Colors" %}</h2></div>

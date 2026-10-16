@@ -39,7 +39,7 @@ test:       ## テストを実行する（先に make up）
 e2e:        ## 通しのテスト（Playwright、Chromium）。初回はイメージのビルドに時間がかかる
 	$(COMPOSE) --profile e2e run --rm e2e
 
-design-shots: ## 見本画面の比較セットのスクリーンショットを docs/design/ に保存する（T13a）
+design-shots: ## 見本画面（/ui/）のスクリーンショットを docs/design/ に保存する
 	$(COMPOSE) --profile e2e run --rm -e DESIGN_SHOTS=1 e2e pytest e2e/test_design_shots.py
 
 lint:       ## 静的検査（ruff check / ruff format --check / mypy）
