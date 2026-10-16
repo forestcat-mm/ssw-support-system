@@ -427,6 +427,32 @@ a.badge:hover {
   padding: var(--space-4) var(--space-8);
 }
 
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+/* 新規登録の任意の区分（折りたたみ）。開くと入力欄が出る */
+.form-section > summary {
+  cursor: pointer;
+  list-style-position: inside;
+}
+
+.form-section > summary h2 {
+  display: inline;
+}
+
+.form-section[open] > summary {
+  margin-bottom: var(--space-16);
+}
+
+@media (max-width: 959px) {
+  .form-actions .button {
+    flex: 1 1 auto;
+  }
+}
+
 .filter-bar {
   display: flex;
   flex-wrap: wrap;

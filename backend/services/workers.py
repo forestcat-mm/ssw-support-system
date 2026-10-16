@@ -1,17 +1,32 @@
-"""外国人台帳の業務ロジック（番号の一意性・履歴の取り消し・確定値の確認・番号での検索）。"""
+"""外国人台帳の業務ロジック（入力の検査・登録・履歴の追加と取り消し・確定値の確認・番号での検索）。
+
+入力の検査は admin と業務画面（T13d）で共通。フォームは項目の型の検査だけを行い、
+業務のルール（正規化・形式・別人への同じ番号・期間・入国前のカードなし）はここで判定する。
+"""
 
 from __future__ import annotations
 
+import datetime
+from collections.abc import Iterable, Mapping
 from datetime import date
+from typing import Any
 
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Model
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.core.models import User
-from apps.workers.models import ConfirmedValue, HistoryRecord, PassportRecord, ResidenceRecord
-from services import crypto
+from apps.workers.models import (
+    ConfirmedValue,
+    ForeignWorker,
+    HistoryRecord,
+    PassportRecord,
+    ResidenceRecord,
+    WorkerStatus,
+)
+from services import crypto, passport, residence_card
 
 
 def conflicting_worker_id(
@@ -50,6 +65,103 @@ def validate_period(start: date | None, end: date | None) -> None:
     """開始日（許可日・発行日）より後に終了日（期限）があること。"""
     if start and end and end <= start:
         raise ValidationError(_("The expiry date must be after the start date."), code="period")
+
+
+def clean_residence(
+    values: Mapping[str, Any], *, worker_id: int | None, worker_status: str | None
+) -> dict[str, Any]:
+    """在留情報の入力の検査。正規化した在留カード番号を返す。エラーは項目ごとの ValidationError。
+
+    在留カード番号を空にできるのは入国前の人だけ（在留中などの登録漏れを防ぐ）。
+    """
+    errors: dict[str, list[ValidationError]] = {}
+    card_number = residence_card.normalize(str(values.get("card_number") or ""))
+    if card_number:
+        try:
+            residence_card.validate(card_number)
+            validate_number_not_taken(ResidenceRecord, card_number, worker_id)
+        except ValidationError as error:
+            errors["card_number"] = [error]
+    elif worker_status != WorkerStatus.PRE_ENTRY:
+        errors["card_number"] = [
+            ValidationError(
+                _("Enter the residence card number. Only workers before entry can leave it blank."),
+                code="card_number_required",
+            )
+        ]
+    try:
+        validate_period(values.get("permitted_on"), values.get("expires_on"))
+    except ValidationError as error:
+        errors["expires_on"] = [error]
+    if errors:
+        raise ValidationError(errors)
+    return {"card_number": card_number}
+
+
+def clean_passport(values: Mapping[str, Any], *, worker_id: int | None) -> dict[str, Any]:
+    """旅券の入力の検査。正規化した旅券番号を返す。"""
+    errors: dict[str, list[ValidationError]] = {}
+    number = passport.normalize(str(values.get("number") or ""))
+    try:
+        passport.validate(number)
+        validate_number_not_taken(PassportRecord, number, worker_id)
+    except ValidationError as error:
+        errors["number"] = [error]
+    try:
+        validate_period(values.get("issued_on"), values.get("expires_on"))
+    except ValidationError as error:
+        errors["expires_on"] = [error]
+    if errors:
+        raise ValidationError(errors)
+    return {"number": number}
+
+
+def _stamp(instance: Model, by: User | None) -> None:
+    """作成者・更新者と、確定値の最終確認者・確認日時（T07 の判断5）を入れる。"""
+    if instance.pk is None:
+        instance.created_by = by  # type: ignore[attr-defined]
+    instance.updated_by = by  # type: ignore[attr-defined]
+    confirm(instance, by=by)
+
+
+def add_record(worker: ForeignWorker, record: HistoryRecord, *, by: User | None) -> HistoryRecord:
+    """履歴行（在留・旅券・住所・連絡先）を 1 行足す。検査は呼び出し前に clean_* で済ませる。"""
+    record.worker = worker  # type: ignore[attr-defined]
+    _stamp(record, by)
+    record.save()
+    return record
+
+
+@transaction.atomic
+def register_worker(
+    worker: ForeignWorker, records: Iterable[HistoryRecord], *, by: User | None
+) -> ForeignWorker:
+    """外国人を登録し、最初の在留情報・旅券・住所・連絡先（任意）を同じトランザクションで足す。"""
+    _stamp(worker, by)
+    worker.save()
+    for record in records:
+        add_record(worker, record, by=by)
+    return worker
+
+
+def update_worker(
+    worker: ForeignWorker, *, by: User | None, loaded_updated_at: datetime.datetime | None
+) -> ForeignWorker:
+    """基本情報を保存する。編集画面を開いた後にほかの人が更新していたら上書きしない。"""
+    current = (
+        ForeignWorker.objects.filter(pk=worker.pk).values_list("updated_at", flat=True).first()
+    )
+    if loaded_updated_at is not None and current is not None and current != loaded_updated_at:
+        raise ValidationError(
+            _(
+                "Someone else updated this foreign worker after you opened this page. "
+                "Reload the page and enter your changes again."
+            ),
+            code="stale",
+        )
+    _stamp(worker, by)
+    worker.save()
+    return worker
 
 
 def void_record(record: HistoryRecord, *, by: User | None, reason: str) -> None:

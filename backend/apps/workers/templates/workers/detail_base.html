@@ -5,7 +5,7 @@
   <h1 class="person-name"><span{% if display_name_lang %} lang="{{ display_name_lang }}"{% endif %}>{{ display_name }}</span>{% if romaji %} <span class="caption">{{ romaji }}</span>{% endif %}</h1>
   <div class="cluster">{% worker_status worker.status worker.get_status_display %}</div>
 {% endblock %}
-{% block actions %}{% block worker_actions %}{# T13d: 「編集」「在留情報を追加」などのボタンをここに置く #}{% endblock %}{% endblock %}
+{% block actions %}{% block worker_actions %}{% if can_manage %}<a class="button button--neutral" href="{% url 'workers:edit' worker.pk %}">{% translate "Edit" %}</a>{% endif %}{% endblock %}{% endblock %}
 {% block content %}
 <nav class="tabs" aria-label="{% translate 'Sections' %}">
   {% for tab in tabs %}<a class="tabs__link" href="{{ tab.url }}"{% if tab.active %} aria-current="page"{% endif %}>{{ tab.label }}</a>{% endfor %}

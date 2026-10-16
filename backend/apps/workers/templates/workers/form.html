@@ -1,0 +1,19 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{{ title }} | {{ worker }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{% url 'workers:detail' worker.pk %}">← {{ worker }}</a></p>
+  <h1>{{ title }}</h1>
+{% endblock %}
+{% block content %}
+<form class="form" method="post" novalidate id="worker-form">
+  {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+  {% include "ui/components/form_errors.html" %}
+  <section class="card stack">
+    {% for field in form %}{% form_field field %}{% endfor %}
+  </section>
+  <div class="form-actions">
+    <button class="button button--primary" type="submit">{% translate "Save" %}</button>
+    <a class="button button--neutral" href="{% url 'workers:detail' worker.pk %}">{% translate "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

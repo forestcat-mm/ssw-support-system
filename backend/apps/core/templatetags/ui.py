@@ -107,3 +107,15 @@ STATUS_CLASSES = {
 def worker_status(status: str, label: str, deactivated: bool = False) -> dict[str, Any]:
     css = "status--deactivated" if deactivated else STATUS_CLASSES.get(status, "")
     return {"css": css, "label": label}
+
+
+@register.inclusion_tag("ui/components/form_field.html")
+def form_field(bound: Any) -> dict[str, Any]:
+    """入力欄 1 つ（ラベル・必須の印・入力欄・補足・項目のエラー）。"""
+    if bound.errors:
+        described = f"{bound.auto_id}-error"
+        bound.field.widget.attrs["aria-invalid"] = "true"
+        bound.field.widget.attrs["aria-describedby"] = described
+    elif bound.help_text:
+        bound.field.widget.attrs["aria-describedby"] = f"{bound.auto_id}-help"
+    return {"field": bound}

@@ -1,0 +1,29 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Register a foreign worker" %}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{% url 'workers:list' %}">← {% translate "Back to list" %}</a></p>
+  <h1>{% translate "Register a foreign worker" %}</h1>
+{% endblock %}
+{% block content %}
+<form class="form" method="post" novalidate id="worker-register">
+  {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+  {% include "ui/components/form_errors.html" %}
+  <section class="card stack">
+    <h2>{% translate "Basic information" %}</h2>
+    {% for field in form %}{% form_field field %}{% endfor %}
+  </section>
+  {% for key, label, section in sections %}
+    <details class="card form-section" id="section-{{ key }}"{% if section.is_bound and section.has_changed or section.errors %} open{% endif %}>
+      <summary><h2>{{ label }}</h2></summary>
+      <div class="stack">
+        {% include "ui/components/form_errors.html" with form=section %}
+        {% for field in section %}{% form_field field %}{% endfor %}
+      </div>
+    </details>
+  {% endfor %}
+  <div class="form-actions">
+    <button class="button button--primary" type="submit">{% translate "Register" %}</button>
+    <a class="button button--neutral" href="{% url 'workers:list' %}">{% translate "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

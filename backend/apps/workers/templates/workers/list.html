@@ -3,6 +3,7 @@
 {% block heading %}{% translate "Foreign workers" %}{% endblock %}
 {% block actions %}
   {% for level, count in level_counts %}{% level_count_badge level count %}{% endfor %}
+  {% if can_manage %}<a class="button button--primary" href="{% url 'workers:create' %}">{% translate "Register" %}</a>{% endif %}
 {% endblock %}
 {% block content %}
 <form class="filter-bar" role="search" method="get">

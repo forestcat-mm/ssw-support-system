@@ -3,20 +3,45 @@
 from dataclasses import dataclass
 from typing import Any
 
-from django.core.exceptions import PermissionDenied
-from django.http import HttpRequest, HttpResponseBase
-from django.shortcuts import get_object_or_404
+from django.contrib import messages
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.http import Http404, HttpRequest, HttpResponse, HttpResponseBase
+from django.shortcuts import get_object_or_404, redirect
+from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
+from django.views import View
 from django.views.generic import TemplateView
 
 from apps.core.models import Action, User
 from apps.core.permissions import ActionRequiredMixin
-from apps.workers.forms import WorkerListForm
-from apps.workers.models import ForeignWorker
-from services import audit, authorization, contracts, deadlines, worker_detail, worker_list
+from apps.core.web_forms import consume_once_token, once_context
+from apps.workers.forms import (
+    RECORD_FORMS,
+    HistoryRecordForm,
+    VoidForm,
+    WorkerForm,
+    WorkerListForm,
+    apply_service_errors,
+)
+from apps.workers.models import (
+    ForeignWorker,
+    PassportRecord,
+    ResidenceRecord,
+    WorkerAddress,
+    WorkerContact,
+)
+from services import (
+    audit,
+    authorization,
+    contracts,
+    deadlines,
+    worker_detail,
+    worker_list,
+    workers,
+)
 
 # 一覧の検索・絞り込みの条件（「一覧へ戻る」で同じ条件に戻すため）
 LIST_QUERY_SESSION_KEY = "workers_list_query"
@@ -55,6 +80,7 @@ class WorkerListView(ActionRequiredMixin, TemplateView):
                 if counts[level]
             ],
             filtered=any(value for key, value in self.request.GET.items() if key != "order"),
+            can_manage=authorization.has_action(user, Action.WORKERS_MANAGE),
         )
         return context
 
@@ -120,6 +146,7 @@ class WorkerDetailView(ActionRequiredMixin, TemplateView):
                 if tab.action is None or authorization.has_action(user, tab.action)
             ],
             back_url=reverse("workers:list") + (f"?{list_query}" if list_query else ""),
+            can_manage=authorization.has_action(user, Action.WORKERS_MANAGE),
         )
         shown = self.tab_context(context)
         audit.record_view(self.worker, context={"tab": self.tab, **shown})
@@ -182,3 +209,196 @@ class WorkerHistoryView(WorkerDetailView):
         for entry in entries:
             shown.setdefault(entry.kind, []).append(entry.record.pk)
         return {"shown": shown}
+
+
+# --- 登録・編集（T13d）。権限は workers.manage。監査ログは保存のシグナルで残る ---
+
+
+def _actor(request: HttpRequest) -> User:
+    assert isinstance(request.user, User)
+    return request.user
+
+
+RECORD_TITLES = {
+    "residence": _("Add residence record"),
+    "passport": _("Add passport"),
+    "address": _("Add address"),
+    "contact": _("Add contact"),
+}
+REGISTER_SECTIONS = [
+    ("residence", _("Residence (optional)")),
+    ("passport", _("Passport (optional)")),
+    ("address", _("Address (optional)")),
+    ("contact", _("Contact (optional)")),
+]
+RECORD_MODELS: dict[str, type[Any]] = {
+    "residence": ResidenceRecord,
+    "passport": PassportRecord,
+    "address": WorkerAddress,
+    "contact": WorkerContact,
+}
+
+
+class WorkerFormView(ActionRequiredMixin, View):
+    """登録・編集の画面の共通部分（二重送信の防止と、表示）。"""
+
+    required_action = Action.WORKERS_MANAGE
+    template_name = ""
+
+    def render(self, request: HttpRequest, **context: Any) -> HttpResponse:
+        return TemplateResponse(request, self.template_name, {**context, **once_context(request)})
+
+    def already_submitted(self, request: HttpRequest, redirect_to: str) -> HttpResponse:
+        messages.info(request, _("This form has already been submitted."))
+        return redirect(redirect_to)
+
+    def worker(self, request: HttpRequest, pk: int) -> ForeignWorker:
+        queryset = authorization.scope(request.user, ForeignWorker.objects.all())
+        return get_object_or_404(queryset, pk=pk)
+
+
+class WorkerCreateView(WorkerFormView):
+    """新規登録。基本情報と、任意で最初の在留情報・旅券・住所・連絡先を 1 画面で入れる。"""
+
+    template_name = "workers/register.html"
+
+    def forms(
+        self, data: Any = None
+    ) -> tuple[WorkerForm, list[tuple[str, Any, HistoryRecordForm]]]:
+        status = data.get("status") if data is not None else None
+        sections = [
+            (
+                key,
+                label,
+                RECORD_FORMS[key](
+                    data,
+                    prefix=key,
+                    empty_permitted=True,
+                    use_required_attribute=False,
+                    worker_status=status,
+                ),
+            )
+            for key, label in REGISTER_SECTIONS
+        ]
+        return WorkerForm(data), sections
+
+    def get(self, request: HttpRequest) -> HttpResponse:
+        form, sections = self.forms()
+        return self.render(request, form=form, sections=sections)
+
+    def post(self, request: HttpRequest) -> HttpResponse:
+        if not consume_once_token(request):
+            return self.already_submitted(request, reverse("workers:list"))
+        form, sections = self.forms(request.POST)
+        valid = form.is_valid()
+        valid = all([section.is_valid() for _key, _label, section in sections]) and valid
+        if not valid:
+            return self.render(request, form=form, sections=sections)
+        records = [
+            section.save(commit=False)
+            for _key, _label, section in sections
+            if section.has_changed()
+        ]
+        worker = workers.register_worker(form.save(commit=False), records, by=_actor(request))
+        messages.success(request, _("Registered the foreign worker."))
+        return redirect("workers:detail", worker.pk)
+
+
+class WorkerUpdateView(WorkerFormView):
+    """基本情報の編集。開いた後にほかの人が更新していたら上書きしない。"""
+
+    template_name = "workers/form.html"
+
+    def get(self, request: HttpRequest, pk: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        return self.render(
+            request, worker=worker, form=WorkerForm(instance=worker), title=_("Edit")
+        )
+
+    def post(self, request: HttpRequest, pk: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        detail = reverse("workers:detail", args=[pk])
+        if not consume_once_token(request):
+            return self.already_submitted(request, detail)
+        form = WorkerForm(request.POST, instance=worker)
+        if form.is_valid():
+            try:
+                workers.update_worker(
+                    form.save(commit=False),
+                    by=_actor(request),
+                    loaded_updated_at=form.cleaned_data.get("loaded_updated_at"),
+                )
+            except ValidationError as error:
+                apply_service_errors(form, error)
+            else:
+                messages.success(request, _("Saved."))
+                return redirect(detail)
+        return self.render(request, worker=worker, form=form, title=_("Edit"))
+
+
+class RecordCreateView(WorkerFormView):
+    """履歴行（在留情報・旅券・住所・連絡先）の追加。1 操作 1 画面。"""
+
+    template_name = "workers/form.html"
+
+    def form(self, worker: ForeignWorker, kind: str, data: Any = None) -> HistoryRecordForm:
+        if kind not in RECORD_FORMS:
+            raise Http404
+        model: Any = RECORD_MODELS[kind]
+        instance = model(worker=worker)
+        return RECORD_FORMS[kind](data, instance=instance, worker_status=worker.status)
+
+    def get(self, request: HttpRequest, pk: int, kind: str) -> HttpResponse:
+        worker = self.worker(request, pk)
+        form = self.form(worker, kind)
+        return self.render(request, worker=worker, form=form, title=RECORD_TITLES[kind])
+
+    def post(self, request: HttpRequest, pk: int, kind: str) -> HttpResponse:
+        worker = self.worker(request, pk)
+        form = self.form(worker, kind, request.POST)
+        detail = reverse("workers:detail", args=[pk])
+        if not consume_once_token(request):
+            return self.already_submitted(request, detail)
+        if not form.is_valid():
+            return self.render(request, worker=worker, form=form, title=RECORD_TITLES[kind])
+        workers.add_record(worker, form.save(commit=False), by=_actor(request))
+        messages.success(request, _("Added: %(what)s") % {"what": RECORD_TITLES[kind]})
+        return redirect(f"{detail}#{kind}")
+
+
+class RecordVoidView(WorkerFormView):
+    """履歴行の取消（理由は必須）。この画面が確認画面で、「取り消す」を押すと取り消す。"""
+
+    template_name = "workers/void.html"
+
+    def entry(self, worker: ForeignWorker, kind: str, record_id: int) -> worker_detail.HistoryEntry:
+        if kind not in RECORD_MODELS:
+            raise Http404
+        for entry in worker_detail.history(worker):
+            if entry.kind == kind and entry.record.pk == record_id and not entry.voided:
+                return entry
+        raise Http404
+
+    def get(self, request: HttpRequest, pk: int, kind: str, record_id: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        entry = self.entry(worker, kind, record_id)
+        return self.render(request, worker=worker, entry=entry, form=VoidForm())
+
+    def post(self, request: HttpRequest, pk: int, kind: str, record_id: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        history_url = reverse("workers:history", args=[pk])
+        if not consume_once_token(request):
+            return self.already_submitted(request, history_url)
+        entry = self.entry(worker, kind, record_id)
+        form = VoidForm(request.POST)
+        if form.is_valid():
+            try:
+                workers.void_record(
+                    entry.record, by=_actor(request), reason=form.cleaned_data["reason"]
+                )
+            except ValidationError as error:
+                form.add_error("reason", error)
+            else:
+                messages.success(request, _("Voided the record."))
+                return redirect(history_url)
+        return self.render(request, worker=worker, entry=entry, form=form)

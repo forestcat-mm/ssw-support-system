@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 21:58+0900\n"
+"POT-Creation-Date: 2026-10-16 22:14+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -1162,6 +1162,9 @@ msgstr "提出日"
 msgid "legal: %(day)s"
 msgstr "法令上の期限: %(day)s"
 
+msgid "required field"
+msgstr "必須"
+
 msgid "The deadline dashboard is being prepared. Use the menu on the left."
 msgstr "期限ダッシュボードは準備中です。左のメニューから画面を開いてください。"
 
@@ -1284,9 +1287,6 @@ msgstr "入力欄"
 
 msgid "name (romaji)"
 msgstr "氏名（ローマ字）"
-
-msgid "required field"
-msgstr "必須"
 
 msgid "(focused)"
 msgstr "（フォーカス中）"
@@ -1827,6 +1827,9 @@ msgstr "自分の担当"
 msgid "Not assigned"
 msgstr "担当者なし"
 
+msgid "Example: the card number was entered incorrectly."
+msgstr "例: 在留カード番号を誤って入力した。"
+
 msgid "confirmed by"
 msgstr "最終確認者"
 
@@ -1980,6 +1983,9 @@ msgstr "連絡先"
 msgid "Back to list"
 msgstr "一覧へ戻る"
 
+msgid "Edit"
+msgstr "編集"
+
 msgid "Personal information"
 msgstr "本人の情報"
 
@@ -1988,6 +1994,9 @@ msgstr "未割当"
 
 msgid "Residence (latest)"
 msgstr "在留情報（最新）"
+
+msgid "Add"
+msgstr "追加"
 
 msgid "Not registered."
 msgstr "未登録"
@@ -2000,6 +2009,12 @@ msgstr "発行国"
 
 msgid "Address and contact (latest)"
 msgstr "住所・連絡先（最新）"
+
+msgid "Add address"
+msgstr "住所を追加"
+
+msgid "Add contact"
+msgstr "連絡先を追加"
 
 #, python-format
 msgid "from %(day)s"
@@ -2081,6 +2096,54 @@ msgstr[0] "%(counter)s人"
 
 msgid "(scheduled)"
 msgstr "（予定）"
+
+msgid "Register a foreign worker"
+msgstr "外国人の登録"
+
+msgid "Basic information"
+msgstr "基本情報"
+
+msgid "Void a record"
+msgstr "履歴の取消"
+
+msgid ""
+"A voided record stays in the history with a strikethrough and is no longer "
+"used as the latest record. This cannot be undone. To correct it, add a new "
+"record."
+msgstr ""
+"取り消した行は打ち消し線で履歴に残り、最新の行としては使われなくなります。元"
+"に戻せません。正しい内容は新しい行として追加してください。"
+
+msgid "Add residence record"
+msgstr "在留情報を追加"
+
+msgid "Add passport"
+msgstr "旅券を追加"
+
+msgid "Residence (optional)"
+msgstr "在留情報（任意）"
+
+msgid "Passport (optional)"
+msgstr "旅券（任意）"
+
+msgid "Address (optional)"
+msgstr "住所（任意）"
+
+msgid "Contact (optional)"
+msgstr "連絡先（任意）"
+
+msgid "This form has already been submitted."
+msgstr "このフォームはすでに送信されています。"
+
+msgid "Registered the foreign worker."
+msgstr "外国人を登録しました。"
+
+#, python-format
+msgid "Added: %(what)s"
+msgstr "保存しました: %(what)s"
+
+msgid "Voided the record."
+msgstr "取り消しました。"
 
 msgid "scheduled"
 msgstr "予定"
@@ -2328,3 +2391,17 @@ msgstr "この旅券番号は別の外国人（ID: %(id)s）に登録されて�
 
 msgid "The expiry date must be after the start date."
 msgstr "期限は開始日より後の日付にしてください。"
+
+msgid ""
+"Enter the residence card number. Only workers before entry can leave it "
+"blank."
+msgstr ""
+"在留カード番号を入力してください。空欄にできるのは状態が「入国前」の人だけで"
+"す。"
+
+msgid ""
+"Someone else updated this foreign worker after you opened this page. Reload "
+"the page and enter your changes again."
+msgstr ""
+"この画面を開いた後に、ほかの人がこの外国人を更新しました。画面を開き直して、"
+"もう一度入力してください。"

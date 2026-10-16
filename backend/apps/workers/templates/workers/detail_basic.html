@@ -17,7 +17,7 @@
   </section>
 
   <section class="card" id="residence">
-    <div class="card__header"><h2 class="card__title">{% translate "Residence (latest)" %}</h2></div>
+    <div class="card__header"><h2 class="card__title">{% translate "Residence (latest)" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'workers:record_create' worker.pk 'residence' %}">{% translate "Add" %}</a>{% endif %}</div>
     {% with record=info.residence %}{% if record %}
     <dl class="fields">
       <dt>{% translate "residence card number" %}</dt><dd class="mono" data-decrypted="card_number">{{ record.card_number|default:"—" }}</dd>
@@ -30,7 +30,7 @@
   </section>
 
   <section class="card" id="passport">
-    <div class="card__header"><h2 class="card__title">{% translate "Passport (latest)" %}</h2></div>
+    <div class="card__header"><h2 class="card__title">{% translate "Passport (latest)" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'workers:record_create' worker.pk 'passport' %}">{% translate "Add" %}</a>{% endif %}</div>
     {% with record=info.passport %}{% if record %}
     <dl class="fields">
       <dt>{% translate "passport number" %}</dt><dd class="mono" data-decrypted="passport_number">{{ record.number }}</dd>
@@ -42,7 +42,7 @@
   </section>
 
   <section class="card" id="address">
-    <div class="card__header"><h2 class="card__title">{% translate "Address and contact (latest)" %}</h2></div>
+    <div class="card__header"><h2 class="card__title">{% translate "Address and contact (latest)" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'workers:record_create' worker.pk 'address' %}">{% translate "Add address" %}</a><a class="button button--neutral button--small" href="{% url 'workers:record_create' worker.pk 'contact' %}">{% translate "Add contact" %}</a>{% endif %}</div>
     <dl class="fields">
       {% with record=info.address %}
       <dt>{% translate "residential address" %}</dt><dd>{% if record %}〒{{ record.postal_code }} {{ record.address }} <span class="caption">{% blocktranslate with day=record.effective_from|date:"Y-m-d" %}from {{ day }}{% endblocktranslate %}</span>{% else %}<span class="muted">{% translate "Not registered." %}</span>{% endif %}</dd>

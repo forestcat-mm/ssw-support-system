@@ -2,7 +2,7 @@ from typing import Any
 
 from django import forms
 from django.contrib import admin
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import QuerySet
 from django.forms import ModelForm
 from django.http import HttpRequest
@@ -12,7 +12,7 @@ from apps.core.admin import TRACKED_READONLY_FIELDS, TrackedModelAdmin
 from apps.core.admin_filters import DateRangeFilter
 from apps.core.forms import allow_formatted_number_input
 from apps.core.models import User
-from services import passport, residence_card, workers
+from services import workers
 
 from .models import (
     ForeignWorker,
@@ -55,6 +55,12 @@ class HistoryInlineForm(forms.ModelForm[Any]):
         return bool(self.instance.pk and self.cleaned_data.get("void"))
 
 
+def _apply_errors(form: forms.ModelForm[Any], error: ValidationError) -> None:
+    for field, messages in error.error_dict.items():
+        for message in messages:
+            form.add_error(field if field in form.fields else None, message)
+
+
 class ResidenceRecordForm(HistoryInlineForm):
     class Meta:
         model = ResidenceRecord
@@ -70,20 +76,20 @@ class ResidenceRecordForm(HistoryInlineForm):
         super().__init__(*args, **kwargs)
         allow_formatted_number_input(self.fields["card_number"])
 
-    def clean_card_number(self) -> str:
-        value = residence_card.normalize(self.cleaned_data.get("card_number") or "")
-        if self.instance.pk is None and value:
-            residence_card.validate(value)
-            workers.validate_number_not_taken(ResidenceRecord, value, self.instance.worker_id)
-        return value
-
     def clean(self) -> dict[str, Any]:
         cleaned = super().clean()
-        if self.instance.pk is None:
+        if self.instance.pk is None and "card_number" in cleaned:
+            worker = getattr(self.instance, "worker", None)
             try:
-                workers.validate_period(cleaned.get("permitted_on"), cleaned.get("expires_on"))
-            except forms.ValidationError as error:
-                self.add_error("expires_on", error)
+                cleaned.update(
+                    workers.clean_residence(
+                        cleaned,
+                        worker_id=self.instance.worker_id,
+                        worker_status=worker.status if worker is not None else None,
+                    )
+                )
+            except ValidationError as error:
+                _apply_errors(self, error)
         return cleaned
 
 
@@ -96,20 +102,13 @@ class PassportRecordForm(HistoryInlineForm):
         super().__init__(*args, **kwargs)
         allow_formatted_number_input(self.fields["number"])
 
-    def clean_number(self) -> str:
-        value = passport.normalize(self.cleaned_data.get("number") or "")
-        if self.instance.pk is None:
-            passport.validate(value)
-            workers.validate_number_not_taken(PassportRecord, value, self.instance.worker_id)
-        return value
-
     def clean(self) -> dict[str, Any]:
         cleaned = super().clean()
-        if self.instance.pk is None:
+        if self.instance.pk is None and "number" in cleaned:
             try:
-                workers.validate_period(cleaned.get("issued_on"), cleaned.get("expires_on"))
-            except forms.ValidationError as error:
-                self.add_error("expires_on", error)
+                cleaned.update(workers.clean_passport(cleaned, worker_id=self.instance.worker_id))
+            except ValidationError as error:
+                _apply_errors(self, error)
         return cleaned
 
 
