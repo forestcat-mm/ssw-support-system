@@ -30,7 +30,9 @@
   - W016 `CSRF_COOKIE_SECURE`
   - W018 `DJANGO_DEBUG=false`
   - W009 本番の `DJANGO_SECRET_KEY` を生成値にする（手元でダミー値のまま起動すると出る）
-- 完了条件: 本番用の環境変数で `check --deploy` の警告が 0 件
+- [ ] 本番イメージは `uv sync --frozen --no-dev` でビルドし、ruff / mypy / pytest などの開発用依存を入れない
+- [ ] 本番の DB はアプリ専用ユーザー（スーパーユーザー権限・CREATEDB なし）で接続する。テスト用 DB の作成権限は開発環境だけにする
+- 完了条件: 本番用の環境変数で `check --deploy` の警告が 0 件。本番イメージに開発用依存が無く、アプリの DB ユーザーが SUPERUSER / CREATEDB を持たない
 
 ## 段階2 以降の見出し（詳細は着手時に分解）
 - 段階2: SupportPlan / SupportPlanItem / SupportRecord（面談は本人用・上司用で別行）、相談記録の分類、証跡添付、キャリアアッププラン・実務経験証明書の交付記録
