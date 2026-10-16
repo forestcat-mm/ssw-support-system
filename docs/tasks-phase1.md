@@ -11,7 +11,7 @@
 | T04 | `core`: User（T03 で作成済み）の拡張、UserRole（管理者・支援担当者。行で追加できる構造）、TOTP 多要素認証、招待・無効化（ユーザーは削除せず `is_active` で無効化。作成者・更新者の参照が PROTECT のため）。T04a 権限判定・無効化／T04b TOTP・回復用コード・ロック・セッション／T04c 招待の 3 コミット | 第4章, 第8章 | 2 ロールでログイン・権限差を確認 |
 | T05 | `core`: AuditLog（閲覧・作成・更新・削除・エクスポートを記録するミドルウェア＋ヘルパ）、添付ファイルのダウンロードビュー（認可・監査付き。公開 URL は作らない）。T04 の `TODO(T05)` を解消: MFA リセット（管理者のアクション・管理コマンド `reset_mfa` の両方）、ユーザー無効化・再有効化、招待を必ず記録 | 第8章 | 外国人詳細の閲覧・添付のダウンロードがログに残る。MFA リセット（画面・コマンド）が記録される。無効化したユーザーの監査ログが残る |
 | T06 | 暗号化フィールド（在留カード番号・パスポート番号・口座）。鍵は環境変数。あわせて django-otp の TOTP 秘密鍵（`otp_totp_totpdevice.key`、現在は平文）を暗号化できるか検討し結果を報告 | 第8章 | DB 直接参照で平文が見えない |
-| T07 | `workers`: ForeignWorker, ResidenceRecord（履歴）, WorkerAddress / Contact（履歴）、「最新行」ビュー | 第7章 | 在留期限を更新すると新行が増え、最新が一覧に出る |
+| T07 | `workers`: ForeignWorker, ResidenceRecord（履歴）, WorkerAddress / Contact（履歴）、「最新行」ビュー。各モデルを `services/audit.py` の `AUDITED_MODELS`（個人情報を含むものは `VIEW_AUDITED_MODELS` にも）に登録し、詳細画面から `audit.record_view()` を呼ぶ | 第7章, 第8章 | 在留期限を更新すると新行が増え、最新が一覧に出る。外国人詳細の閲覧が監査ログに残る |
 | T08 | `hosts`: HostOrganization, HostSite（産業分類コード・分野・登録法人/協議会加入日・証明書添付）, SupportContract | 第6章「上乗せ要件」, 第7章 | 2社・各1事業所を登録できる |
 | T09 | `contracts`: EmploymentContract（版管理：変更は新版、`version` と `change_reason`） | 第7章 | 報酬変更で版が増え、差分が取れる |
 | T10 | `services/deadlines.py`: 在留期限（3か月前）・定期面談（3か月）・随時届出（14日）・定期届出（4/1–5/31）・登録更新（6か月前）の期限計算＋テスト | 第5章 F06/F07 | 固定日付テストがグリーン |
@@ -31,10 +31,15 @@
   - W018 `DJANGO_DEBUG=false`
   - W009 本番の `DJANGO_SECRET_KEY` を生成値にする（手元でダミー値のまま起動すると出る）
 - [ ] 本番イメージは `uv sync --frozen --no-dev` でビルドし、ruff / mypy / pytest などの開発用依存を入れない
-- [ ] django-axes が接続元 IP を `CF-Connecting-IP` から取るよう設定し、ユーザー名単位のロックに IP 単位の条件（パスワードスプレー対策）を加えるか判断する。判断後に `SILENCED_SYSTEM_CHECKS` の `axes.W006` を見直す
+- [ ] 接続元 IP: 本番は `TRUST_CF_CONNECTING_IP=true`（監査ログと django-axes が `services/client_ip.py` を共有。T05 で実装済み）。サーバーのポートを開けず Cloudflare Tunnel 経由でしか届かないことを確認してから true にする。そのうえで、ユーザー名単位のロックに IP 単位の条件（パスワードスプレー対策）を加えるか判断し、`SILENCED_SYSTEM_CHECKS` の `axes.W006` を見直す
+- [ ] 監査ログを DB ユーザーの権限でも追記専用にする: マイグレーション用ユーザー（テーブル所有者）とアプリ用ユーザーを分け、アプリ用ユーザーから `core_auditlog` の UPDATE / DELETE / TRUNCATE を REVOKE する（INSERT・SELECT のみ）。トリガー（`core_auditlog_append_only`）とあわせて二重に禁止する
+- [ ] 監査ログを改変不可の保存先へ日次で書き出す（第8章・第10章。例: S3 Object Lock のコンプライアンスモード、保持 5 年以上）。保存先の決定と同時に対応し、Django-Q のジョブにする
 - [ ] ファイル保存を S3 互換ストレージにする（`DJANGO_STORAGE_BACKEND=storages.backends.s3.S3Storage` と `DJANGO_STORAGE_OPTIONS`。非公開バケット・署名付き URL・上書き禁止を実ストレージで確認）
 - [ ] 本番の DB はアプリ専用ユーザー（スーパーユーザー権限・CREATEDB なし）で接続する。テスト用 DB の作成権限は開発環境だけにする
-- 完了条件: 本番用の環境変数で `check --deploy` の警告が 0 件。本番イメージに開発用依存が無く、アプリの DB ユーザーが SUPERUSER / CREATEDB を持たない。添付のアップロード・ダウンロードが S3 互換ストレージで動く
+- 完了条件: 本番用の環境変数で `check --deploy` の警告が 0 件。本番イメージに開発用依存が無く、アプリの DB ユーザーが SUPERUSER / CREATEDB を持たない。添付のアップロード・ダウンロードが S3 互換ストレージで動く。アプリの DB ユーザーで `core_auditlog` を UPDATE / DELETE / TRUNCATE すると権限エラーになる
+
+## 将来運用
+- [ ] 監査ログの保持期間（最低 5 年。入管の記録保存義務期間を下回らない）を過ぎた行の削除手順を作る。管理コマンドで、DB 所有者の権限で対象期間を外部保存先への書き出し済みと確認 → トリガー `core_auditlog_append_only` を一時的に外す → 期間指定で削除 → トリガーを戻す、を 1 トランザクションで行い、実施自体を監査ログに記録する
 
 ## 段階2 以降の見出し（詳細は着手時に分解）
 - 段階2: SupportPlan / SupportPlanItem / SupportRecord（面談は本人用・上司用で別行）、相談記録の分類、証跡添付、キャリアアッププラン・実務経験証明書の交付記録
