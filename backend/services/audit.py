@@ -278,10 +278,8 @@ def _should_record(sender: type[models.Model], raw: bool = False) -> bool:
 def _on_pre_save(sender: type[models.Model], instance: models.Model, **kwargs: Any) -> None:
     if not _should_record(sender, kwargs.get("raw", False)) or instance.pk is None:
         return
-    old = sender._base_manager.filter(pk=instance.pk).first()
-    if old is not None:
-        instance._audit_before = snapshot(old)  # type: ignore[attr-defined]
-        instance._audit_masked = masked_changes(old, instance)  # type: ignore[attr-defined]
+    # 比較は post_save で行う（BlindIndexField などは pre_save シグナルの後に値が決まるため）
+    instance._audit_old = sender._base_manager.filter(pk=instance.pk).first()  # type: ignore[attr-defined]
 
 
 def _on_post_save(
@@ -295,8 +293,9 @@ def _on_post_save(
             AuditAction.CREATE, target=instance, changes={k: [None, v] for k, v in after.items()}
         )
         return
-    before: dict[str, Any] = getattr(instance, "_audit_before", {})
-    changes = diff(before, after) | getattr(instance, "_audit_masked", {})
+    old: models.Model | None = getattr(instance, "_audit_old", None)
+    before = snapshot(old) if old is not None else {}
+    changes = diff(before, after) | masked_changes(old, instance)
     if changes:
         record(AuditAction.UPDATE, target=instance, changes=changes)
 

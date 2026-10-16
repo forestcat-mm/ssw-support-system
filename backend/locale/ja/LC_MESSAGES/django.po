@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 16:48+0900\n"
+"POT-Creation-Date: 2026-10-16 17:07+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -347,6 +347,12 @@ msgstr "多要素認証の設定"
 
 msgid "regenerate recovery codes"
 msgstr "回復用コードの作り直し"
+
+msgid "rotate encryption keys"
+msgstr "暗号化鍵のローテーション"
+
+msgid "rebuild blind indexes"
+msgstr "検索用インデックスの作り直し"
 
 msgid "occurred at"
 msgstr "日時"

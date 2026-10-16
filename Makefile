@@ -1,7 +1,10 @@
 COMPOSE := docker compose
 MANAGE := $(COMPOSE) exec web python manage.py
 
-.PHONY: up down build logs migrate admin shell psql lock test lint format messages
+.PHONY: env up down build logs migrate admin shell psql lock test lint format messages
+
+env:        ## .env を作る・足りないキーを補う・鍵を生成する（既存の値は変えない）
+	python3 scripts/init_env.py
 
 up:         ## コンテナを起動する
 	$(COMPOSE) up -d

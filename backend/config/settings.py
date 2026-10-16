@@ -75,6 +75,11 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {"default": env.db("DATABASE_URL")}
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# --- 列暗号化（第8章）。鍵は環境変数で渡し、既定値は持たない（make env で生成）---
+# 先頭の鍵で暗号化し、すべての鍵で復号を試す。ローテーション手順は services/crypto.py。
+FIELD_ENCRYPTION_KEYS: list[str] = env.list("FIELD_ENCRYPTION_KEYS")
+BLIND_INDEX_KEY: str = env.str("BLIND_INDEX_KEY")
+
 # --- Redis（ジョブ実行基盤。Django-Q2 は組み込むタスクで設定する） ---
 REDIS_URL: str = env.str("REDIS_URL")
 

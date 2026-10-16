@@ -405,6 +405,8 @@ class AuditAction(models.TextChoices):
     MFA_RESET = "mfa_reset", _("reset two-factor authentication")
     MFA_ENROLL = "mfa_enroll", _("set up two-factor authentication")
     RECOVERY_CODES_REGENERATE = "recovery_codes_regenerate", _("regenerate recovery codes")
+    ENCRYPTION_KEY_ROTATION = "encryption_key_rotation", _("rotate encryption keys")
+    BLIND_INDEX_REBUILD = "blind_index_rebuild", _("rebuild blind indexes")
 
 
 class AppendOnlyError(Exception):

@@ -9,6 +9,7 @@ class CoreConfig(AppConfig):
     verbose_name = _("Organization and users")
 
     def ready(self) -> None:
+        from apps.core import checks  # noqa: F401  システムチェックの登録
         from services import audit
 
         audit.connect_signals()

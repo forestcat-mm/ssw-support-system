@@ -5,6 +5,7 @@ description = "特定技能 登録支援機関 業務管理システム（MVP）
 requires-python = "==3.12.*"
 # 直接依存は == で固定する。間接依存は uv.lock で固定する（更新は make lock）。
 dependencies = [
+    "cryptography==50.0.2",
     "django==5.2.18",
     "django-axes==8.3.1",
     "django-environ==0.14.0",
@@ -45,13 +46,13 @@ plugins = ["mypy_django_plugin.main"]
 exclude = ["/migrations/"]
 
 [tool.django-stubs]
-django_settings_module = "config.settings"
+django_settings_module = "config.settings_test"
 
 [[tool.mypy.overrides]]
 module = ["environ", "environ.*", "django_otp.*", "axes.*", "qrcode", "qrcode.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "config.settings"
+DJANGO_SETTINGS_MODULE = "config.settings_test"
 testpaths = ["tests"]
 addopts = "--strict-markers"
