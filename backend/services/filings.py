@@ -22,6 +22,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 
 from apps.contracts.models import EmploymentContract, EmploymentContractVersion, TerminationReason
 from apps.core.models import Attachment, AuditAction, Organization, Staff, User
@@ -47,6 +48,18 @@ class Filer(enum.StrEnum):
     HOST = "host"  # 特定技能所属機関（電子届出システムの所属機関用）
     SUPPORT_ORGANIZATION = "support_organization"  # 登録支援機関（自機関）
     INTERNAL = "internal"
+
+
+CATEGORY_LABELS = {
+    Category.IMMIGRATION_FILING: gettext_lazy("immigration notification"),
+    Category.IMMIGRATION_APPLICATION: gettext_lazy("immigration application"),
+    Category.INTERNAL: gettext_lazy("internal task"),
+}
+FILER_LABELS = {
+    Filer.HOST: gettext_lazy("host organization"),
+    Filer.SUPPORT_ORGANIZATION: gettext_lazy("registered support organization"),
+    Filer.INTERNAL: gettext_lazy("internal"),
+}
 
 
 @dataclass(frozen=True)

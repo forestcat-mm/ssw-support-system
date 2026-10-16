@@ -1,0 +1,8 @@
+{% load i18n %}<tr data-kind="{{ entry.kind }}"{% if entry.voided %} class="is-voided"{% endif %}>
+  <td class="mono">{{ entry.on|date:"Y-m-d" }}</td>
+  <td>{{ entry.kind_label }}</td>
+  <td>{% if entry.masked_number %}<span class="mono">{{ entry.masked_number }}</span>{% else %}<span class="muted">—</span>{% endif %}
+    <span class="history__number-actions" data-number-actions>{# 段階2: 「全桁を表示」（復号して監査ログに 1 件）を置く #}</span></td>
+  <td><span class="truncate-line truncate-line--full" title="{% for label, value in entry.details %}{{ label }}: {{ value }}{% if not forloop.last %} / {% endif %}{% endfor %}"><span class="truncate">{% for label, value in entry.details %}{{ value }}{% if not forloop.last %} · {% endif %}{% endfor %}</span></span></td>
+  <td>{% if entry.voided %}<span class="truncate-line truncate-line--wide" title="{{ entry.record.void_reason }}"><span class="truncate">{{ entry.record.voided_at|date:"Y-m-d" }} {{ entry.record.void_reason }}</span></span>{% endif %}</td>
+</tr>

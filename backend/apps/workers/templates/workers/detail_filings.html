@@ -1,0 +1,8 @@
+{% extends "workers/detail_base.html" %}{% load i18n %}
+{% block tab_content %}
+{% if filing_rows %}
+  {% include "ui/components/filing_table.html" with rows=filing_rows %}
+{% else %}
+<div class="card"><div class="empty">{% translate "No filing tasks for this foreign worker." %}</div></div>
+{% endif %}
+{% endblock %}

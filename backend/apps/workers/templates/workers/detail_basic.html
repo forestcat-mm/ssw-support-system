@@ -1,0 +1,63 @@
+{% extends "workers/detail_base.html" %}{% load i18n ui %}
+{% block tab_content %}
+<div class="grid-2">
+  <section class="card">
+    <div class="card__header"><h2 class="card__title">{% translate "Personal information" %}</h2></div>
+    <dl class="fields">
+      <dt>{% translate "name (romaji)" %}</dt><dd>{{ worker.name_romaji }}</dd>
+      <dt>{% translate "name (kanji)" %}</dt><dd>{{ worker.name_kanji|default:"—" }}</dd>
+      <dt>{% translate "name (native script)" %}</dt><dd{% if native_lang %} lang="{{ native_lang }}"{% endif %}>{{ worker.name_native|default:"—" }}</dd>
+      <dt>{% translate "nationality or region" %}</dt><dd>{{ worker.nationality.name }}</dd>
+      <dt>{% translate "date of birth" %}</dt><dd class="mono">{{ worker.birth_date|date:"Y-m-d" }}</dd>
+      <dt>{% translate "sex" %}</dt><dd>{{ worker.get_sex_display }}</dd>
+      <dt>{% translate "support language" %}</dt><dd>{{ worker.support_language }}</dd>
+      <dt>{% translate "assigned staff" %}</dt><dd>{{ worker.assigned_staff.name|default:_("not assigned") }}</dd>
+      <dt>{% translate "status" %}</dt><dd>{{ worker.get_status_display }}</dd>
+    </dl>
+  </section>
+
+  <section class="card" id="residence">
+    <div class="card__header"><h2 class="card__title">{% translate "Residence (latest)" %}</h2></div>
+    {% with record=info.residence %}{% if record %}
+    <dl class="fields">
+      <dt>{% translate "residence card number" %}</dt><dd class="mono" data-decrypted="card_number">{{ record.card_number|default:"—" }}</dd>
+      <dt>{% translate "status of residence" %}</dt><dd>{{ record.get_status_of_residence_display }}</dd>
+      <dt>{% translate "period of stay expires on" %}</dt><dd>{% due_date info.residence_deadline %}</dd>
+      <dt>{% translate "permitted on" %}</dt><dd class="mono">{{ record.permitted_on|date:"Y-m-d" }}</dd>
+      <dt>{% translate "application type" %}</dt><dd>{{ record.get_application_type_display }}</dd>
+    </dl>
+    {% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}{% endwith %}
+  </section>
+
+  <section class="card" id="passport">
+    <div class="card__header"><h2 class="card__title">{% translate "Passport (latest)" %}</h2></div>
+    {% with record=info.passport %}{% if record %}
+    <dl class="fields">
+      <dt>{% translate "passport number" %}</dt><dd class="mono" data-decrypted="passport_number">{{ record.number }}</dd>
+      <dt>{% translate "issuing country" %}</dt><dd>{{ record.issuing_country.name }}</dd>
+      <dt>{% translate "issued on" %}</dt><dd class="mono">{{ record.issued_on|date:"Y-m-d" }}</dd>
+      <dt>{% translate "expires on" %}</dt><dd>{% due_date info.passport_deadline %}</dd>
+    </dl>
+    {% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}{% endwith %}
+  </section>
+
+  <section class="card" id="address">
+    <div class="card__header"><h2 class="card__title">{% translate "Address and contact (latest)" %}</h2></div>
+    <dl class="fields">
+      {% with record=info.address %}
+      <dt>{% translate "residential address" %}</dt><dd>{% if record %}〒{{ record.postal_code }} {{ record.address }} <span class="caption">{% blocktranslate with day=record.effective_from|date:"Y-m-d" %}from {{ day }}{% endblocktranslate %}</span>{% else %}<span class="muted">{% translate "Not registered." %}</span>{% endif %}</dd>
+      {% endwith %}
+      {% with record=info.contact %}{% if record %}
+      <dt>{% translate "phone number" %}</dt><dd class="mono">{{ record.phone|default:"—" }}</dd>
+      <dt>{% translate "email" %}</dt><dd>{{ record.email|default:"—" }}</dd>
+      <dt>{% translate "emergency contact name" %}</dt><dd>{{ record.emergency_name|default:"—" }}{% if record.emergency_relationship %} <span class="caption">{{ record.emergency_relationship }}</span>{% endif %}</dd>
+      <dt>{% translate "emergency contact phone" %}</dt><dd class="mono">{{ record.emergency_phone|default:"—" }}</dd>
+      <dt>{% translate "home country address" %}</dt><dd>{{ record.home_country_address|default:"—" }}</dd>
+      <dt>{% translate "home country phone" %}</dt><dd class="mono">{{ record.home_country_phone|default:"—" }}</dd>
+      {% else %}
+      <dt>{% translate "contact" %}</dt><dd><span class="muted">{% translate "Not registered." %}</span></dd>
+      {% endif %}{% endwith %}
+    </dl>
+  </section>
+</div>
+{% endblock %}

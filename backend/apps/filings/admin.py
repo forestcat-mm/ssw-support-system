@@ -26,16 +26,8 @@ LEVEL_LABELS = {
     deadlines.Level.WITHIN_7: _("within 7 days"),
     deadlines.Level.OVERDUE: _("overdue"),
 }
-CATEGORY_LABELS = {
-    filings.Category.IMMIGRATION_FILING: _("immigration notification"),
-    filings.Category.IMMIGRATION_APPLICATION: _("immigration application"),
-    filings.Category.INTERNAL: _("internal task"),
-}
-FILER_LABELS = {
-    filings.Filer.HOST: _("host organization"),
-    filings.Filer.SUPPORT_ORGANIZATION: _("registered support organization"),
-    filings.Filer.INTERNAL: _("internal"),
-}
+CATEGORY_LABELS = filings.CATEGORY_LABELS
+FILER_LABELS = filings.FILER_LABELS
 
 
 def _actor(request: HttpRequest) -> User | None:

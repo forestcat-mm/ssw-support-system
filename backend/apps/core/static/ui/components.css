@@ -253,6 +253,7 @@ a.badge:hover {
 
 .fields dd {
   margin: 0;
+  overflow-wrap: anywhere; /* 長いメールアドレスなどでカードからはみ出さない */
 }
 
 /* --- 表 ----------------------------------------------------------------------------- */
@@ -316,6 +317,10 @@ a.badge:hover {
 
 .truncate-line--wide {
   max-width: 13em;
+}
+
+.truncate-line--full {
+  max-width: 32em;
 }
 
 .truncate-line > * {

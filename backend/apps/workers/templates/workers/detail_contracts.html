@@ -1,0 +1,102 @@
+{% extends "workers/detail_base.html" %}{% load i18n ui %}
+{% block tab_content %}
+{% if not view %}
+<div class="card"><div class="empty">{% translate "No employment contracts are registered." %}</div></div>
+{% else %}
+<div class="stack">
+  <section class="card">
+    <div class="card__header"><h2 class="card__title">{% translate "Employment contracts" %}</h2></div>
+    <div class="table-scroll">
+      <table class="table table--list">
+        <thead><tr><th>{% translate "host organization" %}</th><th>{% translate "starts on" %}</th><th>{% translate "ends on" %}</th><th>{% translate "status" %}</th></tr></thead>
+        <tbody>
+          {% for contract, status in contracts %}
+            <tr{% if contract.pk == view.contract.pk %} aria-current="true"{% endif %}>
+              <td><a href="?contract={{ contract.pk }}">{{ contract.host_organization.name }}</a></td>
+              <td class="mono">{{ contract.current_starts_on|date:"Y-m-d" }}</td>
+              <td class="mono">{{ contract.terminated_on|default:contract.current_ends_on|date:"Y-m-d"|default:"—" }}</td>
+              <td>{{ status.label }}{% if contract.pk == view.contract.pk %} <span class="caption">{% translate "(shown below)" %}</span>{% endif %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  {% with version=view.version contract=view.contract %}
+  <div class="grid-2">
+    <section class="card" id="contract-main">
+      <div class="card__header">
+        <h2 class="card__title">{% blocktranslate with number=version.version %}Version {{ number }}{% endblocktranslate %}</h2>
+        <span class="status">{{ view.status.label }}</span>
+      </div>
+      <dl class="fields">
+        <dt>{% translate "host organization" %}</dt><dd>{{ contract.host_organization.name }}</dd>
+        <dt>{% translate "host site" %}</dt><dd>{{ version.site.name }} {% field_tag version.site.field %}</dd>
+        <dt>{% translate "period" %}</dt><dd><span class="mono">{{ version.starts_on|date:"Y-m-d" }}</span> – <span class="mono">{{ version.ends_on|date:"Y-m-d"|default:"—" }}</span></dd>
+        {% if contract.terminated_on %}<dt>{% translate "terminated on" %}</dt><dd><span class="mono">{{ contract.terminated_on|date:"Y-m-d" }}</span> {{ contract.get_termination_reason_display }}</dd>{% endif %}
+        <dt>{% translate "wage type" %}</dt><dd>{{ version.get_wage_type_display }}</dd>
+        <dt>{% translate "base wage (yen)" %}</dt><dd class="mono">¥{{ version.base_wage|yen }}</dd>
+        <dt>{% translate "approximate monthly payment" %}</dt><dd class="mono">{% if view.monthly_total is not None %}¥{{ view.monthly_total|yen }}{% else %}—{% endif %}</dd>
+        <dt>{% translate "approximate take-home pay" %}</dt><dd class="mono">{% if view.take_home is not None %}¥{{ view.take_home|yen }}{% else %}—{% endif %}</dd>
+        <dt>{% translate "operation categories" %}</dt><dd>{% for category in version.categories.all %}{{ category.name }}{% if not forloop.last %}、{% endif %}{% empty %}—{% endfor %}</dd>
+        <dt>{% translate "changed on" %}</dt><dd class="mono">{{ version.changed_on|date:"Y-m-d" }}</dd>
+        {% if version.change_reason %}<dt>{% translate "change reason" %}</dt><dd>{{ version.change_reason }}</dd>{% endif %}
+      </dl>
+    </section>
+
+    <section class="card">
+      <div class="card__header"><h2 class="card__title">{% translate "Allowances and deductions" %}</h2></div>
+      <div class="table-scroll">
+        <table class="table">
+          <thead><tr><th>{% translate "kind" %}</th><th>{% translate "name" %}</th><th>{% translate "amount per month (yen)" %}</th></tr></thead>
+          <tbody>
+            {% for allowance in version.allowances.all %}<tr><td>{% translate "allowance" %}</td><td>{{ allowance.name }}</td><td class="mono">¥{{ allowance.amount|yen }}</td></tr>{% endfor %}
+            {% for deduction in version.deductions.all %}<tr><td>{% translate "deduction" %}</td><td>{{ deduction.name|default:deduction.get_kind_display }}</td><td class="mono">¥{{ deduction.amount|yen }}</td></tr>{% endfor %}
+            {% if not version.allowances.all and not version.deductions.all %}<tr><td colspan="3" class="muted">{% translate "None." %}</td></tr>{% endif %}
+          </tbody>
+        </table>
+      </div>
+      {% if view.attachments %}
+      <h3>{% translate "Attachments" %}</h3>
+      <ul>{% for attachment in view.attachments %}<li><a href="{% url 'attachment_download' attachment.pk %}">{{ attachment.original_filename }}</a> <span class="caption">{{ attachment.get_kind_display }}</span></li>{% endfor %}</ul>
+      {% endif %}
+    </section>
+  </div>
+
+  <section class="card" id="versions">
+    <div class="card__header"><h2 class="card__title">{% translate "Versions" %}</h2></div>
+    <div class="table-scroll">
+      <table class="table table--list">
+        <thead><tr><th>{% translate "version" %}</th><th>{% translate "changed on" %}</th><th>{% translate "period" %}</th><th>{% translate "change reason" %}</th></tr></thead>
+        <tbody>
+          {% for item in view.versions %}
+            <tr{% if item.pk == version.pk %} aria-current="true"{% endif %}>
+              <td>{% if item.pk == version.pk %}{{ item.version }}{% else %}<a href="?contract={{ contract.pk }}&amp;version={{ item.version }}">{{ item.version }}</a>{% endif %}</td>
+              <td class="mono">{{ item.changed_on|date:"Y-m-d" }}</td>
+              <td class="mono">{{ item.starts_on|date:"Y-m-d" }} – {{ item.ends_on|date:"Y-m-d"|default:"—" }}</td>
+              <td><span class="truncate-line truncate-line--wide" title="{{ item.change_reason }}"><span class="truncate">{{ item.change_reason|default:"—" }}</span></span></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  {% if view.previous %}
+  <section class="card" id="diff">
+    <div class="card__header"><h2 class="card__title">{% blocktranslate with old=view.previous.version new=version.version %}Changes from version {{ old }} to {{ new }}{% endblocktranslate %}</h2></div>
+    {% if view.diff %}
+    <div class="table-scroll">
+      <table class="table">
+        <thead><tr><th>{% translate "item" %}</th><th>{% translate "before" %}</th><th>{% translate "after" %}</th></tr></thead>
+        <tbody>{% for row in view.diff %}<tr><td>{{ row.label }}</td><td>{{ row.before }}</td><td>{{ row.after }}</td></tr>{% endfor %}</tbody>
+      </table>
+    </div>
+    {% else %}<p class="muted">{% translate "No changes." %}</p>{% endif %}
+  </section>
+  {% endif %}
+  {% endwith %}
+</div>
+{% endif %}
+{% endblock %}

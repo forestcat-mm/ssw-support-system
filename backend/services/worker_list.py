@@ -121,7 +121,8 @@ def _latest_site_field() -> Subquery:
     )
 
 
-def _display_name(worker: ForeignWorker) -> tuple[str, str, str]:
+def display_name(worker: ForeignWorker) -> tuple[str, str, str]:
+    """一覧・詳細の氏名の表示（表示名、母国語のときの lang、併記するローマ字）。"""
     if worker.name_kanji:
         return worker.name_kanji, "", worker.name_romaji
     if worker.name_native:
@@ -171,7 +172,7 @@ def list_workers(user: User, query: WorkerListQuery, today: date) -> WorkerList:
             counts[level] += 1
         if query.level is not None and level is not query.level:
             continue
-        name, name_lang, romaji = _display_name(worker)
+        name, name_lang, romaji = display_name(worker)
         rows.append(
             WorkerRow(
                 worker=worker,

@@ -1,0 +1,17 @@
+{% extends "workers/detail_base.html" %}{% load i18n %}
+{% block tab_content %}
+{% if entries %}
+<div class="table-wrap">
+  <table class="table table--list" id="history">
+    <thead><tr>
+      <th>{% translate "date" %}</th><th>{% translate "kind" %}</th><th>{% translate "number" %}</th>
+      <th>{% translate "details" %}</th><th>{% translate "void" %}</th>
+    </tr></thead>
+    <tbody>{% for entry in entries %}{% include "workers/components/history_row.html" %}{% endfor %}</tbody>
+  </table>
+</div>
+<p class="caption">{% translate "Past numbers show only the first and last two characters. The full number of the latest record is on the Basic tab." %}</p>
+{% else %}
+<div class="card"><div class="empty">{% translate "No history records." %}</div></div>
+{% endif %}
+{% endblock %}

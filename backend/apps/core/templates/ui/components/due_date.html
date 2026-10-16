@@ -1,0 +1,1 @@
+{% load ui %}{% if not deadline %}<span class="muted">—</span>{% else %}{% if show_date %}<span class="mono">{{ deadline.unadjusted_due_on|date:"Y-m-d" }}</span>{% endif %}{% if badge %}{% if show_date %} {% endif %}{% level_badge deadline today %}{% endif %}{% endif %}

@@ -1,0 +1,20 @@
+{% load i18n ui %}{# 届出タスクの表（外国人詳細の届出タブと T14 のダッシュボードで共通）。rows は services.worker_detail.FilingRow #}
+<div class="table-wrap">
+  <table class="table table--list" id="filings">
+    <thead><tr>
+      <th>{% translate "kind" %}</th><th>{% translate "filer" %}</th><th>{% translate "status" %}</th>
+      <th>{% translate "due date" %}</th><th>{% translate "submitted on" %}</th>
+    </tr></thead>
+    <tbody>
+      {% for row in rows %}
+        <tr data-filing="{{ row.filing.pk }}">
+          <td><span class="truncate-line truncate-line--wide" title="{{ row.filing.get_kind_display }}"><span class="truncate">{{ row.filing.get_kind_display }}</span></span></td>
+          <td>{{ row.filer_label }}</td>
+          <td><span class="status">{{ row.filing.get_status_display }}</span></td>
+          <td>{% due_date row.deadline badge=row.is_open %}{% if row.deadline.adjusted %} <span class="caption">{% blocktranslate with day=row.deadline.due_on|date:"Y-m-d" %}legal: {{ day }}{% endblocktranslate %}</span>{% endif %}</td>
+          <td class="mono">{{ row.filing.submitted_on|date:"Y-m-d"|default:"—" }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

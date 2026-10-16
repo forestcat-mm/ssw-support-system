@@ -48,6 +48,30 @@ def level_badge(deadline: deadlines.Deadline, today: date | None = None) -> dict
     }
 
 
+@register.inclusion_tag("ui/components/due_date.html")
+def due_date(
+    deadline: deadlines.Deadline | None, today: date | None = None, badge: bool = True
+) -> dict[str, Any]:
+    """期限の日付（等幅）と警告バッジ。受付前はバッジが日付そのものなので日付を重ねて出さない。"""
+    if deadline is None:
+        return {"deadline": None}
+    today = today or timezone.localdate()
+    level = deadlines.assess(deadline, today).level
+    return {
+        "deadline": deadline,
+        "today": today,
+        "badge": badge,
+        "date_only": not badge or level is deadlines.Level.NOT_YET,
+        "show_date": not badge or level is not deadlines.Level.NOT_YET,
+    }
+
+
+@register.filter
+def yen(value: int | None) -> str:
+    """金額の 3 桁区切り（¥ は付けない）。"""
+    return "" if value is None else f"{value:,}"
+
+
 @register.inclusion_tag("ui/components/level_count_badge.html")
 def level_count_badge(level: deadlines.Level, count: int) -> dict[str, Any]:
     """一覧の見出しに並べる警告レベルの人数（押すとそのレベルで絞り込む）。"""
