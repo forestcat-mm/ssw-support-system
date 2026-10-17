@@ -161,6 +161,23 @@ def test_scheduled_date_becomes_the_next_due_date(worker: Any) -> None:
             {"report_to_note"},
         ),
         ({"report_required": True}, {"report_required"}),
+        # 違反の疑いが「無」なら、通報の欄は 1 つでも入っていれば弾く（保存時に捨てない）
+        ({"report_to": "labor_standards_office"}, {"report_required"}),
+        ({"report_to_note": "市役所"}, {"report_required"}),
+        ({"reported_on": date(2026, 7, 2)}, {"report_required"}),
+        # 要否が「不要」なら、通報先・通報先（詳細）・通報日は弾く
+        (
+            {
+                "violation_suspected": True,
+                "report_required": False,
+                "report_to": "labor_standards_office",
+            },
+            {"report_to"},
+        ),
+        (
+            {"violation_suspected": True, "report_required": False, "report_to_note": "市役所"},
+            {"report_to_note"},
+        ),
         (
             {
                 "violation_suspected": True,
@@ -376,6 +393,27 @@ def test_errors_are_shown_under_the_row_fields(support_staff_client: Client, wor
         url, post_data(page, **{"interview-next_scheduled_on": "2027-03-01"})
     )
     assert 'id="id_interview-next_scheduled_on-error"' in response.content.decode()
+    assert not PeriodicInterview.objects.exists()
+
+
+def test_report_fields_follow_the_violation_and_the_need(
+    support_staff_client: Client, worker: Any
+) -> None:
+    """通報の欄は違反の疑い・要否で有効・無効になる（forms.js）。JS が無くても保存時に弾く。"""
+    url = f"/workers/{worker.pk}/support/interviews/new/"
+    page = support_staff_client.get(url)
+    html = page.content.decode()
+    assert html.count('data-enabled-when="interview-violation_suspected=yes"') == 2  # 要・不要
+    rule = 'data-enabled-when="interview-violation_suspected=yes interview-report_required=yes"'
+    assert html.count(rule) == 3  # 通報先・通報先（詳細）・通報日
+    response = support_staff_client.post(
+        url,
+        post_data(
+            page,
+            **{"interview-violation_suspected": "no", "interview-report_to_note": "市役所"},
+        ),
+    )
+    assert 'id="id_interview-report_required-error"' in response.content.decode()
     assert not PeriodicInterview.objects.exists()
 
 

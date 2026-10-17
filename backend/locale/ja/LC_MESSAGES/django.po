@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-17 16:26+0900\n"
+"POT-Creation-Date: 2026-10-17 17:45+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -4653,11 +4653,14 @@ msgstr "上司の氏名を入力してください。"
 msgid "Select whether a report is required."
 msgstr "通報の要否を選んでください。"
 
-msgid "Enter the report only when a violation of labour laws is suspected."
-msgstr "通報は、労働法令違反の疑いが「あり」のときだけ入力してください。"
+msgid "Enter where to report only when a report is required."
+msgstr "通報先は、通報が「要」のときだけ入力してください。"
 
 msgid "Enter the date only when a report is required."
 msgstr "通報日は、通報が「要」のときだけ入力してください。"
+
+msgid "Enter the report only when a violation of labour laws is suspected."
+msgstr "通報は、労働法令違反の疑いが「あり」のときだけ入力してください。"
 
 #, python-format
 msgid "Enter a date after the interview and on or before %(legal)s (3 months)."

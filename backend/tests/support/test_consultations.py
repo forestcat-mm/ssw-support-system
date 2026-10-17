@@ -299,6 +299,10 @@ def test_receive_and_add_entries_on_screens(support_staff_client: Client, worker
     page = support_staff_client.get(entry_url)
     form = page.context["form"]
     assert form["status_after"].value() == "received"
+    # 「通報」で通報先・通報日を、「ハローワーク相談」で相談日を有効にする（forms.js）
+    entry_html = page.content.decode()
+    assert entry_html.count('data-enabled-when="reported=on"') == 3
+    assert entry_html.count('data-enabled-when="hello_work=on"') == 1
     bad = support_staff_client.post(
         entry_url,
         {

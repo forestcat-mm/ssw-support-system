@@ -50,3 +50,46 @@ document.querySelectorAll("[data-formset]").forEach((container) => {
     if (first instanceof HTMLElement) first.focus();
   });
 });
+
+// 条件つきの入力欄（[data-enabled-when="名前=値 名前=値"]。StyledFormMixin.enable_when）: 条件をすべて
+// 満たすときだけ入力でき、満たさないときは無効にして値を空にする（無効の欄は送信されない）。
+// 欄どうしが連なる（要否が「要」のときだけ通報先）ので、変化が無くなるまで繰り返す。
+// JS が無いときは欄は有効のままで、保存時の検査で弾く。
+document.querySelectorAll("form").forEach((form) => {
+  const targets = Array.from(form.querySelectorAll("[data-enabled-when]"));
+  if (targets.length === 0) return;
+  const valueOf = (name) => {
+    for (const item of form.querySelectorAll(`[name="${name}"]`)) {
+      if (item.disabled) continue;
+      if (item.type === "radio" || item.type === "checkbox") {
+        if (item.checked) return item.value;
+      } else {
+        return item.value;
+      }
+    }
+    return "";
+  };
+  const clear = (item) => {
+    if (item.type === "radio" || item.type === "checkbox") item.checked = false;
+    else if (item instanceof HTMLSelectElement) item.selectedIndex = 0;
+    else item.value = "";
+  };
+  const update = () => {
+    for (let pass = 0; pass < targets.length; pass += 1) {
+      let changed = false;
+      targets.forEach((item) => {
+        const enabled = item.dataset.enabledWhen.split(" ").every((rule) => {
+          const [name, value] = rule.split("=");
+          return valueOf(name) === value;
+        });
+        if (item.disabled === !enabled) return;
+        item.disabled = !enabled;
+        if (!enabled) clear(item);
+        changed = true;
+      });
+      if (!changed) return;
+    }
+  };
+  form.addEventListener("change", update);
+  update();
+});

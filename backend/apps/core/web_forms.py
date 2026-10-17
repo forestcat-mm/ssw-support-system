@@ -1,6 +1,7 @@
 """業務画面のフォームの共通部品（見た目のクラス・二重送信の防止）。業務のルールは services。"""
 
 import secrets
+from collections.abc import Callable
 from typing import Any
 
 from django import forms
@@ -15,6 +16,7 @@ class StyledFormMixin:
     """入力欄に部品のクラス（input / select / textarea）を付け、日付は日付の入力欄にする。"""
 
     fields: dict[str, forms.Field]
+    add_prefix: Callable[[str], str]
 
     def style_fields(self) -> None:
         for field in self.fields.values():
@@ -33,6 +35,15 @@ class StyledFormMixin:
             else:
                 css = "input"
             widget.attrs["class"] = " ".join(filter(None, [widget.attrs.get("class"), css]))
+
+    def enable_when(self, name: str, **conditions: str) -> None:
+        """欄 name を、ほかの欄の値が conditions のときだけ入力できるようにする（forms.js）。
+
+        条件を満たさないときは無効にして値を空にする（無効の欄は送信されない）。チェックボックスは
+        チェックしたときの値が "on"。JS が無いときは欄は有効のままなので、保存時の検査で弾くこと。
+        """
+        rule = " ".join(f"{self.add_prefix(other)}={value}" for other, value in conditions.items())
+        self.fields[name].widget.attrs["data-enabled-when"] = rule
 
 
 def issue_once_token(request: HttpRequest) -> str:

@@ -313,6 +313,10 @@ class InterviewForm(StyledFormMixin, forms.Form):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.style_fields()
+        # 違反の疑いが「有」のときだけ要否を、要否が「要」のときだけ通報先・通報日を入力できる
+        self.enable_when("report_required", violation_suspected="yes")
+        for name in ("report_to", "report_to_note", "reported_on"):
+            self.enable_when(name, violation_suspected="yes", report_required="yes")
 
 
 class InterviewEditor:
@@ -500,6 +504,10 @@ class EntryForm(StyledFormMixin, forms.Form):
         super().__init__(*args, **kwargs)
         self.fields["staff"].queryset = active_staff()  # type: ignore[attr-defined]
         self.style_fields()
+        # 「通報」のときだけ通報先・通報日を、「ハローワーク相談」のときだけ相談日を入力できる
+        for name in ("report_to", "report_to_note", "reported_on"):
+            self.enable_when(name, reported="on")
+        self.enable_when("hello_work_on", hello_work="on")
 
     @classmethod
     def initial_for(cls, consultation: Any, today: Any) -> dict[str, Any]:

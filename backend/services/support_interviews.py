@@ -101,6 +101,8 @@ def validate(
         if name == "supervisor" and not row.counterpart_name.strip():
             add("supervisor.counterpart_name", _("Enter the name of the supervisor."), "required")
 
+    # 違反の疑いが「無」なら通報の欄はすべて空、要否が「不要」なら通報先・通報日は空（捨てずに弾く）
+    report_values = bool(data.report_to or data.report_to_note.strip() or data.reported_on)
     if data.violation_suspected:
         if data.report_required is None:
             add("report_required", _("Select whether a report is required."), "required")
@@ -109,7 +111,26 @@ def validate(
                 add("report_to", _("Select where to report."), "required")
             elif data.report_to == ReportDestination.OTHER and not data.report_to_note.strip():
                 add("report_to_note", _("Enter where to report."), "required")
-    elif data.report_required is not None or data.report_to or data.reported_on:
+        else:
+            if data.report_to:
+                add(
+                    "report_to",
+                    _("Enter where to report only when a report is required."),
+                    "report_to",
+                )
+            if data.report_to_note.strip():
+                add(
+                    "report_to_note",
+                    _("Enter where to report only when a report is required."),
+                    "report_to",
+                )
+            if data.reported_on is not None:
+                add(
+                    "reported_on",
+                    _("Enter the date only when a report is required."),
+                    "reported_on",
+                )
+    elif data.report_required is not None or report_values:
         add(
             "report_required",
             _("Enter the report only when a violation of labour laws is suspected."),
@@ -117,8 +138,6 @@ def validate(
         )
     if data.reported_on is not None and data.reported_on > today:
         add("reported_on", _("The date cannot be in the future."), "future")
-    if data.reported_on is not None and not data.report_required:
-        add("reported_on", _("Enter the date only when a report is required."), "reported_on")
 
     if data.next_scheduled_on is not None and "self.occurred_on" not in errors:
         basis = basis_of(rows)
@@ -180,10 +199,11 @@ def create_interview(
             worker=worker,
             basis_on=basis,
             violation_suspected=data.violation_suspected,
-            report_required=data.report_required if data.violation_suspected else None,
-            report_to=data.report_to if data.report_required else "",
-            report_to_note=data.report_to_note.strip() if data.report_required else "",
-            reported_on=data.reported_on if data.report_required else None,
+            # validate で、違反の疑い・通報の要否に合わない値は弾いている（ここで捨てない）
+            report_required=data.report_required,
+            report_to=data.report_to,
+            report_to_note=data.report_to_note.strip(),
+            reported_on=data.reported_on,
             next_scheduled_on=data.next_scheduled_on,
             created_by=by,
             updated_by=by,

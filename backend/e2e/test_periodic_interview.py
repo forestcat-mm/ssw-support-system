@@ -3,7 +3,7 @@
 from datetime import date
 
 import pytest
-from playwright.sync_api import Page, expect
+from playwright.sync_api import Locator, Page, expect
 
 from apps.core.models import User
 from apps.filings.models import Filing, FilingKind, FilingStatus, Trigger
@@ -66,3 +66,60 @@ def test_record_from_dashboard_completes_the_task(
         0
     )
     expect(page.locator(f'#dashboard-filings tr[data-filing="{following.pk}"]')).to_be_visible()
+
+
+REPORT_FIELDS = (
+    "#id_interview-report_to",
+    "#id_interview-report_to_note",
+    "#id_interview-reported_on",
+)
+
+
+@pytest.mark.parametrize("width", [1366, 390])
+def test_report_fields_follow_the_violation_and_the_need(
+    page: Page, sign_in: SignIn, support_staff: User, interview_task: Filing, width: int
+) -> None:
+    """違反の疑いが「なし」なら通報の欄はすべて無効で空、要否が「不要」なら通報先・通報日が無効で空。"""
+    page.set_viewport_size({"width": width, "height": 900})
+    sign_in(support_staff)
+    assert interview_task.worker_id is not None
+    page.goto(f"{page.url.rstrip('/')}/workers/{interview_task.worker_id}/support/interviews/new/")
+
+    def violation(value: str) -> Locator:
+        return page.locator(f'input[name="interview-violation_suspected"][value="{value}"]')
+
+    def needed(value: str) -> Locator:
+        return page.locator(f'input[name="interview-report_required"][value="{value}"]')
+
+    # 開いたとき（「なし」）は、要否も通報先・通報日も入力できない
+    expect(needed("yes")).to_be_disabled()
+    for selector in REPORT_FIELDS:
+        expect(page.locator(selector)).to_be_disabled()
+
+    violation("yes").check()
+    expect(needed("yes")).to_be_enabled()
+    expect(page.locator("#id_interview-report_to")).to_be_disabled()  # 要否を選ぶまでは無効
+    needed("yes").check()
+    page.locator("#id_interview-report_to").select_option("other")
+    page.locator("#id_interview-report_to_note").fill("市役所")
+    page.locator("#id_interview-reported_on").fill("2026-10-01")
+
+    # 「不要」にすると通報先・通報日が無効になり、値が空になる
+    needed("no").check()
+    for selector in REPORT_FIELDS:
+        expect(page.locator(selector)).to_be_disabled()
+        expect(page.locator(selector)).to_have_value("")
+    # 「要」に戻すと入力できる（値は空のまま）
+    needed("yes").check()
+    for selector in REPORT_FIELDS:
+        expect(page.locator(selector)).to_be_enabled()
+    page.locator("#id_interview-report_to").select_option("labor_standards_office")
+
+    # 違反の疑いを「なし」にすると、要否の選択も外れ、すべて無効で空になる
+    violation("no").check()
+    expect(needed("yes")).to_be_disabled()
+    expect(needed("yes")).not_to_be_checked()
+    for selector in REPORT_FIELDS:
+        expect(page.locator(selector)).to_be_disabled()
+        expect(page.locator(selector)).to_have_value("")
+    assert page.evaluate("document.documentElement.scrollWidth") <= width
