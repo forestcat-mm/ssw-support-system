@@ -1,0 +1,58 @@
+{% extends "workers/detail_base.html" %}{% load i18n ui %}
+{% block tab_content %}
+{% include "support/subtabs.html" %}
+<div class="stack" style="margin-top: var(--space-16)">
+  {% if plans %}
+  <div class="page-header" style="margin-bottom: 0">
+    <div class="page-header__title">
+      {% if plans|length > 1 %}
+      <form method="get" class="cluster">
+        <label class="form-row__label" for="plan-select">{% translate "host organization" %}</label>
+        <select class="select" id="plan-select" name="plan" onchange="this.form.submit()">
+          {% for item in plans %}<option value="{{ item.pk }}"{% if item.pk == plan.pk %} selected{% endif %}>{{ item.host_organization.name }}{% if item.host_organization == current_host %}（{% translate "current" %}）{% endif %}</option>{% endfor %}
+        </select>
+        <noscript><button class="button button--neutral button--small" type="submit">{% translate "Show" %}</button></noscript>
+      </form>
+      {% else %}
+      <h2>{{ plan.host_organization.name }}</h2>
+      {% endif %}
+    </div>
+    <div class="page-header__actions">
+      {% if can_create_plan %}<a class="button button--neutral" href="{% url 'workers:support_plan_create' worker.pk %}">{% translate "Create a support plan" %}</a>{% endif %}
+      {% if can_manage_support %}<a class="button button--primary" href="{% url 'workers:support_version_create' worker.pk plan.pk %}">{% translate "Add a new version" %}</a>{% endif %}
+    </div>
+  </div>
+  <p class="caption" id="plan-version-label">{% blocktranslate with number=version.version day=version.applies_from|date:"Y-m-d" %}Version {{ number }} (applies from {{ day }}){% endblocktranslate %}{% if view.warning_count %} · <span class="badge badge--within-7">{% blocktranslate count counter=view.warning_count %}{{ counter }} note{% plural %}{{ counter }} notes{% endblocktranslate %}</span>{% endif %}</p>
+  {% include "support/components/plan_display.html" %}
+  <section class="card" id="plan-versions">
+    <div class="card__header"><h2 class="card__title">{% translate "Versions" %}</h2></div>
+    <div class="table-scroll"><table class="table table--list">
+      <thead><tr><th>{% translate "version" %}</th><th>{% translate "applies from" %}</th><th>{% translate "change reason" %}</th><th>{% translate "created by" %}</th></tr></thead>
+      <tbody>{% for item in versions %}
+        <tr{% if item.pk == version.pk %} aria-current="true"{% endif %}>
+          <td>{% if item.pk == version.pk %}{{ item.version }}{% else %}<a href="?plan={{ plan.pk }}&amp;version={{ item.version }}">{{ item.version }}</a>{% endif %}</td>
+          <td class="mono">{{ item.applies_from|date:"Y-m-d" }}</td>
+          <td><span class="truncate-line truncate-line--full" title="{{ item.change_reason }}"><span class="truncate">{{ item.change_reason|default:"—" }}</span></span></td>
+          <td>{{ item.created_by.get_username|default:"—" }}</td>
+        </tr>{% endfor %}</tbody>
+    </table></div>
+  </section>
+  {% if previous %}
+  <section class="card" id="plan-diff">
+    <div class="card__header"><h2 class="card__title">{% blocktranslate with old=previous.version new=version.version %}Changes from version {{ old }} to {{ new }}{% endblocktranslate %}</h2></div>
+    {% if diff %}
+    <div class="table-scroll"><table class="table">
+      <thead><tr><th>{% translate "item" %}</th><th>{% translate "before" %}</th><th>{% translate "after" %}</th></tr></thead>
+      <tbody>{% for row in diff %}<tr><td>{{ row.label }}</td><td>{{ row.before }}</td><td>{{ row.after }}</td></tr>{% endfor %}</tbody>
+    </table></div>
+    {% else %}<p class="muted">{% translate "No changes." %}</p>{% endif %}
+  </section>
+  {% endif %}
+  {% else %}
+  <div class="card"><div class="empty">
+    {% translate "No support plan is registered." %}
+    {% if can_create_plan %}<p><a class="button button--primary" href="{% url 'workers:support_plan_create' worker.pk %}">{% translate "Create a support plan" %}</a></p>{% elif can_manage_support and not current_host %}<p class="caption">{% translate "Register an employment contract first; the plan is made for the host organization." %}</p>{% endif %}
+  </div></div>
+  {% endif %}
+</div>
+{% endblock %}

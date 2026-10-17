@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-17 08:48+0900\n"
+"POT-Creation-Date: 2026-10-17 10:09+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -738,6 +738,18 @@ msgstr "登録支援機関登録番号"
 msgid "registration expiry date"
 msgstr "登録期限"
 
+msgid "registration date"
+msgstr "登録年月日"
+
+msgid "representative's name"
+msgstr "代表者の氏名"
+
+msgid "representative's name (kana)"
+msgstr "代表者の氏名（ふりがな）"
+
+msgid "phone number"
+msgstr "電話番号"
+
 msgid "postal code"
 msgstr "郵便番号"
 
@@ -752,9 +764,6 @@ msgstr "ロゴ"
 
 msgid "organization"
 msgstr "自機関"
-
-msgid "phone number"
-msgstr "電話番号"
 
 msgid "active"
 msgstr "有効"
@@ -800,6 +809,9 @@ msgstr "氏名"
 
 msgid "full name (kana)"
 msgstr "氏名（カナ）"
+
+msgid "position"
+msgstr "役職"
 
 msgid "support manager"
 msgstr "支援責任者"
@@ -1063,6 +1075,9 @@ msgstr "自機関"
 msgid "Offices"
 msgstr "事務所"
 
+msgid "Standard support plan"
+msgstr "標準の支援計画"
+
 msgid "Audit logs"
 msgstr "監査ログ"
 
@@ -1166,6 +1181,9 @@ msgstr "構成員証明書の差し替え"
 
 msgid "Replaced the membership certificate."
 msgstr "構成員証明書を差し替えました。"
+
+msgid "Saved the standard support plan as a new version."
+msgstr "標準の支援計画を新しい版として保存しました。"
 
 msgid "Access denied"
 msgstr "アクセスできません"
@@ -1359,6 +1377,9 @@ msgstr ""
 msgid "Edit"
 msgstr "編集"
 
+msgid "representative"
+msgstr "代表者"
+
 msgid "joined the food industry council on"
 msgstr "食品産業特定技能協議会の加入日"
 
@@ -1389,6 +1410,36 @@ msgid ""
 msgstr ""
 "支援責任者・支援担当者です。削除はできません。退職のときは「有効」を外し、"
 "ユーザーも無効化してください。"
+
+msgid ""
+"The standard support plan is copied when a support plan is created for a "
+"foreign worker. Changes are saved as new versions, so you can see who "
+"changed what and when. The staff in charge may be left empty here."
+msgstr ""
+"外国人ごとの支援計画を作るときに複製する、自機関の標準の計画です。変更は新し"
+"い版として保存され、いつ・誰が何を変えたかが残ります。担当者は空のままで構い"
+"ません（計画を作るときに外国人の担当者が入ります）。"
+
+#, python-format
+msgid "Version %(number)s (applies from %(day)s)"
+msgstr "第%(number)s版（%(day)s から適用）"
+
+msgid "Versions"
+msgstr "版の一覧"
+
+msgid "applies from"
+msgstr "適用開始日"
+
+#, python-format
+msgid "Changes from version %(old)s to %(new)s"
+msgstr "第%(old)s版から第%(new)s版への変更"
+
+msgid "No changes."
+msgstr "変更はありません。"
+
+msgid ""
+"Saving creates a new version of the standard plan. Enter the change reason."
+msgstr "保存すると標準の計画の新しい版になります。変更理由を入力してください。"
 
 msgid "deactivated"
 msgstr "無効化済み"
@@ -2176,9 +2227,6 @@ msgstr "管理画面で開く"
 msgid "Basic information"
 msgstr "基本情報"
 
-msgid "representative"
-msgstr "代表者"
-
 msgid "Support contracts"
 msgstr "支援委託契約"
 
@@ -2239,26 +2287,17 @@ msgstr "ダミーデータの台帳"
 msgid "Support"
 msgstr "支援"
 
-msgid "standard plan"
-msgstr "標準の計画"
+msgid "yes"
+msgstr "あり"
 
-msgid "support plan"
-msgstr "支援計画"
+msgid "no"
+msgstr "なし"
 
-msgid "support plans"
-msgstr "支援計画"
+msgid "Holidays"
+msgstr "祝日"
 
-msgid "standard support plan"
-msgstr "標準の支援計画"
-
-msgid "online"
-msgstr "オンライン"
-
-msgid "in person"
-msgstr "対面"
-
-msgid "applies from"
-msgstr "適用開始日"
+msgid "Required from the second version."
+msgstr "2 版目から必須です。"
 
 msgid "prepared on"
 msgstr "作成日"
@@ -2272,38 +2311,11 @@ msgstr "本人に交付する翻訳文の言語"
 msgid "worker's preference for periodic interviews"
 msgstr "定期面談の実施方法についての本人の希望"
 
-msgid "support plan version"
-msgstr "支援計画の版"
-
-msgid "support plan versions"
-msgstr "支援計画の版"
-
-msgid "support item"
-msgstr "支援項目"
-
 msgid "interpreter (organization and name)"
 msgstr "通訳者の所属・氏名"
 
-msgid "Only when someone other than the support staff interprets."
-msgstr "支援担当者以外の人が通訳を担う場合だけ書きます。"
-
 msgid "planned hours in total"
 msgstr "実施予定時間（合計）"
-
-msgid "support plan item"
-msgstr "支援計画の項目"
-
-msgid "support plan items"
-msgstr "支援計画の項目"
-
-msgid "row"
-msgstr "欄"
-
-msgid "support content"
-msgstr "支援内容"
-
-msgid "Only for the free-entry rows."
-msgstr "自由記入の欄だけ書きます。"
 
 msgid "planned"
 msgstr "実施予定"
@@ -2311,18 +2323,20 @@ msgstr "実施予定"
 msgid "timing, or reason for not implementing"
 msgstr "実施時期（「無」の場合は実施しない理由）"
 
-msgid "outsourced to a third party"
-msgstr "第三者への委託"
-
-msgid ""
-"Only when the host organization outsources part of the support to a third "
-"party other than the registered support organization."
-msgstr ""
-"受入れ機関が支援の一部を登録支援機関以外の第三者に委託する場合だけ「有」にし"
-"ます（様式の注意 5）。"
+msgid "support content"
+msgstr "支援内容"
 
 msgid "support staff in charge"
 msgstr "支援担当者"
+
+msgid "methods"
+msgstr "実施方法"
+
+msgid "method (text)"
+msgstr "実施方法（文章）"
+
+msgid "outsourced to a third party"
+msgstr "第三者への委託"
 
 msgid "name of the contractor"
 msgstr "委託先の氏名"
@@ -2333,41 +2347,12 @@ msgstr "委託先の役職"
 msgid "address of the contractor"
 msgstr "委託先の住所"
 
-msgid "methods"
-msgstr "実施方法"
-
-msgid "notes on methods"
-msgstr "実施方法の記述"
-
-msgid "Text for “other”, airports and means of transfer."
-msgstr "「その他」の内容、空港名、送迎方法を書きます。"
-
-msgid "method (text)"
-msgstr "実施方法（文章）"
-
-msgid "For rows without check boxes."
-msgstr "チェック欄の無い区分で書きます。"
-
 msgid "notes when different for each content"
 msgstr "支援内容ごとに異なる場合の記載"
 
-msgid "support plan activity"
-msgstr "支援計画の細目"
-
-msgid "support plan activities"
-msgstr "支援計画の細目"
-
-msgid "secured at the time of the application"
-msgstr "申請の時点で確保しているもの"
-
-msgid "to be secured after the application"
-msgstr "申請の後に確保するもの"
-
-msgid "owned property"
-msgstr "自己所有物件"
-
-msgid "leased property"
-msgstr "借上物件"
+#, python-format
+msgid "%(method)s (details)"
+msgstr "%(method)s（内容）"
 
 msgid "when secured"
 msgstr "確保の時点"
@@ -2393,18 +2378,6 @@ msgstr "宿泊施設の種類"
 msgid "explanation that the cost is appropriate"
 msgstr "費用が適正な額であることの説明"
 
-msgid "housing outline"
-msgstr "住居の概要"
-
-msgid "housing outlines"
-msgstr "住居の概要"
-
-msgid "phone"
-msgstr "電話"
-
-msgid "hours"
-msgstr "対応時間"
-
 msgid "consultation methods"
 msgstr "相談方法"
 
@@ -2422,6 +2395,112 @@ msgstr "緊急時のメール"
 
 msgid "other method in an emergency"
 msgstr "緊急時のその他の方法"
+
+msgid "same as the workplace"
+msgstr "事業所と同じ"
+
+msgid "prefecture"
+msgstr "都道府県"
+
+msgid "checked on"
+msgstr "確認日"
+
+msgid "how checked"
+msgstr "確認方法"
+
+msgid "other method (details)"
+msgstr "その他の方法（内容）"
+
+msgid "remarks"
+msgstr "備考"
+
+msgid "standard plan"
+msgstr "標準の計画"
+
+msgid "support plan"
+msgstr "支援計画"
+
+msgid "support plans"
+msgstr "支援計画"
+
+msgid "standard support plan"
+msgstr "標準の支援計画"
+
+msgid "online"
+msgstr "オンライン"
+
+msgid "in person"
+msgstr "対面"
+
+msgid "support plan version"
+msgstr "支援計画の版"
+
+msgid "support plan versions"
+msgstr "支援計画の版"
+
+msgid "support item"
+msgstr "支援項目"
+
+msgid "Only when someone other than the support staff interprets."
+msgstr "支援担当者以外の人が通訳を担う場合だけ書きます。"
+
+msgid "support plan item"
+msgstr "支援計画の項目"
+
+msgid "support plan items"
+msgstr "支援計画の項目"
+
+msgid "row"
+msgstr "欄"
+
+msgid "Only for the free-entry rows."
+msgstr "自由記入の欄だけ書きます。"
+
+msgid ""
+"Only when the host organization outsources part of the support to a third "
+"party other than the registered support organization."
+msgstr ""
+"受入れ機関が支援の一部を登録支援機関以外の第三者に委託する場合だけ「有」にし"
+"ます（様式の注意 5）。"
+
+msgid "notes on methods"
+msgstr "実施方法の記述"
+
+msgid "Text for “other”, airports and means of transfer."
+msgstr "「その他」の内容、空港名、送迎方法を書きます。"
+
+msgid "For rows without check boxes."
+msgstr "チェック欄の無い区分で書きます。"
+
+msgid "support plan activity"
+msgstr "支援計画の細目"
+
+msgid "support plan activities"
+msgstr "支援計画の細目"
+
+msgid "secured at the time of the application"
+msgstr "申請の時点で確保しているもの"
+
+msgid "to be secured after the application"
+msgstr "申請の後に確保するもの"
+
+msgid "owned property"
+msgstr "自己所有物件"
+
+msgid "leased property"
+msgstr "借上物件"
+
+msgid "housing outline"
+msgstr "住居の概要"
+
+msgid "housing outlines"
+msgstr "住居の概要"
+
+msgid "phone"
+msgstr "電話"
+
+msgid "hours"
+msgstr "対応時間"
 
 msgid "consultation desk"
 msgstr "相談・苦情の受付"
@@ -2441,32 +2520,85 @@ msgstr "ホームページ"
 msgid "place"
 msgstr "場所"
 
-msgid "same as the workplace"
-msgstr "事業所と同じ"
-
 msgid "Only for the residence."
 msgstr "住居地の欄だけ使います。"
-
-msgid "prefecture"
-msgstr "都道府県"
-
-msgid "checked on"
-msgstr "確認日"
-
-msgid "how checked"
-msgstr "確認方法"
-
-msgid "other method (details)"
-msgstr "その他の方法（内容）"
-
-msgid "remarks"
-msgstr "備考"
 
 msgid "check of coexistence measures"
 msgstr "共生施策の確認"
 
 msgid "checks of coexistence measures"
 msgstr "共生施策の確認"
+
+#, python-format
+msgid "%(counter)s planned"
+msgid_plural "%(counter)s planned"
+msgstr[0] "実施予定 %(counter)s"
+
+#, python-format
+msgid "%(counter)s note"
+msgid_plural "%(counter)s notes"
+msgstr[0] "注意 %(counter)s件"
+
+msgid "Item b covers accompanying to public procedures."
+msgstr "b が公的手続への同行にあたります。"
+
+msgid "free entry"
+msgstr "自由記入"
+
+msgid "Whole plan"
+msgstr "計画全体"
+
+msgid "Version"
+msgstr "版"
+
+msgid "has errors"
+msgstr "エラーあり"
+
+msgid "Outsourcing and notes for each content"
+msgstr "委託・支援内容ごとの記載"
+
+msgid "day"
+msgstr "曜日"
+
+msgid ""
+"Sections with errors or notes are open. Notes (empty timing or staff) do not "
+"block saving."
+msgstr ""
+"エラーか注意のある区分を開いています。注意（時期や担当者が空）があっても保存"
+"できます。"
+
+msgid "Plan"
+msgstr "計画"
+
+msgid "current"
+msgstr "現在"
+
+msgid "Show"
+msgstr "表示"
+
+msgid "Create a support plan"
+msgstr "支援計画を作成"
+
+msgid "No support plan is registered."
+msgstr "支援計画は登録されていません。"
+
+msgid ""
+"Register an employment contract first; the plan is made for the host "
+"organization."
+msgstr "先に雇用契約を登録してください。支援計画は受入れ機関ごとに作ります。"
+
+msgid "Select the host organization."
+msgstr "受入れ機関を選んでください。"
+
+msgid "Created the support plan."
+msgstr "支援計画を作成しました。"
+
+msgid "Add a new version of the support plan"
+msgstr "支援計画の新版を追加"
+
+#, python-format
+msgid "Added version %(number)s."
+msgstr "第%(number)s版を追加しました。"
 
 msgid "void"
 msgstr "取り消す"
@@ -2768,16 +2900,6 @@ msgstr "手取り支給額（概算）"
 
 msgid "Allowances and deductions"
 msgstr "手当・控除"
-
-msgid "Versions"
-msgstr "版の一覧"
-
-#, python-format
-msgid "Changes from version %(old)s to %(new)s"
-msgstr "第%(old)s版から第%(new)s版への変更"
-
-msgid "No changes."
-msgstr "変更はありません。"
 
 msgid "No filing tasks for this foreign worker."
 msgstr "この外国人の届出タスクはありません。"
@@ -3163,11 +3285,14 @@ msgstr "前の版の適用開始日以降の日付にしてください。"
 msgid "A support plan for this host organization already exists."
 msgstr "この受入れ機関の支援計画はすでにあります。"
 
-msgid "yes"
-msgstr "あり"
+msgid "The timing is empty."
+msgstr "実施時期が空です。"
 
-msgid "no"
-msgstr "なし"
+msgid "The staff in charge is empty."
+msgstr "担当者が空です。"
+
+msgid "section"
+msgstr "区分"
 
 msgid "residence"
 msgstr "在留情報"

@@ -1,0 +1,73 @@
+{% load i18n ui %}{# 支援計画の編集（区分は様式の順。エラーか注意のある区分だけ開く）。editor は apps.support.forms.PlanEditor #}
+{% include "ui/components/form_errors.html" with form=editor.version_form %}
+<section class="card stack" id="plan-version">
+  <h2>{% translate "Version" %}</h2>
+  <div class="plan-grid">
+    {% for field in editor.version_form %}{% form_field field %}{% endfor %}
+  </div>
+</section>
+{% for section_forms in sections %}{% with section=section_forms.section %}
+<details class="card plan-section" id="section-{{ section.code }}"{% if section_forms.is_open %} open{% endif %}>
+  <summary class="plan-section__summary">
+    <span class="plan-section__title">{{ section.title }}</span>
+    {% if section_forms.has_errors %}<span class="badge badge--overdue">{% translate "has errors" %}</span>{% endif %}
+    {% if section_forms.warning_count %}<span class="badge badge--within-7" data-warnings="{{ section_forms.warning_count }}">{% blocktranslate count counter=section_forms.warning_count %}{{ counter }} note{% plural %}{{ counter }} notes{% endblocktranslate %}</span>{% endif %}
+  </summary>
+  <div class="stack plan-section__body">
+    {% if section_forms.item_form %}
+    <div class="plan-grid">{% for field in section_forms.item_form %}{% form_field field %}{% endfor %}</div>
+    {% endif %}
+    {% if section.code == "4" %}<p class="caption">{% translate "Item b covers accompanying to public procedures." %}</p>{% endif %}
+    {% for form, row_warnings in section_forms.rows %}
+    <div class="plan-row{% if row_warnings %} plan-row--warning{% endif %}" data-row="{{ form.row.code }}">
+      {% if form.labels %}<ol class="plan-row__labels caption">{% for letter, label in form.labels %}<li><span class="mono">{{ letter }}.</span> {{ label }}</li>{% endfor %}</ol>
+      {% else %}<p class="caption">{% translate "free entry" %}</p>{% endif %}
+      {% include "ui/components/form_errors.html" %}
+      <div class="plan-grid">
+        {% for field in form.main_fields %}{% form_field field %}{% endfor %}
+        {% for field in form.note_fields %}{% form_field field %}{% endfor %}
+      </div>
+      <details class="plan-row__more"{% if form.outsourced.value or form.outsourcee_name.errors or form.note.value %} open{% endif %}>
+        <summary class="caption">{% translate "Outsourcing and notes for each content" %}</summary>
+        <div class="plan-grid">
+          {% form_field form.outsourced %}
+          {% for field in form.outsourcee_fields %}{% form_field field %}{% endfor %}
+          {% form_field form.note %}
+        </div>
+      </details>
+      {% if row_warnings %}<ul class="plan-row__warnings">{% for message in row_warnings %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
+    </div>
+    {% endfor %}
+    {% if section.code == "3a" %}
+    <div class="plan-row" id="housing-form">
+      <h3>{% translate "housing outline" %}</h3>
+      <div class="plan-grid">{% for field in editor.housing_form %}{% form_field field %}{% endfor %}</div>
+    </div>
+    {% endif %}
+    {% if section.code == "6" %}
+    <div class="plan-row" id="consultation-form">
+      <h3>{% translate "consultation desk" %}</h3>
+      {% with form=editor.consultation_form %}
+      <div class="table-scroll"><table class="table plan-hours">
+        <thead><tr><th>{% translate "day" %}</th><th>{% translate "from" %}</th><th>{% translate "to" %}</th></tr></thead>
+        <tbody>{% for label, start, end in form.hour_rows %}<tr><td>{{ label }}</td><td>{{ start }}</td><td>{{ end }}</td></tr>{% endfor %}</tbody>
+      </table></div>
+      <div class="plan-grid">
+        {% for field in form.contact_fields %}{% form_field field %}{% endfor %}
+        {% for field in form.emergency_fields %}{% form_field field %}{% endfor %}
+      </div>
+      {% endwith %}
+    </div>
+    {% endif %}
+  </div>
+</details>
+{% endwith %}{% endfor %}
+<section class="card stack" id="municipality-form">
+  <h2>{% translate "check of coexistence measures" %}</h2>
+  {% for form in editor.municipality_forms %}
+  <div class="plan-row">
+    <h3>{{ form.place_label }}</h3>
+    <div class="plan-grid">{% for field in form %}{% form_field field %}{% endfor %}</div>
+  </div>
+  {% endfor %}
+</section>

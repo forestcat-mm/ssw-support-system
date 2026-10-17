@@ -137,6 +137,13 @@ class Organization(TrackedModel):
     name = models.CharField(_("name"), max_length=200)
     registration_number = models.CharField(_("registration number"), max_length=50)
     registration_expires_on = models.DateField(_("registration expiry date"))
+    # 支援計画書（参考様式第1-17号）のⅢ欄などで使う（T17）
+    registered_on = models.DateField(_("registration date"), null=True, blank=True)
+    representative_name = models.CharField(_("representative's name"), max_length=100, blank=True)
+    representative_name_kana = models.CharField(
+        _("representative's name (kana)"), max_length=100, blank=True
+    )
+    phone_number = models.CharField(_("phone number"), max_length=20, blank=True)
     postal_code = models.CharField(_("postal code"), max_length=8)
     address = models.CharField(_("address"), max_length=255)
     food_council_joined_on = models.DateField(
@@ -223,6 +230,8 @@ class Staff(TrackedModel):
 
     name = models.CharField(_("full name"), max_length=100)
     name_kana = models.CharField(_("full name (kana)"), max_length=100, blank=True)
+    # 支援計画書の担当者は「氏名（役職）」で書く（T17）
+    position = models.CharField(_("position"), max_length=50, blank=True)
     is_support_manager = models.BooleanField(_("support manager"), default=False)
     is_support_staff = models.BooleanField(_("support staff"), default=False)
     employment_type = models.CharField(

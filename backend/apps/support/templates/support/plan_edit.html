@@ -1,0 +1,27 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{{ title }} | {{ worker }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{{ back_url }}">← {{ worker }}</a></p>
+  <h1>{{ title }}</h1>
+{% endblock %}
+{% block content %}
+<form class="stack plan-form" method="post" novalidate id="plan-form" data-keepalive="{% url 'accounts:keepalive' %}">
+  {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+  <p class="muted">{% translate "Sections with errors or notes are open. Notes (empty timing or staff) do not block saving." %}</p>
+  {% if hosts %}
+  <section class="card">
+    <div class="form-row">
+      <label class="form-row__label" for="plan-host">{% translate "host organization" %} <span class="form-row__required">{% translate "required field" %}</span></label>
+      <select class="select" id="plan-host" name="host">
+        {% for host in hosts %}<option value="{{ host.pk }}"{% if host == selected_host %} selected{% endif %}>{{ host.name }}</option>{% endfor %}
+      </select>
+    </div>
+  </section>
+  {% endif %}
+  {% include "support/components/plan_editor.html" %}
+  <div class="form-actions">
+    <button class="button button--primary" type="submit">{% translate "Save" %}</button>
+    <a class="button button--neutral" href="{{ back_url }}">{% translate "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

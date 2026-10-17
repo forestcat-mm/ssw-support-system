@@ -28,6 +28,7 @@ class StaffForm(StyledFormMixin, forms.ModelForm[Staff]):
         fields = (
             "name",
             "name_kana",
+            "position",
             "is_support_manager",
             "is_support_staff",
             "employment_type",
@@ -67,12 +68,17 @@ class OrganizationForm(StyledFormMixin, forms.ModelForm[Organization]):
         fields = (
             "name",
             "registration_number",
+            "registered_on",
             "registration_expires_on",
+            "representative_name",
+            "representative_name_kana",
             "postal_code",
             "address",
+            "phone_number",
             "food_council_joined_on",
         )
         widgets = {
+            "registered_on": forms.DateInput,
             "registration_expires_on": forms.DateInput,
             "food_council_joined_on": forms.DateInput,
         }

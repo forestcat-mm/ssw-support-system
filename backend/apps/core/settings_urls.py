@@ -23,6 +23,8 @@ urlpatterns = [
     path("offices/", views.OfficeListView.as_view(), name="offices"),
     path("offices/new/", views.OfficeFormView.as_view(), name="office_create"),
     path("offices/<int:pk>/", views.OfficeFormView.as_view(), name="office_edit"),
+    path("support-plan/", views.StandardPlanView.as_view(), name="support_plan"),
+    path("support-plan/edit/", views.StandardPlanEditView.as_view(), name="support_plan_edit"),
     path("audit/", views.AuditListView.as_view(), name="audit"),
     path("audit/<int:pk>/", views.AuditDetailView.as_view(), name="audit_entry"),
 ]

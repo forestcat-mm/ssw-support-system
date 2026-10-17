@@ -1,0 +1,13 @@
+{% extends "settings/base.html" %}{% load i18n ui %}
+{% block settings_content %}
+<p class="caption"><a href="{{ back }}">← {% translate "Standard support plan" %}</a></p>
+<form class="stack plan-form" method="post" novalidate id="plan-form" data-keepalive="{% url 'accounts:keepalive' %}">
+  {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+  <p class="muted">{% translate "Saving creates a new version of the standard plan. Enter the change reason." %}</p>
+  {% include "support/components/plan_editor.html" %}
+  <div class="form-actions">
+    <button class="button button--primary" type="submit">{% translate "Save" %}</button>
+    <a class="button button--neutral" href="{{ back }}">{% translate "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

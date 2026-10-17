@@ -1,0 +1,3 @@
+{% load i18n %}<nav class="cluster plan-subtabs" aria-label="{% translate 'Support' %}">
+  <a class="button button--small {% if support_subtab == 'plan' %}button--primary{% else %}button--neutral{% endif %}" href="{% url 'workers:support' worker.pk %}"{% if support_subtab == 'plan' %} aria-current="page"{% endif %}>{% translate "Plan" %}</a>
+</nav>

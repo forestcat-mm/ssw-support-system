@@ -578,3 +578,74 @@ a.badge:hover {
   border-radius: var(--radius-input);
   border: 1px solid var(--color-line);
 }
+
+/* --- 支援計画（T17）: 様式の区分の折りたたみ・細目の行 ------------------------------------- */
+.plan-section > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+  cursor: pointer;
+  list-style-position: inside;
+}
+
+.plan-section__title {
+  font-weight: 600;
+  flex: 1 1 16rem;
+}
+
+.plan-section[open] > summary {
+  margin-bottom: var(--space-12);
+}
+
+.plan-section__body {
+  gap: var(--space-12);
+}
+
+.plan-row {
+  border-top: 1px solid var(--color-line);
+  padding-top: var(--space-12);
+}
+
+.plan-row--warning {
+  border-left: 3px solid var(--level-within-7-mark);
+  padding-left: var(--space-12);
+}
+
+.plan-row__labels {
+  margin: 0 0 var(--space-8);
+  padding-left: 0;
+  list-style: none;
+}
+
+.plan-row__warnings {
+  margin: var(--space-8) 0 0;
+  padding: var(--space-4) var(--space-8);
+  list-style: none;
+  font-size: var(--text-caption);
+  background: var(--level-within-7-bg);
+  color: var(--level-within-7-fg);
+  border-radius: var(--radius-input);
+}
+
+.plan-row__more {
+  margin-top: var(--space-8);
+}
+
+/* 細目の行の中の欄: PC 幅は 2 列、狭い画面は 1 列 */
+.plan-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-12) var(--space-16);
+  align-items: start;
+}
+
+@media (max-width: 959px) {
+  .plan-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.plan-hours .input {
+  min-width: 7rem;
+}

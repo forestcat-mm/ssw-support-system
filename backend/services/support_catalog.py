@@ -54,6 +54,16 @@ FORM_SECTION = {
 # 実施予定時間（合計の時間）の欄がある項目
 ITEMS_WITH_HOURS = frozenset({SupportItem.PRE_GUIDANCE, SupportItem.ORIENTATION})
 
+# 実施言語・通訳者の欄がある項目（様式のⅣ欄 1・4・6・9）
+ITEMS_WITH_LANGUAGE = frozenset(
+    {
+        SupportItem.PRE_GUIDANCE,
+        SupportItem.ORIENTATION,
+        SupportItem.CONSULTATION,
+        SupportItem.PERIODIC_INTERVIEW,
+    }
+)
+
 
 class Method(models.TextChoices):
     """実施方法のチェックボックス（様式の文言）。"""
@@ -92,7 +102,9 @@ class Row:
 
 # 細目の文言（様式のまま。データとして持ち、様式の改正のときに差し替える）
 _DATA_FILE = Path(__file__).resolve().parent / "data" / "support_plan_1-17.json"
-ACTIVITY_LABELS: dict[str, str] = json.loads(_DATA_FILE.read_text(encoding="utf-8"))["labels"]
+_DATA = json.loads(_DATA_FILE.read_text(encoding="utf-8"))
+ACTIVITY_LABELS: dict[str, str] = _DATA["labels"]
+SECTION_TITLES: dict[str, str] = _DATA["sections"]
 
 _GUIDANCE = (Method.IN_PERSON, Method.VIDEO_CALL, Method.OTHER)
 _PROCEDURE = (Method.INFORMATION, Method.ACCOMPANY, Method.OTHER)
@@ -149,3 +161,24 @@ def labels_of(row: Row) -> list[tuple[str, str]]:
     """行が受け持つ細目の（符号, 文言）。"""
     prefix = section_prefix(row.code)
     return [(letter, str(ACTIVITY_LABELS[f"{prefix}.{letter}"])) for letter in row.letters]
+
+
+@dataclass(frozen=True)
+class Section:
+    """様式のⅣ欄の区分（1〜9。3 はアとイ）。表示と入力はこの順序で並べる。"""
+
+    code: str  # "1" / "3a" / "3b" / …
+    item: SupportItem
+    title: str
+    rows: tuple[Row, ...]
+
+
+SECTIONS: tuple[Section, ...] = tuple(
+    Section(
+        code=code,
+        item=next(row.item for row in ROWS if section_prefix(row.code) == code),
+        title=title,
+        rows=tuple(row for row in ROWS if section_prefix(row.code) == code),
+    )
+    for code, title in SECTION_TITLES.items()
+)

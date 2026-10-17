@@ -21,6 +21,12 @@ from django.utils.translation import gettext as _
 from apps.core.models import Staff, SupportLanguage, User
 from apps.hosts.models import HostOrganization
 from apps.support.models import (
+    CheckMethod,
+    ContactMethod,
+    HousingTiming,
+    InterviewPreference,
+    MunicipalityPlace,
+    PropertyType,
     SupportPlan,
     SupportPlanActivity,
     SupportPlanConsultation,
@@ -35,7 +41,10 @@ from services.support_catalog import (
     METHODS_WITH_NOTE,
     ROWS,
     ROWS_BY_CODE,
+    Method,
     SupportItem,
+    labels_of,
+    section_prefix,
 )
 
 # 標準の計画の実施予定の初期値（記載例の書き方に合わせる。設定画面で直せる）
@@ -431,3 +440,105 @@ def diff(old: SupportPlanVersion, new: SupportPlanVersion) -> dict[str, list[Any
         for key in sorted(set(before) | set(after))
         if before.get(key) != after.get(key)
     }
+
+
+# --- 画面の表示（T17）: 注意・差分の行 -------------------------------------------------
+
+
+def warnings(content: PlanContent, *, require_staff: bool = True) -> dict[str, list[str]]:
+    """エラーにはしない注意（「有」なのに時期・担当が空）。キーは "activity:<行>"。
+
+    標準の計画では担当を空にしておけるので、require_staff=False で担当の注意を出さない。
+    """
+    found: dict[str, list[str]] = {}
+    for code, activity in content.activities.items():
+        row = ROWS_BY_CODE.get(code)
+        if row is None or not activity.planned:
+            continue
+        messages = []
+        if not activity.planned_note.strip():
+            messages.append(_("The timing is empty."))
+        if require_staff and not activity.outsourced and activity.staff_id is None:
+            messages.append(_("The staff in charge is empty."))
+        if messages:
+            found[f"activity:{code}"] = messages
+    return found
+
+
+@dataclass(frozen=True)
+class DiffRow:
+    label: str
+    before: str
+    after: str
+
+
+def _field_label(model: Any, name: str) -> str:
+    try:
+        return str(model._meta.get_field(name).verbose_name)
+    except Exception:  # noqa: BLE001 - 名前の無い欄（language_ids など）はそのまま出す
+        return name
+
+
+def _format(name: str, value: Any, names: dict[str, dict[Any, str]]) -> str:
+    if value in (None, "", [], {}):
+        return "—"
+    if isinstance(value, bool):
+        return _("yes") if value else _("no")
+    if name == "staff_id":
+        return names["staff"].get(value, str(value))
+    if name in ("language_ids",):
+        return ", ".join(names["language"].get(pk, str(pk)) for pk in value)
+    if name == "translation_language_id":
+        return names["language"].get(value, str(value))
+    if name in ("methods", "emergency_methods"):
+        return ", ".join(names["choice"].get(code, code) for code in value)
+    if isinstance(value, dict):
+        return "; ".join(f"{names['choice'].get(k, k)}: {v}" for k, v in value.items())
+    if isinstance(value, datetime.date):
+        return value.isoformat()
+    return str(names["choice"].get(value, value)) if isinstance(value, str) else str(value)
+
+
+def diff_rows(old: SupportPlanVersion, new: SupportPlanVersion) -> list[DiffRow]:
+    """版の差分を、欄の名前（「区分 2 a: 実施方法」など）と表示用の値の行にする。"""
+    names: dict[str, dict[Any, str]] = {
+        "staff": {
+            staff.pk: f"{staff.name}（{staff.position}）" if staff.position else staff.name
+            for staff in Staff.objects.all()
+        },
+        "language": {language.pk: str(language) for language in SupportLanguage.objects.all()},
+        "choice": {
+            **{str(c.value): str(c.label) for c in Method},
+            **{str(c.value): str(c.label) for c in ContactMethod},
+            **{str(c.value): str(c.label) for c in InterviewPreference},
+            **{str(c.value): str(c.label) for c in HousingTiming},
+            **{str(c.value): str(c.label) for c in PropertyType},
+            **{str(c.value): str(c.label) for c in CheckMethod},
+        },
+    }
+    rows = []
+    for key, (before, after) in diff(old, new).items():
+        parts = key.split(":")
+        name = parts[-1]
+        if parts[0] == "activity":
+            row = ROWS_BY_CODE[parts[1]]
+            letters = "・".join(letter for letter, _label in labels_of(row)) or _("free entry")
+            section = _("section")
+            where = f"{section} {section_prefix(row.code)} {letters}"
+            label = f"{where}: {_field_label(SupportPlanActivity, name)}"
+        elif parts[0] == "item":
+            item = SupportItem(parts[1])
+            field_name = "languages" if name == "language_ids" else name
+            label = f"{item.label}: {_field_label(SupportPlanItem, field_name)}"
+        elif parts[0] == "housing":
+            label = f"{_('housing outline')}: {_field_label(SupportPlanHousing, name)}"
+        elif parts[0] == "consultation":
+            label = f"{_('consultation desk')}: {_field_label(SupportPlanConsultation, name)}"
+        elif parts[0] == "municipality":
+            place = MunicipalityPlace(parts[1]).label
+            label = f"{place}: {_field_label(SupportPlanMunicipalityCheck, name)}"
+        else:
+            field_name = name.removesuffix("_id")
+            label = _field_label(SupportPlanVersion, field_name)
+        rows.append(DiffRow(label, _format(name, before, names), _format(name, after, names)))
+    return rows

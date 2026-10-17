@@ -1,5 +1,6 @@
 from django.urls import path
 
+from apps.support import views as support_views
 from apps.workers import views
 
 app_name = "workers"
@@ -12,6 +13,17 @@ urlpatterns = [
     path("<int:pk>/filings/", views.WorkerFilingsView.as_view(), name="filings"),
     path("<int:pk>/history/", views.WorkerHistoryView.as_view(), name="history"),
     path("<int:pk>/edit/", views.WorkerUpdateView.as_view(), name="edit"),
+    path("<int:pk>/support/", support_views.SupportPlanTabView.as_view(), name="support"),
+    path(
+        "<int:pk>/support/plans/new/",
+        support_views.PlanCreateView.as_view(),
+        name="support_plan_create",
+    ),
+    path(
+        "<int:pk>/support/plans/<int:plan_id>/versions/new/",
+        support_views.VersionCreateView.as_view(),
+        name="support_version_create",
+    ),
     path("<int:pk>/deactivate/", views.WorkerDeactivateView.as_view(), name="deactivate"),
     path("<int:pk>/reactivate/", views.WorkerReactivateView.as_view(), name="reactivate"),
     path(

@@ -1,0 +1,30 @@
+{% extends "settings/base.html" %}{% load i18n ui %}
+{% block settings_content %}
+<div class="page-header" style="margin-bottom: 0">
+  <p class="muted page-header__title">{% translate "The standard support plan is copied when a support plan is created for a foreign worker. Changes are saved as new versions, so you can see who changed what and when. The staff in charge may be left empty here." %}</p>
+  <div class="page-header__actions"><a class="button button--primary" href="{% url 'settings:support_plan_edit' %}">{% translate "Edit" %}</a></div>
+</div>
+<p class="caption" id="plan-version-label">{% blocktranslate with number=version.version day=version.applies_from|date:"Y-m-d" %}Version {{ number }} (applies from {{ day }}){% endblocktranslate %}</p>
+{% include "support/components/plan_display.html" %}
+<section class="card" id="plan-versions">
+  <div class="card__header"><h2 class="card__title">{% translate "Versions" %}</h2></div>
+  <div class="table-scroll"><table class="table table--list">
+    <thead><tr><th>{% translate "version" %}</th><th>{% translate "applies from" %}</th><th>{% translate "change reason" %}</th><th>{% translate "created by" %}</th></tr></thead>
+    <tbody>{% for item in versions %}
+      <tr{% if item.pk == version.pk %} aria-current="true"{% endif %}>
+        <td>{% if item.pk == version.pk %}{{ item.version }}{% else %}<a href="?version={{ item.version }}">{{ item.version }}</a>{% endif %}</td>
+        <td class="mono">{{ item.applies_from|date:"Y-m-d" }}</td>
+        <td>{{ item.change_reason|default:"—" }}</td>
+        <td>{{ item.created_by.get_username|default:"—" }}</td>
+      </tr>{% endfor %}</tbody>
+  </table></div>
+</section>
+{% if previous %}
+<section class="card" id="plan-diff">
+  <div class="card__header"><h2 class="card__title">{% blocktranslate with old=previous.version new=version.version %}Changes from version {{ old }} to {{ new }}{% endblocktranslate %}</h2></div>
+  {% if diff %}<div class="table-scroll"><table class="table"><thead><tr><th>{% translate "item" %}</th><th>{% translate "before" %}</th><th>{% translate "after" %}</th></tr></thead>
+  <tbody>{% for row in diff %}<tr><td>{{ row.label }}</td><td>{{ row.before }}</td><td>{{ row.after }}</td></tr>{% endfor %}</tbody></table></div>
+  {% else %}<p class="muted">{% translate "No changes." %}</p>{% endif %}
+</section>
+{% endif %}
+{% endblock %}

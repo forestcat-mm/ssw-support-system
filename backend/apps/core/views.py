@@ -224,3 +224,14 @@ class AttachmentDownloadView(View):
             },
         )
         return response
+
+
+@method_decorator(login_required, name="dispatch")
+class KeepAliveView(View):
+    """長い入力の画面で、入力している間のセッションを延ばす（無操作の失効で入力が消えないように）。
+
+    SESSION_SAVE_EVERY_REQUEST により、このリクエスト自体が操作として扱われ失効が延びる。
+    """
+
+    def post(self, request: HttpRequest) -> HttpResponse:
+        return HttpResponse(status=204)

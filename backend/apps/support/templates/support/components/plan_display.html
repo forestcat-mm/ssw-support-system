@@ -1,0 +1,78 @@
+{% load i18n ui %}{# 支援計画の版の表示（区分は様式の順。初期状態はすべてたたむ）。view は apps.support.display.PlanView #}
+<div class="stack" id="plan-sections">
+  {% for section_view in view.sections %}{% with section=section_view.section %}
+  <details class="card plan-section" id="section-{{ section.code }}">
+    <summary class="plan-section__summary">
+      <span class="plan-section__title">{{ section.title }}</span>
+      <span class="caption">{% blocktranslate count counter=section_view.planned_count %}{{ counter }} planned{% plural %}{{ counter }} planned{% endblocktranslate %}{% if section_view.staff_names %} · {{ section_view.staff_names|join:"、" }}{% endif %}{% if section_view.languages and section_view.show_item_fields %} · {{ section_view.languages|join:"、" }}{% endif %}</span>
+      {% if section_view.warning_count %}<span class="badge badge--within-7" data-warnings="{{ section_view.warning_count }}">{% blocktranslate count counter=section_view.warning_count %}{{ counter }} note{% plural %}{{ counter }} notes{% endblocktranslate %}</span>{% endif %}
+    </summary>
+    <div class="stack plan-section__body">
+      {% if section_view.show_item_fields %}
+      <dl class="fields">
+        <dt>{% translate "languages" %}</dt><dd>{{ section_view.languages|join:"、"|default:"—" }}</dd>
+        <dt>{% translate "interpreter (organization and name)" %}</dt><dd>{{ section_view.item.interpreter|default:"—" }}</dd>
+        {% if section_view.show_hours %}<dt>{% translate "planned hours in total" %}</dt><dd class="mono">{% if section_view.item.planned_hours is not None %}{{ section_view.item.planned_hours }} {% translate "hours" %}{% else %}—{% endif %}</dd>{% endif %}
+      </dl>
+      {% endif %}
+      {% if section.code == "4" %}<p class="caption">{% translate "Item b covers accompanying to public procedures." %}</p>{% endif %}
+      {% for row_view in section_view.rows %}{% with activity=row_view.activity %}
+      <div class="plan-row{% if row_view.warnings %} plan-row--warning{% endif %}" data-row="{{ row_view.row.code }}">
+        {% if row_view.labels %}<ol class="plan-row__labels caption">{% for letter, label in row_view.labels %}<li><span class="mono">{{ letter }}.</span> {{ label }}</li>{% endfor %}</ol>
+        {% else %}<p class="caption">{% translate "free entry" %}{% if activity.content %}: {{ activity.content }}{% endif %}</p>{% endif %}
+        <dl class="fields">
+          <dt>{% translate "planned" %}</dt><dd>{% if activity.planned %}{% translate "yes" %}{% else %}{% translate "no" %}{% endif %}{% if activity.planned_note %}（{{ activity.planned_note }}）{% endif %}</dd>
+          {% if activity.planned %}
+          <dt>{% translate "support staff in charge" %}</dt><dd>{% if activity.outsourced %}{{ activity.outsourcee_name }}{% if activity.outsourcee_title %}（{{ activity.outsourcee_title }}）{% endif %} <span class="caption">{{ activity.outsourcee_address }}</span>{% else %}{{ row_view.staff|default:"—" }}{% endif %}</dd>
+          <dt>{% translate "methods" %}</dt><dd>{% if row_view.methods %}{{ row_view.methods|join:"、" }}{% else %}{{ activity.method_text|default:"—" }}{% endif %}</dd>
+          {% if activity.outsourced %}<dt>{% translate "outsourced to a third party" %}</dt><dd>{% translate "yes" %}</dd>{% endif %}
+          {% if activity.note %}<dt>{% translate "notes when different for each content" %}</dt><dd>{{ activity.note|linebreaksbr }}</dd>{% endif %}
+          {% endif %}
+        </dl>
+        {% if row_view.warnings %}<ul class="plan-row__warnings">{% for message in row_view.warnings %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+      {% endwith %}{% endfor %}
+      {% if section.code == "3a" %}
+      <div class="plan-row" id="housing">
+        <h3>{% translate "housing outline" %}</h3>
+        <dl class="fields">
+          <dt>{% translate "when secured" %}</dt><dd>{{ view.housing.timing|default:"—" }}</dd>
+          <dt>{% translate "room area: 7.5 m² or more per person" %}</dt><dd>{% if view.housing.room_area_ok %}✓{% else %}—{% endif %}</dd>
+          <dt>{% translate "number of occupants" %}</dt><dd class="mono">{{ view.housing.occupants|default:"—" }}</dd>
+          <dt>{% translate "bedroom area: 4.5 m² or more per person" %}</dt><dd>{% if view.housing.bedroom_area_ok %}✓{% else %}—{% endif %}</dd>
+          <dt>{% translate "housing costs collected" %}</dt><dd>{% if view.housing.rent_collected is None %}—{% elif view.housing.rent_collected %}{% translate "yes" %}{% else %}{% translate "no" %}{% endif %}</dd>
+          {% if view.housing.monthly_rent is not None %}<dt>{% translate "housing costs per month (yen)" %}</dt><dd class="mono">¥{{ view.housing.monthly_rent|yen }}</dd>{% endif %}
+          <dt>{% translate "type of accommodation" %}</dt><dd>{{ view.housing.property_type|default:"—" }}</dd>
+          {% if view.housing.rent_explanation %}<dt>{% translate "explanation that the cost is appropriate" %}</dt><dd>{{ view.housing.rent_explanation|linebreaksbr }}</dd>{% endif %}
+        </dl>
+      </div>
+      {% endif %}
+      {% if section.code == "6" %}
+      <div class="plan-row" id="consultation">
+        <h3>{% translate "consultation desk" %}</h3>
+        <dl class="fields">
+          <dt>{% translate "hours" %}</dt><dd>{% for label, start, end in view.consultation.hours %}{{ label }} <span class="mono">{{ start }}–{{ end }}</span>{% if not forloop.last %}<br>{% endif %}{% empty %}—{% endfor %}</dd>
+          <dt>{% translate "consultation methods" %}</dt><dd>{{ view.consultation.methods|join:"、"|default:"—" }}{% if view.consultation.phone %} <span class="mono">{{ view.consultation.phone }}</span>{% endif %}{% if view.consultation.email %} {{ view.consultation.email }}{% endif %}{% if view.consultation.other %} {{ view.consultation.other }}{% endif %}</dd>
+          <dt>{% translate "methods in an emergency" %}</dt><dd>{{ view.consultation.emergency_methods|join:"、"|default:"—" }}{% if view.consultation.emergency_phone %} <span class="mono">{{ view.consultation.emergency_phone }}</span>{% endif %}{% if view.consultation.emergency_email %} {{ view.consultation.emergency_email }}{% endif %}{% if view.consultation.emergency_other %} {{ view.consultation.emergency_other }}{% endif %}</dd>
+        </dl>
+      </div>
+      {% endif %}
+    </div>
+  </details>
+  {% endwith %}{% endfor %}
+  <section class="card" id="plan-fields">
+    <div class="card__header"><h2 class="card__title">{% translate "Whole plan" %}</h2></div>
+    <dl class="fields">
+      <dt>{% translate "prepared on" %}</dt><dd class="mono">{{ view.plan_fields.created_on|date:"Y-m-d"|default:"—" }}</dd>
+      <dt>{% translate "name of the person responsible for preparation" %}</dt><dd>{{ view.plan_fields.responsible_name|default:"—" }}</dd>
+      <dt>{% translate "language of the translation given to the worker" %}</dt><dd>{{ view.plan_fields.translation_language|default:"—" }}</dd>
+      <dt>{% translate "worker's preference for periodic interviews" %}</dt><dd>{{ view.plan_fields.interview_preference|default:"—" }}</dd>
+      {% for check in view.municipality_checks %}
+      <dt>{% translate "check of coexistence measures" %}: {{ check.place }}</dt>
+      <dd>{% if check.same_as_site %}{% translate "same as the workplace" %}{% else %}{{ check.where|default:"—" }}{% endif %}{% if check.checked_on %} · <span class="mono">{{ check.checked_on|date:"Y-m-d" }}</span>{% endif %}{% if check.method %} · {{ check.method }}{% if check.method_note %}（{{ check.method_note }}）{% endif %}{% endif %}{% if check.note %} · {{ check.note }}{% endif %}</dd>
+      {% empty %}
+      <dt>{% translate "check of coexistence measures" %}</dt><dd>—</dd>
+      {% endfor %}
+    </dl>
+  </section>
+</div>

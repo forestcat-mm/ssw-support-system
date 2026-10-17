@@ -105,6 +105,7 @@ DETAIL_TABS = [
     Tab("contracts", _("Contract"), "workers:contracts", Action.CONTRACTS_VIEW),
     Tab("filings", _("Filings"), "workers:filings", Action.FILINGS_VIEW),
     Tab("history", _("History"), "workers:history"),
+    Tab("support", _("Support"), "workers:support", Action.SUPPORT_VIEW),
 ]
 
 

@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from django.contrib import messages
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Model
 from django.http import Http404, HttpRequest, HttpResponse
@@ -33,7 +33,17 @@ from apps.core.settings_forms import (
 )
 from apps.core.views import invitation_url_builder
 from apps.core.web_forms import consume_once_token, once_context
-from services import audit_search, authorization, invitations, mfa, organization, users
+from apps.support.display import plan_view
+from apps.support.forms import PlanEditor
+from services import (
+    audit_search,
+    authorization,
+    invitations,
+    mfa,
+    organization,
+    support_plans,
+    users,
+)
 
 
 @dataclass(frozen=True)
@@ -56,6 +66,12 @@ SETTINGS_TABS = [
         Action.ORGANIZATION_MANAGE,
     ),
     SettingsTab("offices", gettext_lazy("Offices"), "settings:offices", Action.ORGANIZATION_MANAGE),
+    SettingsTab(
+        "support_plan",
+        gettext_lazy("Standard support plan"),
+        "settings:support_plan",
+        Action.ORGANIZATION_MANAGE,
+    ),
     SettingsTab("audit", gettext_lazy("Audit logs"), "settings:audit", Action.AUDIT_VIEW),
 ]
 
@@ -471,3 +487,71 @@ class AuditDetailView(SettingsView):
         audit_search.record_audit_view({"id": pk}, count=1)
         changes = [(name, values[0], values[1]) for name, values in sorted(entry.changes.items())]
         return self.render(request, entry=entry, changes=changes, back=reverse("settings:audit"))
+
+
+# --- 標準の支援計画（T17） ---------------------------------------------------------------
+
+
+class StandardPlanView(SettingsView):
+    """自機関の標準の支援計画（外国人ごとの計画を作るときの複製の元）と、その版の履歴。"""
+
+    tab = "support_plan"
+    template_name = "settings/support_plan.html"
+    required_action = Action.ORGANIZATION_MANAGE
+
+    def get(self, request: HttpRequest) -> HttpResponse:
+        plan = support_plans.template_plan(by=_actor(request))
+        versions = list(plan.versions.select_related("created_by").order_by("-version"))
+        number = request.GET.get("version", "")
+        version = next((v for v in versions if str(v.version) == number), versions[0])
+        previous = next((v for v in versions if v.version < version.version), None)
+        content = support_plans.content_of(version)
+        return self.render(
+            request,
+            versions=versions,
+            version=version,
+            previous=previous,
+            view=plan_view(content, support_plans.warnings(content, require_staff=False)),
+            diff=support_plans.diff_rows(previous, version) if previous else [],
+        )
+
+
+class StandardPlanEditView(SettingsView):
+    """標準の支援計画の編集。保存すると変更理由つきの新しい版になる。"""
+
+    tab = "support_plan"
+    template_name = "settings/support_plan_edit.html"
+    required_action = Action.ORGANIZATION_MANAGE
+
+    def editor(self, request: HttpRequest, data: Any = None) -> PlanEditor:
+        return PlanEditor(data, initial=support_plans.template_content(), with_applies_from=False)
+
+    def page(self, request: HttpRequest, editor: PlanEditor) -> HttpResponse:
+        return self.render(
+            request,
+            editor=editor,
+            sections=editor.sections(editor.warnings(require_staff=False)),
+            back=reverse("settings:support_plan"),
+        )
+
+    def get(self, request: HttpRequest) -> HttpResponse:
+        support_plans.template_plan(by=_actor(request))
+        return self.page(request, self.editor(request))
+
+    def post(self, request: HttpRequest) -> HttpResponse:
+        if not consume_once_token(request):
+            return self.already_submitted(request, reverse("settings:support_plan"))
+        editor = self.editor(request, request.POST)
+        if editor.is_valid():
+            try:
+                support_plans.update_template(
+                    editor.to_content(),
+                    change_reason=editor.version_form.cleaned_data["change_reason"],
+                    by=_actor(request),
+                )
+            except ValidationError as error:
+                editor.apply_errors(error)
+            else:
+                messages.success(request, _("Saved the standard support plan as a new version."))
+                return redirect("settings:support_plan")
+        return self.page(request, editor)
