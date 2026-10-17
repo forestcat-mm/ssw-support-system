@@ -4,7 +4,7 @@
 各タスクで `make test`・`make lint`・`make e2e` を通す。業務画面・サービス・監査ログ・権限・e2e は段階1の作法を踏襲する。
 
 ゴール: 義務的支援10項目の実施記録がシステム上に残り、定期届出で問われる項目（支援の実施状況、相談の内容と対応、通報の有無）を後から集計できる状態。
-ゲート: 「30人分の面談・相談を記録して回せるか」をダミーデータで確かめる（「段階2の完了条件（T27）」の A）。実データでの運用（B）は段階2の条件に含めず、MVP 完了（段階4）後の価値検証で行う（末尾の節）。
+ゲート: 「定期面談の対象の全員（ダミーでは 27 人）の面談・相談を記録して回せるか」をダミーデータで確かめる（「段階2の完了条件（T27）」の A）。実データでの運用（B）は段階2の条件に含めず、MVP 完了（段階4）後の価値検証で行う（末尾の節）。
 
 参照: 仕様書 第3章（義務的支援10項目）、第5章 F04・F05・F06・F14、第6章「署名を要する書類の扱い」「要配慮個人情報を含む添付」、第7章 support\_plans / support\_plan\_items / support\_records / attachments / filings。
 
@@ -22,7 +22,7 @@
 | T24a | **第4-3号の届出タスクの自動の起票**: 通報（T19 の定期面談・T20 の相談の経過）、ハローワーク相談（T20）、非自発的離職時の転職支援（T18）を記録したときに、第4-3号（特異事案報告）の届出タスクを起票する（期限は事由発生日から 14 日。T10・ADR-0008 と同じ数え方）。起票に元の記録への参照を付け、T24 の照合を参照による一致に置き換える。記録の取消での巻き戻しは T19 に合わせる（手が付いていなければ自動で取消、付いていれば手で直すよう伝える） | 第5章 F06、ADR-0012 | 記録すると第4-3号のタスクが期限つきで起票され、取消で戻る。T24 の照合が参照で「一致」になる。e2e で通す |
 | T25 | **パスワードの再設定**（段階1から持ち越し）: ログイン画面の「パスワードを忘れた場合」→ 自社 SMTP でリンクを送る → 新しいパスワード → 二要素認証は変えない。アカウントの有無は画面から分からないようにする。要求と完了を監査ログに残す | 第8章 | 再設定のメールが届き、リンクから設定してログインできる。e2e で通す |
 | T26 | **ダミーデータの拡張**: seed\_dummy に支援計画（30人）と支援実績（面談・相談・ガイダンス・オリエンテーション）を追加。2 人目の担当者のログインユーザー `dummy_tanto2`（鈴木 次郎）を足す。定期面談の期日がばらける（超過・7日以内・14日以内・対応期間中）。相談は分類・対応状況がばらける。`docs/dummy-data.md` を更新 | 第11章 | 何度実行しても同じ件数で再現し、ダッシュボードに定期面談の各レベルが出る |
-| T27 | **段階2の仕上げ**: ダミーデータでの確認（「段階2の完了条件（T27）」の A と手順）、README・`docs/operations.md`（支援記録の運用・訂正の仕方・要配慮添付の扱い）の更新、段階2の完了条件を 1 つずつ確認して結果を書く | — | A の基準をすべて満たし、完了確認が記録されている |
+| T27 | **段階2の仕上げ**: ダミーデータでの確認（「段階2の完了条件（T27）」の A と手順）、README・`docs/operations.md`（支援記録の運用・訂正の仕方・要配慮添付の扱い・定期面談のオンライン実施）の更新、段階2の完了条件を 1 つずつ確認して結果を書く | — | A の基準をすべて満たし、完了確認が記録されている |
 
 ## 段階1から持ち越した項目
 
@@ -44,13 +44,13 @@
 
 ## 段階2の完了条件（T27）
 
-「30人分の面談・相談を記録して回せた」と判断する基準。段階2の完了条件は、次の A（ダミーデータでの確認）だけとする。
+「定期面談の対象の全員の面談・相談を記録して回せた」と判断する基準。段階2の完了条件は、次の A（ダミーデータでの確認）だけとする。
 
 **A. ダミーデータでの確認（開発環境）**
 
 | 項目 | 基準 |
 |---|---|
-| 記録の量 | 30人分の定期面談（本人用・上司用で 60 行）と、相談 5 件以上（うち 2 件以上を経過の追記を経て解決まで）を、担当者 2 人で記録できる |
+| 記録の量 | 定期面談の対象（在留中で雇用契約のある人）の全員の定期面談（本人用・上司用の 2 行ずつ。ダミーでは 27 人・54 行）と、相談 5 件以上（うち 2 件以上を経過の追記を経て解決まで）を、担当者 2 人で記録できる |
 | 手間 | 定期面談 1 回分（本人用・上司用の 2 行）の記録が、平均 10 分以内 |
 | admin | 記録の作業中に admin を開いた回数が 0 回 |
 | 集計 | T24 の関数で取り出した別紙1 の支援の欄・特異事案の候補と照合の結果、および社内の確認用の「外国人×10項目の実施有無」「相談の一覧」「通報の有無」が、記録した内容と 100% 一致する |
@@ -58,11 +58,82 @@
 
 ## A の確かめ方（T27）
 
-1. `make seed-reset` で、計画と実績の入ったダミーデータ（30人）を作る。
-2. 担当者 2 人分（`dummy_tanto` と、もう 1 人）でログインし、ダッシュボードの「定期面談」から 30 人分の面談を記録する（本人用・上司用）。うち数人は相談として受け付け、経過を追記して解決まで進める。
-3. 次を記録する: 1 人あたりの記録にかかった時間（目安）、迷った画面・項目、足りない項目。
-4. T24 の関数で、別紙1 の支援の欄・特異事案の候補と照合の結果・外国人×10項目の実施有無・相談の一覧・通報の有無を取り出し、記録した内容と一致することを確かめる。
-5. 結果を本ファイルの「段階2の完了確認」に書く。
+1. **自動の通し（`make gate2`）**: `backend/e2e/test_phase2_gate.py`。通常の `make e2e` では飛ばす。
+   - seed\_dummy を基準日で流す。基準日は既定で今日。`make gate2 DATE=YYYY-MM-DD` で変えられ、画面の「今日」も同じ日になる。
+   - `dummy_tanto`・`dummy_tanto2` がそれぞれログインする。ダッシュボード（既定の「自分の担当」）の定期面談の各行の「記録」から、対象の全員の面談（本人用・上司用）を画面で記録する。続けて相談を 3 件・2 件受け付け、それぞれ 1 件を「経過を追記」で解決にする。
+   - 確かめること:
+     - 記録の前のダッシュボードの期限の日付・警告レベル・レベル別の件数が、seed の場面の定数と基準日から `services.deadlines` で計算したものと同じ。
+     - 対象の全員の組（54 行）が残る。
+     - 記録したタスクがすべて完了し、次回のタスクが基準日を起算日として 1 人 1 件ずつある。ダッシュボードにも計算どおりの期限で出る。
+     - 相談 5 件（解決 2・受付 3）。
+     - T24 の関数（別紙1 の支援の欄・外国人×10項目の実施日・相談の一覧・特異事案の候補と照合・通報の有無）が記録と一致し、問題なしの記録で候補・通報が増えない。
+     - `/admin/` へのリクエストが 0 件。
+   - 操作の時間は参考として出すだけにする。自動の操作の時間なので、手間の基準の判定には使わない。
+2. **手間の測定（人が行う）**: 開発環境で `make seed-reset` の後、担当者（または本人）が `dummy_tanto` でログインし、ダッシュボードの「記録」から定期面談を 3 組記録して、下の表に書く。本文は実際の面談を想定した長さで書く。
+3. 結果を「段階2の完了確認」に書く。
+
+**手間の測定の記録**（未記入。測った人が書く）
+
+| # | 外国人（番号） | 記録にかかった時間（「記録」を押してから保存まで） | 迷った画面・項目 | 足りない項目 | admin を開いたか |
+|---|---|---|---|---|---|
+| 1 | | | | | |
+| 2 | | | | | |
+| 3 | | | | | |
+| 平均 | — | | — | — | — |
+
+測った日・測った人: （未記入）
+
+## 段階2の完了確認
+
+確認日: 2026-10-17。
+- `make test`: 799 passed
+- `make lint`: 問題なし
+- `make e2e`: 41 passed・2 skipped（`design-shots` と `gate2` は、それぞれのコマンドのときだけ動く）
+- `make gate2`: 1 passed。基準日 2026-10-17・2026-11-30・2026-12-28 の 3 回とも
+
+### タスクごとの完了条件
+
+| # | 完了条件 | 確かめたもの | 結果 |
+|---|---|---|---|
+| T16 | 標準から計画を作り、新版で差分（項目ごとの変更）が取れる。テストがグリーン | `tests/support/test_support_plans.py`（`test_create_plan_copies_template_and_fills_staff_and_language`・`test_diff_and_current_version`・`test_versions_and_contents_cannot_be_changed_or_deleted`・`test_version_creation_is_audited`） | 達成 |
+| T17 | 外国人 1 人の計画を作り、新版を足すと版が増えて差分が見える。e2e で通す | e2e の `test_create_plan_then_add_version_and_see_diff`、`tests/support/test_plan_screens.py` | 達成 |
+| T18 | 6 種別の記録を登録・取消でき、一覧で絞り込める。e2e で通す | e2e の `test_record_then_void_and_see_strikethrough`、`tests/support/test_support_records.py`（`test_validate_details_per_kind`・`test_void_record_requires_reason_and_keeps_the_row`）、`tests/support/test_record_screens.py` | 達成 |
+| T19 | 面談を記録すると、そのタスクが完了になり、次回のタスクが予定日（無ければ 3 か月後）の期限で起票される。ダッシュボード → 記録 → 完了を e2e で通す | e2e の `test_record_from_dashboard_completes_the_task`、`tests/support/test_periodic_interviews.py`（`test_record_completes_the_task_and_creates_the_next`・`test_scheduled_date_becomes_the_next_due_date`・`test_void_reverts_untouched_tasks`）。`make gate2` で 27 人分 | 達成 |
+| T20 | 相談を受付 → 経過を追記 → 解決にでき、経過が時系列で残る。e2e で通す | e2e の `test_receive_progress_and_resolve`、`tests/support/test_consultations.py`（`test_entries_change_status_and_keep_the_timeline`・`test_entries_are_append_only`） | 達成 |
+| T21 | チェックリストと所要時間つきで記録でき、未チェックの必須項目・所要時間の不足が警告に出る | e2e の `test_record_orientation_with_warnings_and_sign`、`tests/support/test_briefings.py`（`test_duration_warnings_boundaries`・`test_duration_messages_tell_guideline_from_minimum`・`test_list_and_detail_agree_on_signed`） | 達成 |
+| T22 | 交付記録を登録・取消でき、署名済みスキャンを添付できる | e2e の `test_record_career_plan_attach_and_void`、`tests/support/test_deliveries.py`（`test_findings_are_per_contract_and_ignore_the_previous_contract`・`test_support_plan_copy_without_a_plan_cannot_be_saved`） | 達成 |
+| T23 | 担当者・管理者以外は要配慮添付をダウンロードできない（403）。ダウンロードは監査ログに残る | e2e の `test_assigned_staff_can_download`・`test_other_staff_sees_no_name_and_gets_403`、`tests/workers/test_health_documents.py`（`test_download_view_allows_and_denies_with_audit`・`test_admin_hides_the_file_name_and_link`・`test_media_is_not_served`） | 達成（本番の保存先の確かめは本番準備） |
+| T24 | 固定のデータで ①〜③ の結果がテストで確認できる | `tests/support/test_periodic_report.py`（`test_row_of_a_worker_supported_all_year`・`test_matching_with_form_4_3_tasks`・`test_overview_matches_the_records`・`test_staff_change_after_the_reference_date_needs_review`）。`make gate2` でダミーの記録との一致 | 達成 |
+| T24a | 記録すると第4-3号のタスクが期限つきで起票され、取消で戻る。T24 の照合が参照で「一致」になる。e2e で通す | e2e の `test_report_raises_and_void_cancels_the_form_4_3_task`、`tests/support/test_incident_reports.py`、`tests/support/test_periodic_report.py::test_tasks_raised_from_records_match_by_reference` | 達成 |
+| T25 | 再設定のメールが届き、リンクから設定してログインできる。e2e で通す | e2e の `test_reset_the_password_and_sign_in`（PC 幅・390px）、`tests/core/test_password_reset.py` | 達成 |
+| T26 | 何度実行しても同じ件数で再現し、ダッシュボードに定期面談の各レベルが出る | `tests/seed/test_seed_support.py`（`test_reset_recreates_the_same_support_data`・`test_interview_due_dates_are_spread`・`test_dashboard_has_only_the_intended_rows`・`test_workers_have_only_the_intended_warnings`）、`tests/seed/test_seed_dummy.py` | 達成 |
+| T27 | A の基準をすべて満たし、完了確認が記録されている | 下の A の結果 | 一部（手間が未確認） |
+
+### A の結果
+
+| 項目 | 結果 | 根拠 |
+|---|---|---|
+| 記録の量 | 達成。27 人・54 行（2 人で 14 組・13 組）と相談 5 件（解決 2 件） | `make gate2`（3 つの基準日） |
+| 手間 | **未確認**。自動の操作は 1 組 0.3 秒ほどだが、人の手間ではないので判定に使わない | 上の「手間の測定の記録」が未記入 |
+| admin | 達成（自動の通しで `/admin/` へのリクエスト 0 件）。人の測定でも表に書く | `make gate2` |
+| 集計 | 達成。T24 の関数の結果が記録と一致 | `make gate2`、`tests/support/test_periodic_report.py` |
+| 期限 | 達成。記録した 27 件のタスクがすべて完了し、次回のタスクが 27 件ある（漏れ 0 件）。期待値は基準日から `deadlines` で計算 | `make gate2`（月末 2026-11-30 では次回の期限が 2027-02-28 になる） |
+
+段階2のゲートは、手間の測定（3 組）が表に書かれ、平均が 10 分以内であれば達成とする。
+
+### 残っている事項
+
+- **手間の測定**: 上の表（3 組）を人が記入する。10 分を超えたら、迷った画面・項目から直すものを決める。
+- **担当者の履歴**（初回の定期届出 2027年4月より前に）: 「段階1から持ち越した項目」のとおり。
+- **定期面談のオンライン実施の同意・録画の欄**:
+  - 本人の同意は、支援計画の版の「本人の希望」と、署名済みの計画書の交付記録で示せる。
+  - システムに無い欄: 上司の同意を記録する欄と、録画の保存先・保管期限（雇用契約の終了の日から 1 年以上）を記録する欄。当面は、面談の行への添付と本文で代える（`docs/operations.md` の「定期面談のオンライン実施」）。
+  - 運用要領は「同意を確認した書面の保存」と「録画の 1 年以上の保管・閲覧の求めへの対応」を求めている。これを確実にするため、欄を足すかを段階3の前に決める。
+  - 足す場合の候補: 上司ごとの同意（同意日・書面の添付・撤回）、オンラインの組ごとの録画の保存先と保管期限、同意の無い相手・対面を希望した相手のオンラインの記録への警告。
+  - 年 1 回の対面・初回の対面の確認（運用要領では「望まれる」）に警告を出すかも、そのときに決める。
+- **受入れ機関・雇用契約の登録・編集の業務画面**: 段階1（T08・T15b）では「段階2で業務画面へ」としたが、段階2のタスクに入っておらず、まだ管理画面で行っている。いつ作るかを決める。
+- **段階1から持ち越した項目のうち据え置いたもの**: 離職・帰国の日付の必須化、履歴行の「全桁を表示」（「段階1から持ち越した項目」のとおり）。
+- **本番準備**: `docs/tasks-phase1.md` の「MVP 完了後の価値検証の直前にやること」（要配慮添付の保存先の保存時暗号化を含む）。
 
 ## MVP 完了（段階4）後の価値検証
 

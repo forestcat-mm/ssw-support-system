@@ -19,8 +19,9 @@ make seed DATE=2026-10-16   # 基準日を指定する（同じ基準日なら�
 - **安全装置**: `DEBUG=True` かつ `ALLOW_DUMMY_DATA=true` のときだけ動く。どちらかが欠けていれば何も書き込まずに終了する。本番の環境変数に `ALLOW_DUMMY_DATA` は入れない。
 - **再現性**: 乱数の種は固定。日付は基準日（既定は実行した日）からの相対なので、同じ基準日なら同じ内容になる。
 - **作り直し**: `--reset` は、台帳（`seed.SeedObject`）に載っている行と、それに紐づく届出タスクだけを消す。手入力したデータは消さない。監査ログは追記専用なので残る（作成・削除の記録も残る）。
+- **段階2の受け入れ確認**: `make gate2`（`DATE=YYYY-MM-DD` で基準日）は、テスト用の DB にこのダミーデータを入れ、定期面談の対象の 27 人分と相談 5 件を画面で記録して確かめる。手元の開発用の DB には触らない（`docs/tasks-phase2.md` の「A の確かめ方」）。
 - **自機関**: 未登録のときだけ「（ダミー）サンプル登録支援機関」を作る。登録済みの自機関には触らない。
-- **担当者でログインする**: 支援担当者のログインユーザーは 2 人。`dummy_tanto`（佐藤 花子）と `dummy_tanto2`（鈴木 次郎、T26）。`docker compose exec web python manage.py changepassword dummy_tanto` でパスワードを設定するか、ログイン画面の「パスワードを忘れた場合」で `dummy_tanto@example.invalid`・`dummy_tanto2@example.invalid` に再設定のリンクを送る（Mailpit http://localhost:8025 に届く。T25）。http://localhost:8000/accounts/login/ からログインして業務画面を試す（初回は TOTP の設定から始まる）。2 人とも `--reset` でも消えない。
+- **担当者でログインする**: 支援担当者のログインユーザーは 2 人。`dummy_tanto`（佐藤 花子）と `dummy_tanto2`（鈴木 次郎、T26）。最初は `docker compose exec web python manage.py changepassword dummy_tanto` でパスワードを設定する（seed はパスワードを設定しないので、パスワードを一度も設定していないユーザーには再設定のリンクを送らない。T25）。一度設定した後は、ログイン画面の「パスワードを忘れた場合」で `dummy_tanto@example.invalid`・`dummy_tanto2@example.invalid` に再設定のリンクを送れる（Mailpit http://localhost:8025 に届く）。http://localhost:8000/accounts/login/ からログインして業務画面を試す（初回は TOTP の設定から始まる）。2 人とも `--reset` でも消えない。
 - **支援のデータの作り直し**: `--reset` は、台帳の外国人に紐づく支援のデータ（計画・実績・面談・相談・ガイダンス・交付・添付）もまとめて消す。ダミーの外国人に手で足した記録も消える。
 
 ## 作る内容（基準日を D とする）

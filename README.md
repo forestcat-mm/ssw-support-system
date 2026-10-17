@@ -1,10 +1,12 @@
 # 特定技能 登録支援機関 業務管理システム（MVP）
 
 登録支援機関（自社）の内部業務を一元化する自社専用の Web システム。段階1では、外国人台帳・受入れ機関台帳・雇用契約・届出タスクと期限ダッシュボード・管理者向けの設定画面までを提供する。
+段階2では、支援計画（版つき）と義務的支援10項目の実施記録（定期面談・相談と経過・事前ガイダンスと生活オリエンテーション・そのほかの支援）、本人への交付記録、要配慮添付（健康診断の書類）、第4-3号（特異事案報告）の届出タスクの自動の起票、定期届出の元データ（services のみ）、パスワードの再設定を足した。
 
 - 仕様の正本: [`docs/requirements.md`](docs/requirements.md)（章番号で参照する）
 - 作業の約束事: [`CLAUDE.md`](CLAUDE.md)
 - 段階1のタスクと完了確認: [`docs/tasks-phase1.md`](docs/tasks-phase1.md)
+- 段階2のタスクと完了確認: [`docs/tasks-phase2.md`](docs/tasks-phase2.md)
 - 設計判断（ADR）: [`docs/decisions/`](docs/decisions/)
 - 管理者向けの運用手順: [`docs/operations.md`](docs/operations.md)
 - ダミーデータの内容: [`docs/dummy-data.md`](docs/dummy-data.md)
@@ -44,7 +46,7 @@ make seed-reset               # ダミーだけを消して作り直す
 make seed DATE=2026-10-16     # 基準日を指定する（同じ基準日なら同じ内容）
 ```
 
-ダミーの担当者 `dummy_tanto` でログインするには、`docker compose exec web python manage.py changepassword dummy_tanto` でパスワードを設定する。内容の詳細は [`docs/dummy-data.md`](docs/dummy-data.md)。
+ダミーの担当者 `dummy_tanto`（佐藤 花子）・`dummy_tanto2`（鈴木 次郎）でログインするには、`docker compose exec web python manage.py changepassword dummy_tanto` のようにパスワードを設定する（パスワードを一度も設定していないユーザーには再設定のリンクを送らないので、最初はこのコマンドで設定する）。内容の詳細と、外国人の番号ごとの場面は [`docs/dummy-data.md`](docs/dummy-data.md)。
 
 ダミーデータの氏名・番号・住所はすべて架空。法人番号は検査用数字の合った `99` 始まり、電話は `000-` 始まり、メールは `example.invalid`。
 
@@ -55,11 +57,12 @@ make test           # pytest（先に make up）
 make lint           # ruff check / ruff format --check / mypy（strict）
 make format         # 整形と自動修正
 make e2e            # 通しのテスト（Playwright・Chromium。e2e コンテナ。初回はイメージの作成に時間がかかる）
+make gate2          # 段階2の受け入れ確認（seed → 担当者 2 人が定期面談と相談を画面で記録。DATE=YYYY-MM-DD で基準日）
 make design-shots   # 見本画面（/ui/）のスクリーンショットを docs/design/ に保存する
 make messages       # UI 文言を .po に抽出し .mo にコンパイルする（両方をコミットする）
 ```
 
-コミットの前に `make test`・`make lint`・`make e2e` を通す。コミットは 1 タスク 1 コミットで、接頭辞は `feat: ` / `fix: ` / `chore: ` / `docs: `。
+コミットの前に `make test`・`make lint`・`make e2e` を通す。`make gate2` は通常の `make e2e` では飛ばす（seed を入れて 27 人分の面談を記録するため時間がかかる）。基準日を変えて流すときは `make gate2 DATE=2026-12-28` のようにする（画面の「今日」も基準日になる）。コミットは 1 タスク 1 コミットで、接頭辞は `feat: ` / `fix: ` / `chore: ` / `docs: `。
 
 ## よく使うそのほかのコマンド
 
@@ -109,14 +112,14 @@ make lock           # pyproject.toml の変更を uv.lock に反映する（そ�
 | ロールと権限（ロールの変更） | `/admin/core/role/` ・ `/admin/core/user/` |
 | 監査ログ（admin 版） | `/admin/core/auditlog/` |
 
-ユーザー・担当者・事務所・自機関・監査ログの日常の操作は、業務画面の「設定」で行う（T15b）。受入れ機関と雇用契約の登録・編集は、段階2で業務画面ができるまで管理画面で行う。
+ユーザー・担当者・事務所・自機関・監査ログの日常の操作は、業務画面の「設定」で行う（T15b）。支援計画・支援の記録・交付記録・健康診断の書類は、外国人詳細の「支援」「基本」タブで行う（段階2）。受入れ機関と雇用契約の登録・編集は、まだ管理画面で行う（業務画面は段階2では作っていない。`docs/tasks-phase2.md` の「残っている事項」）。
 
 ## 構成
 
 ```
 backend/
   config/       settings・urls（環境変数は django-environ）、管理画面のテンプレートの上書き
-  apps/         core（自機関・ユーザー・監査）/ workers / hosts / contracts / filings / seed
+  apps/         core（自機関・ユーザー・監査・添付）/ workers / hosts / contracts / filings / support（支援計画・支援の記録・交付）/ seed
   services/     業務ロジック（期限計算・届出の起票・検査・監査など。画面から切り離す）
   tests/        pytest（単体・画面）
   e2e/          Playwright の通しのテスト
