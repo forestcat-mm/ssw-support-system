@@ -122,7 +122,12 @@ def test_supervisor_name_and_online_url_are_allowed(worker: Any) -> None:
         (SupportItem.PUBLIC_PROCEDURES, {"office": "市役所"}, {"details.procedure"}),
         (SupportItem.JAPANESE_LEARNING, {"ways": ["9.z"]}, {"details.ways"}),
         (SupportItem.EXCHANGE, {"event": "x" * 101}, {"details.event"}),
-        (SupportItem.JOB_CHANGE, {"activities": []}, {"details.activities"}),
+        (SupportItem.JOB_CHANGE, {"activities": []}, {"details.activities", "details.separation"}),
+        (
+            SupportItem.JOB_CHANGE,
+            {"activities": ["8.a"], "separation": "fired"},
+            {"details.separation"},
+        ),
     ],
 )
 def test_validate_details_per_kind(
@@ -332,7 +337,7 @@ def test_choice_codes_are_sub_items_of_the_form() -> None:
     stored = []
     for kind, specs in support_records.DETAIL_FIELDS.items():
         for spec in specs:
-            if spec.name == "property_type":
+            if spec.name in ("property_type", "separation"):  # 様式の細目ではない選択肢
                 continue
             for code, _label in spec.choices:
                 if code == "other":

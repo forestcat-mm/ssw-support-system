@@ -19,11 +19,12 @@ from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
 
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Min
 from django.utils import timezone
 
 from apps.contracts.models import EmploymentContract, EmploymentContractVersion
-from apps.core.models import Organization, Staff
+from apps.core.models import AuditAction, AuditLog, Organization, Staff
 from apps.filings.models import Filing, FilingKind, FilingStatus
 from apps.hosts.models import HostOrganization, HostSite, SupportContract, SupportScope
 from apps.support.models import (
@@ -34,7 +35,7 @@ from apps.support.models import (
     SupportRecord,
 )
 from apps.workers.models import ForeignWorker, LatestResidenceRecord
-from services import support_interviews, support_records, workers
+from services import incident_reports, support_interviews, support_records, workers
 from services.support_catalog import SupportItem
 
 MATCH_DAYS = 14  # 照合の幅（候補の日付の前後。第4-3号の報告期限と同じ日数）
@@ -78,6 +79,9 @@ class SupportRow:
     organization_name: str
     staff: Staff | None  # 支援担当者（担当の履歴が無いため、作成時点の担当者で代える。ADR-0012）
     staff_phone: str  # 担当者の所属事務所の電話番号
+    # 基準日より後に担当者を変えた記録が監査ログにある
+    # （3月31日時点の担当者と違うかもしれない。要確認）
+    staff_changed_after_reference: bool
     residence_record_id: int | None  # 在留情報の最新行（番号は復号しない）
 
 
@@ -100,6 +104,20 @@ def _clip(
     return max(start, period.start), min(end or period.end, period.end)
 
 
+def _staff_change_dates() -> dict[int, list[datetime.date]]:
+    """外国人ごとの、担当者（assigned_staff）を変えた日（監査ログの更新の記録から。東京の日付）。"""
+    content_type = ContentType.objects.get_for_model(ForeignWorker)
+    logs = AuditLog.objects.filter(
+        content_type=content_type,
+        action=AuditAction.UPDATE,
+        changes__has_key="assigned_staff",
+    ).values_list("object_id", "occurred_at")
+    result: dict[int, list[datetime.date]] = defaultdict(list)
+    for object_id, occurred_at in logs:
+        result[int(object_id)].append(timezone.localdate(occurred_at))
+    return result
+
+
 def support_rows(fiscal_year: int) -> list[SupportRow]:
     """期間中に 1 日でも自機関が全部委託を受けていた 1号の外国人の、雇用契約ごとの行。
 
@@ -120,6 +138,7 @@ def support_rows(fiscal_year: int) -> list[SupportRow]:
     for support in SupportContract.objects.filter(scope=SupportScope.FULL):
         support_contracts[support.host_organization_id].append(support)
     residence = dict(LatestResidenceRecord.objects.values_list("worker_id", "record_id"))
+    staff_changes = _staff_change_dates()
 
     rows = []
     for contract in contracts:
@@ -155,6 +174,10 @@ def support_rows(fiscal_year: int) -> list[SupportRow]:
                 organization_name=organization_name,
                 staff=staff,
                 staff_phone=staff.office.phone_number if staff is not None else "",
+                staff_changed_after_reference=any(
+                    changed_on > reference_on
+                    for changed_on in staff_changes.get(contract.worker_id, [])
+                ),
                 residence_record_id=residence.get(contract.worker_id),
             )
         )
@@ -177,6 +200,7 @@ NEEDS_REVIEW = frozenset({EventKind.PLANNED_NOT_RECORDED, EventKind.INTERVIEW_OV
 
 
 class MatchLevel(StrEnum):
+    LINKED = "linked"  # 一致（記録から起票。タスクが元の記録への参照を持つ。T24a）
     SAME_DAY = "same_day"  # 一致（同日）
     NEARBY = "nearby"  # 近い日付のタスクあり（前後 14 日以内）
     NONE = "none"  # 該当なし
@@ -203,8 +227,8 @@ class EventCandidate:
         return self.kind in NEEDS_REVIEW
 
 
-# 照合の方法。T24a で起票に元の記録への参照（trigger_details["source"]）が付いたら、
-# 参照による一致を先に見る方法に差し替える（special_events の matcher 引数）。
+# 照合の方法（special_events の matcher 引数で差し替えられる）。既定は、元の記録への参照
+# （T24a の起票の trigger_details["sources"]）を先に見て、無ければ事由発生日の近さで見る。
 Matcher = Callable[[EventCandidate, Sequence[Filing]], Match]
 
 
@@ -215,6 +239,14 @@ def match_by_date(candidate: EventCandidate, filings: Sequence[Filing]) -> Match
         return Match(MatchLevel.SAME_DAY, tuple(same))
     near = [f.pk for f in filings if abs((f.basis_on - candidate.occurred_on).days) <= MATCH_DAYS]
     return Match(MatchLevel.NEARBY, tuple(near)) if near else Match(MatchLevel.NONE)
+
+
+def match_by_reference(candidate: EventCandidate, filings: Sequence[Filing]) -> Match:
+    """元の記録から起票したタスク（参照を持つ）を「一致（記録から起票）」にする。無ければ日付で見る。"""
+    linked = [f.pk for f in filings if candidate.source_key in f.trigger_details.get("sources", [])]
+    if linked:
+        return Match(MatchLevel.LINKED, tuple(linked))
+    return match_by_date(candidate, filings)
 
 
 def _report_events(worker_ids: set[int], period: Period) -> list[EventCandidate]:
@@ -229,7 +261,7 @@ def _report_events(worker_ids: set[int], period: Period) -> list[EventCandidate]
                 interview.worker,
                 EventKind.INTERVIEW_REPORT,
                 on,
-                f"periodic_interview:{interview.pk}",
+                incident_reports.interview_key(interview),
             )
         )
     entries = ConsultationEntry.objects.filter(
@@ -237,23 +269,28 @@ def _report_events(worker_ids: set[int], period: Period) -> list[EventCandidate]
     ).select_related("consultation__worker")
     for entry in entries:
         worker = entry.consultation.worker
-        key = f"consultation_entry:{entry.pk}"
         if entry.reported:
             on = entry.reported_on or entry.occurred_on
+            key = incident_reports.entry_report_key(entry)
             events.append(EventCandidate(worker, EventKind.CONSULTATION_REPORT, on, key))
         if entry.hello_work:
             on = entry.hello_work_on or entry.occurred_on
+            key = incident_reports.entry_hello_work_key(entry)
             events.append(EventCandidate(worker, EventKind.HELLO_WORK, on, key))
     job_changes = SupportRecord.objects.filter(
         worker_id__in=worker_ids, kind=SupportItem.JOB_CHANGE, voided_at__isnull=True
     ).select_related("worker")
     for record in job_changes:
+        separation = record.details.get("separation", "")
+        if separation == "voluntary":
+            continue  # 自発的離職の転職支援は特異事案ではない
         events.append(
             EventCandidate(
                 record.worker,
                 EventKind.JOB_CHANGE,
                 record.occurred_on,
-                f"support_record:{record.pk}",
+                incident_reports.record_key(record),
+                note="" if separation else "separation unknown",  # T24a より前の記録
             )
         )
     return [event for event in events if period.start <= event.occurred_on <= period.end]
@@ -380,12 +417,12 @@ def _overdue_events(
 
 
 def special_events(
-    fiscal_year: int, *, today: datetime.date | None = None, matcher: Matcher = match_by_date
+    fiscal_year: int, *, today: datetime.date | None = None, matcher: Matcher = match_by_reference
 ) -> list[EventCandidate]:
     """特異事案報告（第4-3号）の候補と、第4-3号の届出タスクとの照合の結果（日付・種類の順）。
 
-    照合は「一致（同日）」「近い日付のタスクあり」「該当なし」とタスクの ID まで。
-    報告済みとは断定しない。
+    照合は「一致（記録から起票）」「一致（同日）」「近い日付のタスクあり」「該当なし」と
+    タスクの ID まで。報告済みとは断定しない。
     """
     today = today or timezone.localdate()
     period = report_period(fiscal_year)

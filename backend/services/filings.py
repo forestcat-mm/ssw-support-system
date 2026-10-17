@@ -214,6 +214,7 @@ def _worker_of(target: models.Model) -> ForeignWorker | None:
 
 
 def find_open(kind: FilingKind, target: models.Model, basis_on: date) -> Filing | None:
+    """同じ種別・対象・起算日の取消以外のタスク（閉じたタスクも含む）。"""
     return (
         Filing.objects.filter(
             kind=kind,
@@ -227,6 +228,35 @@ def find_open(kind: FilingKind, target: models.Model, basis_on: date) -> Filing 
 
 
 @transaction.atomic
+def find_unfinished(kind: FilingKind, target: models.Model, basis_on: date) -> Filing | None:
+    """同じ種別・対象・起算日の未完了（未着手・対応中）のタスク。"""
+    return (
+        Filing.objects.filter(
+            kind=kind,
+            content_type=ContentType.objects.get_for_model(target),
+            object_id=target.pk,
+            basis_on=basis_on,
+            status__in=list(OPEN_STATUSES),
+        )
+        .order_by("pk")
+        .first()
+    )
+
+
+def _other_unfinished_exists(filing: Filing, basis_on: date) -> bool:
+    return (
+        Filing.objects.filter(
+            kind=filing.kind,
+            content_type_id=filing.content_type_id,
+            object_id=filing.object_id,
+            basis_on=basis_on,
+            status__in=list(OPEN_STATUSES),
+        )
+        .exclude(pk=filing.pk)
+        .exists()
+    )
+
+
 def create(
     kind: FilingKind,
     *,
@@ -234,6 +264,7 @@ def create(
     basis_on: date,
     trigger: Trigger,
     by: User | None = None,
+    reuse_closed: bool = True,
     details: dict[str, Any] | None = None,
     needs_review: bool = False,
     assignee: Staff | None = None,
@@ -242,9 +273,15 @@ def create(
 ) -> tuple[Filing, bool]:
     """起票する。同じ種別×対象×起算日（取消以外）があれば、それを返して作らない。
 
+    reuse_closed=False は未完了のタスクだけを再利用し、閉じたタスクしか無ければ新しく起票する
+    （第4-3号の自動の起票。ADR-0012）。
     deadline は種別の既定の計算と違う期限（定期面談の次回の予定日など）を使うときだけ渡す。
     """
-    existing = find_open(kind, target, basis_on)
+    existing = (
+        find_open(kind, target, basis_on)
+        if reuse_closed
+        else find_unfinished(kind, target, basis_on)
+    )
     if existing is not None:
         return existing, False
     deadline = deadline or definition(kind).deadline(basis_on)
@@ -651,6 +688,15 @@ def validate_transition(
         reason.strip()
     ):
         raise ValidationError(_("Enter the reason."), code="reason")
+    if (
+        to in OPEN_STATUSES
+        and current not in OPEN_STATUSES
+        and _other_unfinished_exists(filing, filing.basis_on)
+    ):
+        raise ValidationError(
+            _("Another unfinished task of the same kind exists for the same date."),
+            code="unfinished_exists",
+        )
 
 
 def _scheduled_on(filing: Filing) -> date | None:
@@ -660,12 +706,22 @@ def _scheduled_on(filing: Filing) -> date | None:
     return date.fromisoformat(value) if value else None
 
 
+def validate_rebase(filing: Filing, basis_on: date) -> None:
+    """起算日を直せるか（未完了のタスクだけ。直した日付に同じ種別の未完了のタスクがあれば不可）。"""
+    if FilingStatus(filing.status) not in OPEN_STATUSES:
+        raise ValidationError(_("Only open tasks can be changed."), code="closed")
+    if _other_unfinished_exists(filing, basis_on):
+        raise ValidationError(
+            _("Another unfinished task of the same kind exists for the same date."),
+            code="unfinished_exists",
+        )
+
+
 def rebase(filing: Filing, basis_on: date, *, by: User | None, reason: str) -> None:
     """起算日（事由の日）を直して期限を計算し直す（例: 受入れ困難の事由が終了日より前）。"""
     if not reason.strip():
         raise ValidationError(_("Enter the reason."), code="reason")
-    if FilingStatus(filing.status) not in OPEN_STATUSES:
-        raise ValidationError(_("Only open tasks can be changed."), code="closed")
+    validate_rebase(filing, basis_on)
     deadline = definition(filing.kind).deadline(basis_on)
     scheduled = _scheduled_on(filing)
     if scheduled is not None and basis_on < scheduled <= deadline.due_on:

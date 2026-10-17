@@ -10,7 +10,7 @@
 from __future__ import annotations
 
 import datetime
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from typing import Any
 
 from django.core.exceptions import ValidationError
@@ -30,7 +30,7 @@ from apps.support.models import (
     SupportRecord,
 )
 from apps.workers.models import ForeignWorker
-from services import deadlines, filings, support_records, workers
+from services import deadlines, filings, incident_reports, support_records, workers
 from services.support_catalog import SupportItem
 from services.support_records import RecordInput
 
@@ -56,6 +56,7 @@ class InterviewInput:
 @dataclass(frozen=True)
 class VoidResult:
     tasks_reverted: bool  # タスクを自動で戻したか（False なら手で直す）
+    incident: incident_reports.Withdrawn = field(default_factory=incident_reports.Withdrawn)
 
 
 def _rows(data: InterviewInput) -> dict[str, RecordInput]:
@@ -194,6 +195,8 @@ def create_interview(
             )
         if not newer_exists:
             _advance_tasks(interview, task=task, by=by)
+        # 通報が「要」なら第4-3号（特異事案報告）のタスクを起票する（T24a）
+        incident_reports.raise_tasks(incident_reports.of_interview(interview), by=by)
     return interview
 
 
@@ -246,12 +249,15 @@ def void_interview(interview: PeriodicInterview, *, by: User | None, reason: str
         )
         for record in SupportRecord.objects.filter(interview=interview, voided_at__isnull=True):
             support_records.void_record(record, by=by, reason=reason, as_part=True)
+        incident = incident_reports.withdraw(
+            [incident_reports.interview_key(interview)], by=by, reason=reason
+        )
         next_filing = _fresh(interview.next_filing)
         completed = _fresh(interview.completed_filing)
         untouched_next = next_filing is None or next_filing.status == FilingStatus.NOT_STARTED
         still_completed = completed is None or completed.status == FilingStatus.COMPLETED
         if not (untouched_next and still_completed):
-            return VoidResult(tasks_reverted=False)
+            return VoidResult(tasks_reverted=False, incident=incident)
         note = _("The periodic interview record was voided: %(reason)s") % {"reason": reason}
         if next_filing is not None:
             filings.transition(
@@ -261,7 +267,7 @@ def void_interview(interview: PeriodicInterview, *, by: User | None, reason: str
             filings.transition(
                 completed, FilingStatus.NOT_STARTED, by=by, reason=note, by_record=True
             )
-    return VoidResult(tasks_reverted=True)
+    return VoidResult(tasks_reverted=True, incident=incident)
 
 
 def _fresh(filing: Filing | None) -> Filing | None:

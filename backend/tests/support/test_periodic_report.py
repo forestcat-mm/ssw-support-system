@@ -1,12 +1,15 @@
 """定期届出の元データ（T24、ADR-0012）: 別紙1 の支援の欄・特異事案の候補と第4-3号のタスクの照合・
 社内の確認用の集計。届出対象期間は 2026-04-01〜2027-03-31（2026 年度）。"""
 
-from datetime import date
+from datetime import date, datetime
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import pytest
+from django.contrib.contenttypes.models import ContentType
 
 from apps.contracts.models import EmploymentContractVersion
+from apps.core.models import AuditAction, AuditLog
 from apps.filings.models import Filing, FilingKind, FilingStatus, Trigger
 from apps.hosts.models import SupportContract
 from apps.support.models import ConsultationStatus, SupportRecord
@@ -33,6 +36,7 @@ from tests.workers.factories import add_residence, make_worker
 pytestmark = pytest.mark.django_db
 
 YEAR = 2026
+TOKYO = ZoneInfo("Asia/Tokyo")
 TODAY = date(2027, 3, 31)
 
 
@@ -219,6 +223,18 @@ def consultation_with_entry(worker: Any, on: date, **entry: Any) -> Any:
     return case
 
 
+def legacy_job_change(worker: Any, on: date, **details: Any) -> SupportRecord:
+    """T24a より前の形の転職支援の記録（サービスを通さないので第4-3号のタスクは起票されない）。"""
+    return SupportRecord.objects.create(
+        worker=worker,
+        kind="job_change",
+        occurred_on=on,
+        method="in_person",
+        staff=worker.assigned_staff,
+        details={"activities": ["8.a"], **details},
+    )
+
+
 def report_task(worker: Any, basis_on: date) -> Filing:
     filing, _created = filings.create(
         FilingKind.SUPPORT_DIFFICULTY, target=worker, basis_on=basis_on, trigger=Trigger.MANUAL
@@ -276,7 +292,7 @@ def test_report_candidates_use_the_report_date_or_the_record_date(supported: Any
             supported,
             date(2026, 10, 1),
             kind="job_change",
-            details={"activities": ["8.b"]},
+            details={"activities": ["8.b"], "separation": "involuntary"},
         ),
         by=None,
         today=TODAY,
@@ -288,8 +304,8 @@ def test_report_candidates_use_the_report_date_or_the_record_date(supported: Any
     assert found == [
         (EventKind.INTERVIEW_REPORT, date(2026, 6, 12), f"periodic_interview:{with_date.pk}"),
         (EventKind.INTERVIEW_REPORT, date(2026, 8, 20), f"periodic_interview:{without_date.pk}"),
-        (EventKind.CONSULTATION_REPORT, date(2026, 9, 1), f"consultation_entry:{entry.pk}"),
-        (EventKind.HELLO_WORK, date(2026, 9, 5), f"consultation_entry:{entry.pk}"),
+        (EventKind.CONSULTATION_REPORT, date(2026, 9, 1), f"consultation_entry:{entry.pk}:report"),
+        (EventKind.HELLO_WORK, date(2026, 9, 5), f"consultation_entry:{entry.pk}:hello_work"),
         (EventKind.JOB_CHANGE, date(2026, 10, 1), f"support_record:{job.pk}"),
     ]
     assert not any(event.needs_review for event in events_of(supported, *REPORTS))
@@ -303,12 +319,7 @@ def test_report_candidates_use_the_report_date_or_the_record_date(supported: Any
 
 
 def test_matching_with_form_4_3_tasks(supported: Any) -> None:
-    job = support_records.create_record(
-        supported,
-        record(supported, date(2026, 10, 1), kind="job_change", details={"activities": ["8.a"]}),
-        by=None,
-        today=TODAY,
-    )
+    job = legacy_job_change(supported, date(2026, 10, 1))
 
     def match() -> Match:
         [event] = events_of(supported, EventKind.JOB_CHANGE)
@@ -333,12 +344,7 @@ def test_matching_with_form_4_3_tasks(supported: Any) -> None:
 
 def test_matcher_can_be_replaced(supported: Any) -> None:
     """T24a で参照による一致に差し替えられる（照合の方法を引数で渡す）。"""
-    support_records.create_record(
-        supported,
-        record(supported, date(2026, 10, 1), kind="job_change", details={"activities": ["8.a"]}),
-        by=None,
-        today=TODAY,
-    )
+    legacy_job_change(supported, date(2026, 10, 1))
     seen: list[str] = []
 
     def by_reference(event: Any, filings_: Any) -> Match:
@@ -424,3 +430,67 @@ def test_overview_matches_the_records(supported: Any) -> None:
         (case, ConsultationStatus.RESOLVED, False)
     ]
     assert overview.reports == {supported.pk: [f"periodic_interview:{reported.pk}"]}
+
+
+# --- T24a: 参照による照合・離職の区分・担当者の変更 ------------------------------------
+
+
+def test_tasks_raised_from_records_match_by_reference(supported: Any) -> None:
+    job = support_records.create_record(
+        supported,
+        record(
+            supported,
+            date(2026, 10, 1),
+            kind="job_change",
+            details={"activities": ["8.a"], "separation": "involuntary"},
+        ),
+        by=None,
+        today=TODAY,
+    )
+    task = Filing.objects.get(kind=FilingKind.SUPPORT_DIFFICULTY, worker=supported)
+    [event] = events_of(supported, EventKind.JOB_CHANGE)
+    assert event.source_key == f"support_record:{job.pk}"
+    assert event.match == Match(MatchLevel.LINKED, (task.pk,))
+    # 日付だけで照合する方法も選べる（手で起票したタスクとの照合）
+    [by_date] = events_of(supported, EventKind.JOB_CHANGE, matcher=periodic_report.match_by_date)
+    assert by_date.match == Match(MatchLevel.SAME_DAY, (task.pk,))
+
+
+def test_job_change_candidates_follow_the_separation(supported: Any) -> None:
+    voluntary = legacy_job_change(supported, date(2026, 10, 1), separation="voluntary")
+    unknown = legacy_job_change(supported, date(2026, 10, 2))
+    found = [(e.source_key, e.note) for e in events_of(supported, EventKind.JOB_CHANGE)]
+    assert found == [(f"support_record:{unknown.pk}", "separation unknown")]
+    assert voluntary.pk != unknown.pk
+
+
+def test_staff_change_after_the_reference_date_needs_review(supported: Any) -> None:
+    [row] = rows_by_worker()[supported.pk]
+    assert not row.staff_changed_after_reference
+    supported.assigned_staff = make_staff(name="鈴木")
+    supported.save()  # 監査ログに assigned_staff の変更が残る（今日 2026-10-17。基準日より前）
+    assert (
+        "assigned_staff"
+        in AuditLog.objects.filter(action=AuditAction.UPDATE, object_id=str(supported.pk))
+        .latest("pk")
+        .changes
+    )
+    [row] = rows_by_worker()[supported.pk]
+    assert not row.staff_changed_after_reference
+
+    def change_logged_at(when: datetime) -> None:
+        # 監査ログは追記専用なので、変更の記録を指定の日時で足す
+        AuditLog.objects.create(
+            action=AuditAction.UPDATE,
+            content_type=ContentType.objects.get_for_model(supported),
+            object_id=str(supported.pk),
+            changes={"assigned_staff": [1, 2]},
+            occurred_at=when,
+        )
+
+    change_logged_at(datetime(2027, 3, 31, 23, 30, tzinfo=TOKYO))  # 基準日の当日
+    [row] = rows_by_worker()[supported.pk]
+    assert not row.staff_changed_after_reference
+    change_logged_at(datetime(2027, 4, 2, 9, tzinfo=TOKYO))
+    [row] = rows_by_worker()[supported.pk]
+    assert row.staff_changed_after_reference

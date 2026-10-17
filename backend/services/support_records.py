@@ -33,7 +33,7 @@ from apps.support.models import (
     SupportRecord,
 )
 from apps.workers.models import ForeignWorker
-from services import attachments, support_plans, workers
+from services import attachments, incident_reports, support_plans, workers
 from services.support_catalog import SupportItem
 
 # T18 で記録できる種別（定期面談・相談・ガイダンス等は T19〜T21 で専用の画面を足す）
@@ -143,6 +143,17 @@ DETAIL_FIELDS: dict[SupportItem, tuple[DetailField, ...]] = {
         ),
     ),
     SupportItem.JOB_CHANGE: (
+        # 離職の区分（非自発的のときだけ第4-3号のタスクを起票する。T24a）。既存の記録は空のまま
+        DetailField(
+            "separation",
+            gettext_lazy("type of separation"),
+            "choice",
+            required=True,
+            choices=(
+                ("involuntary", gettext_lazy("involuntary (not the worker's fault)")),
+                ("voluntary", gettext_lazy("voluntary")),
+            ),
+        ),
         DetailField(
             "activities",
             gettext_lazy("support given"),
@@ -357,7 +368,9 @@ def create_record(
     details = validate(worker, data, today=today)
     uploads = validate_files(files)
     with transaction.atomic():
-        return save_record(worker, data, details, uploads, by=by)
+        record = save_record(worker, data, details, uploads, by=by)
+        incident_reports.raise_tasks(incident_reports.of_record(record), by=by)
+        return record
 
 
 def save_record(
@@ -418,7 +431,7 @@ def add_attachments(
 
 def void_record(
     record: SupportRecord, *, by: User | None, reason: str, as_part: bool = False
-) -> None:
+) -> incident_reports.Withdrawn:
     """記録を取り消す（打ち消して残し、集計から外す）。正しい記録は新しく足す。
 
     定期面談の行・相談の受付の行・事前ガイダンス等の行は、それぞれの画面から取り消す
@@ -439,11 +452,18 @@ def void_record(
         raise ValidationError(_("This record is already voided."), code="voided")
     if not reason.strip():
         raise ValidationError(_("Enter the reason for voiding."), code="void_reason")
-    record.voided_at = timezone.now()
-    record.voided_by = by
-    record.void_reason = reason.strip()
-    record.updated_by = by
-    record.save(update_fields=["voided_at", "voided_by", "void_reason", "updated_by", "updated_at"])
+    with transaction.atomic():
+        record.voided_at = timezone.now()
+        record.voided_by = by
+        record.void_reason = reason.strip()
+        record.updated_by = by
+        record.save(
+            update_fields=["voided_at", "voided_by", "void_reason", "updated_by", "updated_at"]
+        )
+        # 転職支援の記録から起票した第4-3号のタスクの参照を外す（T24a）
+        return incident_reports.withdraw(
+            [incident_reports.record_key(record)], by=by, reason=reason.strip()
+        )
 
 
 # --- 一覧・表示 -------------------------------------------------------------------------

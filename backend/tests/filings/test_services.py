@@ -5,6 +5,7 @@ from datetime import date
 import pytest
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
+from django.db import IntegrityError, transaction
 from django.utils import translation
 
 from apps.contracts.models import EmploymentContractAllowance, TerminationReason
@@ -387,3 +388,49 @@ def test_only_latest_certificate_is_checked() -> None:
         )
     created = filings.create_scheduled(date(2027, 3, 1)).created
     assert [f.basis_on for f in created if f.kind == "membership_renewal"] == [date(2027, 3, 31)]
+
+
+def test_unfinished_tasks_are_unique_but_closed_ones_are_reused_by_default() -> None:
+    """一意は未完了だけ（ADR-0012）。ほかの種別の起票は閉じたタスクを再利用し、重複を作らない。"""
+    worker = make_worker()
+    basis = date(2026, 10, 1)
+    first, created = filings.create(
+        FilingKind.CONTRACT_CHANGE, target=worker, basis_on=basis, trigger=Trigger.MANUAL
+    )
+    assert created
+    filings.transition(first, FilingStatus.SUBMITTED, by=None, submitted_on=basis)
+    again, created = filings.create(
+        FilingKind.CONTRACT_CHANGE, target=worker, basis_on=basis, trigger=Trigger.MANUAL
+    )
+    assert (again, created) == (
+        first,
+        False,
+    )  # 既定では閉じたタスクを返す（日次の起票の重複を防ぐ）
+    other, created = filings.create(
+        FilingKind.CONTRACT_CHANGE,
+        target=worker,
+        basis_on=basis,
+        trigger=Trigger.MANUAL,
+        reuse_closed=False,
+    )
+    assert created and other != first
+    with pytest.raises(IntegrityError), transaction.atomic():
+        Filing.objects.create(
+            kind=FilingKind.CONTRACT_CHANGE,
+            content_type=other.content_type,
+            object_id=other.object_id,
+            target_repr="x",
+            worker=worker,
+            trigger=Trigger.MANUAL,
+            deadline_kind=other.deadline_kind,
+            basis_on=basis,
+            due_on=other.due_on,
+            unadjusted_due_on=other.unadjusted_due_on,
+        )  # 未完了の 2 件目は DB が拒否する
+    # 起算日を直して、同じ日付の未完了のタスクと重なるときも拒否する
+    moved, _created = filings.create(
+        FilingKind.CONTRACT_CHANGE, target=worker, basis_on=date(2026, 9, 1), trigger=Trigger.MANUAL
+    )
+    with pytest.raises(ValidationError) as error:
+        filings.rebase(moved, basis, by=None, reason="日付の誤り")
+    assert error.value.code == "unfinished_exists"

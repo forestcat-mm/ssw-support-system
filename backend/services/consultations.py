@@ -33,7 +33,7 @@ from apps.support.models import (
     ReportDestination,
 )
 from apps.workers.models import ForeignWorker
-from services import support_records, workers
+from services import incident_reports, support_records, workers
 from services.support_catalog import SupportItem
 from services.support_records import RecordInput
 
@@ -256,11 +256,18 @@ def add_entry(
                 "updated_at",
             ]
         )
+        # 通報・ハローワーク相談なら第4-3号（特異事案報告）のタスクを起票する（T24a）
+        incident_reports.raise_tasks(incident_reports.of_entry(entry), by=by)
     return entry
 
 
-def void_consultation(consultation: Consultation, *, by: User | None, reason: str) -> None:
-    """案件を取り消す（受付の支援実績の行も）。経過は残る。"""
+def void_consultation(
+    consultation: Consultation, *, by: User | None, reason: str
+) -> incident_reports.Withdrawn:
+    """案件を取り消す（受付の支援実績の行も）。経過は残る。
+
+    経過から起票した第4-3号のタスクの参照を外す（T24a）。
+    """
     if consultation.voided_at is not None:
         raise ValidationError(_("This consultation is already voided."), code="voided")
     if not reason.strip():
@@ -277,6 +284,15 @@ def void_consultation(consultation: Consultation, *, by: User | None, reason: st
         )
         if consultation.record.voided_at is None:
             support_records.void_record(consultation.record, by=by, reason=reason, as_part=True)
+        keys = [
+            key
+            for entry in consultation.entries.all()
+            for key in (
+                incident_reports.entry_report_key(entry),
+                incident_reports.entry_hello_work_key(entry),
+            )
+        ]
+        return incident_reports.withdraw(keys, by=by, reason=reason.strip())
 
 
 # --- 一覧・表示 -------------------------------------------------------------------------

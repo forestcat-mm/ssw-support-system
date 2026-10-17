@@ -53,6 +53,7 @@ from services import (
     briefings,
     consultations,
     deliveries,
+    incident_reports,
     support_interviews,
     support_records,
     workers,
@@ -73,6 +74,38 @@ def records_url(worker: ForeignWorker) -> str:
 
 def record_url(record: SupportRecord) -> str:
     return reverse("workers:support_record", args=[record.worker_id, record.pk])
+
+
+def incident_messages(request: HttpRequest, keys: list[str]) -> None:
+    """記録から起票した第4-3号（特異事案報告）のタスクを知らせる（T24a）。"""
+    for filing in incident_reports.tasks_for(keys):
+        messages.info(
+            request,
+            _("Linked this record to the report task (form 4-3) due on %(due)s.")
+            % {"due": filing.due_on.isoformat()},
+        )
+
+
+def withdrawn_messages(request: HttpRequest, result: incident_reports.Withdrawn) -> None:
+    """取消で第4-3号のタスクの参照を外した結果を知らせる（T24a）。"""
+    if result.cancelled:
+        messages.info(request, _("Cancelled the report task (form 4-3) raised by this record."))
+    if result.kept:
+        messages.info(
+            request,
+            _(
+                "Removed this record from the report task (form 4-3). The task stays because "
+                "other records are linked to it."
+            ),
+        )
+    if result.needs_attention:
+        messages.warning(
+            request,
+            _(
+                "The report task (form 4-3) raised by this record was already being handled, "
+                "so it was left as it is. Check the task and correct it by hand."
+            ),
+        )
 
 
 class RecordTabMixin:
@@ -223,6 +256,7 @@ class RecordCreateView(RecordFormView):
                 form.apply_errors(error)
             else:
                 messages.success(request, _("Saved the support record."))
+                incident_messages(request, [incident_reports.record_key(record)])
                 return redirect(record_url(record))
         return self.page(request, worker, form)
 
@@ -254,13 +288,14 @@ class RecordVoidView(RecordFormView):
         form = self.form(request.POST)
         if form.is_valid():
             try:
-                support_records.void_record(
+                withdrawn = support_records.void_record(
                     record, by=_actor(request), reason=form.cleaned_data["reason"]
                 )
             except ValidationError as error:
                 form.add_error("reason", error)
             else:
                 messages.success(request, _("Voided the support record."))
+                withdrawn_messages(request, withdrawn)
                 return redirect(records_url(worker))
         return self.render(
             request,
@@ -402,6 +437,7 @@ class InterviewCreateView(RecordFormView):
                     )
                 else:
                     messages.success(request, _("Saved the periodic interview."))
+                incident_messages(request, [incident_reports.interview_key(interview)])
                 return redirect(interview_url(interview))
         return self.page(request, worker, editor, task)
 
@@ -479,6 +515,7 @@ class InterviewVoidView(RecordFormView):
                             "so they were left as they are. Check the periodic interview tasks."
                         ),
                     )
+                withdrawn_messages(request, result.incident)
                 return redirect(interview_url(interview))
         return self.render(request, worker=worker, interview=interview, form=form)
 
@@ -591,11 +628,18 @@ class ConsultationEntryView(ConsultationMixin, RecordFormView):
         form = EntryForm(request.POST)
         if form.is_valid():
             try:
-                consultations.add_entry(consultation, form.to_input(), by=_actor(request))
+                entry = consultations.add_entry(consultation, form.to_input(), by=_actor(request))
             except ValidationError as error:
                 form.apply_errors(error)
             else:
                 messages.success(request, _("Added the entry."))
+                incident_messages(
+                    request,
+                    [
+                        incident_reports.entry_report_key(entry),
+                        incident_reports.entry_hello_work_key(entry),
+                    ],
+                )
                 return redirect(consultation_url(consultation))
         return self.page(request, worker, consultation, form)
 
@@ -626,13 +670,14 @@ class ConsultationVoidView(ConsultationMixin, RecordFormView):
         form = self.form(request.POST)
         if form.is_valid():
             try:
-                consultations.void_consultation(
+                withdrawn = consultations.void_consultation(
                     consultation, by=_actor(request), reason=form.cleaned_data["reason"]
                 )
             except ValidationError as error:
                 form.add_error("reason", error)
             else:
                 messages.success(request, _("Voided the consultation."))
+                withdrawn_messages(request, withdrawn)
                 return redirect(consultation_url(consultation))
         return self.render(request, worker=worker, consultation=consultation, form=form)
 

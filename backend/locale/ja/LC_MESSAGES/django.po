@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-17 15:50+0900\n"
+"POT-Creation-Date: 2026-10-17 16:15+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -2048,6 +2048,10 @@ msgstr "定期面談の周期"
 msgid "periodic interview recorded"
 msgstr "定期面談の記録"
 
+msgid ""
+"report to authorities, Hello Work consultation or job change support recorded"
+msgstr "通報・ハローワーク相談・転職支援の記録"
+
 msgid "registered manually"
 msgstr "手動で起票"
 
@@ -3085,6 +3089,28 @@ msgstr "任意。例: 書類の版や表題"
 
 msgid "Give it before the employment contract is concluded."
 msgstr "雇用契約を締結する前に交付する。"
+
+#, python-format
+msgid "Linked this record to the report task (form 4-3) due on %(due)s."
+msgstr ""
+"この記録を第4-3号（特異事案報告）のタスク（期限 %(due)s）につなげました。"
+
+msgid "Cancelled the report task (form 4-3) raised by this record."
+msgstr "この記録から起票した第4-3号（特異事案報告）のタスクを取り消しました。"
+
+msgid ""
+"Removed this record from the report task (form 4-3). The task stays because "
+"other records are linked to it."
+msgstr ""
+"第4-3号（特異事案報告）のタスクから、この記録を外しました。ほかの記録がつな"
+"がっているため、タスクはそのままです。"
+
+msgid ""
+"The report task (form 4-3) raised by this record was already being handled, "
+"so it was left as it is. Check the task and correct it by hand."
+msgstr ""
+"この記録から起票した第4-3号（特異事案報告）のタスクは対応が始まっているため、"
+"そのままにしました。タスクを確認して手で直してください。"
 
 #, python-format
 msgid "Record: %(kind)s"
@@ -4416,6 +4442,9 @@ msgstr "受理番号を入力してください。"
 msgid "Enter the reason."
 msgstr "理由を入力してください。"
 
+msgid "Another unfinished task of the same kind exists for the same date."
+msgstr "同じ種別・同じ日付の未完了のタスクがほかにあります。"
+
 msgid "Only open tasks can be changed."
 msgstr "未着手・対応中のタスクだけを変更できます。"
 
@@ -4428,6 +4457,10 @@ msgstr "無効化した外国人の届出タスクは起票できません。"
 #, python-format
 msgid "These operation categories do not belong to the site's field: %(names)s"
 msgstr "事業所の分野に属さない業務区分です: %(names)s"
+
+#, python-format
+msgid "The record that raised this report task was voided: %(reason)s"
+msgstr "このタスクを起票した記録が取り消されました: %(reason)s"
 
 msgid "Enter a passport number of 6 to 12 letters and digits."
 msgstr "旅券番号は英数字 6〜12 桁で入力してください。"
@@ -4604,6 +4637,15 @@ msgstr "地域住民との交流"
 
 msgid "local events and Japanese culture"
 msgstr "地域の行事・日本の文化"
+
+msgid "type of separation"
+msgstr "離職の区分"
+
+msgid "involuntary (not the worker's fault)"
+msgstr "非自発的（本人の責めに帰すべき事由によらない）"
+
+msgid "voluntary"
+msgstr "自発的"
 
 msgid "information on the next employer"
 msgstr "次の受入れ先の情報提供"

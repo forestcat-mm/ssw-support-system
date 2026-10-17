@@ -75,6 +75,10 @@ class Trigger(models.TextChoices):
     CONTRACT_EXPIRY = "contract_expiry", _("employment contract period approaching end")
     INTERVIEW_CYCLE = "interview_cycle", _("periodic interview cycle")
     INTERVIEW_RECORDED = "interview_recorded", _("periodic interview recorded")
+    INCIDENT_RECORDED = (
+        "incident_recorded",
+        _("report to authorities, Hello Work consultation or job change support recorded"),
+    )
     MANUAL = "manual", _("registered manually")
 
 
@@ -138,11 +142,13 @@ class Filing(TrackedModel):
             models.Index(fields=["status", "unadjusted_due_on"]),
         ]
         constraints = [
-            # 重複起票しない（取り消した後に同じ事由が起きたら新しく起票できる）
+            # 未完了（未着手・対応中）のタスクは同じ種別・対象・起算日で 1 件まで。閉じたタスク
+            # （提出済み・受理・不要・完了・取消）があっても新しく起票できる（第4-3号。ADR-0012）。
+            # ほかの種別の起票は閉じたタスクも再利用する（services.filings.create の reuse_closed）
             models.UniqueConstraint(
                 fields=["kind", "content_type", "object_id", "basis_on"],
-                condition=~Q(status="cancelled"),
-                name="filings_filing_unique_open",
+                condition=Q(status__in=["not_started", "in_progress"]),
+                name="filings_filing_unique_unfinished",
             ),
         ]
 

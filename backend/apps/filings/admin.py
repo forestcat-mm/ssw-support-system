@@ -100,6 +100,8 @@ class FilingForm(forms.ModelForm[Filing]):
                 )
             if cleaned.get("new_basis_on") and not (cleaned.get("rebase_reason") or "").strip():
                 raise forms.ValidationError(_("Enter the reason for correction."))
+            if cleaned.get("new_basis_on"):
+                filings.validate_rebase(stored, cleaned["new_basis_on"])
         except forms.ValidationError as error:
             self.add_error(None, error)
         return cleaned
