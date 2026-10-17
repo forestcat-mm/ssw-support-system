@@ -80,12 +80,13 @@
 ### 4. 監査ログ・ファイル
 - [ ] 監査ログを DB ユーザーの権限でも追記専用にする: マイグレーション用ユーザー（テーブル所有者）とアプリ用ユーザーを分け、アプリ用ユーザーから `core_auditlog` の UPDATE / DELETE / TRUNCATE を REVOKE する（INSERT・SELECT のみ）。トリガー（`core_auditlog_append_only`）とあわせて二重に禁止する
 - [ ] 監査ログを改変不可の保存先へ日次で書き出す（第8章・第10章。例: S3 Object Lock のコンプライアンスモード、保持 5 年以上）。保存先の決定と同時に対応し、Django-Q のジョブにする
-- [ ] ファイル保存を S3 互換ストレージにする（`DJANGO_STORAGE_BACKEND=storages.backends.s3.S3Storage` と `DJANGO_STORAGE_OPTIONS`。非公開バケット・署名付き URL・上書き禁止を実ストレージで確認）
+- [ ] ファイル保存を S3 互換ストレージにする（`DJANGO_STORAGE_BACKEND=storages.backends.s3.S3Storage` と `DJANGO_STORAGE_OPTIONS`。非公開バケット・上書き禁止を実ストレージで確認）。アプリはファイルの URL（公開 URL・署名付き URL）を作らず、ダウンロードは認可つきの画面からだけ行う（ADR-0011）。`DJANGO_STORAGE_OPTIONS` に公開の `default_acl`・`custom_domain`・`querystring_auth: false` を入れるとシステムチェック `core.E002` で起動が止まる
+- [ ] **（必須）添付の保存先の保存時暗号化を有効にし、有効なことを確かめる**（T23。健康診断の書類などの要配慮個人情報を置くため。第6章）。あわせて、バケットの公開アクセスの遮断を有効にし、オブジェクトの URL へ匿名でアクセスすると拒否されることを確かめる（ADR-0011。事業者を決めたときに設定方法を確かめる）
 
 ### 5. 手順書
 - [ ] 漏洩が疑われたときの手順を `docs/operations.md` に足す（`reset_mfa --all --yes` で全員の MFA をリセット、パスワードの再設定、暗号化鍵のローテーション）
 
-- 完了条件: 本番用の環境変数で `check --deploy` の警告が 0 件。本番イメージに開発用依存が無く、アプリの DB ユーザーが SUPERUSER / CREATEDB を持たない。添付のアップロード・ダウンロードが S3 互換ストレージで動く。アプリの DB ユーザーで `core_auditlog` を UPDATE / DELETE / TRUNCATE すると権限エラーになる
+- 完了条件: 本番用の環境変数で `check --deploy` の警告が 0 件。本番イメージに開発用依存が無く、アプリの DB ユーザーが SUPERUSER / CREATEDB を持たない。添付のアップロード・ダウンロードが S3 互換ストレージで動き、保存時暗号化が有効で、オブジェクトの URL への匿名のアクセスが拒否される。アプリの DB ユーザーで `core_auditlog` を UPDATE / DELETE / TRUNCATE すると権限エラーになる
 
 ## 将来運用
 - [ ] 監査ログの保持期間（最低 5 年。入管の記録保存義務期間を下回らない）を過ぎた行の削除手順を作る。管理コマンドで、DB 所有者の権限で対象期間を外部保存先への書き出し済みと確認 → トリガー `core_auditlog_append_only` を一時的に外す → 期間指定で削除 → トリガーを戻す、を 1 トランザクションで行い、実施自体を監査ログに記録する
