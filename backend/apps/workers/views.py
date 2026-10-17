@@ -41,6 +41,7 @@ from services import (
     contracts,
     deadlines,
     worker_detail,
+    worker_documents,
     worker_list,
     workers,
 )
@@ -164,8 +165,10 @@ class WorkerDetailView(ActionRequiredMixin, TemplateView):
     def tab_context(self, context: dict[str, Any]) -> dict[str, Any]:
         """タブの中身を context に足し、監査ログの context（表示した行の ID など）を返す。"""
         info = worker_detail.basic_info(self.worker)
-        context["info"] = info
-        return {"shown": info.shown_ids(), "decrypted": info.decrypted_fields()}
+        documents = worker_documents.rows_for(self.request.user, self.worker)
+        context.update(info=info, health_documents=documents)
+        shown = info.shown_ids() | {"health_documents": [row.attachment.pk for row in documents]}
+        return {"shown": shown, "decrypted": info.decrypted_fields()}
 
 
 class WorkerContractsView(WorkerDetailView):

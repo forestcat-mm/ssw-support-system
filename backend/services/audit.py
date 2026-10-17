@@ -6,7 +6,8 @@
 - 閲覧: VIEW_AUDITED_MODELS の詳細表示で record_view() を呼ぶ（admin は TrackedModelAdmin が呼ぶ）。
 - 意味のあるイベント（無効化・MFA リセット・招待など）: event() で 1 件にまとめる。中の保存は
   一般の記録を止め、対象の変更前後の値をイベントの changes に入れる。
-- 平文を残さない: MASKED_FIELDS と、列の型の audit_mask = True（T06 の暗号化列）は "***" にする。
+- 平文を残さない: MASKED_FIELDS と、列の型の audit_mask = True（T06 の暗号化列）と、
+  行ごとの audit_masked_fields（要配慮の添付のファイル名。T23）は "***" にする。
 """
 
 from __future__ import annotations
@@ -337,9 +338,11 @@ def masked_changes(old: models.Model | None, new: models.Model) -> dict[str, lis
 
 
 def _is_masked(instance: models.Model, model_field: models.Field[Any, Any]) -> bool:
+    # 行ごとにマスクする列（要配慮の添付のファイル名など）はモデルの audit_masked_fields で返す
     return (
         f"{label_of(instance)}.{model_field.name}" in MASKED_FIELDS
         or getattr(model_field, "audit_mask", False) is True
+        or model_field.name in getattr(instance, "audit_masked_fields", frozenset())
     )
 
 

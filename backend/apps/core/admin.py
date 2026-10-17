@@ -261,8 +261,16 @@ class DownloadLinkWidget(forms.Widget):
 
 
 def download_link(attachment: Attachment) -> SafeString:
+    """ダウンロードのリンク。要配慮の添付は管理画面ではファイル名もリンクも出さない（ADR-0011）。"""
+    if attachment.is_sensitive:
+        return format_html("{}", _("sensitive (download from the foreign worker page)"))
     url = reverse("attachment_download", args=[attachment.pk])
     return format_html('<a href="{}">{}</a>', url, attachment.original_filename)
+
+
+def filename_or_hidden(attachment: Attachment) -> str:
+    """元のファイル名（要配慮の添付は出さない）。"""
+    return str(_("hidden (sensitive)")) if attachment.is_sensitive else attachment.original_filename
 
 
 class AttachmentInlineForm(forms.ModelForm[Attachment]):
@@ -300,8 +308,12 @@ class AttachmentInline(GenericTabularInline):
     form = AttachmentInlineForm
     extra = 0
     can_delete = False
-    readonly_fields = ("original_filename", "size", "created_at", "created_by")
+    readonly_fields = ("filename", "size", "created_at", "created_by")
     kinds: tuple[AttachmentKind, ...] = ()
+
+    @admin.display(description=_("original filename"))
+    def filename(self, obj: Attachment) -> str:
+        return filename_or_hidden(obj) if obj.pk else ""
 
     def formfield_for_choice_field(self, db_field: Any, request: HttpRequest, **kwargs: Any) -> Any:
         if db_field.name == "kind" and self.kinds:
@@ -315,20 +327,23 @@ class AttachmentAdmin(TrackedModelAdmin[Attachment]):
 
     list_display = (
         "kind",
-        "original_filename",
+        "filename",
         "content_type",
         "object_id",
         "valid_until",
+        "is_sensitive",
         "voided_at",
     )
     list_filter = ("kind",)
     fields = (
         "kind",
         "download",
-        "original_filename",
+        "filename",
         "size",
         "sha256",
         "valid_until",
+        "is_sensitive",
+        "retention_until",
         "content_type",
         "object_id",
         "voided_at",
@@ -339,9 +354,10 @@ class AttachmentAdmin(TrackedModelAdmin[Attachment]):
     readonly_fields = (
         "kind",
         "download",
-        "original_filename",
+        "filename",
         "size",
         "sha256",
+        "is_sensitive",
         "content_type",
         "object_id",
         "voided_at",
@@ -353,6 +369,10 @@ class AttachmentAdmin(TrackedModelAdmin[Attachment]):
     @admin.display(description=_("file"))
     def download(self, obj: Attachment) -> str:
         return download_link(obj)
+
+    @admin.display(description=_("original filename"))
+    def filename(self, obj: Attachment) -> str:
+        return filename_or_hidden(obj)
 
     def has_add_permission(self, request: HttpRequest) -> bool:
         return False

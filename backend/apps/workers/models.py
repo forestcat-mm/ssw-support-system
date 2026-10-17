@@ -6,6 +6,7 @@ worker_addresses / contacts）。
 """
 
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.constraints import ExclusionConstraint
 from django.contrib.postgres.fields import RangeOperators
 from django.db import models
@@ -13,7 +14,7 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.fields import BlindIndexField, EncryptedCharField
-from apps.core.models import Country, Staff, SupportLanguage, TrackedModel
+from apps.core.models import Attachment, Country, Staff, SupportLanguage, TrackedModel
 from services import passport, residence_card
 
 
@@ -119,6 +120,8 @@ class ForeignWorker(TrackedModel, ConfirmedValue):
         null=True,
         blank=True,
     )
+    # 健康診断の書類（要配慮の添付。T23）
+    attachments = GenericRelation(Attachment)
 
     class Meta:
         verbose_name = _("foreign worker")

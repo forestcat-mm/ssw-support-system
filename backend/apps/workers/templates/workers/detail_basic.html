@@ -60,4 +60,17 @@
     </dl>
   </section>
 </div>
+
+<section class="card" id="health-documents" style="margin-top: var(--space-16)">
+  <div class="card__header"><h2 class="card__title">{% translate "Health check documents" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'workers:health_document_add' worker.pk %}">{% translate "Add" %}</a>{% endif %}</div>
+  <p class="caption">{% translate "Sensitive personal information. Only the assigned staff member and administrators can download the files." %}</p>
+  {% if health_documents %}<ul class="attachment-list">{% for row in health_documents %}{% with file=row.attachment %}
+    <li data-attachment="{{ file.pk }}" data-downloadable="{{ row.can_download|yesno:'true,false' }}"{% if file.voided_at %} class="is-voided"{% endif %}>
+      <span>{{ file.get_kind_display }}</span>
+      {% if row.can_download %}<a class="attachment-list__name" href="{% url 'attachment_download' file.pk %}">{{ file.original_filename }}</a>{% else %}<span class="caption muted">{% translate "(file name hidden)" %}</span>{% endif %}
+      <span class="caption">{{ file.created_at|date:"Y-m-d" }}{% if file.retention_until %} · {% translate "keep until (guide)" %} <span class="mono">{{ file.retention_until|date:"Y-m-d" }}</span>{% if row.expired and not file.voided_at %} <span class="badge badge--overdue" data-expired="true">{% translate "past the guide" %}</span>{% endif %}{% endif %}{% if file.voided_at %} · {% translate "voided" %} {{ file.voided_at|date:"Y-m-d" }}: {{ file.void_reason }}{% endif %}</span>
+      {% if can_manage and not file.voided_at %}<a class="button button--danger button--small" href="{% url 'workers:health_document_void' worker.pk file.pk %}">{% translate "Void" %}</a>{% endif %}
+    </li>{% endwith %}{% endfor %}</ul>
+  {% else %}<p class="muted">{% translate "No health check documents." %}</p>{% endif %}
+</section>
 {% endblock %}

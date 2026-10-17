@@ -1,0 +1,20 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Add health check documents" %} | {{ worker }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{% url 'workers:detail' worker.pk %}#health-documents">← {{ worker }}</a></p>
+  <h1>{% translate "Add health check documents" %}</h1>
+{% endblock %}
+{% block content %}
+<form class="form" method="post" enctype="multipart/form-data" novalidate id="health-document-form">
+  {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+  {% include "ui/components/form_errors.html" %}
+  <section class="card stack">
+    <p class="caption">{% translate "Sensitive personal information. Only the assigned staff member and administrators can download the files." %}</p>
+    {% for field in form %}{% form_field field %}{% endfor %}
+  </section>
+  <div class="form-actions">
+    <button class="button button--primary" type="submit">{% translate "Add" %}</button>
+    <a class="button button--neutral" href="{% url 'workers:detail' worker.pk %}#health-documents">{% translate "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

@@ -25,7 +25,7 @@ from django_otp import login as otp_login
 from apps.core.forms import SecondFactorForm, TokenForm
 from apps.core.middleware import mfa_exempt
 from apps.core.models import Attachment, AuditAction, RecoveryCodeDevice, User
-from services import audit, authorization, invitations, mfa
+from services import attachments, audit, invitations, mfa
 
 NEW_RECOVERY_CODES_SESSION_KEY = "new_recovery_codes"
 
@@ -202,16 +202,25 @@ def invitation_url_builder(request: HttpRequest) -> invitations.UrlBuilder:
 
 @method_decorator(login_required, name="dispatch")
 class AttachmentDownloadView(View):
-    """添付のダウンロード。紐づく対象の閲覧権限で判定し、監査ログに残す。公開 URL は作らない。"""
+    """添付のダウンロード。ファイルの中身を渡す唯一の経路（公開 URL・署名付き URL は作らない）。
+
+    判定は services.attachments.can_download（対象の閲覧権限。要配慮の添付は担当者と
+    workers.sensitive_documents を持つ人だけ）。成功は download、要配慮の添付の拒否は
+    download_denied を監査ログに残す（ADR-0011）。
+    """
 
     def get(self, request: HttpRequest, pk: int) -> FileResponse:
         attachment = get_object_or_404(Attachment.objects.select_related("content_type"), pk=pk)
-        target = attachment.target
-        if target is None:
+        if attachment.target is None:
             raise Http404
         content_type = attachment.content_type
-        perm = f"{content_type.app_label}.view_{content_type.model}"
-        if not authorization.has_django_permission(request.user, perm, target):
+        if not attachments.can_download(request.user, attachment):
+            if attachment.is_sensitive:
+                audit.record(
+                    AuditAction.DOWNLOAD_DENIED,
+                    target=attachment,
+                    context={"kind": attachment.kind},
+                )
             raise PermissionDenied
         response = FileResponse(
             attachment.file.open("rb"), as_attachment=True, filename=attachment.original_filename

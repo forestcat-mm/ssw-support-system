@@ -12,6 +12,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.db.models import Q
+from django.db.models.fields.files import FieldFile
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_otp.models import Device, ThrottlingMixin, TimestampMixin
@@ -113,6 +114,46 @@ class AttachmentKind(models.TextChoices):
         "delivered_document",
         _("Signed copy or receipt of a document given to the worker"),
     )
+    # 要配慮個人情報（健康診断の書類。外国人にだけ添付する。T23、ADR-0011）
+    HEALTH_CHECK_RECORD = (
+        "health_check_record",
+        _("Health check record (reference form 1-3, with Japanese translation)"),
+    )
+    HEALTH_DECLARATION = (
+        "health_declaration",
+        _("Declaration of the examinee (reference form 1-3, attachment)"),
+    )
+    DOCTOR_OPINION = (
+        "doctor_opinion",
+        _("Doctor's opinion that the worker can work without problems"),
+    )
+
+
+# 要配慮の添付の種別（ダウンロードを担当者と管理者に限る。印は種別から自動で付く。ADR-0011）
+SENSITIVE_KINDS: frozenset[str] = frozenset(
+    {
+        AttachmentKind.HEALTH_CHECK_RECORD,
+        AttachmentKind.HEALTH_DECLARATION,
+        AttachmentKind.DOCTOR_OPINION,
+    }
+)
+# 要配慮の添付を付けられる対象（app_label, model_name）
+SENSITIVE_TARGET = ("workers", "foreignworker")
+
+
+class PrivateFieldFile(FieldFile):
+    """URL を返さないファイル。中身は認可つきのダウンロード（AttachmentDownloadView）からだけ渡す。
+
+    公開 URL も署名付き URL も作らせないため、url を使うと例外にする（ADR-0011）。
+    """
+
+    @property
+    def url(self) -> str:
+        raise PermissionError("Attachment files have no URL. Use the attachment download view.")
+
+
+class PrivateFileField(models.FileField):
+    attr_class = PrivateFieldFile
 
 
 class Attachment(TrackedModel):
@@ -122,11 +163,14 @@ class Attachment(TrackedModel):
     """
 
     kind = models.CharField(_("kind"), max_length=64, choices=AttachmentKind.choices)
-    file = models.FileField(_("file"), upload_to=attachment_upload_to, max_length=255)
+    file = PrivateFileField(_("file"), upload_to=attachment_upload_to, max_length=255)
     original_filename = models.CharField(_("original filename"), max_length=255, editable=False)
     size = models.PositiveBigIntegerField(_("size (bytes)"), editable=False)
     sha256 = models.CharField("SHA-256", max_length=64, editable=False)
     valid_until = models.DateField(_("valid until"), null=True, blank=True)
+    # 要配慮（種別から保存のたびに決める）と保持期限の目安（運用で決める削除時期。T23）
+    is_sensitive = models.BooleanField(_("sensitive"), default=False, editable=False)
+    retention_until = models.DateField(_("keep until (guide)"), null=True, blank=True)
     # 取消（誤った添付。ファイルは削除せず、打ち消して残す。T18）
     voided_at = models.DateTimeField(_("voided at"), null=True, blank=True, editable=False)
     voided_by = models.ForeignKey(
@@ -150,19 +194,38 @@ class Attachment(TrackedModel):
         verbose_name = _("attachment")
         verbose_name_plural = _("attachments")
         indexes = [models.Index(fields=["content_type", "object_id"])]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(kind__in=sorted(SENSITIVE_KINDS), is_sensitive=True)
+                | (~Q(kind__in=sorted(SENSITIVE_KINDS)) & Q(is_sensitive=False)),
+                name="core_attachment_sensitive_follows_kind",
+            ),
+        ]
 
     def __str__(self) -> str:
+        # 要配慮の添付はファイル名を出さない（監査ログの対象の表示・admin で使う。ADR-0011）
+        if self.is_sensitive:
+            return f"{self.get_kind_display()} #{self.pk}"
         return f"{self.get_kind_display()}: {self.original_filename}"
 
     def save(self, *args: Any, **kwargs: Any) -> None:
         # 添付の対象は GenericRelation(Attachment) を持つモデルだけ。対象のモデルの閲覧権限で
         # ダウンロードを判定するため、対象のモデルはテストで権限の対応表との突き合わせを受ける
         # （tests/core/test_attachment.py。対応表に無いと誰もダウンロードできない）
+        self.is_sensitive = self.kind in SENSITIVE_KINDS
         if self._state.adding:
             model = self.content_type.model_class()
             if model is None or not is_attachment_target(model):
                 raise ValueError(f"{model} cannot have attachments (no GenericRelation)")
+            label = (self.content_type.app_label, self.content_type.model)
+            if self.is_sensitive and label != SENSITIVE_TARGET:
+                raise ValueError("Sensitive attachments can be attached only to foreign workers")
         super().save(*args, **kwargs)
+
+    @property
+    def audit_masked_fields(self) -> frozenset[str]:
+        """監査ログの差分で値を残さない列（要配慮の添付のファイル名）。"""
+        return frozenset({"original_filename"}) if self.is_sensitive else frozenset()
 
 
 def is_attachment_target(model: type[models.Model]) -> bool:
@@ -341,6 +404,10 @@ class Action(models.TextChoices):
     WORKERS_VIEW = "workers.view", _("view foreign workers")
     WORKERS_MANAGE = "workers.manage", _("register and update foreign workers")
     WORKERS_DEACTIVATE = "workers.deactivate", _("deactivate foreign workers")
+    WORKERS_SENSITIVE_DOCUMENTS = (
+        "workers.sensitive_documents",
+        _("download sensitive documents (health checks) of all foreign workers"),
+    )
     HOSTS_VIEW = "hosts.view", _("view host organizations")
     HOSTS_MANAGE = "hosts.manage", _("register and update host organizations")
     MASTERS_MANAGE = "masters.manage", _("edit master data (countries, fields, categories)")
@@ -510,6 +577,7 @@ class AuditAction(models.TextChoices):
     AUDIT_VIEW = "audit_view", _("view audit logs")
     MFA_RESET = "mfa_reset", _("reset two-factor authentication")
     MFA_ENROLL = "mfa_enroll", _("set up two-factor authentication")
+    DOWNLOAD_DENIED = "download_denied", _("download of a sensitive document denied")
     RECOVERY_CODES_REGENERATE = "recovery_codes_regenerate", _("regenerate recovery codes")
     ENCRYPTION_KEY_ROTATION = "encryption_key_rotation", _("rotate encryption keys")
     BLIND_INDEX_REBUILD = "blind_index_rebuild", _("rebuild blind indexes")

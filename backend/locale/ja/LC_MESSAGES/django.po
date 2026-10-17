@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-17 15:11+0900\n"
+"POT-Creation-Date: 2026-10-17 15:28+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -611,6 +611,15 @@ msgstr "招待を送信しました: %(count)d 件"
 msgid "Reset two-factor authentication of selected users"
 msgstr "選択したユーザーの多要素認証をリセット"
 
+msgid "sensitive (download from the foreign worker page)"
+msgstr "要配慮（外国人詳細の画面からダウンロード）"
+
+msgid "hidden (sensitive)"
+msgstr "非表示（要配慮）"
+
+msgid "original filename"
+msgstr "元のファイル名"
+
 msgid "file"
 msgstr "ファイル"
 
@@ -726,14 +735,26 @@ msgstr "署名済みの生活オリエンテーションの確認書（参考様
 msgid "Signed copy or receipt of a document given to the worker"
 msgstr "本人に交付した書類の署名済みの控え・受領の記録"
 
-msgid "original filename"
-msgstr "元のファイル名"
+msgid "Health check record (reference form 1-3, with Japanese translation)"
+msgstr "健康診断個人票（参考様式第1-3号。日本語訳を含む）"
+
+msgid "Declaration of the examinee (reference form 1-3, attachment)"
+msgstr "受診者の申告書（参考様式第1-3号 別紙）"
+
+msgid "Doctor's opinion that the worker can work without problems"
+msgstr "医師の意見書（稼働に問題がない旨）"
 
 msgid "size (bytes)"
 msgstr "サイズ（バイト）"
 
 msgid "valid until"
 msgstr "有効期限"
+
+msgid "sensitive"
+msgstr "要配慮"
+
+msgid "keep until (guide)"
+msgstr "保持期限の目安"
 
 msgid "voided at"
 msgstr "取消日時"
@@ -891,6 +912,9 @@ msgstr "外国人台帳の登録・更新"
 msgid "deactivate foreign workers"
 msgstr "外国人を無効化する"
 
+msgid "download sensitive documents (health checks) of all foreign workers"
+msgstr "全員分の要配慮の書類（健康診断）をダウンロード"
+
 msgid "view host organizations"
 msgstr "受入れ機関台帳の閲覧"
 
@@ -1019,6 +1043,9 @@ msgstr "多要素認証のリセット"
 
 msgid "set up two-factor authentication"
 msgstr "多要素認証の設定"
+
+msgid "download of a sensitive document denied"
+msgstr "要配慮の書類のダウンロードの拒否"
 
 msgid "regenerate recovery codes"
 msgstr "回復用コードの作り直し"
@@ -3609,6 +3636,21 @@ msgstr "無効化を外しました。"
 msgid "reason for cancelling the deactivation"
 msgstr "無効化を外す理由"
 
+msgid "files"
+msgstr "ファイル"
+
+msgid ""
+"PDF, PNG or JPEG, up to 10 MB each. Attach the Japanese translation together."
+msgstr "PDF・PNG・JPEG、1 つ 10 MB まで。日本語訳も一緒に添付する。"
+
+msgid ""
+"Optional. A guide for when to delete it, decided in operation. It is not "
+"deleted automatically."
+msgstr "任意。運用で決める削除時期の目安。自動では削除しない。"
+
+msgid "Added the health check documents."
+msgstr "健康診断の書類を添付しました。"
+
 msgid "Before entry and residing"
 msgstr "入国前・在留中"
 
@@ -3850,6 +3892,25 @@ msgstr "連絡先を追加"
 msgid "from %(day)s"
 msgstr "%(day)s から"
 
+msgid "Health check documents"
+msgstr "健康診断の書類"
+
+msgid ""
+"Sensitive personal information. Only the assigned staff member and "
+"administrators can download the files."
+msgstr ""
+"要配慮個人情報です。ファイルをダウンロードできるのは、担当者と管理者だけで"
+"す。"
+
+msgid "(file name hidden)"
+msgstr "（ファイル名は表示しません）"
+
+msgid "past the guide"
+msgstr "目安を過ぎています"
+
+msgid "No health check documents."
+msgstr "健康診断の書類はありません。"
+
 msgid "No employment contracts are registered."
 msgstr "雇用契約は登録されていません。"
 
@@ -3884,6 +3945,9 @@ msgstr ""
 
 msgid "No history records."
 msgstr "履歴はありません。"
+
+msgid "Add health check documents"
+msgstr "健康診断の書類を添付"
 
 msgid "Name or residence card / passport number"
 msgstr "氏名、在留カード番号・旅券番号"
@@ -4588,6 +4652,9 @@ msgstr "在留情報"
 
 msgid "passport"
 msgstr "旅券"
+
+msgid "The date cannot be in the past."
+msgstr "過去の日付にはできません。"
 
 #, python-format
 msgid ""

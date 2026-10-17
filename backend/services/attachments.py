@@ -11,7 +11,9 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from apps.core.models import Attachment, AttachmentKind, User
+from apps.core.models import Action, Attachment, AttachmentKind, User
+from services import authorization
+from services.authorization import AnyUser
 from services.files import MB, FilePolicy, sha256_of, validate_file
 
 DOCUMENT_POLICY = FilePolicy(extensions=frozenset({"pdf", "png", "jpg", "jpeg"}), max_bytes=10 * MB)
@@ -27,6 +29,9 @@ POLICIES: dict[AttachmentKind, FilePolicy] = {
     AttachmentKind.PRE_GUIDANCE_CONFIRMATION: DOCUMENT_POLICY,
     AttachmentKind.ORIENTATION_CONFIRMATION: DOCUMENT_POLICY,
     AttachmentKind.DELIVERED_DOCUMENT: DOCUMENT_POLICY,
+    AttachmentKind.HEALTH_CHECK_RECORD: DOCUMENT_POLICY,
+    AttachmentKind.HEALTH_DECLARATION: DOCUMENT_POLICY,
+    AttachmentKind.DOCTOR_OPINION: DOCUMENT_POLICY,
 }
 
 
@@ -88,3 +93,46 @@ def void_attachment(attachment: Attachment, *, by: User | None, reason: str) -> 
     attachment.save(
         update_fields=["voided_at", "voided_by", "void_reason", "updated_by", "updated_at"]
     )
+
+
+# --- ダウンロードの判定（T05・T23、ADR-0011） ------------------------------------------------
+
+
+def can_view_target(user: AnyUser, attachment: Attachment) -> bool:
+    """添付の対象の閲覧権限（<app>.view_<model> を操作に読み替え、データ範囲も見る）。"""
+    target = attachment.target
+    if target is None:
+        return False
+    content_type = attachment.content_type
+    perm = f"{content_type.app_label}.view_{content_type.model}"
+    return authorization.has_django_permission(user, perm, target)
+
+
+def is_assigned_staff(user: AnyUser, attachment: Attachment) -> bool:
+    """添付の対象の外国人の担当者（担当 staff のログインユーザー）か。"""
+    worker = attachment.target
+    staff = getattr(worker, "assigned_staff", None)
+    return (
+        isinstance(user, User)
+        and staff is not None
+        and staff.user_id is not None
+        and staff.user_id == user.pk
+    )
+
+
+def can_open_sensitive(user: AnyUser, attachment: Attachment) -> bool:
+    """要配慮の添付の追加の条件（その外国人の担当者か、workers.sensitive_documents を持つ人）。"""
+    return is_assigned_staff(user, attachment) or authorization.has_action(
+        user, Action.WORKERS_SENSITIVE_DOCUMENTS
+    )
+
+
+def can_download(user: AnyUser, attachment: Attachment) -> bool:
+    """添付をダウンロードできるか。ファイルの中身はこの判定を通った経路からだけ渡す。
+
+    1. 添付の対象の閲覧権限
+    2. 要配慮の添付は、さらにその外国人の担当者か workers.sensitive_documents を持つ人
+    """
+    if not can_view_target(user, attachment):
+        return False
+    return not attachment.is_sensitive or can_open_sensitive(user, attachment)

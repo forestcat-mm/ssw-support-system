@@ -2,7 +2,7 @@ from django.urls import path
 
 from apps.support import record_views
 from apps.support import views as support_views
-from apps.workers import views
+from apps.workers import document_views, views
 
 app_name = "workers"
 
@@ -139,6 +139,16 @@ urlpatterns = [
         "<int:pk>/support/deliveries/<int:delivery_id>/attachments/<int:attachment_id>/void/",
         record_views.DeliveryAttachmentVoidView.as_view(),
         name="support_delivery_attachment_void",
+    ),
+    path(
+        "<int:pk>/health-documents/new/",
+        document_views.HealthDocumentAddView.as_view(),
+        name="health_document_add",
+    ),
+    path(
+        "<int:pk>/health-documents/<int:attachment_id>/void/",
+        document_views.HealthDocumentVoidView.as_view(),
+        name="health_document_void",
     ),
     path("<int:pk>/deactivate/", views.WorkerDeactivateView.as_view(), name="deactivate"),
     path("<int:pk>/reactivate/", views.WorkerReactivateView.as_view(), name="reactivate"),
