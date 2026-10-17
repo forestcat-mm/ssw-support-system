@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-17 13:16+0900\n"
+"POT-Creation-Date: 2026-10-17 13:36+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -1894,8 +1894,8 @@ msgstr "受理番号"
 msgid "reason"
 msgstr "理由"
 
-msgid "Required when the task is not required or cancelled."
-msgstr "「不要」「取消」にするときは必須です。"
+msgid "Required when the task is not required, cancelled, or reopened."
+msgstr "対応不要・取消、または完了を取り消すときは必須。"
 
 msgid "basis date"
 msgstr "起算日"
@@ -1951,6 +1951,9 @@ msgstr "支援委託契約の更新"
 msgid "check of employment contract expiry (termination not registered)"
 msgstr "雇用契約の期間満了確認（終了未登録）"
 
+msgid "periodic interview (every 3 months)"
+msgstr "定期面談（3か月ごと）"
+
 msgid "not started"
 msgstr "未着手"
 
@@ -1965,6 +1968,9 @@ msgstr "不要"
 
 msgid "cancelled"
 msgstr "取消"
+
+msgid "completed"
+msgstr "完了"
 
 msgid "employment contract terminated"
 msgstr "雇用契約の終了"
@@ -1995,6 +2001,12 @@ msgstr "支援委託契約の終了の接近"
 
 msgid "employment contract period approaching end"
 msgstr "雇用契約の期間満了の接近"
+
+msgid "periodic interview cycle"
+msgstr "定期面談の周期"
+
+msgid "periodic interview recorded"
+msgstr "定期面談の記録"
 
 msgid "registered manually"
 msgstr "手動で起票"
@@ -2067,6 +2079,12 @@ msgstr "ダッシュボードへ戻る"
 
 msgid "Task"
 msgstr "タスク"
+
+msgid "periodic interview"
+msgstr "定期面談"
+
+msgid "Record the periodic interview"
+msgstr "定期面談を記録する"
 
 msgid "Changes that need a notification"
 msgstr "届出が必要な変更"
@@ -2604,11 +2622,50 @@ msgid ""
 "Set automatically from the date: the plan of the host organization then."
 msgstr "実施日から自動で決まります（その日の受入れ機関の支援計画）。"
 
+msgid "The pair of rows (worker and supervisor) of a periodic interview."
+msgstr "定期面談の組（本人用・上司用の 2 行）。"
+
 msgid "support record"
 msgstr "支援実績"
 
 msgid "support records"
 msgstr "支援実績"
+
+msgid "labour standards inspection office"
+msgstr "労働基準監督署"
+
+msgid "Immigration Services Agency"
+msgstr "出入国在留管理庁"
+
+msgid "interview date (basis of the next one)"
+msgstr "面談日（次回の起算日）"
+
+msgid "suspected violation of labour laws"
+msgstr "労働法令違反の疑い"
+
+msgid "report required"
+msgstr "通報の要否"
+
+msgid "report to"
+msgstr "通報先"
+
+msgid "report to (details)"
+msgstr "通報先（詳細）"
+
+msgid "reported on"
+msgstr "通報日"
+
+msgid "next interview scheduled on"
+msgstr "次回面談の予定日"
+
+msgid "task completed by this interview"
+msgstr "この面談で完了したタスク"
+
+msgid "task for the next interview"
+msgstr "次回の面談のタスク"
+
+msgid "periodic interviews"
+msgstr "定期面談"
 
 msgid "Only when the counterpart is the supervisor. Optional."
 msgstr "相手が上司のときだけ。任意。"
@@ -2624,6 +2681,28 @@ msgstr "実施日（まで）"
 
 msgid "All"
 msgstr "すべて"
+
+msgid "report needed"
+msgstr "要"
+
+msgid "report not needed"
+msgstr "不要"
+
+msgid "report"
+msgstr "通報"
+
+msgid "Only when a violation is suspected."
+msgstr "違反の疑いが「あり」のときだけ。"
+
+msgid "Required when \"other\" is selected. Example: the name of the office."
+msgstr "「その他」のときは必須。例: 窓口の名前。"
+
+msgid ""
+"Optional. The next task is due on this date (within 3 months). If empty, it "
+"is due 3 months after the interview."
+msgstr ""
+"任意。次回のタスクの期限になります（3か月以内）。空なら面談日の3か月後が期限"
+"です。"
 
 #, python-format
 msgid "Record: %(kind)s"
@@ -2646,6 +2725,25 @@ msgstr "例: 別の人の書類を添付した。"
 
 msgid "Voided the attachment."
 msgstr "添付を取り消しました。"
+
+msgid "Saved the periodic interview and completed the task."
+msgstr "定期面談を保存し、タスクを完了にしました。"
+
+msgid "Saved the periodic interview."
+msgstr "定期面談を保存しました。"
+
+msgid "Example: the interview of another person."
+msgstr "例: 別の人の面談だった。"
+
+msgid "Voided the periodic interview and put the tasks back."
+msgstr "定期面談を取り消し、タスクを元に戻しました。"
+
+msgid ""
+"Voided the periodic interview. The tasks were already changed, so they were "
+"left as they are. Check the periodic interview tasks."
+msgstr ""
+"定期面談を取り消しました。タスクはすでに変更されていたため、そのままにしてい"
+"ます。定期面談のタスクを確認してください。"
 
 msgid "Void an attachment"
 msgstr "添付の取消"
@@ -2699,6 +2797,61 @@ msgstr[0] "%(counter)s 分"
 msgid "no plan"
 msgstr "計画なし"
 
+msgid "Back to records"
+msgstr "記録の一覧へ"
+
+#, python-format
+msgid ""
+"This interview was voided on %(day)s by %(by)s. Reason: %(reason)s. It is "
+"not counted."
+msgstr ""
+"この面談は %(day)s に %(by)s が取り消しました。理由: %(reason)s。集計には含め"
+"ません。"
+
+#, python-format
+msgid "Periodic interview (%(day)s)"
+msgstr "定期面談（%(day)s）"
+
+msgid "Interview with the worker"
+msgstr "本人との面談"
+
+msgid "Interview with the supervisor"
+msgstr "上司との面談"
+
+msgid "Record a periodic interview"
+msgstr "定期面談の記録"
+
+#, python-format
+msgid ""
+"Saving completes the periodic interview task due on %(due)s, and the task "
+"for the next interview is created."
+msgstr ""
+"保存すると、期限 %(due)s の定期面談のタスクが完了になり、次回のタスクが作られ"
+"ます。"
+
+msgid ""
+"Saving completes the open periodic interview task, if any, and creates the "
+"task for the next interview."
+msgstr ""
+"保存すると、開いている定期面談のタスクがあれば完了になり、次回のタスクが作ら"
+"れます。"
+
+msgid "Findings and next interview"
+msgstr "把握した事項・次回の面談"
+
+msgid "Void a periodic interview"
+msgstr "定期面談の取消"
+
+msgid ""
+"Both rows (worker and supervisor) are voided. If the tasks have not been "
+"touched, the completed task is reopened and the task for the next interview "
+"is cancelled. This cannot be undone. To correct it, record the interview "
+"again."
+msgstr ""
+"本人用・上司用の 2 行をまとめて取り消します。タスクに手が付いていなければ、完"
+"了にしたタスクを未着手に戻し、次回のタスクを取り消します。元には戻せません。"
+"訂正するときは、面談を記録し直してください。"
+
 msgid ""
 "Sections with errors or notes are open. Notes (empty timing or staff) do not "
 "block saving."
@@ -2712,9 +2865,6 @@ msgstr "添付を追加"
 msgid "Add"
 msgstr "追加"
 
-msgid "Back to records"
-msgstr "記録の一覧へ"
-
 #, python-format
 msgid ""
 "This record was voided on %(day)s by %(by)s. Reason: %(reason)s. It is not "
@@ -2722,6 +2872,16 @@ msgid ""
 msgstr ""
 "この記録は %(day)s に %(by)s が取り消しました。理由: %(reason)s。集計には含め"
 "ません。"
+
+msgid ""
+"This row is part of a periodic interview (worker and supervisor). It is "
+"voided together with the other row."
+msgstr ""
+"この行は定期面談（本人用・上司用）の一部です。取消はもう一方の行とまとめて行"
+"います。"
+
+msgid "Show the interview"
+msgstr "面談を表示"
 
 #, python-format
 msgid "Recorded by %(by)s at %(at)s"
@@ -2772,6 +2932,9 @@ msgstr "支援実績の記録"
 msgid "Add a record"
 msgstr "記録する"
 
+msgid "periodic interviews and reports to authorities"
+msgstr "定期面談・行政機関への通報"
+
 #, python-format
 msgid "%(counter)s record"
 msgid_plural "%(counter)s records"
@@ -2783,6 +2946,9 @@ msgstr "取り消す"
 #, python-format
 msgid "version %(number)s"
 msgstr "版 %(number)s"
+
+msgid "Interview"
+msgstr "面談"
 
 msgid "Newer"
 msgstr "新しい記録"
@@ -3422,9 +3588,6 @@ msgstr "日本人との交流促進"
 msgid "support for changing jobs"
 msgstr "転職支援"
 
-msgid "periodic interviews and reports to authorities"
-msgstr "定期面談・行政機関への通報"
-
 msgid "video call"
 msgstr "テレビ電話装置"
 
@@ -3445,6 +3608,44 @@ msgstr "手続に係る情報提供"
 
 msgid "accompanying to the procedure as needed"
 msgstr "必要に応じて手続に同行"
+
+msgid "Enter the name of the supervisor."
+msgstr "上司の氏名を入力してください。"
+
+msgid "Select whether a report is required."
+msgstr "通報の要否を選んでください。"
+
+msgid "Select where to report."
+msgstr "通報先を選んでください。"
+
+msgid "Enter where to report."
+msgstr "通報先を入力してください。"
+
+msgid "Enter the report only when a violation of labour laws is suspected."
+msgstr "通報は、労働法令違反の疑いが「あり」のときだけ入力してください。"
+
+msgid "The date cannot be in the future."
+msgstr "未来の日付は入力できません。"
+
+msgid "Enter the date only when a report is required."
+msgstr "通報日は、通報が「要」のときだけ入力してください。"
+
+#, python-format
+msgid "Enter a date after the interview and on or before %(legal)s (3 months)."
+msgstr "面談日より後で、%(legal)s（3か月）以前の日付を入力してください。"
+
+msgid "This interview is already voided."
+msgstr "この面談は取り消し済みです。"
+
+msgid "This foreign worker is deactivated."
+msgstr "この外国人は無効化されています。"
+
+#, python-format
+msgid "The periodic interview record was voided: %(reason)s"
+msgstr "定期面談の記録を取り消したため: %(reason)s"
+
+msgid "A report is required but has not been made yet."
+msgstr "通報が「要」ですが、まだ通報日が入っていません。"
 
 msgid "All ten support items are required."
 msgstr "10項目すべてが必要です。"
@@ -3578,14 +3779,8 @@ msgstr "長すぎます。"
 msgid "This field is required."
 msgstr "この項目は必須です。"
 
-msgid "This foreign worker is deactivated."
-msgstr "この外国人は無効化されています。"
-
 msgid "This kind of support cannot be recorded here."
 msgstr "この種別はこの画面では記録できません。"
-
-msgid "The date cannot be in the future."
-msgstr "未来の日付は入力できません。"
 
 msgid "Enter the URL only for online support."
 msgstr "URL はオンラインのときだけ入力してください。"
@@ -3605,6 +3800,9 @@ msgstr "この記録には添付を追加できません。"
 
 msgid "Select a file."
 msgstr "ファイルを選んでください。"
+
+msgid "Void the periodic interview as a whole (both rows)."
+msgstr "定期面談は組（2 行）ごとに取り消してください。"
 
 msgid "This record is already voided."
 msgstr "この記録は取り消し済みです。"

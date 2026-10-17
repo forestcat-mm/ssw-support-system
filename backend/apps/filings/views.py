@@ -28,6 +28,7 @@ from apps.filings.forms import (
     own_staff_id,
 )
 from apps.filings.models import Filing, FilingKind, FilingStatus, Trigger
+from apps.support.models import PeriodicInterview
 from services import audit, authorization, dashboard, filings, workers
 
 # ダッシュボードの絞り込みの条件（処理の画面から同じ条件で戻るため）
@@ -106,14 +107,13 @@ class FilingDetailView(ActionRequiredMixin, View):
             "category_label": filings.CATEGORY_LABELS[filings.definition(filing.kind).category],
             "can_manage": can_manage,
             "transition_form": forms.get("transition")
-            or (
-                TransitionForm(filing=filing)
-                if filings.TRANSITIONS[FilingStatus(filing.status)]
-                else None
-            ),
+            or (TransitionForm(filing=filing) if filings.allowed_transitions(filing) else None),
             "details_form": forms.get("details") or DetailsForm(instance=filing),
             "rebase_form": forms.get("rebase") or (RebaseForm() if is_open else None),
             "findings": filing.trigger_details or {},
+            "completed_interview": PeriodicInterview.objects.filter(
+                completed_filing=filing
+            ).first(),
             "back_url": dashboard_url(request),
             **once_context(request),
         }

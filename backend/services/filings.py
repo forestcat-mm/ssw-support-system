@@ -28,6 +28,7 @@ from apps.contracts.models import EmploymentContract, EmploymentContractVersion,
 from apps.core.models import Attachment, AuditAction, Organization, Staff, User
 from apps.filings.models import Filing, FilingKind, FilingStatus, Trigger
 from apps.hosts.models import HostMembership, HostOrganization, SupportContract
+from apps.support.models import PeriodicInterview
 from apps.workers.models import (
     ForeignWorker,
     LatestPassportRecord,
@@ -117,6 +118,10 @@ KIND_DEFINITIONS: dict[FilingKind, KindDefinition] = {
     FilingKind.CONTRACT_EXPIRY_CHECK: KindDefinition(
         Category.INTERNAL, Filer.INTERNAL, deadlines.employment_contract_expiry
     ),
+    # 起算日は前回の面談日（無ければ今の雇用契約の開始日）。次回の予定日は trigger_details に持つ
+    FilingKind.PERIODIC_INTERVIEW: KindDefinition(
+        Category.INTERNAL, Filer.INTERNAL, deadlines.periodic_interview
+    ),
 }
 
 # 手動で起票できる種別（事由が人の判断で生じるもの）
@@ -137,7 +142,7 @@ NO_DIFFICULTY_REASONS = frozenset(
 
 OPEN_STATUSES = frozenset({FilingStatus.NOT_STARTED, FilingStatus.IN_PROGRESS})
 
-# 状態の遷移（受理済・取消からは変えない）
+# 状態の遷移（受理済・取消からは変えない）。完了は内部のタスクだけ（allowed_transitions で絞る）
 TRANSITIONS: dict[FilingStatus, frozenset[FilingStatus]] = {
     FilingStatus.NOT_STARTED: frozenset(
         {
@@ -145,6 +150,7 @@ TRANSITIONS: dict[FilingStatus, frozenset[FilingStatus]] = {
             FilingStatus.SUBMITTED,
             FilingStatus.NOT_REQUIRED,
             FilingStatus.CANCELLED,
+            FilingStatus.COMPLETED,
         }
     ),
     FilingStatus.IN_PROGRESS: frozenset(
@@ -153,17 +159,36 @@ TRANSITIONS: dict[FilingStatus, frozenset[FilingStatus]] = {
             FilingStatus.SUBMITTED,
             FilingStatus.NOT_REQUIRED,
             FilingStatus.CANCELLED,
+            FilingStatus.COMPLETED,
         }
     ),
     FilingStatus.SUBMITTED: frozenset({FilingStatus.ACCEPTED, FilingStatus.IN_PROGRESS}),
     FilingStatus.NOT_REQUIRED: frozenset({FilingStatus.NOT_STARTED}),
     FilingStatus.ACCEPTED: frozenset(),
     FilingStatus.CANCELLED: frozenset(),
+    # 完了の取り消し（やり直し）。理由は必須
+    FilingStatus.COMPLETED: frozenset({FilingStatus.IN_PROGRESS, FilingStatus.NOT_STARTED}),
 }
+
+# 記録を通してだけ完了・完了の取り消しをする種別（手では変えない）
+COMPLETED_BY_RECORD = frozenset({FilingKind.PERIODIC_INTERVIEW})
 
 
 def definition(kind: FilingKind | str) -> KindDefinition:
     return KIND_DEFINITIONS[FilingKind(kind)]
+
+
+def allowed_transitions(filing: Filing, *, by_record: bool = False) -> frozenset[FilingStatus]:
+    """今の状態から行ける状態。完了は内部のタスクだけ。定期面談の完了と取り消しは記録を通してだけ。"""
+    current = FilingStatus(filing.status)
+    allowed = set(TRANSITIONS[current])
+    if definition(filing.kind).category is not Category.INTERNAL:
+        allowed.discard(FilingStatus.COMPLETED)
+    if FilingKind(filing.kind) in COMPLETED_BY_RECORD and not by_record:
+        allowed.discard(FilingStatus.COMPLETED)
+        if current is FilingStatus.COMPLETED:
+            allowed.clear()
+    return frozenset(allowed)
 
 
 def deadline_of(filing: Filing) -> Deadline:
@@ -213,12 +238,16 @@ def create(
     needs_review: bool = False,
     assignee: Staff | None = None,
     note: str = "",
+    deadline: Deadline | None = None,
 ) -> tuple[Filing, bool]:
-    """起票する。同じ種別×対象×起算日（取消以外）があれば、それを返して作らない。"""
+    """起票する。同じ種別×対象×起算日（取消以外）があれば、それを返して作らない。
+
+    deadline は種別の既定の計算と違う期限（定期面談の次回の予定日など）を使うときだけ渡す。
+    """
     existing = find_open(kind, target, basis_on)
     if existing is not None:
         return existing, False
-    deadline = definition(kind).deadline(basis_on)
+    deadline = deadline or definition(kind).deadline(basis_on)
     worker = _worker_of(target)
     filing = Filing(
         kind=kind,
@@ -477,6 +506,9 @@ def create_scheduled(today: date, *, by: User | None = None) -> ScheduledResult:
             Trigger.CONTRACT_EXPIRY,
         )
 
+    for worker, basis_on in _workers_due_for_interview(today):
+        add(FilingKind.PERIODIC_INTERVIEW, worker, basis_on, Trigger.INTERVIEW_CYCLE)
+
     # 定期届出は届出期間（4/1〜5/31）の間だけ起票する（運用開始前の年の分を後から作らない）
     season = date(today.year, 4, 1)
     if season <= today <= date(today.year, 5, 31):
@@ -489,6 +521,47 @@ def create_scheduled(today: date, *, by: User | None = None) -> ScheduledResult:
                 season,
                 Trigger.PERIODIC_SEASON,
             )
+    return result
+
+
+def _workers_due_for_interview(today: date) -> list[tuple[ForeignWorker, date]]:
+    """定期面談のタスクが無い外国人と起算日（T19）。
+
+    対象は在留中・無効化していない・今日を期間に含む雇用契約がある人。開いている定期面談のタスクが
+    あれば作らない（起算日が変わっても重ねない）。起算日は前回の面談日（取消を除く。本人用・上司用の
+    早い方）。前回の面談が今の雇用契約の開始より前（転籍の前）でも前回の面談日にする（自機関が続けて
+    支援している人の「3か月に1回以上」は転籍で途切れない）。今の契約の開始日を使うのは、面談の記録が
+    1 件も無いときだけ。記録のときに次回のタスクを作るので、ここは漏れの補い。
+    """
+    open_ids = set(
+        Filing.objects.filter(
+            kind=FilingKind.PERIODIC_INTERVIEW, status__in=list(OPEN_STATUSES)
+        ).values_list("worker_id", flat=True)
+    )
+    result = []
+    contracts = (
+        EmploymentContract.objects.filter(
+            worker__status=WorkerStatus.RESIDING,
+            worker__deactivated_at__isnull=True,
+            terminated_on__isnull=True,
+        )
+        .filter(models.Q(current_ends_on__isnull=True) | models.Q(current_ends_on__gte=today))
+        .annotate(first_starts_on=models.Min("versions__starts_on"))
+        .select_related("worker")
+    )
+    for contract in contracts:
+        worker = contract.worker
+        starts_on = contract.first_starts_on or contract.current_starts_on
+        if starts_on > today or worker.pk in open_ids:
+            continue
+        last = (
+            PeriodicInterview.objects.filter(worker=worker, voided_at__isnull=True)
+            .order_by("-basis_on")
+            .values_list("basis_on", flat=True)
+            .first()
+        )
+        result.append((worker, last or starts_on))
+        open_ids.add(worker.pk)
     return result
 
 
@@ -525,12 +598,21 @@ def transition(
     submitted_on: date | None = None,
     receipt_number: str = "",
     reason: str = "",
+    by_record: bool = False,
 ) -> None:
-    """状態を変える。許されない遷移・必須の項目の不足は ValidationError。監査ログに 1 件残す。"""
+    """状態を変える。許されない遷移・必須の項目の不足は ValidationError。監査ログに 1 件残す。
+
+    by_record は定期面談の記録（とその取消）から呼ぶときだけ True にする。
+    """
     if to == FilingStatus(filing.status):
         return
     validate_transition(
-        filing, to, submitted_on=submitted_on, receipt_number=receipt_number, reason=reason
+        filing,
+        to,
+        submitted_on=submitted_on,
+        receipt_number=receipt_number,
+        reason=reason,
+        by_record=by_record,
     )
     with audit.event(AuditAction.FILING_TRANSITION, target=filing, actor=by):
         filing.status = to
@@ -551,9 +633,10 @@ def validate_transition(
     submitted_on: date | None = None,
     receipt_number: str = "",
     reason: str = "",
+    by_record: bool = False,
 ) -> None:
     current = FilingStatus(filing.status)
-    if to not in TRANSITIONS[current]:
+    if to not in allowed_transitions(filing, by_record=by_record):
         raise ValidationError(
             _("The status cannot be changed from %(from)s to %(to)s.")
             % {"from": current.label, "to": to.label},
@@ -563,8 +646,18 @@ def validate_transition(
         raise ValidationError(_("Enter the submission date."), code="submitted_on")
     if to is FilingStatus.ACCEPTED and not (receipt_number or filing.receipt_number).strip():
         raise ValidationError(_("Enter the receipt number."), code="receipt_number")
-    if to in (FilingStatus.NOT_REQUIRED, FilingStatus.CANCELLED) and not reason.strip():
+    reopening = current is FilingStatus.COMPLETED
+    if (to in (FilingStatus.NOT_REQUIRED, FilingStatus.CANCELLED) or reopening) and not (
+        reason.strip()
+    ):
         raise ValidationError(_("Enter the reason."), code="reason")
+
+
+def _scheduled_on(filing: Filing) -> date | None:
+    if FilingKind(filing.kind) is not FilingKind.PERIODIC_INTERVIEW:
+        return None
+    value = (filing.trigger_details or {}).get("scheduled_on")
+    return date.fromisoformat(value) if value else None
 
 
 def rebase(filing: Filing, basis_on: date, *, by: User | None, reason: str) -> None:
@@ -574,6 +667,10 @@ def rebase(filing: Filing, basis_on: date, *, by: User | None, reason: str) -> N
     if FilingStatus(filing.status) not in OPEN_STATUSES:
         raise ValidationError(_("Only open tasks can be changed."), code="closed")
     deadline = definition(filing.kind).deadline(basis_on)
+    scheduled = _scheduled_on(filing)
+    if scheduled is not None and basis_on < scheduled <= deadline.due_on:
+        # 定期面談の次回の予定日は、新しい法定の期限の範囲内なら保つ
+        deadline = deadlines.periodic_interview(basis_on, scheduled)
     with audit.event(
         AuditAction.FILING_TRANSITION, target=filing, actor=by, context={"reason": reason}
     ):

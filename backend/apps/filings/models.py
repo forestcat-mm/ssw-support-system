@@ -48,6 +48,7 @@ class FilingKind(models.TextChoices):
         "contract_expiry_check",
         _("check of employment contract expiry (termination not registered)"),
     )
+    PERIODIC_INTERVIEW = "periodic_interview", _("periodic interview (every 3 months)")
 
 
 class FilingStatus(models.TextChoices):
@@ -57,6 +58,7 @@ class FilingStatus(models.TextChoices):
     ACCEPTED = "accepted", _("accepted")
     NOT_REQUIRED = "not_required", _("not required")
     CANCELLED = "cancelled", _("cancelled")
+    COMPLETED = "completed", _("completed")  # 内部のタスクだけが使う（T19）
 
 
 class Trigger(models.TextChoices):
@@ -70,6 +72,8 @@ class Trigger(models.TextChoices):
     PASSPORT_EXPIRY = "passport_expiry", _("passport approaching expiry")
     SUPPORT_CONTRACT_END = "support_contract_end", _("support contract approaching end")
     CONTRACT_EXPIRY = "contract_expiry", _("employment contract period approaching end")
+    INTERVIEW_CYCLE = "interview_cycle", _("periodic interview cycle")
+    INTERVIEW_RECORDED = "interview_recorded", _("periodic interview recorded")
     MANUAL = "manual", _("registered manually")
 
 

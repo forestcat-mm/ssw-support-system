@@ -1,0 +1,23 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Void a periodic interview" %} | {{ worker }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{% url 'workers:support_interview' worker.pk interview.pk %}">← {{ worker }}</a></p>
+  <h1>{% translate "Void a periodic interview" %}</h1>
+{% endblock %}
+{% block content %}
+<div class="stack form">
+  <section class="card">
+    <div class="card__header"><h2 class="card__title">{% blocktranslate with day=interview.basis_on|date:"Y-m-d" %}Periodic interview ({{ day }}){% endblocktranslate %}</h2></div>
+    {% include "support/components/interview_fields.html" %}
+  </section>
+  <p class="message message--warning">{% translate "Both rows (worker and supervisor) are voided. If the tasks have not been touched, the completed task is reopened and the task for the next interview is cancelled. This cannot be undone. To correct it, record the interview again." %}</p>
+  <form class="form" method="post" novalidate id="void-form">
+    {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+    {% for field in form %}{% form_field field %}{% endfor %}
+    <div class="form-actions">
+      <button class="button button--danger" type="submit">{% translate "Void" %}</button>
+      <a class="button button--neutral" href="{% url 'workers:support_interview' worker.pk interview.pk %}">{% translate "Cancel" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

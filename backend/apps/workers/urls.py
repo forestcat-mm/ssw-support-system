@@ -55,6 +55,21 @@ urlpatterns = [
         record_views.AttachmentVoidView.as_view(),
         name="support_attachment_void",
     ),
+    path(
+        "<int:pk>/support/interviews/new/",
+        record_views.InterviewCreateView.as_view(),
+        name="support_interview_create",
+    ),
+    path(
+        "<int:pk>/support/interviews/<int:interview_id>/",
+        record_views.InterviewDetailView.as_view(),
+        name="support_interview",
+    ),
+    path(
+        "<int:pk>/support/interviews/<int:interview_id>/void/",
+        record_views.InterviewVoidView.as_view(),
+        name="support_interview_void",
+    ),
     path("<int:pk>/deactivate/", views.WorkerDeactivateView.as_view(), name="deactivate"),
     path("<int:pk>/reactivate/", views.WorkerReactivateView.as_view(), name="reactivate"),
     path(

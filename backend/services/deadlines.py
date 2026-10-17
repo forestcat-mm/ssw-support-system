@@ -236,18 +236,24 @@ def next_periodic_filing(today: date) -> Deadline:
     return periodic_filing(today.year if today <= date(today.year, 5, 31) else today.year + 1)
 
 
-def periodic_interview(last_interview_on: date) -> Deadline:
+def periodic_interview(last_interview_on: date, scheduled_on: date | None = None) -> Deadline:
     """定期面談（前回から3か月以内。民法第143条）。
 
     面談記録がまだ無い場合、呼び出し側は支援の開始日（雇用契約の開始日）を渡す。
+    次回の予定日（scheduled_on）があれば期限はその日にし、法定の期限は final_on に残す。
+    予定日が法定の期限を超えるときは ValueError（入力の検査は呼び出し側で行う）。
     """
-    due = months_period_end(last_interview_on, INTERVIEW_INTERVAL_MONTHS)
+    legal = months_period_end(last_interview_on, INTERVIEW_INTERVAL_MONTHS)
+    if scheduled_on is not None and not last_interview_on < scheduled_on <= legal:
+        raise ValueError("scheduled_on must be after the last interview and within 3 months")
+    due = scheduled_on or legal
     return Deadline(
         kind=DeadlineKind.PERIODIC_INTERVIEW,
         basis_on=last_interview_on,
         due_on=due,
         unadjusted_due_on=due,
         opens_on=last_interview_on + timedelta(days=1),
+        final_on=legal if scheduled_on is not None else None,
     )
 
 

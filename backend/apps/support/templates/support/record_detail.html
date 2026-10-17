@@ -6,10 +6,11 @@
   {% if record.voided_at %}
   <p class="message message--warning" role="status" id="record-voided">{% blocktranslate with day=record.voided_at|date:"Y-m-d H:i" by=record.voided_by.get_username|default:"—" reason=record.void_reason %}This record was voided on {{ day }} by {{ by }}. Reason: {{ reason }}. It is not counted.{% endblocktranslate %}</p>
   {% endif %}
+  {% if record.interview_id %}<p class="message message--success" id="record-interview">{% translate "This row is part of a periodic interview (worker and supervisor). It is voided together with the other row." %} <a href="{% url 'workers:support_interview' worker.pk record.interview_id %}">{% translate "Show the interview" %}</a></p>{% endif %}
   <section class="card{% if record.voided_at %} is-voided{% endif %}" id="support-record">
     <div class="card__header">
       <h2 class="card__title">{{ record.get_kind_display }}</h2>
-      {% if can_change_record %}<a class="button button--danger button--small" href="{% url 'workers:support_record_void' worker.pk record.pk %}">{% translate "Void" %}</a>{% endif %}
+      {% if can_change_record and not record.interview_id %}<a class="button button--danger button--small" href="{% url 'workers:support_record_void' worker.pk record.pk %}">{% translate "Void" %}</a>{% endif %}
     </div>
     {% include "support/components/record_fields.html" %}
     <h3 style="margin-top: var(--space-16)">{% translate "details" %}</h3>

@@ -6,15 +6,17 @@ from typing import Any
 
 from django import forms
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import Staff, SupportLanguage
 from apps.core.web_forms import StyledFormMixin
 from apps.support.forms import StaffChoiceField, active_staff
-from apps.support.models import BodyLanguage, Counterpart, RecordMethod
+from apps.support.models import BodyLanguage, Counterpart, RecordMethod, ReportDestination
 from apps.workers.models import ForeignWorker
 from services import support_records
 from services.support_catalog import SupportItem
+from services.support_interviews import INTERVIEW_METHODS, InterviewInput
 from services.support_records import DETAIL_FIELDS, RecordInput
 
 DETAIL_PREFIX = "detail_"
@@ -109,9 +111,32 @@ class RecordForm(StyledFormMixin, forms.Form):
     )
     BODY = ("body_language", "body")
 
-    def __init__(self, *args: Any, kind: SupportItem, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        *args: Any,
+        kind: SupportItem,
+        counterpart: str | None = None,
+        methods: tuple[str, ...] | None = None,
+        **kwargs: Any,
+    ) -> None:
+        """counterpart を渡すと相手を固定する（定期面談の本人用・上司用の行。上司は氏名が必須）。"""
         super().__init__(*args, **kwargs)
         self.kind = kind
+        self.fixed_counterpart = counterpart
+        if counterpart is not None:
+            del self.fields["counterpart"]
+            if counterpart == Counterpart.SUPERVISOR:
+                name = self.fields["counterpart_name"]
+                name.required = True
+                name.help_text = ""
+            else:
+                del self.fields["counterpart_name"]
+        if methods is not None:
+            method = self.fields["method"]
+            assert isinstance(method, forms.ChoiceField)
+            method.choices = [
+                (value, label) for value, label in RecordMethod.choices if value in methods
+            ]
         self.fields["staff"].queryset = active_staff()  # type: ignore[attr-defined]
         self.fields["languages"].queryset = SupportLanguage.objects.filter(  # type: ignore[attr-defined]
             is_active=True
@@ -134,7 +159,7 @@ class RecordForm(StyledFormMixin, forms.Form):
         }
 
     def common_fields(self) -> list[forms.BoundField]:
-        return [self[name] for name in self.COMMON]
+        return [self[name] for name in self.COMMON if name in self.fields]
 
     def detail_fields(self) -> list[forms.BoundField]:
         return [self[name] for name in self.fields if name.startswith(DETAIL_PREFIX)]
@@ -152,7 +177,7 @@ class RecordForm(StyledFormMixin, forms.Form):
             method=data["method"],
             meeting_url=data.get("meeting_url") or "",
             staff=data["staff"],
-            counterpart=data["counterpart"],
+            counterpart=self.fixed_counterpart or data["counterpart"],
             counterpart_name=data.get("counterpart_name") or "",
             languages=list(data.get("languages") or []),
             body=data["body"],
@@ -223,3 +248,125 @@ class RecordFilterForm(StyledFormMixin, forms.Form):
             "name_kana", "name"
         )
         self.style_fields()
+
+
+# --- 定期面談（T19）---------------------------------------------------------------------
+
+YES_NO = [("no", _("no")), ("yes", _("yes"))]
+REQUIRED_CHOICES = [("yes", _("report needed")), ("no", _("report not needed"))]
+
+
+class InterviewForm(StyledFormMixin, forms.Form):
+    """定期面談の組の欄（労働法令違反の疑い・通報・次回の予定日）。"""
+
+    violation_suspected = forms.ChoiceField(
+        label=_("suspected violation of labour laws"),
+        choices=YES_NO,
+        widget=forms.RadioSelect,
+        initial="no",
+    )
+    report_required = forms.ChoiceField(
+        label=_("report"),
+        choices=REQUIRED_CHOICES,
+        widget=forms.RadioSelect,
+        required=False,
+        help_text=_("Only when a violation is suspected."),
+    )
+    report_to = forms.ChoiceField(
+        label=_("report to"),
+        choices=[("", "---------"), *ReportDestination.choices],
+        required=False,
+    )
+    report_to_note = forms.CharField(
+        label=_("report to (details)"),
+        max_length=200,
+        required=False,
+        help_text=_('Required when "other" is selected. Example: the name of the office.'),
+    )
+    reported_on = forms.DateField(label=_("reported on"), required=False, widget=forms.DateInput)
+    next_scheduled_on = forms.DateField(
+        label=_("next interview scheduled on"),
+        required=False,
+        widget=forms.DateInput,
+        help_text=_(
+            "Optional. The next task is due on this date (within 3 months). "
+            "If empty, it is due 3 months after the interview."
+        ),
+    )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.style_fields()
+
+
+class InterviewEditor:
+    """定期面談の画面のフォーム（本人用の行・上司用の行・組の欄）を束ねる。"""
+
+    def __init__(self, worker: ForeignWorker, data: Any = None, files: Any = None) -> None:
+        initial = RecordForm.initial_for(worker, timezone.localdate())
+        supervisor_initial = initial | {
+            "languages": list(
+                SupportLanguage.objects.filter(code="ja", is_active=True).values_list(
+                    "pk", flat=True
+                )
+            ),
+            "body_language": BodyLanguage.JA,
+        }
+        kind = SupportItem.PERIODIC_INTERVIEW
+        self.self_form = RecordForm(
+            data,
+            files,
+            prefix="self",
+            kind=kind,
+            counterpart=Counterpart.WORKER,
+            methods=INTERVIEW_METHODS,
+            initial=initial,
+        )
+        self.supervisor_form = RecordForm(
+            data,
+            files,
+            prefix="supervisor",
+            kind=kind,
+            counterpart=Counterpart.SUPERVISOR,
+            methods=INTERVIEW_METHODS,
+            initial=supervisor_initial,
+        )
+        self.interview_form = InterviewForm(data, prefix="interview")
+
+    def forms(self) -> list[forms.Form]:
+        return [self.self_form, self.supervisor_form, self.interview_form]
+
+    def is_valid(self) -> bool:
+        return all([form.is_valid() for form in self.forms()])
+
+    def to_input(self) -> InterviewInput:
+        data = self.interview_form.cleaned_data
+        required = data.get("report_required")
+        return InterviewInput(
+            self_row=self.self_form.to_input(),
+            supervisor_row=self.supervisor_form.to_input(),
+            violation_suspected=data["violation_suspected"] == "yes",
+            report_required=None if not required else required == "yes",
+            report_to=data.get("report_to") or "",
+            report_to_note=data.get("report_to_note") or "",
+            reported_on=data.get("reported_on"),
+            next_scheduled_on=data.get("next_scheduled_on"),
+        )
+
+    def files(self) -> dict[str, list[Any]]:
+        return {
+            "self": self.self_form.cleaned_data.get("uploads") or [],
+            "supervisor": self.supervisor_form.cleaned_data.get("uploads") or [],
+        }
+
+    def apply_errors(self, error: ValidationError) -> None:
+        """サービスのエラー（"self.body"・"report_to" など）を該当する入力欄に戻す。"""
+        rows = {"self": self.self_form, "supervisor": self.supervisor_form}
+        for key, messages in error.error_dict.items():
+            prefix, _dot, name = key.partition(".")
+            if prefix in rows and name:
+                rows[prefix].apply_errors(ValidationError({name: messages}))
+            elif key in self.interview_form.fields:
+                self.interview_form.add_error(key, messages)
+            else:
+                self.interview_form.add_error(None, messages)

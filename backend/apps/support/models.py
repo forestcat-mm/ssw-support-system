@@ -16,6 +16,7 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import Attachment, Staff, SupportLanguage, TrackedModel
+from apps.filings.models import Filing
 from apps.hosts.models import HostOrganization
 from apps.workers.models import ForeignWorker
 from services.support_catalog import Method, SupportItem
@@ -459,6 +460,16 @@ class SupportRecord(TrackedModel):
         editable=False,
     )
     void_reason = models.CharField(_("void reason"), max_length=200, blank=True, editable=False)
+    interview = models.ForeignKey(
+        "PeriodicInterview",
+        verbose_name=_("periodic interview"),
+        on_delete=models.PROTECT,
+        related_name="records",
+        null=True,
+        blank=True,
+        editable=False,
+        help_text=_("The pair of rows (worker and supervisor) of a periodic interview."),
+    )
     attachments = GenericRelation(Attachment)
 
     class Meta:
@@ -469,3 +480,74 @@ class SupportRecord(TrackedModel):
 
     def __str__(self) -> str:
         return f"{self.worker}: {self.get_kind_display()} ({self.occurred_on})"
+
+
+# --- 定期面談（T19）---------------------------------------------------------------------
+
+
+class ReportDestination(models.TextChoices):
+    LABOR_STANDARDS_OFFICE = "labor_standards_office", _("labour standards inspection office")
+    IMMIGRATION = "immigration", _("Immigration Services Agency")
+    OTHER = "other", _("other")
+
+
+class PeriodicInterview(TrackedModel):
+    """定期面談の組（本人用・上司用の支援実績 2 行をまとめる）。訂正は組ごとの取消＋新しい組。
+
+    起算日（basis_on）は 2 行の実施日の早い方で、次回の定期面談のタスクの起算日になる。
+    """
+
+    worker = models.ForeignKey(
+        ForeignWorker,
+        verbose_name=_("foreign worker"),
+        on_delete=models.PROTECT,
+        related_name="periodic_interviews",
+    )
+    basis_on = models.DateField(_("interview date (basis of the next one)"), editable=False)
+    violation_suspected = models.BooleanField(
+        _("suspected violation of labour laws"), default=False
+    )
+    report_required = models.BooleanField(_("report required"), null=True, blank=True)
+    report_to = models.CharField(
+        _("report to"), max_length=32, choices=ReportDestination.choices, blank=True
+    )
+    report_to_note = models.CharField(_("report to (details)"), max_length=200, blank=True)
+    reported_on = models.DateField(_("reported on"), null=True, blank=True)
+    next_scheduled_on = models.DateField(_("next interview scheduled on"), null=True, blank=True)
+    completed_filing = models.ForeignKey(
+        Filing,
+        verbose_name=_("task completed by this interview"),
+        on_delete=models.PROTECT,
+        related_name="+",
+        null=True,
+        blank=True,
+        editable=False,
+    )
+    next_filing = models.ForeignKey(
+        Filing,
+        verbose_name=_("task for the next interview"),
+        on_delete=models.PROTECT,
+        related_name="+",
+        null=True,
+        blank=True,
+        editable=False,
+    )
+    voided_at = models.DateTimeField(_("voided at"), null=True, blank=True, editable=False)
+    voided_by = models.ForeignKey(
+        "core.User",
+        verbose_name=_("voided by"),
+        on_delete=models.PROTECT,
+        related_name="+",
+        null=True,
+        blank=True,
+        editable=False,
+    )
+    void_reason = models.CharField(_("void reason"), max_length=200, blank=True, editable=False)
+
+    class Meta:
+        verbose_name = _("periodic interview")
+        verbose_name_plural = _("periodic interviews")
+        ordering = ["-basis_on", "-pk"]
+
+    def __str__(self) -> str:
+        return f"{self.worker}: {self.basis_on}"

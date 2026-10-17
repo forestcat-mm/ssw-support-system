@@ -25,6 +25,7 @@ from apps.core.models import Attachment, AttachmentKind, Staff, SupportLanguage,
 from apps.support.models import (
     BodyLanguage,
     Counterpart,
+    PeriodicInterview,
     PropertyType,
     RecordMethod,
     SupportPlan,
@@ -219,8 +220,18 @@ def clean_details(kind: SupportItem, raw: dict[str, Any] | None) -> dict[str, An
     return cleaned
 
 
-def validate(worker: ForeignWorker, data: RecordInput, *, today: datetime.date) -> dict[str, Any]:
-    """入力を検査し、種別ごとの欄を保存する形で返す。エラーは欄の名前ごと。"""
+def validate(
+    worker: ForeignWorker,
+    data: RecordInput,
+    *,
+    today: datetime.date,
+    kinds: Iterable[SupportItem] = RECORD_KINDS,
+    methods: Iterable[str] = tuple(RecordMethod.values),
+) -> dict[str, Any]:
+    """入力を検査し、種別ごとの欄を保存する形で返す。エラーは欄の名前ごと。
+
+    kinds・methods は記録できる種別・方法（定期面談は電話を除く。T19）。
+    """
     errors: dict[str, list[ValidationError]] = {}
 
     def add(key: str, message: str, code: str) -> None:
@@ -228,11 +239,11 @@ def validate(worker: ForeignWorker, data: RecordInput, *, today: datetime.date) 
 
     if not workers.is_active(worker):
         add("__all__", _("This foreign worker is deactivated."), "deactivated")
-    if data.kind not in RECORD_KINDS:
+    if data.kind not in tuple(kinds):
         add("kind", _("This kind of support cannot be recorded here."), "kind")
     if data.occurred_on > today:
         add("occurred_on", _("The date cannot be in the future."), "future")
-    if data.method not in RecordMethod.values:
+    if data.method not in tuple(methods):
         add("method", _("Select a valid choice."), "invalid_choice")
     if data.meeting_url and data.method != RecordMethod.ONLINE:
         add("meeting_url", _("Enter the URL only for online support."), "meeting_url")
@@ -319,7 +330,7 @@ def plan_version_for(worker: ForeignWorker, on: datetime.date) -> SupportPlanVer
     return support_plans.current_version(plan, on) if plan else None
 
 
-def _validate_files(files: Iterable[File[Any]]) -> list[File[Any]]:
+def validate_files(files: Iterable[File[Any]]) -> list[File[Any]]:
     files = list(files)
     for file in files:
         try:
@@ -339,32 +350,46 @@ def create_record(
 ) -> SupportRecord:
     today = today or timezone.localdate()
     details = validate(worker, data, today=today)
-    uploads = _validate_files(files)
+    uploads = validate_files(files)
     with transaction.atomic():
-        record = SupportRecord(
-            worker=worker,
-            kind=data.kind,
-            occurred_on=data.occurred_on,
-            start_time=data.start_time,
-            duration_minutes=data.duration_minutes,
-            method=data.method,
-            meeting_url=data.meeting_url.strip(),
-            staff=data.staff,
-            counterpart=data.counterpart,
-            counterpart_name=data.counterpart_name.strip(),
-            body=data.body.strip(),
-            body_language=data.body_language,
-            details=details,
-            plan_version=plan_version_for(worker, data.occurred_on),
-            created_by=by,
-            updated_by=by,
+        return save_record(worker, data, details, uploads, by=by)
+
+
+def save_record(
+    worker: ForeignWorker,
+    data: RecordInput,
+    details: dict[str, Any],
+    uploads: list[File[Any]],
+    *,
+    by: User | None,
+    interview: PeriodicInterview | None = None,
+) -> SupportRecord:
+    """検査済みの入力で記録と添付を保存する（呼び出し側のトランザクションの中で呼ぶ）。"""
+    record = SupportRecord(
+        worker=worker,
+        interview=interview,
+        kind=data.kind,
+        occurred_on=data.occurred_on,
+        start_time=data.start_time,
+        duration_minutes=data.duration_minutes,
+        method=data.method,
+        meeting_url=data.meeting_url.strip(),
+        staff=data.staff,
+        counterpart=data.counterpart,
+        counterpart_name=data.counterpart_name.strip(),
+        body=data.body.strip(),
+        body_language=data.body_language,
+        details=details,
+        plan_version=plan_version_for(worker, data.occurred_on),
+        created_by=by,
+        updated_by=by,
+    )
+    record.save()
+    record.languages.set(data.languages)
+    for file in uploads:
+        attachments.create_attachment(
+            target=record, kind=AttachmentKind.SUPPORT_RECORD, file=file, created_by=by
         )
-        record.save()
-        record.languages.set(data.languages)
-        for file in uploads:
-            attachments.create_attachment(
-                target=record, kind=AttachmentKind.SUPPORT_RECORD, file=file, created_by=by
-            )
     return record
 
 
@@ -374,7 +399,7 @@ def add_attachments(
     """記録に添付を足す（取り消した記録・無効化した外国人には足さない）。"""
     if record.voided_at is not None or not workers.is_active(record.worker):
         raise ValidationError(_("Attachments cannot be added to this record."), code="locked")
-    uploads = _validate_files(files)
+    uploads = validate_files(files)
     if not uploads:
         raise ValidationError({"files": [_("Select a file.")]})
     with transaction.atomic():
@@ -386,8 +411,17 @@ def add_attachments(
         ]
 
 
-def void_record(record: SupportRecord, *, by: User | None, reason: str) -> None:
-    """記録を取り消す（打ち消して残し、集計から外す）。正しい記録は新しく足す。"""
+def void_record(
+    record: SupportRecord, *, by: User | None, reason: str, with_interview: bool = False
+) -> None:
+    """記録を取り消す（打ち消して残し、集計から外す）。正しい記録は新しく足す。
+
+    定期面談の行は組ごとに取り消す（services.support_interviews.void_interview から呼ぶ）。
+    """
+    if record.interview_id is not None and not with_interview:
+        raise ValidationError(
+            _("Void the periodic interview as a whole (both rows)."), code="interview"
+        )
     if record.voided_at is not None:
         raise ValidationError(_("This record is already voided."), code="voided")
     if not reason.strip():

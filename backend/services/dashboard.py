@@ -17,15 +17,20 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 
 from django.db.models import Q, QuerySet
+from django.urls import reverse
 
 from apps.core.models import Attachment
-from apps.filings.models import Filing, FilingStatus
+from apps.filings.models import Filing, FilingKind, FilingStatus
 from apps.hosts.models import HostOrganization
 from services import deadlines, filings, workers
 
 OPEN_STATUSES: tuple[str, ...] = (FilingStatus.NOT_STARTED, FilingStatus.IN_PROGRESS)
 AWAITING_RECEIPT: tuple[str, ...] = (FilingStatus.SUBMITTED,)
-COMPLETED: tuple[str, ...] = (FilingStatus.ACCEPTED, FilingStatus.NOT_REQUIRED)
+COMPLETED: tuple[str, ...] = (
+    FilingStatus.ACCEPTED,
+    FilingStatus.NOT_REQUIRED,
+    FilingStatus.COMPLETED,
+)
 
 # 上部に件数を出すレベル（受付前は件数に入れない）
 COUNTED_LEVELS = (
@@ -48,6 +53,9 @@ class FilingRow:
     target_label: str
     target_url_name: str = ""  # workers:detail / hosts:detail（リンクが無ければ空）
     target_pk: int | None = None
+    record_url: str = (
+        ""  # 開いている定期面談のタスクから記録の画面へ（T19。表示は権限のある人だけ）
+    )
 
 
 def _host_id_of(target: object) -> int | None:
@@ -69,6 +77,15 @@ def _target_link(filing: Filing) -> tuple[str, str, int | None]:
     return filing.target_repr, "", None
 
 
+def _record_url(filing: Filing) -> str:
+    if filing.kind != FilingKind.PERIODIC_INTERVIEW or filing.worker_id is None:
+        return ""
+    if filing.worker is None or filing.worker.deactivated_at is not None:
+        return ""
+    url = reverse("workers:support_interview_create", args=[filing.worker_id])
+    return f"{url}?filing={filing.pk}"
+
+
 def filing_rows(items: Iterable[Filing], today: datetime.date) -> list[FilingRow]:
     rows = []
     for filing in items:
@@ -85,6 +102,7 @@ def filing_rows(items: Iterable[Filing], today: datetime.date) -> list[FilingRow
                 target_label=label,
                 target_url_name=url_name,
                 target_pk=pk,
+                record_url=_record_url(filing) if is_open else "",
             )
         )
     return rows

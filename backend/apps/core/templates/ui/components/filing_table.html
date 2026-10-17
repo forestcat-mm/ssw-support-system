@@ -10,7 +10,7 @@
     <tbody>
       {% for row in rows %}
         <tr data-filing="{{ row.filing.pk }}" data-status="{{ row.filing.status }}">
-          <td><span class="truncate-line truncate-line--wide" title="{{ row.filing.get_kind_display }}"><a class="truncate" href="{% url 'filings:detail' row.filing.pk %}">{{ row.filing.get_kind_display }}</a></span></td>
+          <td><span class="truncate-line truncate-line--wide" title="{{ row.filing.get_kind_display }}"><a class="truncate" href="{% url 'filings:detail' row.filing.pk %}">{{ row.filing.get_kind_display }}</a></span>{% if row.record_url and perms.support.add_supportrecord %} <a class="button button--primary button--small" href="{{ row.record_url }}" data-record-interview>{% translate "Record" %}</a>{% endif %}</td>
           <td>{{ row.filer_label }}</td>
           {% if show_target %}<td><span class="truncate-line truncate-line--wide" title="{{ row.target_label }}">{% if row.target_url_name %}<a class="truncate" href="{% url row.target_url_name row.target_pk %}">{{ row.target_label }}</a>{% else %}<span class="truncate">{{ row.target_label }}</span>{% endif %}</span></td>{% endif %}
           <td>{% due_date row.deadline badge=row.is_open %}{% if row.deadline.adjusted %} <span class="caption">{% blocktranslate with day=row.deadline.due_on|date:"Y-m-d" %}legal: {{ day }}{% endblocktranslate %}</span>{% endif %}</td>

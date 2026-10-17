@@ -1,0 +1,14 @@
+{% load i18n %}<dl class="fields" id="interview-fields">
+  <dt>{% translate "suspected violation of labour laws" %}</dt><dd>{% if interview.violation_suspected %}{% translate "yes" %}{% else %}{% translate "no" %}{% endif %}</dd>
+  {% if interview.violation_suspected %}
+  <dt>{% translate "report" %}</dt><dd>{% if interview.report_required %}{% translate "report needed" %}{% else %}{% translate "report not needed" %}{% endif %}</dd>
+  {% if interview.report_required %}
+  <dt>{% translate "report to" %}</dt><dd>{{ interview.get_report_to_display }}{% if interview.report_to_note %}（{{ interview.report_to_note }}）{% endif %}</dd>
+  <dt>{% translate "reported on" %}</dt><dd class="mono">{{ interview.reported_on|date:"Y-m-d"|default:"—" }}</dd>
+  {% endif %}{% endif %}
+  <dt>{% translate "next interview scheduled on" %}</dt><dd class="mono">{{ interview.next_scheduled_on|date:"Y-m-d"|default:"—" }}</dd>
+  {% if show_tasks %}
+      <dt>{% translate "task completed by this interview" %}</dt><dd>{% if interview.completed_filing %}<a href="{% url 'filings:detail' interview.completed_filing.pk %}">{{ interview.completed_filing.due_on|date:"Y-m-d" }}</a> <span class="caption">{{ interview.completed_filing.get_status_display }}</span>{% else %}<span class="muted">—</span>{% endif %}</dd>
+      <dt>{% translate "task for the next interview" %}</dt><dd>{% if interview.next_filing %}<a href="{% url 'filings:detail' interview.next_filing.pk %}">{{ interview.next_filing.due_on|date:"Y-m-d" }}</a> <span class="caption">{{ interview.next_filing.get_status_display }}</span>{% else %}<span class="muted">—</span>{% endif %}</dd>
+  {% endif %}
+</dl>

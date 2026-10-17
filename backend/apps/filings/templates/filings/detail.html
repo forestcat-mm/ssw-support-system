@@ -13,6 +13,7 @@
       <dl class="fields">
         <dt>{% translate "target" %}</dt><dd>{% if row.target_url_name %}<a href="{% url row.target_url_name row.target_pk %}">{{ row.target_label }}</a>{% else %}{{ row.target_label }}{% endif %}{% if filing.worker and row.target_label != filing.target_repr %} <span class="caption">{{ filing.target_repr }}</span>{% endif %}</dd>
         <dt>{% translate "trigger" %}</dt><dd>{{ filing.get_trigger_display }}</dd>
+        {% if completed_interview %}<dt>{% translate "periodic interview" %}</dt><dd><a href="{% url 'workers:support_interview' completed_interview.worker_id completed_interview.pk %}">{{ completed_interview.basis_on|date:"Y-m-d" }}</a></dd>{% endif %}
         <dt>{% translate "basis date" %}</dt><dd class="mono">{{ filing.basis_on|date:"Y-m-d" }}</dd>
         {% if filing.opens_on %}<dt>{% translate "opens on" %}</dt><dd class="mono">{{ filing.opens_on|date:"Y-m-d" }}</dd>{% endif %}
         <dt>{% translate "due date" %}</dt><dd>{% due_date row.deadline badge=row.is_open %}</dd>
@@ -24,6 +25,7 @@
         {% if filing.status_reason %}<dt>{% translate "reason" %}</dt><dd>{{ filing.status_reason }}</dd>{% endif %}
         {% if filing.note %}<dt>{% translate "note" %}</dt><dd>{{ filing.note|linebreaksbr }}</dd>{% endif %}
       </dl>
+      {% if row.record_url and perms.support.add_supportrecord %}<p style="margin-top: var(--space-16)"><a class="button button--primary" href="{{ row.record_url }}" id="record-interview">{% translate "Record the periodic interview" %}</a></p>{% endif %}
       {% if findings.required or findings.review %}
       <h3 style="margin-top: var(--space-16)">{% translate "Changes that need a notification" %}</h3>
       <ul>

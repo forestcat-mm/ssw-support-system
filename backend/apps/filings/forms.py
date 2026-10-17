@@ -128,7 +128,7 @@ class TransitionForm(StyledFormMixin, forms.Form):
         label=_("reason"),
         required=False,
         widget=forms.Textarea(attrs={"rows": 2}),
-        help_text=_("Required when the task is not required or cancelled."),
+        help_text=_("Required when the task is not required, cancelled, or reopened."),
     )
 
     def __init__(self, *args: Any, filing: Filing, **kwargs: Any) -> None:
@@ -139,7 +139,7 @@ class TransitionForm(StyledFormMixin, forms.Form):
         to.choices = [
             (status.value, status.label)
             for status in FilingStatus
-            if status in filings.TRANSITIONS[FilingStatus(filing.status)]
+            if status in filings.allowed_transitions(filing)
         ]
         self.initial.setdefault("submitted_on", filing.submitted_on)
         self.initial.setdefault("receipt_number", filing.receipt_number)

@@ -1,0 +1,37 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Record a periodic interview" %} | {{ worker }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{{ back_url }}">← {{ worker }}</a></p>
+  <h1>{% translate "Record a periodic interview" %}</h1>
+{% endblock %}
+{% block content %}
+<form class="form" method="post" enctype="multipart/form-data" novalidate id="interview-form" data-keepalive="{% url 'accounts:keepalive' %}">
+  {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+  {% if task %}<input type="hidden" name="filing" value="{{ task.pk }}">
+  <p class="message message--success" id="interview-task">{% blocktranslate with due=task.due_on|date:"Y-m-d" %}Saving completes the periodic interview task due on {{ due }}, and the task for the next interview is created.{% endblocktranslate %}</p>
+  {% else %}
+  <p class="caption">{% translate "Saving completes the open periodic interview task, if any, and creates the task for the next interview." %}</p>
+  {% endif %}
+  {% for form in editor.forms %}{% include "ui/components/form_errors.html" with form=form %}{% endfor %}
+  <section class="card stack" id="interview-self">
+    <h2>{% translate "Interview with the worker" %}</h2>
+    {% for field in editor.self_form.common_fields %}{% form_field field %}{% endfor %}
+    {% for field in editor.self_form.body_fields %}{% form_field field %}{% endfor %}
+    {% form_field editor.self_form.uploads %}
+  </section>
+  <section class="card stack" id="interview-supervisor">
+    <h2>{% translate "Interview with the supervisor" %}</h2>
+    {% for field in editor.supervisor_form.common_fields %}{% form_field field %}{% endfor %}
+    {% for field in editor.supervisor_form.body_fields %}{% form_field field %}{% endfor %}
+    {% form_field editor.supervisor_form.uploads %}
+  </section>
+  <section class="card stack" id="interview-findings">
+    <h2>{% translate "Findings and next interview" %}</h2>
+    {% for field in editor.interview_form %}{% form_field field %}{% endfor %}
+  </section>
+  <div class="form-actions">
+    <button class="button button--primary" type="submit">{% translate "Save" %}</button>
+    <a class="button button--neutral" href="{{ back_url }}">{% translate "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

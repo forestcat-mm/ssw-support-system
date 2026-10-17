@@ -20,11 +20,18 @@ from django.utils.translation import gettext as _
 
 from apps.core.models import Action, Attachment, User
 from apps.core.web_forms import consume_once_token
-from apps.support.models import SupportRecord
-from apps.support.record_forms import AttachmentForm, ReasonForm, RecordFilterForm, RecordForm
+from apps.filings.models import Filing
+from apps.support.models import PeriodicInterview, SupportRecord
+from apps.support.record_forms import (
+    AttachmentForm,
+    InterviewEditor,
+    ReasonForm,
+    RecordFilterForm,
+    RecordForm,
+)
 from apps.workers.models import ForeignWorker
 from apps.workers.views import WorkerDetailView, WorkerFormView
-from services import attachments, authorization, support_records, workers
+from services import attachments, authorization, support_interviews, support_records, workers
 from services.support_catalog import SupportItem
 
 PAGE_SIZE = 50
@@ -126,6 +133,13 @@ class RecordFormView(WorkerFormView):
         """取り消していない記録（取り消した記録は変更しない）。"""
         return get_object_or_404(SupportRecord, pk=record_id, worker=worker, voided_at__isnull=True)
 
+    def single_record(self, worker: ForeignWorker, record_id: int) -> SupportRecord:
+        """1 行ずつ取り消せる記録（定期面談の行は組ごとに取り消す）。"""
+        record = self.record(worker, record_id)
+        if record.interview_id is not None:
+            raise Http404
+        return record
+
 
 class RecordCreateView(RecordFormView):
     """種別ごとの入力画面（共通の欄＋種別ごとの最小限の欄＋添付）。"""
@@ -187,7 +201,7 @@ class RecordVoidView(RecordFormView):
 
     def get(self, request: HttpRequest, pk: int, record_id: int) -> HttpResponse:
         worker = self.worker(request, pk)
-        record = self.record(worker, record_id)
+        record = self.single_record(worker, record_id)
         return self.render(
             request,
             worker=worker,
@@ -200,7 +214,7 @@ class RecordVoidView(RecordFormView):
         worker = self.worker(request, pk)
         if not consume_once_token(request):
             return self.already_submitted(request, records_url(worker))
-        record = self.record(worker, record_id)
+        record = self.single_record(worker, record_id)
         form = self.form(request.POST)
         if form.is_valid():
             try:
@@ -298,3 +312,136 @@ class AttachmentVoidView(RecordFormView):
                 messages.success(request, _("Voided the attachment."))
                 return redirect(record_url(record))
         return self.render(request, worker=worker, record=record, attachment=attachment, form=form)
+
+
+# --- 定期面談（T19）---------------------------------------------------------------------
+
+
+def interview_url(interview: PeriodicInterview) -> str:
+    return reverse("workers:support_interview", args=[interview.worker_id, interview.pk])
+
+
+class InterviewCreateView(RecordFormView):
+    """定期面談の記録（本人用・上司用の 2 行と組の欄を 1 画面で）。
+
+    ?filing= で完了にするタスクを指定する（ダッシュボード・タスクの詳細から）。
+    """
+
+    template_name = "support/interview_form.html"
+
+    def task(self, request: HttpRequest, worker: ForeignWorker) -> Filing | None:
+        value = request.GET.get("filing") or request.POST.get("filing") or ""
+        if not value.isdigit():
+            return None
+        return support_interviews.open_task(worker, Filing(pk=int(value)))
+
+    def page(
+        self, request: HttpRequest, worker: ForeignWorker, editor: InterviewEditor, task: Any
+    ) -> HttpResponse:
+        return self.render(
+            request, worker=worker, editor=editor, task=task, back_url=records_url(worker)
+        )
+
+    def get(self, request: HttpRequest, pk: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        return self.page(request, worker, InterviewEditor(worker), self.task(request, worker))
+
+    def post(self, request: HttpRequest, pk: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        if not consume_once_token(request):
+            return self.already_submitted(request, records_url(worker))
+        task = self.task(request, worker)
+        editor = InterviewEditor(worker, request.POST, request.FILES)
+        if editor.is_valid():
+            try:
+                interview = support_interviews.create_interview(
+                    worker, editor.to_input(), by=_actor(request), files=editor.files(), task=task
+                )
+            except ValidationError as error:
+                editor.apply_errors(error)
+            else:
+                if interview.completed_filing_id is not None:
+                    messages.success(
+                        request, _("Saved the periodic interview and completed the task.")
+                    )
+                else:
+                    messages.success(request, _("Saved the periodic interview."))
+                return redirect(interview_url(interview))
+        return self.page(request, worker, editor, task)
+
+
+class InterviewDetailView(RecordTabMixin, WorkerDetailView):
+    """定期面談の組（本人用・上司用の 2 行・通報の欄・タスク）。"""
+
+    tab = "support"
+    template_name = "support/interview_detail.html"
+
+    def tab_context(self, context: dict[str, Any]) -> dict[str, Any]:
+        interview = get_object_or_404(
+            support_interviews.interviews_of(self.worker).select_related(
+                "completed_filing", "next_filing", "voided_by"
+            ),
+            pk=self.kwargs["interview_id"],
+        )
+        records = sorted(interview.records.all(), key=lambda r: r.counterpart != "worker")
+        context.update(
+            interview=interview,
+            interview_records=records,
+            interview_warnings=support_interviews.warnings(interview),
+            can_void_interview=self.can_manage_support() and interview.voided_at is None,
+            support_subtab="records",
+        )
+        return {
+            "shown": {
+                "periodic_interview": interview.pk,
+                "support_records": [record.pk for record in records],
+            }
+        }
+
+
+class InterviewVoidView(RecordFormView):
+    """定期面談の取消（組ごと。理由は必須）。タスクに手が付いていなければ自動で戻す。"""
+
+    template_name = "support/interview_void.html"
+
+    def interview(self, worker: ForeignWorker, interview_id: int) -> PeriodicInterview:
+        return get_object_or_404(
+            support_interviews.interviews_of(worker), pk=interview_id, voided_at__isnull=True
+        )
+
+    def form(self, data: Any = None) -> ReasonForm:
+        return ReasonForm(data, help_text=_("Example: the interview of another person."))
+
+    def get(self, request: HttpRequest, pk: int, interview_id: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        interview = self.interview(worker, interview_id)
+        return self.render(request, worker=worker, interview=interview, form=self.form())
+
+    def post(self, request: HttpRequest, pk: int, interview_id: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        if not consume_once_token(request):
+            return self.already_submitted(request, records_url(worker))
+        interview = self.interview(worker, interview_id)
+        form = self.form(request.POST)
+        if form.is_valid():
+            try:
+                result = support_interviews.void_interview(
+                    interview, by=_actor(request), reason=form.cleaned_data["reason"]
+                )
+            except ValidationError as error:
+                form.add_error("reason", error)
+            else:
+                if result.tasks_reverted:
+                    messages.success(
+                        request, _("Voided the periodic interview and put the tasks back.")
+                    )
+                else:
+                    messages.warning(
+                        request,
+                        _(
+                            "Voided the periodic interview. The tasks were already changed, "
+                            "so they were left as they are. Check the periodic interview tasks."
+                        ),
+                    )
+                return redirect(interview_url(interview))
+        return self.render(request, worker=worker, interview=interview, form=form)
