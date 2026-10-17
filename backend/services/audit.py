@@ -80,6 +80,7 @@ AUDITED_MODELS: frozenset[str] = frozenset(
         "support.briefingsession",
         "support.briefingcheck",
         "support.briefingforeignfee",
+        "support.documentdelivery",
     }
 )
 

@@ -1,4 +1,4 @@
-"""支援実績の画面のフォーム（T18〜T21）。型の検査だけを行い、記録の検査はサービス（services）。"""
+"""支援実績・交付記録の画面のフォーム（T18〜T22）。型の検査だけを行い、記録の検査はサービス（services）。"""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from apps.contracts.models import EmploymentContract
 from apps.core.models import Staff, SupportLanguage
 from apps.core.web_forms import StyledFormMixin
 from apps.support.forms import StaffChoiceField, active_staff
@@ -19,13 +20,16 @@ from apps.support.models import (
     ConsultationCategory,
     ConsultationStatus,
     Counterpart,
+    DeliveredBy,
+    DeliveryKind,
+    DeliveryMethod,
     DepositContract,
     ForeignFees,
     RecordMethod,
     ReportDestination,
 )
 from apps.workers.models import ForeignWorker
-from services import briefings, support_records
+from services import briefings, deliveries, support_records
 from services.consultations import CONSULTATION_METHODS, EntryInput, ReceptionInput
 from services.support_catalog import SupportItem
 from services.support_interviews import INTERVIEW_METHODS, InterviewInput
@@ -952,3 +956,129 @@ class ConfirmationForm(StyledFormMixin, forms.Form):
             return
         for key, messages in error.error_dict.items():
             self.add_error(key if key in self.fields else None, messages)
+
+
+# --- 交付記録（T22）----------------------------------------------------------------------
+
+
+class ContractChoiceField(forms.ModelChoiceField):  # type: ignore[type-arg]
+    def label_from_instance(self, obj: Any) -> str:
+        return f"{obj.host_organization}（{obj.current_starts_on:%Y-%m-%d}〜）"
+
+
+class DeliveryForm(StyledFormMixin, forms.Form):
+    """交付記録の入力（種別は URL で決める。当該契約・求めを受けた日は種別で出し分ける）。"""
+
+    title = forms.CharField(label=_("name of the document"), max_length=200, required=False)
+    delivered_on = forms.DateField(label=_("delivered on"), widget=forms.DateInput)
+    method = forms.ChoiceField(
+        label=_("how delivered"), choices=DeliveryMethod.choices, widget=forms.RadioSelect
+    )
+    method_note = forms.CharField(
+        label=_("how delivered (details)"),
+        max_length=200,
+        required=False,
+        help_text=_('Required when "other" is selected.'),
+    )
+    delivered_by = forms.ChoiceField(
+        label=_("delivered by"), choices=DeliveredBy.choices, widget=forms.RadioSelect
+    )
+    delivered_by_name = forms.CharField(
+        label=_("name of the person who delivered it"), max_length=100, required=False
+    )
+    contract = ContractChoiceField(
+        label=_("employment contract"), queryset=EmploymentContract.objects.none()
+    )
+    requested_on = forms.DateField(
+        label=_("requested on"),
+        required=False,
+        widget=forms.DateInput,
+        help_text=_("Optional. The date the worker asked for the certificate."),
+    )
+    explained = forms.BooleanField(label=_("explained the content"), required=False)
+    languages = forms.ModelMultipleChoiceField(
+        label=_("languages of the document"),
+        queryset=SupportLanguage.objects.none(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
+    note = forms.CharField(
+        label=_("notes"), required=False, widget=forms.Textarea(attrs={"rows": 3})
+    )
+    uploads = MultipleFileField(
+        label=_("signed copy or receipt (scan)"),
+        required=False,
+        help_text=_("PDF, PNG or JPEG, up to 10 MB each. You can also attach it later."),
+    )
+
+    def __init__(self, *args: Any, worker: ForeignWorker, kind: str, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.kind = kind
+        contract = self.fields["contract"]
+        assert isinstance(contract, ContractChoiceField)
+        contract.queryset = (
+            EmploymentContract.objects.filter(worker=worker)
+            .select_related("host_organization")
+            .order_by("-current_starts_on")
+        )
+        if kind in deliveries.CONTRACT_KINDS:
+            contract.help_text = _("The contract this document belongs to.")
+        else:
+            contract.required = False
+            if kind == DeliveryKind.SUPPORT_PLAN_COPY:
+                del self.fields["contract"]
+        if kind != DeliveryKind.EXPERIENCE_CERTIFICATE:
+            del self.fields["requested_on"]
+        title = self.fields["title"]
+        if kind == DeliveryKind.OTHER:
+            title.required = True
+            title.help_text = _("Example: company housing agreement, pledge of the host.")
+        else:
+            title.help_text = _("Optional. Example: the version or the title on the document.")
+        if kind == DeliveryKind.CAREER_UP_PLAN:
+            self.fields["delivered_on"].help_text = _(
+                "Give it before the employment contract is concluded."
+            )
+        self.fields["languages"].queryset = SupportLanguage.objects.filter(  # type: ignore[attr-defined]
+            is_active=True
+        )
+        self.style_fields()
+
+    @classmethod
+    def initial_for(cls, worker: ForeignWorker, today: Any) -> dict[str, Any]:
+        contract = support_records.contract_on(worker, today)
+        language_ids = list(
+            SupportLanguage.objects.filter(code="ja", is_active=True).values_list("pk", flat=True)
+        )
+        language = worker.support_language
+        if language and language.is_active and language.pk not in language_ids:
+            language_ids.append(language.pk)
+        return {
+            "delivered_on": today,
+            "method": DeliveryMethod.HAND,
+            "delivered_by": DeliveredBy.ORGANIZATION,
+            "contract": contract.pk if contract else None,
+            "languages": language_ids,
+        }
+
+    def to_input(self) -> deliveries.DeliveryInput:
+        data = self.cleaned_data
+        return deliveries.DeliveryInput(
+            kind=self.kind,
+            title=data.get("title") or "",
+            delivered_on=data["delivered_on"],
+            method=data["method"],
+            method_note=data.get("method_note") or "",
+            delivered_by=data["delivered_by"],
+            delivered_by_name=data.get("delivered_by_name") or "",
+            explained=bool(data.get("explained")),
+            contract=data.get("contract"),
+            requested_on=data.get("requested_on"),
+            languages=list(data.get("languages") or []),
+            note=data.get("note") or "",
+        )
+
+    def apply_errors(self, error: ValidationError) -> None:
+        for key, messages in error.error_dict.items():
+            name = "uploads" if key == "files" else key
+            self.add_error(name if name in self.fields else None, messages)

@@ -110,6 +110,36 @@ urlpatterns = [
         record_views.BriefingVoidView.as_view(),
         name="support_briefing_void",
     ),
+    path(
+        "<int:pk>/support/deliveries/",
+        record_views.DeliveryListView.as_view(),
+        name="support_deliveries",
+    ),
+    path(
+        "<int:pk>/support/deliveries/new/<str:kind>/",
+        record_views.DeliveryCreateView.as_view(),
+        name="support_delivery_create",
+    ),
+    path(
+        "<int:pk>/support/deliveries/<int:delivery_id>/",
+        record_views.DeliveryDetailView.as_view(),
+        name="support_delivery",
+    ),
+    path(
+        "<int:pk>/support/deliveries/<int:delivery_id>/void/",
+        record_views.DeliveryVoidView.as_view(),
+        name="support_delivery_void",
+    ),
+    path(
+        "<int:pk>/support/deliveries/<int:delivery_id>/attachments/new/",
+        record_views.DeliveryAttachView.as_view(),
+        name="support_delivery_attach",
+    ),
+    path(
+        "<int:pk>/support/deliveries/<int:delivery_id>/attachments/<int:attachment_id>/void/",
+        record_views.DeliveryAttachmentVoidView.as_view(),
+        name="support_delivery_attachment_void",
+    ),
     path("<int:pk>/deactivate/", views.WorkerDeactivateView.as_view(), name="deactivate"),
     path("<int:pk>/reactivate/", views.WorkerReactivateView.as_view(), name="reactivate"),
     path(

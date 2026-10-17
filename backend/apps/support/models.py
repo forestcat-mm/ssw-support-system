@@ -858,3 +858,105 @@ class BriefingForeignFee(ImmutableRow):
 
     def __str__(self) -> str:
         return f"{self.organization_name}: {self.amount_jpy}"
+
+
+# --- 交付記録（T22、ADR-0010）-------------------------------------------------------------
+
+
+class DeliveryKind(models.TextChoices):
+    """本人に交付した書類の種別。"""
+
+    CAREER_UP_PLAN = "career_up_plan", _("career-up plan")
+    EXPERIENCE_CERTIFICATE = "experience_certificate", _("certificate of work experience")
+    SUPPORT_PLAN_COPY = "support_plan_copy", _("copy of the support plan")
+    EMPLOYMENT_CONTRACT_COPY = (
+        "employment_contract_copy",
+        _("copy of the employment contract and conditions"),
+    )
+    OTHER = "other", _("other document")
+
+
+class DeliveryMethod(models.TextChoices):
+    """交付方法（告示の「書面を交付し、又は電磁的記録を提供し」）。"""
+
+    HAND = "hand", _("handed over (paper)")
+    MAIL = "mail", _("sent by post (paper)")
+    ELECTRONIC = "electronic", _("provided electronically (email, etc.)")
+    OTHER = "other", _("other")
+
+
+class DeliveredBy(models.TextChoices):
+    HOST = "host", _("host organization")
+    ORGANIZATION = "organization", _("our organization")
+
+
+class DocumentDelivery(TrackedModel):
+    """本人に書類を交付した記録。上書きせず、誤りは取消（理由必須）＋新しい行。
+
+    署名済みの控え・受領の記録は添付（種別 delivered_document）。後から変わるのは取消と添付だけ。
+    """
+
+    worker = models.ForeignKey(
+        ForeignWorker,
+        verbose_name=_("foreign worker"),
+        on_delete=models.PROTECT,
+        related_name="document_deliveries",
+    )
+    kind = models.CharField(_("document"), max_length=32, choices=DeliveryKind.choices)
+    title = models.CharField(
+        _("name of the document"),
+        max_length=200,
+        blank=True,
+        help_text=_('Required for "other document".'),
+    )
+    delivered_on = models.DateField(_("delivered on"))
+    method = models.CharField(_("how delivered"), max_length=16, choices=DeliveryMethod.choices)
+    method_note = models.CharField(_("how delivered (details)"), max_length=200, blank=True)
+    delivered_by = models.CharField(_("delivered by"), max_length=16, choices=DeliveredBy.choices)
+    delivered_by_name = models.CharField(
+        _("name of the person who delivered it"), max_length=100, blank=True
+    )
+    explained = models.BooleanField(_("explained the content"), default=False)
+    contract = models.ForeignKey(
+        "contracts.EmploymentContract",
+        verbose_name=_("employment contract"),
+        on_delete=models.PROTECT,
+        related_name="document_deliveries",
+        null=True,
+        blank=True,
+    )
+    requested_on = models.DateField(_("requested on"), null=True, blank=True)
+    plan_version = models.ForeignKey(
+        SupportPlanVersion,
+        verbose_name=_("support plan version"),
+        on_delete=models.PROTECT,
+        related_name="deliveries",
+        null=True,
+        blank=True,
+        editable=False,
+    )
+    languages = models.ManyToManyField(
+        SupportLanguage, verbose_name=_("languages of the document"), related_name="+", blank=True
+    )
+    note = models.TextField(_("notes"), blank=True)
+    voided_at = models.DateTimeField(_("voided at"), null=True, blank=True, editable=False)
+    voided_by = models.ForeignKey(
+        "core.User",
+        verbose_name=_("voided by"),
+        on_delete=models.PROTECT,
+        related_name="+",
+        null=True,
+        blank=True,
+        editable=False,
+    )
+    void_reason = models.CharField(_("void reason"), max_length=200, blank=True, editable=False)
+    attachments = GenericRelation(Attachment)
+
+    class Meta:
+        verbose_name = _("document delivery")
+        verbose_name_plural = _("document deliveries")
+        ordering = ["-delivered_on", "-pk"]
+        indexes = [models.Index(fields=["worker", "kind"])]
+
+    def __str__(self) -> str:
+        return f"{self.worker}: {self.get_kind_display()} ({self.delivered_on})"

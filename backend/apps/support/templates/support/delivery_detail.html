@@ -1,0 +1,35 @@
+{% extends "workers/detail_base.html" %}{% load i18n ui %}
+{% block tab_content %}
+{% include "support/subtabs.html" %}
+<div class="stack" style="margin-top: var(--space-16)">
+  <p class="caption"><a href="{% url 'workers:support_deliveries' worker.pk %}">← {% translate "Back to deliveries" %}</a></p>
+  {% if delivery.voided_at %}
+  <p class="message message--warning" role="status" id="delivery-voided">{% blocktranslate with day=delivery.voided_at|date:"Y-m-d H:i" by=delivery.voided_by.get_username|default:"—" reason=delivery.void_reason %}This record was voided on {{ day }} by {{ by }}. Reason: {{ reason }}. It is not counted.{% endblocktranslate %}</p>
+  {% endif %}
+  {% if delivery_warnings %}
+  <ul class="messages" id="delivery-warnings">{% for warning in delivery_warnings %}<li class="message message--warning{% if warning.strong %} message--strong{% endif %}" data-warning="{{ warning.code }}">{{ warning.message }}</li>{% endfor %}</ul>
+  {% endif %}
+  <section class="card{% if delivery.voided_at %} is-voided{% endif %}" id="delivery">
+    <div class="card__header">
+      <h2 class="card__title">{{ delivery.get_kind_display }}</h2>
+      {% if can_change_delivery %}<a class="button button--danger button--small" href="{% url 'workers:support_delivery_void' worker.pk delivery.pk %}">{% translate "Void" %}</a>{% endif %}
+    </div>
+    {% include "support/components/delivery_fields.html" %}
+    {% if delivery.note %}<p class="record-body">{{ delivery.note|linebreaksbr }}</p>{% endif %}
+    <p class="caption">{% blocktranslate with by=delivery.created_by.get_username|default:"—" at=delivery.created_at|date:"Y-m-d H:i" %}Recorded by {{ by }} at {{ at }}{% endblocktranslate %}</p>
+  </section>
+  <section class="card" id="delivery-attachments" data-receipt="{{ has_receipt|yesno:'true,false' }}">
+    <div class="card__header">
+      <h2 class="card__title">{% translate "Signed copy or receipt" %}</h2>
+      {% if can_change_delivery %}<a class="button button--neutral button--small" href="{% url 'workers:support_delivery_attach' worker.pk delivery.pk %}">{% translate "Add attachments" %}</a>{% endif %}
+    </div>
+    {% if files %}<ul class="attachment-list">{% for file in files %}
+      <li data-attachment="{{ file.pk }}"{% if file.voided_at %} class="is-voided"{% endif %}>
+        <a class="attachment-list__name" href="{% url 'attachment_download' file.pk %}">{{ file.original_filename }}</a>
+        <span class="caption">{{ file.created_at|date:"Y-m-d" }}{% if file.voided_at %} · {% translate "voided" %} {{ file.voided_at|date:"Y-m-d" }}: {{ file.void_reason }}{% endif %}</span>
+        {% if can_change_delivery and not file.voided_at %}<a class="button button--danger button--small" href="{% url 'workers:support_delivery_attachment_void' worker.pk delivery.pk file.pk %}">{% translate "Void" %}</a>{% endif %}
+      </li>{% endfor %}</ul>
+    {% else %}<p class="muted">{% translate "No attachments." %}</p>{% endif %}
+  </section>
+</div>
+{% endblock %}

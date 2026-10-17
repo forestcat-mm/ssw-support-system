@@ -1,4 +1,5 @@
 {% load i18n %}<nav class="cluster plan-subtabs" aria-label="{% translate 'Support' %}">
   <a class="button button--small {% if support_subtab == 'plan' %}button--primary{% else %}button--neutral{% endif %}" href="{% url 'workers:support' worker.pk %}"{% if support_subtab == 'plan' %} aria-current="page"{% endif %}>{% translate "Plan" %}</a>
   <a class="button button--small {% if support_subtab == 'records' %}button--primary{% else %}button--neutral{% endif %}" href="{% url 'workers:support_records' worker.pk %}"{% if support_subtab == 'records' %} aria-current="page"{% endif %}>{% translate "Records" %}</a>
+  <a class="button button--small {% if support_subtab == 'deliveries' %}button--primary{% else %}button--neutral{% endif %}" href="{% url 'workers:support_deliveries' worker.pk %}"{% if support_subtab == 'deliveries' %} aria-current="page"{% endif %}>{% translate "Deliveries" %}</a>
 </nav>

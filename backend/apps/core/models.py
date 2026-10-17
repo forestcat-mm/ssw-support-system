@@ -108,6 +108,11 @@ class AttachmentKind(models.TextChoices):
         "orientation_confirmation",
         _("Signed confirmation of the life orientation (reference form 5-8)"),
     )
+    # 本人に交付した書類の署名済みの控え・受領の記録（T22、ADR-0010）
+    DELIVERED_DOCUMENT = (
+        "delivered_document",
+        _("Signed copy or receipt of a document given to the worker"),
+    )
 
 
 class Attachment(TrackedModel):

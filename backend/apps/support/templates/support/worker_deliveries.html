@@ -1,0 +1,39 @@
+{% extends "workers/detail_base.html" %}{% load i18n ui %}
+{% block tab_content %}
+{% include "support/subtabs.html" %}
+<div class="stack" style="margin-top: var(--space-16)">
+  {% if findings %}
+  <section class="card" id="career-plan-findings">
+    <div class="card__header"><h2 class="card__title">{% translate "Career-up plan (food and beverage manufacturing)" %}</h2></div>
+    <ul class="messages">{% for finding in findings %}<li class="message message--warning{% if finding.warning.strong %} message--strong{% endif %}" data-contract="{{ finding.contract.pk }}" data-warning="{{ finding.warning.code }}">{{ finding.contract.host_organization }}（{{ finding.contract.current_starts_on|date:"Y-m-d" }}〜）: {{ finding.warning.message }}</li>{% endfor %}</ul>
+  </section>
+  {% endif %}
+  {% if can_manage_support %}
+  <div class="cluster" id="delivery-kinds" aria-label="{% translate 'Record a delivery' %}">
+    <span class="caption">{% translate "Record a delivery" %}:</span>
+    {% for kind in delivery_kinds %}<a class="button button--neutral button--small" href="{% url 'workers:support_delivery_create' worker.pk kind.value %}">{{ kind.label }}</a>{% endfor %}
+  </div>
+  {% endif %}
+  {% if rows %}
+  <div class="table-wrap"><div class="table-scroll">
+    <table class="table table--list" id="deliveries">
+      <thead><tr>
+        <th>{% translate "delivered on" %}</th><th>{% translate "document" %}</th><th>{% translate "how delivered" %}</th>
+        <th>{% translate "employment contract" %}</th><th>{% translate "signed copy" %}</th><th>{% translate "void" %}</th>
+      </tr></thead>
+      <tbody>{% for delivery, receipt, notes in rows %}
+        <tr data-delivery="{{ delivery.pk }}"{% if delivery.voided_at %} class="is-voided"{% endif %}>
+          <td class="mono"><a href="{% url 'workers:support_delivery' worker.pk delivery.pk %}">{{ delivery.delivered_on|date:"Y-m-d" }}</a></td>
+          <td>{{ delivery.get_kind_display }}{% if delivery.title %} <span class="caption">（{{ delivery.title }}）</span>{% endif %}{% if notes %} <span class="badge badge--within-7" data-warnings="{{ notes|length }}">{% blocktranslate count counter=notes|length %}{{ counter }} note{% plural %}{{ counter }} notes{% endblocktranslate %}</span>{% endif %}</td>
+          <td>{{ delivery.get_method_display }}</td>
+          <td>{% if delivery.contract %}{{ delivery.contract.host_organization }}{% else %}<span class="muted">—</span>{% endif %}</td>
+          <td data-receipt="{{ receipt|yesno:'true,false' }}">{% if receipt %}{% translate "attached" %}{% else %}<span class="muted">{% translate "not attached" %}</span>{% endif %}</td>
+          <td>{% if delivery.voided_at %}<span class="truncate-line truncate-line--wide" title="{{ delivery.void_reason }}"><span class="truncate">{{ delivery.voided_at|date:"Y-m-d" }} {{ delivery.void_reason }}</span></span>{% elif can_manage_support %}<a class="button button--danger button--small" href="{% url 'workers:support_delivery_void' worker.pk delivery.pk %}">{% translate "Void" %}</a>{% endif %}</td>
+        </tr>{% endfor %}</tbody>
+    </table>
+  </div></div>
+  {% else %}
+  <div class="card"><div class="empty">{% translate "No documents have been recorded as given yet." %}</div></div>
+  {% endif %}
+</div>
+{% endblock %}

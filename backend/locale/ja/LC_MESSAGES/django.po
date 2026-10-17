@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-17 14:37+0900\n"
+"POT-Creation-Date: 2026-10-17 15:11+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -722,6 +722,9 @@ msgstr "署名済みの事前ガイダンスの確認書（参考様式第5-9号
 
 msgid "Signed confirmation of the life orientation (reference form 5-8)"
 msgstr "署名済みの生活オリエンテーションの確認書（参考様式第5-8号）"
+
+msgid "Signed copy or receipt of a document given to the worker"
+msgstr "本人に交付した書類の署名済みの控え・受領の記録"
 
 msgid "original filename"
 msgstr "元のファイル名"
@@ -2848,6 +2851,75 @@ msgstr "内訳"
 msgid "fee paid to an organization abroad"
 msgstr "外国の機関に支払った費用"
 
+msgid "career-up plan"
+msgstr "キャリアアッププラン"
+
+msgid "certificate of work experience"
+msgstr "実務経験証明書"
+
+msgid "copy of the support plan"
+msgstr "支援計画書の写し"
+
+msgid "copy of the employment contract and conditions"
+msgstr "雇用契約書・雇用条件書の写し"
+
+msgid "other document"
+msgstr "その他の書類"
+
+msgid "handed over (paper)"
+msgstr "書面を手渡し"
+
+msgid "sent by post (paper)"
+msgstr "書面を郵送"
+
+msgid "provided electronically (email, etc.)"
+msgstr "電磁的記録を提供（電子メール等）"
+
+msgid "our organization"
+msgstr "自機関"
+
+msgid "document"
+msgstr "書類"
+
+msgid "name of the document"
+msgstr "書類名"
+
+msgid "Required for \"other document\"."
+msgstr "「その他の書類」では必須。"
+
+msgid "delivered on"
+msgstr "交付日"
+
+msgid "how delivered"
+msgstr "交付方法"
+
+msgid "how delivered (details)"
+msgstr "交付方法（詳細）"
+
+msgid "delivered by"
+msgstr "交付した機関"
+
+msgid "name of the person who delivered it"
+msgstr "交付した人の氏名"
+
+msgid "explained the content"
+msgstr "内容を説明した"
+
+msgid "requested on"
+msgstr "求めを受けた日"
+
+msgid "languages of the document"
+msgstr "書面の言語"
+
+msgid "notes"
+msgstr "メモ"
+
+msgid "document delivery"
+msgstr "交付記録"
+
+msgid "document deliveries"
+msgstr "交付記録"
+
 msgid "Only when the counterpart is the supervisor. Optional."
 msgstr "相手が上司のときだけ。任意。"
 
@@ -2956,9 +3028,6 @@ msgstr "保証金・違約金等の契約（本人の申告）"
 msgid "fees paid to organizations abroad (placement, preparation)"
 msgstr "外国の機関への費用の支払（取次ぎ・活動の準備）"
 
-msgid "notes"
-msgstr "メモ"
-
 msgid "Optional. Example: questions from the worker and the answers."
 msgstr "任意。例: 本人からの質問と回答"
 
@@ -2970,6 +3039,24 @@ msgstr "署名済みの確認書（スキャン）"
 
 msgid "PDF, PNG or JPEG, up to 10 MB each. You can also attach it later."
 msgstr "PDF・PNG・JPEG、1 つ 10 MB まで。後から添付することもできる。"
+
+msgid "Optional. The date the worker asked for the certificate."
+msgstr "任意。本人から交付を求められた日。"
+
+msgid "signed copy or receipt (scan)"
+msgstr "署名済みの控え・受領の記録（スキャン）"
+
+msgid "The contract this document belongs to."
+msgstr "この書類が対象とする雇用契約。"
+
+msgid "Example: company housing agreement, pledge of the host."
+msgstr "例: 社宅使用契約書、受入れ機関の誓約書"
+
+msgid "Optional. Example: the version or the title on the document."
+msgstr "任意。例: 書類の版や表題"
+
+msgid "Give it before the employment contract is concluded."
+msgstr "雇用契約を締結する前に交付する。"
 
 #, python-format
 msgid "Record: %(kind)s"
@@ -3029,6 +3116,16 @@ msgstr "署名済みの確認書を添付しました。"
 
 msgid "Example: the record of another person."
 msgstr "例: 別の人の記録だった。"
+
+#, python-format
+msgid "Record a delivery: %(kind)s"
+msgstr "交付の記録: %(kind)s"
+
+msgid "Saved the delivery record."
+msgstr "交付記録を保存しました。"
+
+msgid "Voided the delivery record."
+msgstr "交付記録を取り消しました。"
 
 msgid "Void an attachment"
 msgstr "添付の取消"
@@ -3166,6 +3263,9 @@ msgstr "受付日"
 msgid "entry"
 msgstr "経過"
 
+msgid "no plan"
+msgstr "計画なし"
+
 #, python-format
 msgid "%(counter)s planned"
 msgid_plural "%(counter)s planned"
@@ -3201,9 +3301,6 @@ msgstr "曜日"
 msgid "%(counter)s minute"
 msgid_plural "%(counter)s minutes"
 msgstr[0] "%(counter)s 分"
-
-msgid "no plan"
-msgstr "計画なし"
 
 #, python-format
 msgid ""
@@ -3270,6 +3367,25 @@ msgid ""
 msgstr ""
 "相談と受付の記録を取り消し、集計に含めなくなります。経過は残ります。元には戻"
 "せません。内容を直すだけなら、経過を追記してください。"
+
+msgid "Attach the signed copy or the receipt of the document."
+msgstr "書類の署名済みの控え、または受領の記録を添付します。"
+
+msgid "Back to deliveries"
+msgstr "交付の一覧へ"
+
+msgid "Signed copy or receipt"
+msgstr "署名済みの控え・受領の記録"
+
+msgid "Void a delivery record"
+msgstr "交付記録の取消"
+
+msgid ""
+"The record is voided and no longer counted as given. The attachments stay. "
+"This cannot be undone. To correct it, add a new record."
+msgstr ""
+"この記録を取り消し、交付したものとして数えなくなります。添付は残ります。元に"
+"戻せません。誤りを直すときは、新しく記録します。"
 
 #, python-format
 msgid ""
@@ -3374,6 +3490,30 @@ msgstr "計画"
 msgid "Records"
 msgstr "記録"
 
+msgid "Deliveries"
+msgstr "交付"
+
+msgid "Career-up plan (food and beverage manufacturing)"
+msgstr "キャリアアッププラン（飲食料品製造業分野）"
+
+msgid "Record a delivery"
+msgstr "交付を記録"
+
+msgid "signed copy"
+msgstr "署名済みの控え"
+
+msgid "void"
+msgstr "取り消す"
+
+msgid "attached"
+msgstr "あり"
+
+msgid "not attached"
+msgstr "なし"
+
+msgid "No documents have been recorded as given yet."
+msgstr "まだ交付の記録はありません。"
+
 msgid "current"
 msgstr "現在"
 
@@ -3407,9 +3547,6 @@ msgstr "相談・苦情への対応"
 msgid "%(counter)s record"
 msgid_plural "%(counter)s records"
 msgstr[0] "%(counter)s 件"
-
-msgid "void"
-msgstr "取り消す"
 
 msgid "signed"
 msgstr "署名済み"
@@ -3987,6 +4124,56 @@ msgstr "法人番号は数字 13 桁で入力してください。"
 msgid "The corporate number is invalid (check digit does not match)."
 msgstr "法人番号が正しくありません（検査用数字が一致しません）。"
 
+msgid "Enter the name of the document."
+msgstr "書類名を入力してください。"
+
+msgid "Enter how it was delivered."
+msgstr "交付方法を入力してください。"
+
+msgid "Select the employment contract."
+msgstr "雇用契約を選んでください。"
+
+msgid "Select a contract of this foreign worker."
+msgstr "この外国人の雇用契約を選んでください。"
+
+msgid "Enter this only for a certificate of work experience."
+msgstr "実務経験証明書のときだけ入力してください。"
+
+msgid "The date of the request cannot be after the delivery."
+msgstr "求めを受けた日は、交付日より後にできません。"
+
+msgid ""
+"There is no support plan in effect on this date, so the copy cannot be "
+"identified. Create the support plan or check the date."
+msgstr ""
+"交付日に適用されている支援計画が無いため、写しの対象が特定できません。支援計"
+"画を作るか、交付日を確かめてください。"
+
+msgid "This record is already voided."
+msgstr "この記録は取り消し済みです。"
+
+msgid ""
+"The contract has no date of conclusion, so it cannot be checked that the "
+"plan was given before the contract."
+msgstr "雇用契約の締結日が未入力のため、契約前の交付か確かめられません。"
+
+#, python-format
+msgid "Given after the employment contract was concluded (%(day)s)."
+msgstr "雇用契約の締結（%(day)s）より後に交付されています。"
+
+msgid "There is no record of explaining it."
+msgstr "内容を説明した記録がありません。"
+
+msgid "The signed copy or receipt is not attached."
+msgstr "署名済みの控え・受領の記録が添付されていません。"
+
+msgid ""
+"No career-up plan has been recorded as given for this contract (food and "
+"beverage manufacturing)."
+msgstr ""
+"この雇用契約について、キャリアアッププランの交付の記録がありません（飲食料品"
+"製造業分野）。"
+
 #, python-format
 msgid "File type “.%(ext)s” is not allowed. Allowed types: %(allowed)s."
 msgstr "「.%(ext)s」のファイルは登録できません。登録できる種類: %(allowed)s"
@@ -4395,9 +4582,6 @@ msgstr "相談は案件ごとに取り消してください。"
 
 msgid "Void it on the page of the guidance or orientation."
 msgstr "事前ガイダンス・生活オリエンテーションの画面で取り消してください。"
-
-msgid "This record is already voided."
-msgstr "この記録は取り消し済みです。"
 
 msgid "residence"
 msgstr "在留情報"

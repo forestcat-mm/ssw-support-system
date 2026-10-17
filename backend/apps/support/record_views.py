@@ -23,12 +23,20 @@ from apps.core.models import Action, Attachment, User
 from apps.core.permissions import ActionRequiredMixin
 from apps.core.web_forms import consume_once_token
 from apps.filings.models import Filing
-from apps.support.models import Briefing, Consultation, PeriodicInterview, SupportRecord
+from apps.support.models import (
+    Briefing,
+    Consultation,
+    DeliveryKind,
+    DocumentDelivery,
+    PeriodicInterview,
+    SupportRecord,
+)
 from apps.support.record_forms import (
     AttachmentForm,
     BriefingEditor,
     ConfirmationForm,
     ConsultationFilterForm,
+    DeliveryForm,
     EntryForm,
     InterviewEditor,
     ReasonForm,
@@ -44,6 +52,7 @@ from services import (
     authorization,
     briefings,
     consultations,
+    deliveries,
     support_interviews,
     support_records,
     workers,
@@ -839,3 +848,227 @@ class BriefingVoidView(BriefingMixin, RecordFormView):
                 messages.success(request, _("Voided the support record."))
                 return redirect(briefing_url(briefing))
         return self.render(request, worker=worker, briefing=briefing, form=form)
+
+
+# --- 交付記録（T22）----------------------------------------------------------------------
+
+
+def deliveries_url(worker: ForeignWorker) -> str:
+    return reverse("workers:support_deliveries", args=[worker.pk])
+
+
+def delivery_url(delivery: DocumentDelivery) -> str:
+    return reverse("workers:support_delivery", args=[delivery.worker_id, delivery.pk])
+
+
+class DeliveryListView(RecordTabMixin, WorkerDetailView):
+    """「支援」タブの「交付」: 交付記録の一覧と、契約ごとのキャリアアッププランの判定（飲食）。"""
+
+    tab = "support"
+    template_name = "support/worker_deliveries.html"
+
+    def tab_context(self, context: dict[str, Any]) -> dict[str, Any]:
+        items = list(deliveries.deliveries_of(self.worker))
+        rows = [
+            (
+                delivery,
+                deliveries.has_receipt(delivery, delivery.attachments.all()),
+                deliveries.warnings(delivery, delivery.attachments.all()),
+            )
+            for delivery in items
+        ]
+        context.update(
+            rows=rows,
+            findings=deliveries.career_plan_findings(self.worker),
+            delivery_kinds=DeliveryKind,
+            can_manage_support=self.can_manage_support(),
+            support_subtab="deliveries",
+        )
+        return {"shown": {"document_deliveries": [delivery.pk for delivery in items]}}
+
+
+class DeliveryMixin:
+    def delivery_of(self, worker: ForeignWorker, delivery_id: int) -> DocumentDelivery:
+        return get_object_or_404(deliveries.deliveries_of(worker), pk=delivery_id)
+
+    def open_delivery(self, worker: ForeignWorker, delivery_id: int) -> DocumentDelivery:
+        """取り消していない記録（取り消した記録には添付・取消をしない）。"""
+        delivery = self.delivery_of(worker, delivery_id)
+        if delivery.voided_at is not None:
+            raise Http404
+        return delivery
+
+
+class DeliveryDetailView(DeliveryMixin, RecordTabMixin, WorkerDetailView):
+    """交付記録 1 件（警告・署名済みの控え）。"""
+
+    tab = "support"
+    template_name = "support/delivery_detail.html"
+
+    def tab_context(self, context: dict[str, Any]) -> dict[str, Any]:
+        delivery = self.delivery_of(self.worker, self.kwargs["delivery_id"])
+        files = list(delivery.attachments.select_related("created_by", "voided_by").order_by("pk"))
+        context.update(
+            delivery=delivery,
+            files=files,
+            has_receipt=deliveries.has_receipt(delivery, files),
+            delivery_warnings=deliveries.warnings(delivery, files),
+            can_change_delivery=self.can_manage_support() and delivery.voided_at is None,
+            support_subtab="deliveries",
+        )
+        return {"shown": {"document_delivery": delivery.pk, "attachments": [f.pk for f in files]}}
+
+
+class DeliveryCreateView(RecordFormView):
+    """種別ごとの交付記録の入力（署名済みの控えも添付できる）。"""
+
+    template_name = "support/delivery_form.html"
+
+    def kind(self, value: str) -> str:
+        if value not in DeliveryKind.values:
+            raise Http404
+        return value
+
+    def page(self, request: HttpRequest, worker: ForeignWorker, form: DeliveryForm) -> HttpResponse:
+        return self.render(
+            request,
+            worker=worker,
+            form=form,
+            title=_("Record a delivery: %(kind)s") % {"kind": DeliveryKind(form.kind).label},
+            back_url=deliveries_url(worker),
+        )
+
+    def get(self, request: HttpRequest, pk: int, kind: str) -> HttpResponse:
+        worker = self.worker(request, pk)
+        initial = DeliveryForm.initial_for(worker, timezone.localdate())
+        form = DeliveryForm(worker=worker, kind=self.kind(kind), initial=initial)
+        return self.page(request, worker, form)
+
+    def post(self, request: HttpRequest, pk: int, kind: str) -> HttpResponse:
+        worker = self.worker(request, pk)
+        value = self.kind(kind)
+        if not consume_once_token(request):
+            return self.already_submitted(request, deliveries_url(worker))
+        form = DeliveryForm(request.POST, request.FILES, worker=worker, kind=value)
+        if form.is_valid():
+            try:
+                delivery = deliveries.create_delivery(
+                    worker, form.to_input(), by=_actor(request), files=form.cleaned_data["uploads"]
+                )
+            except ValidationError as error:
+                form.apply_errors(error)
+            else:
+                messages.success(request, _("Saved the delivery record."))
+                return redirect(delivery_url(delivery))
+        return self.page(request, worker, form)
+
+
+class DeliveryVoidView(DeliveryMixin, RecordFormView):
+    """交付記録の取消（理由は必須。添付は残る）。"""
+
+    template_name = "support/delivery_void.html"
+
+    def form(self, data: Any = None) -> ReasonForm:
+        return ReasonForm(data, help_text=_("Example: the date was entered incorrectly."))
+
+    def get(self, request: HttpRequest, pk: int, delivery_id: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        delivery = self.open_delivery(worker, delivery_id)
+        return self.render(request, worker=worker, delivery=delivery, form=self.form())
+
+    def post(self, request: HttpRequest, pk: int, delivery_id: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        delivery = self.open_delivery(worker, delivery_id)
+        if not consume_once_token(request):
+            return self.already_submitted(request, delivery_url(delivery))
+        form = self.form(request.POST)
+        if form.is_valid():
+            try:
+                deliveries.void_delivery(
+                    delivery, by=_actor(request), reason=form.cleaned_data["reason"]
+                )
+            except ValidationError as error:
+                form.add_error("reason", error)
+            else:
+                messages.success(request, _("Voided the delivery record."))
+                return redirect(delivery_url(delivery))
+        return self.render(request, worker=worker, delivery=delivery, form=form)
+
+
+class DeliveryAttachView(DeliveryMixin, RecordFormView):
+    """署名済みの控え・受領の記録を足す。"""
+
+    template_name = "support/delivery_attach.html"
+
+    def get(self, request: HttpRequest, pk: int, delivery_id: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        delivery = self.open_delivery(worker, delivery_id)
+        return self.render(request, worker=worker, delivery=delivery, form=AttachmentForm())
+
+    def post(self, request: HttpRequest, pk: int, delivery_id: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        delivery = self.open_delivery(worker, delivery_id)
+        if not consume_once_token(request):
+            return self.already_submitted(request, delivery_url(delivery))
+        form = AttachmentForm(request.POST, request.FILES)
+        if form.is_valid():
+            try:
+                deliveries.add_receipts(delivery, form.cleaned_data["uploads"], by=_actor(request))
+            except ValidationError as error:
+                if hasattr(error, "error_dict"):
+                    for messages_ in error.error_dict.values():
+                        form.add_error("uploads", messages_)
+                else:
+                    form.add_error(None, error)
+            else:
+                messages.success(request, _("Added the attachments."))
+                return redirect(delivery_url(delivery))
+        return self.render(request, worker=worker, delivery=delivery, form=form)
+
+
+class DeliveryAttachmentVoidView(DeliveryMixin, RecordFormView):
+    """控えの取消（理由は必須。ファイルは消さずに打ち消して残す）。"""
+
+    template_name = "support/delivery_attachment_void.html"
+
+    def target(
+        self, request: HttpRequest, pk: int, delivery_id: int, attachment_id: int
+    ) -> tuple[ForeignWorker, DocumentDelivery, Attachment]:
+        worker = self.worker(request, pk)
+        delivery = self.open_delivery(worker, delivery_id)
+        attachment = get_object_or_404(
+            attachments.active(delivery.attachments.all()), pk=attachment_id
+        )
+        return worker, delivery, attachment
+
+    def form(self, data: Any = None) -> ReasonForm:
+        return ReasonForm(data, help_text=_("Example: a document of another person was attached."))
+
+    def get(
+        self, request: HttpRequest, pk: int, delivery_id: int, attachment_id: int
+    ) -> HttpResponse:
+        worker, delivery, attachment = self.target(request, pk, delivery_id, attachment_id)
+        return self.render(
+            request, worker=worker, delivery=delivery, attachment=attachment, form=self.form()
+        )
+
+    def post(
+        self, request: HttpRequest, pk: int, delivery_id: int, attachment_id: int
+    ) -> HttpResponse:
+        worker, delivery, attachment = self.target(request, pk, delivery_id, attachment_id)
+        if not consume_once_token(request):
+            return self.already_submitted(request, delivery_url(delivery))
+        form = self.form(request.POST)
+        if form.is_valid():
+            try:
+                attachments.void_attachment(
+                    attachment, by=_actor(request), reason=form.cleaned_data["reason"]
+                )
+            except ValidationError as error:
+                form.add_error("reason", error)
+            else:
+                messages.success(request, _("Voided the attachment."))
+                return redirect(delivery_url(delivery))
+        return self.render(
+            request, worker=worker, delivery=delivery, attachment=attachment, form=form
+        )
