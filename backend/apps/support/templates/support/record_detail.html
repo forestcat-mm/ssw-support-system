@@ -1,0 +1,27 @@
+{% extends "workers/detail_base.html" %}{% load i18n ui %}
+{% block tab_content %}
+{% include "support/subtabs.html" %}
+<div class="stack" style="margin-top: var(--space-16)">
+  <p class="caption"><a href="{% url 'workers:support_records' worker.pk %}">← {% translate "Back to records" %}</a></p>
+  {% if record.voided_at %}
+  <p class="message message--warning" role="status" id="record-voided">{% blocktranslate with day=record.voided_at|date:"Y-m-d H:i" by=record.voided_by.get_username|default:"—" reason=record.void_reason %}This record was voided on {{ day }} by {{ by }}. Reason: {{ reason }}. It is not counted.{% endblocktranslate %}</p>
+  {% endif %}
+  <section class="card{% if record.voided_at %} is-voided{% endif %}" id="support-record">
+    <div class="card__header">
+      <h2 class="card__title">{{ record.get_kind_display }}</h2>
+      {% if can_change_record %}<a class="button button--danger button--small" href="{% url 'workers:support_record_void' worker.pk record.pk %}">{% translate "Void" %}</a>{% endif %}
+    </div>
+    {% include "support/components/record_fields.html" %}
+    <h3 style="margin-top: var(--space-16)">{% translate "details" %}</h3>
+    <p class="record-body" lang="{{ record.body_language }}">{{ record.body|linebreaksbr }}</p>
+    <p class="caption">{% blocktranslate with by=record.created_by.get_username|default:"—" at=record.created_at|date:"Y-m-d H:i" %}Recorded by {{ by }} at {{ at }}{% endblocktranslate %}</p>
+  </section>
+  <section class="card" id="record-attachments">
+    <div class="card__header">
+      <h2 class="card__title">{% translate "Attachments" %}</h2>
+      {% if can_change_record %}<a class="button button--neutral button--small" href="{% url 'workers:support_record_attach' worker.pk record.pk %}">{% translate "Add attachments" %}</a>{% endif %}
+    </div>
+    {% include "support/components/attachment_list.html" %}
+  </section>
+</div>
+{% endblock %}

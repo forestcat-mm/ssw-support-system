@@ -140,3 +140,9 @@ def model_label(content_type: Any) -> str:
         return "—"
     model = content_type.model_class()
     return str(model._meta.verbose_name) if model is not None else str(content_type.model)
+
+
+@register.filter
+def active_attachments(attachments: Any) -> list[Any]:
+    """取り消していない添付だけ（並び順はそのまま。先頭が今の添付）。"""
+    return [attachment for attachment in attachments if attachment.voided_at is None]

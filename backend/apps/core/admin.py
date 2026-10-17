@@ -313,7 +313,14 @@ class AttachmentInline(GenericTabularInline):
 class AttachmentAdmin(TrackedModelAdmin[Attachment]):
     """一覧・参照用。追加は対象（自機関など）の画面から行い、削除はしない。"""
 
-    list_display = ("kind", "original_filename", "content_type", "object_id", "valid_until")
+    list_display = (
+        "kind",
+        "original_filename",
+        "content_type",
+        "object_id",
+        "valid_until",
+        "voided_at",
+    )
     list_filter = ("kind",)
     fields = (
         "kind",
@@ -324,6 +331,9 @@ class AttachmentAdmin(TrackedModelAdmin[Attachment]):
         "valid_until",
         "content_type",
         "object_id",
+        "voided_at",
+        "voided_by",
+        "void_reason",
         *TRACKED_READONLY_FIELDS,
     )
     readonly_fields = (
@@ -334,6 +344,9 @@ class AttachmentAdmin(TrackedModelAdmin[Attachment]):
         "sha256",
         "content_type",
         "object_id",
+        "voided_at",
+        "voided_by",
+        "void_reason",
         *TRACKED_READONLY_FIELDS,
     )
 

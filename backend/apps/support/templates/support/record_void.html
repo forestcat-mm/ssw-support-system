@@ -1,0 +1,24 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Void a support record" %} | {{ worker }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{% url 'workers:support_record' worker.pk record.pk %}">← {{ worker }}</a></p>
+  <h1>{% translate "Void a support record" %}</h1>
+{% endblock %}
+{% block content %}
+<div class="stack form">
+  <section class="card">
+    <div class="card__header"><h2 class="card__title">{{ record.get_kind_display }}</h2></div>
+    {% include "support/components/record_fields.html" %}
+    <p class="record-body" lang="{{ record.body_language }}">{{ record.body|linebreaksbr }}</p>
+  </section>
+  <p class="message message--warning">{% translate "A voided record stays in the list with a strikethrough and is no longer counted. This cannot be undone. To correct it, add a new record." %}</p>
+  <form class="form" method="post" novalidate id="void-form">
+    {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+    {% for field in form %}{% form_field field %}{% endfor %}
+    <div class="form-actions">
+      <button class="button button--danger" type="submit">{% translate "Void" %}</button>
+      <a class="button button--neutral" href="{% url 'workers:support_record' worker.pk record.pk %}">{% translate "Cancel" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

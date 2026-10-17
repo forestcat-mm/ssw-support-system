@@ -18,8 +18,8 @@
   <section class="card" id="certificates">
     <div class="card__header"><h2 class="card__title">{% translate "Membership certificate" %}</h2><a class="button button--neutral button--small" href="{% url 'settings:organization_certificate' %}">{% translate "Replace" %}</a></div>
     {% if certificates %}
-    <ul>{% for certificate in certificates %}
-      <li{% if not forloop.first %} class="muted"{% endif %}><a href="{% url 'attachment_download' certificate.pk %}">{{ certificate.original_filename }}</a> <span class="caption">{% translate "uploaded on" %} {{ certificate.created_at|date:"Y-m-d" }}{% if certificate.valid_until %} · {% translate "valid until" %} {{ certificate.valid_until|date:"Y-m-d" }}{% endif %}{% if not forloop.first %} · {% translate "old" %}{% endif %}</span></li>
+    <ul class="attachment-list">{% for certificate in certificates %}
+      <li{% if certificate.voided_at %} class="is-voided"{% elif certificate != current_certificate %} class="muted"{% endif %}><a class="attachment-list__name" href="{% url 'attachment_download' certificate.pk %}">{{ certificate.original_filename }}</a> <span class="caption">{% translate "uploaded on" %} {{ certificate.created_at|date:"Y-m-d" }}{% if certificate.valid_until %} · {% translate "valid until" %} {{ certificate.valid_until|date:"Y-m-d" }}{% endif %}{% if certificate.voided_at %} · {% translate "voided" %} {{ certificate.voided_at|date:"Y-m-d" }}: {{ certificate.void_reason }}{% elif certificate != current_certificate %} · {% translate "old" %}{% endif %}</span></li>
     {% endfor %}</ul>
     {% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}
   </section>

@@ -391,7 +391,10 @@ class OrganizationView(SettingsView):
     def get(self, request: HttpRequest) -> HttpResponse:
         org = Organization.objects.first()
         certificates = organization.council_certificates(org) if org else []
-        return self.render(request, organization=org, certificates=certificates)
+        current = next((c for c in certificates if c.voided_at is None), None)
+        return self.render(
+            request, organization=org, certificates=certificates, current_certificate=current
+        )
 
 
 class OrganizationEditView(RecordFormView):

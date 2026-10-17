@@ -71,6 +71,13 @@ DJANGO_PERMISSION_ACTIONS: dict[str, Action] = {
         add=Action.FILINGS_MANAGE,
         change=Action.FILINGS_MANAGE,
     ),
+    # 支援実績（添付のダウンロードの権限の判定に使う）
+    **_model_permissions(
+        "support.supportrecord",
+        view=Action.SUPPORT_VIEW,
+        add=Action.SUPPORT_MANAGE,
+        change=Action.SUPPORT_MANAGE,
+    ),
     # Django-Q2 の実行予定・結果（管理者のみ）
     **_model_permissions(
         "django_q.schedule",

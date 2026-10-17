@@ -1,0 +1,31 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{{ title }} | {{ worker }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{{ back_url }}">← {{ worker }}</a></p>
+  <h1>{{ title }}</h1>
+{% endblock %}
+{% block content %}
+<form class="form" method="post" enctype="multipart/form-data" novalidate id="record-form" data-keepalive="{% url 'accounts:keepalive' %}">
+  {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+  {% include "ui/components/form_errors.html" %}
+  <section class="card stack">
+    <h2>{% translate "When, how and by whom" %}</h2>
+    {% for field in form.common_fields %}{% form_field field %}{% endfor %}
+  </section>
+  {% if form.detail_fields %}
+  <section class="card stack" id="record-details">
+    <h2>{{ kind.label }}</h2>
+    {% for field in form.detail_fields %}{% form_field field %}{% endfor %}
+  </section>
+  {% endif %}
+  <section class="card stack">
+    <h2>{% translate "Details and attachments" %}</h2>
+    {% for field in form.body_fields %}{% form_field field %}{% endfor %}
+    {% form_field form.uploads %}
+  </section>
+  <div class="form-actions">
+    <button class="button button--primary" type="submit">{% translate "Save" %}</button>
+    <a class="button button--neutral" href="{{ back_url }}">{% translate "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

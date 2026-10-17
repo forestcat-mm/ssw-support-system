@@ -1,0 +1,54 @@
+{% extends "workers/detail_base.html" %}{% load i18n ui %}
+{% block tab_content %}
+{% include "support/subtabs.html" %}
+<div class="stack" style="margin-top: var(--space-16)">
+  {% if can_manage_support %}
+  <div class="cluster" id="record-kinds" aria-label="{% translate 'Add a support record' %}">
+    <span class="caption">{% translate "Add a record" %}:</span>
+    {% for kind in record_kinds %}<a class="button button--neutral button--small" href="{% url 'workers:support_record_create' worker.pk kind.value %}">{{ kind.label }}</a>{% endfor %}
+  </div>
+  {% endif %}
+  <form class="filter-bar" method="get" id="record-filter">
+    {% for bound in filter_form %}
+    <div class="form-row">
+      <label class="form-row__label" for="{{ bound.id_for_label }}">{{ bound.label }}</label>
+      {{ bound }}
+    </div>
+    {% endfor %}
+    <div class="cluster">
+      <button class="button button--neutral" type="submit">{% translate "Filter" %}</button>
+      {% if filtered %}<a class="button button--neutral button--small" href="{% url 'workers:support_records' worker.pk %}">{% translate "Clear" %}</a>{% endif %}
+    </div>
+  </form>
+  <p class="caption" data-count="{{ page.paginator.count }}">{% blocktranslate count counter=page.paginator.count %}{{ counter }} record{% plural %}{{ counter }} records{% endblocktranslate %}</p>
+  {% if records %}
+  <div class="table-wrap"><div class="table-scroll">
+    <table class="table table--list" id="support-records">
+      <thead><tr>
+        <th>{% translate "date of support" %}</th><th>{% translate "kind of support" %}</th><th>{% translate "method" %}</th>
+        <th>{% translate "staff in charge" %}</th><th>{% translate "details" %}</th><th>{% translate "support plan" %}</th><th>{% translate "void" %}</th>
+      </tr></thead>
+      <tbody>{% for record, details in records %}
+        <tr data-record="{{ record.pk }}"{% if record.voided_at %} class="is-voided"{% endif %}>
+          <td class="mono"><a href="{% url 'workers:support_record' worker.pk record.pk %}">{{ record.occurred_on|date:"Y-m-d" }}</a>{% if record.start_time %} <span class="caption">{{ record.start_time|time:"H:i" }}</span>{% endif %}</td>
+          <td>{{ record.get_kind_display }}</td>
+          <td>{{ record.get_method_display }}</td>
+          <td>{{ record.staff.name }}</td>
+          <td><span class="truncate-line truncate-line--full" title="{% for label, value in details %}{{ label }}: {{ value }} / {% endfor %}{{ record.body }}"><span class="truncate">{% for label, value in details %}{{ value }} · {% endfor %}<span lang="{{ record.body_language }}">{{ record.body }}</span></span></span>{% if record.attachments.all %} <span class="caption">{% translate "attachments" %} {{ record.attachments.all|length }}</span>{% endif %}</td>
+          <td>{% if record.plan_version %}{% blocktranslate with number=record.plan_version.version %}version {{ number }}{% endblocktranslate %}{% else %}<span class="muted">{% translate "no plan" %}</span>{% endif %}</td>
+          <td>{% if record.voided_at %}<span class="truncate-line truncate-line--wide" title="{{ record.void_reason }}"><span class="truncate">{{ record.voided_at|date:"Y-m-d" }} {{ record.void_reason }}</span></span>{% elif can_manage_support %}<a class="button button--danger button--small" href="{% url 'workers:support_record_void' worker.pk record.pk %}">{% translate "Void" %}</a>{% endif %}</td>
+        </tr>{% endfor %}</tbody>
+    </table>
+  </div></div>
+  {% if page.has_other_pages %}
+  <nav class="cluster" aria-label="{% translate 'Pages' %}">
+    {% if page.has_previous %}<a class="button button--neutral button--small" href="?{% if page_query %}{{ page_query }}&amp;{% endif %}page={{ page.previous_page_number }}">← {% translate "Newer" %}</a>{% endif %}
+    <span class="caption">{{ page.number }} / {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}<a class="button button--neutral button--small" href="?{% if page_query %}{{ page_query }}&amp;{% endif %}page={{ page.next_page_number }}">{% translate "Older" %} →</a>{% endif %}
+  </nav>
+  {% endif %}
+  {% else %}
+  <div class="card"><div class="empty">{% if filtered %}{% translate "No support records match the conditions." %}{% else %}{% translate "No support records yet." %}{% endif %}</div></div>
+  {% endif %}
+</div>
+{% endblock %}

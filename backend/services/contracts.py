@@ -332,5 +332,7 @@ def take_home(version: EmploymentContractVersion) -> int | None:
 
 def equal_pay_evidence_missing(version: EmploymentContractVersion) -> bool:
     """「日本人と同等以上の報酬」の根拠（メモと資料）が無いか（F11 の生成前バリデーション用）。"""
-    has_document = version.attachments.filter(kind=AttachmentKind.EQUAL_PAY_EVIDENCE).exists()
+    has_document = version.attachments.filter(
+        kind=AttachmentKind.EQUAL_PAY_EVIDENCE, voided_at__isnull=True
+    ).exists()
     return not version.comparable_japanese_note.strip() or not has_document

@@ -343,6 +343,33 @@ a.badge:hover {
   text-decoration: line-through;
 }
 
+/* 取り消した記録の詳細・取り消した添付（ファイル名を打ち消し、取消の日付と理由は読めるまま） */
+.card.is-voided .fields dd,
+.card.is-voided .record-body,
+.attachment-list .is-voided .attachment-list__name {
+  color: var(--color-ash);
+  text-decoration: line-through;
+}
+
+.attachment-list {
+  display: grid;
+  gap: var(--space-8);
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.attachment-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.attachment-list .is-voided .caption {
+  color: var(--color-ash);
+}
+
 /* --- 入力欄 ------------------------------------------------------------------------- */
 .form {
   display: grid;

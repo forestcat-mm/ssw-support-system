@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-17 10:09+0900\n"
+"POT-Creation-Date: 2026-10-17 13:16+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -711,6 +711,9 @@ msgid ""
 "Annual calendar and labor-management agreement for variable working hours"
 msgstr "変形労働時間制の年間カレンダー・労使協定書"
 
+msgid "Evidence of support (signed confirmation, photo, etc.)"
+msgstr "支援の証跡（署名入りの確認書・写真など）"
+
 msgid "original filename"
 msgstr "元のファイル名"
 
@@ -719,6 +722,15 @@ msgstr "サイズ（バイト）"
 
 msgid "valid until"
 msgstr "有効期限"
+
+msgid "voided at"
+msgstr "取消日時"
+
+msgid "voided by"
+msgstr "取り消した人"
+
+msgid "void reason"
+msgstr "取り消しの理由"
 
 msgid "target type"
 msgstr "紐づく対象の種類"
@@ -1391,6 +1403,9 @@ msgstr "差し替える"
 
 msgid "uploaded on"
 msgstr "登録日"
+
+msgid "voided"
+msgstr "取消"
 
 msgid "old"
 msgstr "古い証明書"
@@ -2221,6 +2236,11 @@ msgid "+%(counter)s older"
 msgid_plural "+%(counter)s older"
 msgstr[0] "ほか古い%(counter)s件"
 
+#, python-format
+msgid "%(counter)s voided"
+msgid_plural "%(counter)s voided"
+msgstr[0] "取消 %(counter)s 件"
+
 msgid "Open in management site"
 msgstr "管理画面で開く"
 
@@ -2529,6 +2549,117 @@ msgstr "共生施策の確認"
 msgid "checks of coexistence measures"
 msgstr "共生施策の確認"
 
+msgid "the worker"
+msgstr "本人"
+
+msgid "supervisor at the host organization"
+msgstr "受入れ機関の上司"
+
+msgid "Japanese"
+msgstr "日本語"
+
+msgid "Chinese (Simplified)"
+msgstr "中国語（簡体字）"
+
+msgid "kind of support"
+msgstr "支援の種別"
+
+msgid "date of support"
+msgstr "実施日"
+
+msgid "time started"
+msgstr "開始時刻"
+
+msgid "duration (minutes)"
+msgstr "所要時間（分）"
+
+msgid "method"
+msgstr "方法"
+
+msgid "online meeting URL"
+msgstr "オンライン会議の URL"
+
+msgid "staff in charge"
+msgstr "担当者"
+
+msgid "counterpart"
+msgstr "相手"
+
+msgid "name of the supervisor"
+msgstr "上司の氏名"
+
+msgid "languages used"
+msgstr "実施言語"
+
+msgid "details"
+msgstr "内容"
+
+msgid "language of the details"
+msgstr "本文の言語"
+
+msgid "details by kind"
+msgstr "種別ごとの内容"
+
+msgid ""
+"Set automatically from the date: the plan of the host organization then."
+msgstr "実施日から自動で決まります（その日の受入れ機関の支援計画）。"
+
+msgid "support record"
+msgstr "支援実績"
+
+msgid "support records"
+msgstr "支援実績"
+
+msgid "Only when the counterpart is the supervisor. Optional."
+msgstr "相手が上司のときだけ。任意。"
+
+msgid "PDF, PNG or JPEG, up to 10 MB each. You can select more than one."
+msgstr "PDF・PNG・JPEG、1 ファイル 10MB まで。複数選べます。"
+
+msgid "date of support (from)"
+msgstr "実施日（から）"
+
+msgid "date of support (to)"
+msgstr "実施日（まで）"
+
+msgid "All"
+msgstr "すべて"
+
+#, python-format
+msgid "Record: %(kind)s"
+msgstr "記録: %(kind)s"
+
+msgid "Saved the support record."
+msgstr "支援実績を保存しました。"
+
+msgid "Example: the date was entered incorrectly."
+msgstr "例: 日付を誤って入力した。"
+
+msgid "Voided the support record."
+msgstr "支援実績を取り消しました。"
+
+msgid "Added the attachments."
+msgstr "添付を追加しました。"
+
+msgid "Example: a document of another person was attached."
+msgstr "例: 別の人の書類を添付した。"
+
+msgid "Voided the attachment."
+msgstr "添付を取り消しました。"
+
+msgid "Void an attachment"
+msgstr "添付の取消"
+
+msgid ""
+"The file is not deleted. It stays with a strikethrough and is no longer used "
+"as evidence. This cannot be undone."
+msgstr ""
+"ファイルは削除しません。打ち消し線を付けて残し、証跡として扱わなくなります。"
+"元には戻せません。"
+
+msgid "No attachments."
+msgstr "添付はありません。"
+
 #, python-format
 msgid "%(counter)s planned"
 msgid_plural "%(counter)s planned"
@@ -2560,6 +2691,14 @@ msgstr "委託・支援内容ごとの記載"
 msgid "day"
 msgstr "曜日"
 
+#, python-format
+msgid "%(counter)s minute"
+msgid_plural "%(counter)s minutes"
+msgstr[0] "%(counter)s 分"
+
+msgid "no plan"
+msgstr "計画なし"
+
 msgid ""
 "Sections with errors or notes are open. Notes (empty timing or staff) do not "
 "block saving."
@@ -2567,8 +2706,48 @@ msgstr ""
 "エラーか注意のある区分を開いています。注意（時期や担当者が空）があっても保存"
 "できます。"
 
+msgid "Add attachments"
+msgstr "添付を追加"
+
+msgid "Add"
+msgstr "追加"
+
+msgid "Back to records"
+msgstr "記録の一覧へ"
+
+#, python-format
+msgid ""
+"This record was voided on %(day)s by %(by)s. Reason: %(reason)s. It is not "
+"counted."
+msgstr ""
+"この記録は %(day)s に %(by)s が取り消しました。理由: %(reason)s。集計には含め"
+"ません。"
+
+#, python-format
+msgid "Recorded by %(by)s at %(at)s"
+msgstr "記録: %(by)s（%(at)s）"
+
+msgid "When, how and by whom"
+msgstr "日時・方法・担当"
+
+msgid "Details and attachments"
+msgstr "内容・添付"
+
+msgid "Void a support record"
+msgstr "支援実績の取消"
+
+msgid ""
+"A voided record stays in the list with a strikethrough and is no longer "
+"counted. This cannot be undone. To correct it, add a new record."
+msgstr ""
+"取り消した記録は打ち消し線を付けて一覧に残り、集計に含めなくなります。元には"
+"戻せません。訂正するときは、新しく記録してください。"
+
 msgid "Plan"
 msgstr "計画"
+
+msgid "Records"
+msgstr "記録"
 
 msgid "current"
 msgstr "現在"
@@ -2587,6 +2766,36 @@ msgid ""
 "organization."
 msgstr "先に雇用契約を登録してください。支援計画は受入れ機関ごとに作ります。"
 
+msgid "Add a support record"
+msgstr "支援実績の記録"
+
+msgid "Add a record"
+msgstr "記録する"
+
+#, python-format
+msgid "%(counter)s record"
+msgid_plural "%(counter)s records"
+msgstr[0] "%(counter)s 件"
+
+msgid "void"
+msgstr "取り消す"
+
+#, python-format
+msgid "version %(number)s"
+msgstr "版 %(number)s"
+
+msgid "Newer"
+msgstr "新しい記録"
+
+msgid "Older"
+msgstr "古い記録"
+
+msgid "No support records match the conditions."
+msgstr "条件に合う記録はありません。"
+
+msgid "No support records yet."
+msgstr "まだ記録はありません。"
+
 msgid "Select the host organization."
 msgstr "受入れ機関を選んでください。"
 
@@ -2599,12 +2808,6 @@ msgstr "支援計画の新版を追加"
 #, python-format
 msgid "Added version %(number)s."
 msgstr "第%(number)s版を追加しました。"
-
-msgid "void"
-msgstr "取り消す"
-
-msgid "void reason"
-msgstr "取り消しの理由"
 
 msgid "Enter the reason for voiding."
 msgstr "取り消しの理由を入力してください。"
@@ -2664,12 +2867,6 @@ msgstr "最終確認者"
 
 msgid "confirmed at"
 msgstr "確認日時"
-
-msgid "voided at"
-msgstr "取消日時"
-
-msgid "voided by"
-msgstr "取り消した人"
 
 msgid "male"
 msgstr "男"
@@ -2860,9 +3057,6 @@ msgstr "本人の情報"
 msgid "Residence (latest)"
 msgstr "在留情報（最新）"
 
-msgid "Add"
-msgstr "追加"
-
 msgid "Passport (latest)"
 msgstr "旅券（最新）"
 
@@ -2909,9 +3103,6 @@ msgstr "日付"
 
 msgid "number"
 msgstr "番号"
-
-msgid "details"
-msgstr "内容"
 
 msgid ""
 "Past numbers show only the first and last two characters. The full number of "
@@ -2973,6 +3164,9 @@ msgstr "外国人を無効化しました。"
 
 msgid "Back to business screens"
 msgstr "業務画面へ戻る"
+
+msgid "This attachment is already voided."
+msgstr "この添付は取り消し済みです。"
 
 msgid "scheduled"
 msgstr "予定"
@@ -3293,6 +3487,127 @@ msgstr "担当者が空です。"
 
 msgid "section"
 msgstr "区分"
+
+msgid "direction"
+msgstr "区分"
+
+msgid "on entry (airport → host organization or housing)"
+msgstr "入国時（空港 → 受入れ機関・住居）"
+
+msgid "on departure (to the airport)"
+msgstr "出国時（空港まで）"
+
+msgid "airport"
+msgstr "空港"
+
+msgid "support given"
+msgstr "支援の内容"
+
+msgid "help finding housing and with the lease"
+msgstr "住居探し・賃貸借契約の補助"
+
+msgid "providing housing leased by us"
+msgstr "借り上げた住居の提供"
+
+msgid "providing company housing"
+msgstr "社宅等の提供"
+
+msgid "opening a bank account"
+msgstr "口座開設"
+
+msgid "mobile phone contract"
+msgstr "携帯電話の契約"
+
+msgid "electricity, water and gas"
+msgstr "ライフライン（電気・水道・ガス）"
+
+msgid "type of property"
+msgstr "物件の種類"
+
+msgid "procedure"
+msgstr "手続"
+
+msgid "information on Japanese classes and schools"
+msgstr "日本語教室・教育機関の案内"
+
+msgid "information on study materials and online courses"
+msgstr "教材・オンライン講座の情報提供"
+
+msgid "Japanese lessons with a contracted teacher"
+msgstr "日本語教師による講習の提供"
+
+msgid "event or activity"
+msgstr "行事・活動"
+
+msgid "type"
+msgstr "種類"
+
+msgid "exchange with local residents"
+msgstr "地域住民との交流"
+
+msgid "local events and Japanese culture"
+msgstr "地域の行事・日本の文化"
+
+msgid "information on the next employer"
+msgstr "次の受入れ先の情報提供"
+
+msgid "guidance to Hello Work and accompanying"
+msgstr "ハローワーク等の案内・同行"
+
+msgid "letter of recommendation"
+msgstr "推薦状の作成"
+
+msgid "job placement"
+msgstr "職業紹介"
+
+msgid "paid leave for job hunting"
+msgstr "求職活動のための有給休暇"
+
+msgid "information on procedures when leaving"
+msgstr "離職時の行政手続の情報提供"
+
+msgid "arranging a substitute supporter"
+msgstr "代わりの支援者の確保"
+
+msgid "Select a valid choice."
+msgstr "選択肢から選んでください。"
+
+msgid "This value is too long."
+msgstr "長すぎます。"
+
+msgid "This field is required."
+msgstr "この項目は必須です。"
+
+msgid "This foreign worker is deactivated."
+msgstr "この外国人は無効化されています。"
+
+msgid "This kind of support cannot be recorded here."
+msgstr "この種別はこの画面では記録できません。"
+
+msgid "The date cannot be in the future."
+msgstr "未来の日付は入力できません。"
+
+msgid "Enter the URL only for online support."
+msgstr "URL はオンラインのときだけ入力してください。"
+
+msgid "This staff member is no longer active."
+msgstr "この担当者は無効です。"
+
+msgid "Enter the name only when the counterpart is the supervisor."
+msgstr "氏名は相手が上司のときだけ入力してください。"
+
+#, python-format
+msgid "Enter the duration in minutes (1 to %(max)s)."
+msgstr "所要時間は分で入力してください（1〜%(max)s）。"
+
+msgid "Attachments cannot be added to this record."
+msgstr "この記録には添付を追加できません。"
+
+msgid "Select a file."
+msgstr "ファイルを選んでください。"
+
+msgid "This record is already voided."
+msgstr "この記録は取り消し済みです。"
 
 msgid "residence"
 msgstr "在留情報"

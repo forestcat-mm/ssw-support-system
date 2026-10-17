@@ -500,9 +500,8 @@ def _latest_attachments_with_expiry() -> list[Attachment]:
     """
     membership_type = ContentType.objects.get_for_model(HostMembership)
     latest: dict[tuple[int, int, str], Attachment] = {}
-    for attachment in Attachment.objects.exclude(content_type=membership_type).order_by(
-        "created_at", "pk"
-    ):
+    queryset = Attachment.objects.filter(voided_at__isnull=True)  # 取り消した添付は見ない
+    for attachment in queryset.exclude(content_type=membership_type).order_by("created_at", "pk"):
         latest[(attachment.content_type_id, attachment.object_id, attachment.kind)] = attachment
     return [a for a in latest.values() if a.valid_until is not None]
 

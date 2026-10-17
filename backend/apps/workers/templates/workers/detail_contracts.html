@@ -59,7 +59,7 @@
       </div>
       {% if view.attachments %}
       <h3>{% translate "Attachments" %}</h3>
-      <ul>{% for attachment in view.attachments %}<li><a href="{% url 'attachment_download' attachment.pk %}">{{ attachment.original_filename }}</a> <span class="caption">{{ attachment.get_kind_display }}</span></li>{% endfor %}</ul>
+      <ul class="attachment-list">{% for attachment in view.attachments %}<li{% if attachment.voided_at %} class="is-voided"{% endif %}><a class="attachment-list__name" href="{% url 'attachment_download' attachment.pk %}">{{ attachment.original_filename }}</a> <span class="caption">{{ attachment.get_kind_display }}{% if attachment.voided_at %} · {% translate "voided" %} {{ attachment.voided_at|date:"Y-m-d" }}: {{ attachment.void_reason }}{% endif %}</span></li>{% endfor %}</ul>
       {% endif %}
     </section>
   </div>

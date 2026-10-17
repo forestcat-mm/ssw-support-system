@@ -45,8 +45,8 @@ def _latest_attachments(model: type[Any], object_ids: Iterable[int]) -> dict[int
 
 
 def _attachment_deadline(attachments: list[Attachment]) -> deadlines.Deadline | None:
-    """最新の添付の有効期限（差し替え前の古い証明書は見ない）。"""
-    latest = attachments[0] if attachments else None
+    """最新の添付の有効期限（差し替え前の古い証明書と、取り消した添付は見ない）。"""
+    latest = next((a for a in attachments if a.voided_at is None), None)
     if latest is None or latest.valid_until is None:
         return None
     return deadlines.document_expiry(latest.valid_until)

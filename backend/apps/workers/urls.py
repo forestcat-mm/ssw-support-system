@@ -1,5 +1,6 @@
 from django.urls import path
 
+from apps.support import record_views
 from apps.support import views as support_views
 from apps.workers import views
 
@@ -23,6 +24,36 @@ urlpatterns = [
         "<int:pk>/support/plans/<int:plan_id>/versions/new/",
         support_views.VersionCreateView.as_view(),
         name="support_version_create",
+    ),
+    path(
+        "<int:pk>/support/records/",
+        record_views.RecordListView.as_view(),
+        name="support_records",
+    ),
+    path(
+        "<int:pk>/support/records/new/<str:kind>/",
+        record_views.RecordCreateView.as_view(),
+        name="support_record_create",
+    ),
+    path(
+        "<int:pk>/support/records/<int:record_id>/",
+        record_views.RecordDetailView.as_view(),
+        name="support_record",
+    ),
+    path(
+        "<int:pk>/support/records/<int:record_id>/void/",
+        record_views.RecordVoidView.as_view(),
+        name="support_record_void",
+    ),
+    path(
+        "<int:pk>/support/records/<int:record_id>/attachments/new/",
+        record_views.AttachmentAddView.as_view(),
+        name="support_record_attach",
+    ),
+    path(
+        "<int:pk>/support/records/<int:record_id>/attachments/<int:attachment_id>/void/",
+        record_views.AttachmentVoidView.as_view(),
+        name="support_attachment_void",
     ),
     path("<int:pk>/deactivate/", views.WorkerDeactivateView.as_view(), name="deactivate"),
     path("<int:pk>/reactivate/", views.WorkerReactivateView.as_view(), name="reactivate"),

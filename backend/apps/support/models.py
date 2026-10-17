@@ -9,12 +9,13 @@
 
 from typing import Any
 
+from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.models import Staff, SupportLanguage, TrackedModel
+from apps.core.models import Attachment, Staff, SupportLanguage, TrackedModel
 from apps.hosts.models import HostOrganization
 from apps.workers.models import ForeignWorker
 from services.support_catalog import Method, SupportItem
@@ -378,3 +379,93 @@ class SupportPlanMunicipalityCheck(ImmutableRow):
 
     def __str__(self) -> str:
         return f"{self.version}: {self.get_place_display()}"
+
+
+# --- 支援実績（T18）-------------------------------------------------------------------
+
+
+class RecordMethod(models.TextChoices):
+    IN_PERSON = "in_person", _("in person")
+    ONLINE = "online", _("online")
+    PHONE = "phone", _("phone")
+
+
+class Counterpart(models.TextChoices):
+    WORKER = "worker", _("the worker")
+    SUPERVISOR = "supervisor", _("supervisor at the host organization")
+
+
+class BodyLanguage(models.TextChoices):
+    """本文の言語（表示の lang 属性に使う）。"""
+
+    JA = "ja", _("Japanese")
+    ZH_HANS = "zh-Hans", _("Chinese (Simplified)")
+
+
+class SupportRecord(TrackedModel):
+    """支援の実施記録（仕様書 第7章 support_records）。上書きせず、誤りは取消＋新しい行。
+
+    種別ごとの最小限の欄は details に持ち、形は services.support_records.DETAIL_FIELDS で検査する。
+    定期面談・相談・ガイダンスの欄は T19〜T21 で専用の表を 1 対 1 で足す。
+    """
+
+    worker = models.ForeignKey(
+        ForeignWorker,
+        verbose_name=_("foreign worker"),
+        on_delete=models.PROTECT,
+        related_name="support_records",
+    )
+    kind = models.CharField(_("kind of support"), max_length=32, choices=SupportItem.choices)
+    occurred_on = models.DateField(_("date of support"))
+    start_time = models.TimeField(_("time started"), null=True, blank=True)
+    duration_minutes = models.PositiveIntegerField(_("duration (minutes)"), null=True, blank=True)
+    method = models.CharField(_("method"), max_length=16, choices=RecordMethod.choices)
+    meeting_url = models.URLField(_("online meeting URL"), max_length=500, blank=True)
+    staff = models.ForeignKey(
+        Staff, verbose_name=_("staff in charge"), on_delete=models.PROTECT, related_name="+"
+    )
+    counterpart = models.CharField(
+        _("counterpart"), max_length=16, choices=Counterpart.choices, default=Counterpart.WORKER
+    )
+    counterpart_name = models.CharField(_("name of the supervisor"), max_length=100, blank=True)
+    languages = models.ManyToManyField(
+        SupportLanguage, verbose_name=_("languages used"), related_name="+", blank=True
+    )
+    body = models.TextField(_("details"), blank=True)
+    body_language = models.CharField(
+        _("language of the details"),
+        max_length=8,
+        choices=BodyLanguage.choices,
+        default=BodyLanguage.JA,
+    )
+    details = models.JSONField(_("details by kind"), default=dict, blank=True)
+    plan_version = models.ForeignKey(
+        SupportPlanVersion,
+        verbose_name=_("support plan version"),
+        on_delete=models.PROTECT,
+        related_name="records",
+        null=True,
+        blank=True,
+        help_text=_("Set automatically from the date: the plan of the host organization then."),
+    )
+    voided_at = models.DateTimeField(_("voided at"), null=True, blank=True, editable=False)
+    voided_by = models.ForeignKey(
+        "core.User",
+        verbose_name=_("voided by"),
+        on_delete=models.PROTECT,
+        related_name="+",
+        null=True,
+        blank=True,
+        editable=False,
+    )
+    void_reason = models.CharField(_("void reason"), max_length=200, blank=True, editable=False)
+    attachments = GenericRelation(Attachment)
+
+    class Meta:
+        verbose_name = _("support record")
+        verbose_name_plural = _("support records")
+        ordering = ["-occurred_on", "-start_time", "-pk"]
+        indexes = [models.Index(fields=["worker", "kind", "occurred_on"])]
+
+    def __str__(self) -> str:
+        return f"{self.worker}: {self.get_kind_display()} ({self.occurred_on})"

@@ -1,0 +1,7 @@
+{% load i18n %}{% if files %}<ul class="attachment-list">{% for file in files %}
+  <li data-attachment="{{ file.pk }}"{% if file.voided_at %} class="is-voided"{% endif %}>
+    <a class="attachment-list__name" href="{% url 'attachment_download' file.pk %}">{{ file.original_filename }}</a>
+    <span class="caption">{{ file.created_at|date:"Y-m-d" }}{% if file.voided_at %} · {% translate "voided" %} {{ file.voided_at|date:"Y-m-d" }}: {{ file.void_reason }}{% endif %}</span>
+    {% if can_change_record and not file.voided_at %}<a class="button button--danger button--small" href="{% url 'workers:support_attachment_void' worker.pk record.pk file.pk %}">{% translate "Void" %}</a>{% endif %}
+  </li>{% endfor %}</ul>
+{% else %}<p class="muted">{% translate "No attachments." %}</p>{% endif %}

@@ -5,8 +5,11 @@ from __future__ import annotations
 from datetime import date
 from typing import Any
 
+from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db import models
+from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from apps.core.models import Attachment, AttachmentKind, User
 from services.files import MB, FilePolicy, sha256_of, validate_file
@@ -20,6 +23,7 @@ POLICIES: dict[AttachmentKind, FilePolicy] = {
     AttachmentKind.SUPPORT_CONTRACT: DOCUMENT_POLICY,
     AttachmentKind.EQUAL_PAY_EVIDENCE: DOCUMENT_POLICY,
     AttachmentKind.VARIABLE_HOURS_DOCUMENTS: DOCUMENT_POLICY,
+    AttachmentKind.SUPPORT_RECORD: DOCUMENT_POLICY,
 }
 
 
@@ -58,3 +62,26 @@ def create_attachment(
     attachment.file.save(file.name or "", file, save=False)
     attachment.save()
     return attachment
+
+
+def active(queryset: models.QuerySet[Attachment]) -> models.QuerySet[Attachment]:
+    """取り消していない添付（有効期限・最新の証明書・証拠の有無の判定はこれを使う）。"""
+    return queryset.filter(voided_at__isnull=True)
+
+
+def void_attachment(attachment: Attachment, *, by: User | None, reason: str) -> None:
+    """添付を取り消す（誤った添付の訂正）。ファイルは削除せず、打ち消して残す。
+
+    監査ログには添付の更新（取消の日時・者・理由の前後）として残る。
+    """
+    if attachment.voided_at is not None:
+        raise ValidationError(_("This attachment is already voided."), code="voided")
+    if not reason.strip():
+        raise ValidationError(_("Enter the reason for voiding."), code="void_reason")
+    attachment.voided_at = timezone.now()
+    attachment.voided_by = by
+    attachment.void_reason = reason.strip()
+    attachment.updated_by = by
+    attachment.save(
+        update_fields=["voided_at", "voided_by", "void_reason", "updated_by", "updated_at"]
+    )

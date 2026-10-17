@@ -95,6 +95,10 @@ class AttachmentKind(models.TextChoices):
         "variable_hours_documents",
         _("Annual calendar and labor-management agreement for variable working hours"),
     )
+    SUPPORT_RECORD = (
+        "support_record",
+        _("Evidence of support (signed confirmation, photo, etc.)"),
+    )
 
 
 class Attachment(TrackedModel):
@@ -109,6 +113,18 @@ class Attachment(TrackedModel):
     size = models.PositiveBigIntegerField(_("size (bytes)"), editable=False)
     sha256 = models.CharField("SHA-256", max_length=64, editable=False)
     valid_until = models.DateField(_("valid until"), null=True, blank=True)
+    # 取消（誤った添付。ファイルは削除せず、打ち消して残す。T18）
+    voided_at = models.DateTimeField(_("voided at"), null=True, blank=True, editable=False)
+    voided_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("voided by"),
+        on_delete=models.PROTECT,
+        related_name="+",
+        null=True,
+        blank=True,
+        editable=False,
+    )
+    void_reason = models.CharField(_("void reason"), max_length=200, blank=True, editable=False)
 
     content_type = models.ForeignKey(
         ContentType, verbose_name=_("target type"), on_delete=models.PROTECT
