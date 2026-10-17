@@ -143,13 +143,26 @@ def add_months(day: date, months: int) -> date:
     return date(year, month, min(day.day, calendar.monthrange(year, month)[1]))
 
 
+def period_start(event_on: date) -> date:
+    """期間の起算日（民法第140条: 初日不算入。事由の日の翌日から数える）。ADR-0008。"""
+    return event_on + timedelta(days=1)
+
+
+def days_period_end(event_on: date, days: int) -> date:
+    """事由の日から n 日の期間の末日（民法第140条・第141条）。
+
+    翌日から数えて n 日目の終了で満了。例: 9/16 から 14 日 → 9/17 起算 → 9/30。
+    """
+    return period_start(event_on) + timedelta(days=days - 1)
+
+
 def months_period_end(event_on: date, months: int) -> date:
-    """事由の日から n か月の期間の末日（民法第140条・第143条）。
+    """事由の日から n か月の期間の末日（民法第140条・第143条）。ADR-0008。
 
     初日不算入で翌日から起算し、応当日の前日に満了。応当日が無ければその月の末日。
     例: 1/15 → 4/15、11/30 → 2/28（2/29）、2/28（平年）→ 5/31、1/31 → 4/30。
     """
-    start = event_on + timedelta(days=1)
+    start = period_start(event_on)
     year, month = _shift_month(start.year, start.month, months)
     if start.day > calendar.monthrange(year, month)[1]:
         return end_of_month(year, month)
@@ -208,8 +221,11 @@ def residence_expiry(expires_on: date) -> Deadline:
 
 
 def ad_hoc_filing(event_on: date, holidays: HolidayCalendar = GOVERNMENT_CALENDAR) -> Deadline:
-    """随時届出。事由の日（契約の終了日・版の変更日など）＋14日。閉庁日なら次の開庁日。"""
-    unadjusted = event_on + timedelta(days=AD_HOC_FILING_DAYS)
+    """随時届出。事由の日（契約の終了日・版の変更日など）から 14 日以内（初日不算入。ADR-0008）。
+
+    閉庁日なら次の開庁日（行政機関の休日に関する法律 第2条）。
+    """
+    unadjusted = days_period_end(event_on, AD_HOC_FILING_DAYS)
     return Deadline(
         kind=DeadlineKind.AD_HOC_FILING,
         basis_on=event_on,

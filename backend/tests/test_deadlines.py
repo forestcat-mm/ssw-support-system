@@ -87,6 +87,15 @@ def test_ad_hoc_filing_is_event_plus_14_days_rolled_to_open_day(
     assert deadline.opens_on == event_on
 
 
+def test_days_and_months_share_the_first_day_rule() -> None:
+    """日の期間も月の期間も、事由の日の翌日から数える（民法第140条。ADR-0008）。"""
+    assert d.period_start(date(2026, 9, 16)) == date(2026, 9, 17)
+    assert d.days_period_end(date(2026, 9, 16), 14) == date(2026, 9, 30)
+    assert d.days_period_end(date(2026, 9, 16), 1) == date(2026, 9, 17)  # 翌日 1 日で満了
+    assert d.days_period_end(date(2026, 12, 25), 14) == date(2027, 1, 8)  # 年をまたぐ
+    assert d.months_period_end(date(2026, 7, 1), 3) == date(2026, 10, 1)  # 7/2 起算 → 10/1
+
+
 def test_ad_hoc_filing_accepts_a_custom_calendar() -> None:
     class NoHolidays:
         def is_closed(self, day: date) -> bool:
