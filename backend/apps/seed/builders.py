@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import random
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import date, time, timedelta
 from typing import Any
 
@@ -40,7 +40,7 @@ from apps.core.models import (
     User,
     UserRole,
 )
-from apps.filings.models import Filing
+from apps.filings.models import Filing, FilingStatus
 from apps.hosts.models import (
     HostCooperationConfirmation,
     HostMembership,
@@ -49,6 +49,15 @@ from apps.hosts.models import (
     OperationCategory,
     SpecifiedSkillField,
     SupportContract,
+)
+from apps.seed import support_builders
+from apps.seed.context import (
+    DUMMY_MARK,
+    DUMMY_PDF,
+    DUMMY_USERNAME,
+    DUMMY_USERNAME_2,
+    SEED,
+    SeedContext,
 )
 from apps.seed.models import SeedObject
 from apps.workers.models import (
@@ -65,11 +74,6 @@ from apps.workers.models import (
 from services import contracts, corporate_number, deadlines, filings, passport, residence_card
 from services.attachments import create_attachment
 
-SEED = 20261016
-DUMMY_MARK = "（ダミー）"
-DUMMY_USERNAME = "dummy_tanto"
-DUMMY_PDF = b"%PDF-1.4\n% dummy certificate for development\n"
-
 
 class SeedNotAllowedError(Exception):
     pass
@@ -83,29 +87,6 @@ def ensure_allowed() -> None:
         raise SeedNotAllowedError(
             "ALLOW_DUMMY_DATA is not true. Set it in .env (development only)."
         )
-
-
-@dataclass
-class SeedContext:
-    base: date  # 基準日
-    rng: random.Random = field(default_factory=lambda: random.Random(SEED))
-    created: list[models.Model] = field(default_factory=list)
-    organization: Organization | None = None
-    staff: list[Staff] = field(default_factory=list)
-    hosts: list[HostOrganization] = field(default_factory=list)
-    sites: list[HostSite] = field(default_factory=list)
-    workers: list[ForeignWorker] = field(default_factory=list)
-
-    def keep(self, obj: models.Model) -> models.Model:
-        """作った行を台帳に載せる（--reset で消す対象）。"""
-        SeedObject.objects.create(
-            content_type=ContentType.objects.get_for_model(obj), object_id=obj.pk
-        )
-        self.created.append(obj)
-        return obj
-
-    def days(self, n: int) -> date:
-        return self.base + timedelta(days=n)
 
 
 # --- 自機関・担当者 ----------------------------------------------------------------
@@ -139,29 +120,35 @@ def seed_organization(ctx: SeedContext) -> None:
     ctx.organization = organization
 
 
+def _login_user(username: str, last_name: str, first_name: str) -> User:
+    user, created = User.objects.get_or_create(
+        username=username,
+        defaults={
+            "last_name": last_name,
+            "first_name": first_name,
+            "email": f"{username}@example.invalid",
+        },
+    )
+    if created:
+        user.set_unusable_password()
+        user.save(update_fields=["password"])
+    UserRole.objects.get_or_create(user=user, role=Role.objects.get(code="support_staff"))
+    return user
+
+
 def seed_staff(ctx: SeedContext) -> None:
     office = Office.objects.create(
         name=f"本社{DUMMY_MARK}", postal_code="000-0001", address="東京都サンプル区ダミー町1-1-1"
     )
     ctx.keep(office)
     # ログイン用のユーザーは --reset でも消さない
-    # （パスワードは設定しない。changepassword で設定する）
-    login_user, created = User.objects.get_or_create(
-        username=DUMMY_USERNAME,
-        defaults={
-            "last_name": "佐藤",
-            "first_name": "花子",
-            "email": "dummy_tanto@example.invalid",
-        },
-    )
-    if created:
-        login_user.set_unusable_password()
-        login_user.save(update_fields=["password"])
-    UserRole.objects.get_or_create(user=login_user, role=Role.objects.get(code="support_staff"))
+    # （パスワードは設定しない。changepassword かパスワードの再設定〔T25〕で設定する）
+    login_user = _login_user(DUMMY_USERNAME, "佐藤", "花子")
+    login_user_2 = _login_user(DUMMY_USERNAME_2, "鈴木", "次郎")
     for name, kana, manager, user in (
         (f"山田 一郎{DUMMY_MARK}", "ヤマダ イチロウ", True, None),
         (f"佐藤 花子{DUMMY_MARK}", "サトウ ハナコ", False, login_user),
-        (f"鈴木 次郎{DUMMY_MARK}", "スズキ ジロウ", False, None),
+        (f"鈴木 次郎{DUMMY_MARK}", "スズキ ジロウ", False, login_user_2),
     ):
         staff = Staff.objects.create(
             name=name,
@@ -379,6 +366,17 @@ WORKER_SPECS: tuple[WorkerSpec, ...] = (
 )
 
 
+# 生成の後で氏名を上書きする人（番号 → 性別 → (漢字, 母国語の表記, ローマ字)）。
+# 30 番は乱数では 29 番と同じ氏名（PUTRI RAHMA）になるため（T26）。
+# 乱数は消費したうえで上書きし、ほかの人の氏名を変えない
+RENAMED: dict[int, dict[str, tuple[str, str, str]]] = {
+    30: {
+        Sex.FEMALE: ("", "Sari Kurniawati", "SARI KURNIAWATI"),
+        Sex.MALE: ("", "Rizky Pratama", "RIZKY PRATAMA"),
+    },
+}
+
+
 def _cn_name(ctx: SeedContext, used: set[str]) -> tuple[str, str, str]:
     while True:
         surname = ctx.rng.choice(CN_SURNAMES)
@@ -419,6 +417,9 @@ def seed_workers(ctx: SeedContext) -> None:
             kanji, native, romaji = _vn_name(ctx, sex)
         else:
             kanji, native, romaji = _id_name(ctx)
+        if index + 1 in RENAMED:
+            # 乱数で作った氏名がほかの人と重なるので、乱数の並びは変えずに固定の別名にする
+            kanji, native, romaji = RENAMED[index + 1][sex]
         worker = ForeignWorker.objects.create(
             name_romaji=romaji,
             name_kanji=kanji,
@@ -687,6 +688,95 @@ def seed_contracts(ctx: SeedContext) -> None:
             worker.save(update_fields=["status", "updated_at"])
 
 
+# 転籍の場面（9 番）: 食品の契約を D−60 で終え（転籍）、3 社目（飲食料品製造業分野）と
+# 新しい契約を結ぶ
+TRANSFER_NUMBER = 9
+
+
+def seed_transfer(ctx: SeedContext) -> None:
+    """3 社目（サンプル水産加工）と 9 番の転籍。
+
+    3 社目は、意図した場面（新しい契約のキャリアアッププラン未交付）以外の警告が出ないように
+    そろえる（全部委託・協議会の加入と証明書・協力確認書・事業所）。
+
+    乱数は別の種を使い、既存のダミー（氏名・番号）の並びを変えない。
+    """
+    rng = random.Random(SEED + 1)
+    food = SpecifiedSkillField.objects.get(code="food_manufacturing")
+    host = HostOrganization.objects.create(
+        name=f"{DUMMY_MARK}サンプル水産加工株式会社",
+        name_kana="サンプルスイサンカコウ",
+        corporate_number=corporate_number.generate_dummy(rng),
+        representative_title="代表取締役",
+        representative_name=f"代表 三郎{DUMMY_MARK}",
+        postal_code="000-0004",
+        address="静岡県ダミー浜市サンプル港1-1",
+        phone_number="000-0000-0003",
+    )
+    ctx.keep(host)
+    ctx.hosts.append(host)
+    site = HostSite.objects.create(
+        host_organization=host,
+        name="水産加工工場",
+        postal_code="000-0004",
+        address="静岡県ダミー浜市サンプル港1-1",
+        industry_code="0929",  # その他の水産食料品製造業（中分類09 食料品製造業）
+        field=food,
+    )
+    site.categories.set(_categories("food_manufacturing_general"))
+    ctx.keep(site)
+    ctx.extra_sites.append(site)
+    membership = HostMembership.objects.create(
+        host_organization=host,
+        field=food,
+        joined_on=ctx.days(-400),
+        valid_until=None,
+        member_number="DUMMY-0003",
+    )
+    ctx.keep(membership)
+    ctx.keep(
+        create_attachment(
+            target=membership,
+            kind=AttachmentKind.MEMBERSHIP_CERTIFICATE,
+            file=ContentFile(DUMMY_PDF, name="dummy_membership.pdf"),
+            created_by=None,
+        )
+    )
+    # 協力確認書: 事業所の所在地（ダミー浜市）と、9 番の住居地（サンプル市）
+    for municipality in ("ダミー浜市", "サンプル市"):
+        ctx.keep(
+            HostCooperationConfirmation.objects.create(
+                host_organization=host, municipality=municipality, submitted_on=ctx.days(-120)
+            )
+        )
+    ctx.keep(
+        SupportContract.objects.create(
+            host_organization=host,
+            concluded_on=ctx.days(-380),
+            starts_on=ctx.days(-365),
+            ends_on=None,
+        )
+    )
+
+    worker = ctx.worker(TRANSFER_NUMBER)
+    spec = WORKER_SPECS[TRANSFER_NUMBER - 1]
+    old = EmploymentContract.objects.get(worker=worker)
+    contracts.terminate(old, on=ctx.days(-60), reason=TerminationReason.JOB_CHANGE, by=None)
+    values = _version_values(ctx, site, spec, ctx.days(-59))
+    new = _add_version(
+        ctx,
+        values,
+        contract=None,
+        worker=worker,
+        allowances=[("住宅手当", 10000)],
+        deductions=[("housing", 30000)],
+    ).contract
+    ctx.transferred_contract = new
+    # 転籍の届出（終了・新たな契約）は提出済みにする（意図しない超過の警告を出さない）
+    for filing in Filing.objects.filter(worker=worker, status=FilingStatus.NOT_STARTED):
+        filings.transition(filing, FilingStatus.SUBMITTED, by=None, submitted_on=ctx.days(-50))
+
+
 def seed_filings(ctx: SeedContext) -> None:
     """日付の到来で起票するもの（T11 の日次の起票を 1 回実行する）。"""
     filings.create_scheduled(ctx.base)
@@ -694,13 +784,14 @@ def seed_filings(ctx: SeedContext) -> None:
 
 Step = Callable[[SeedContext], None]
 
-# 段階2で seed_support_records（面談記録・相談記録）をここに足す
 STEPS: tuple[Step, ...] = (
     seed_organization,
     seed_staff,
     seed_hosts,
     seed_workers,
     seed_contracts,
+    seed_transfer,
+    support_builders.seed_support,  # 段階2（支援計画・実績・相談・ガイダンス・交付・要配慮添付）
     seed_filings,
 )
 
@@ -758,6 +849,9 @@ def reset() -> int:
         model = entry.content_type.model_class()
         if model is not None:
             by_model.setdefault(model, []).append(entry.object_id)
+    # 支援のデータは台帳の外国人に紐づくものをまとめて消す（届出タスクより先。定期面談の組が
+    # 届出タスクを参照しているため）。手で足した記録も、ダミーの外国人のものなら消える
+    deleted_support = support_builders.delete_support_data(by_model.get(ForeignWorker, []))
     targets = [(ContentType.objects.get_for_model(model), ids) for model, ids in by_model.items()]
     filings_query = models.Q(worker_id__in=by_model.get(ForeignWorker, []))
     for content_type, ids in targets:
@@ -770,4 +864,4 @@ def reset() -> int:
         if ids:
             deleted += model._base_manager.filter(pk__in=ids).delete()[0]
     SeedObject.objects.all().delete()
-    return deleted
+    return deleted + deleted_support
