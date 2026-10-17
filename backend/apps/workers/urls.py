@@ -70,6 +70,26 @@ urlpatterns = [
         record_views.InterviewVoidView.as_view(),
         name="support_interview_void",
     ),
+    path(
+        "<int:pk>/support/consultations/new/",
+        record_views.ConsultationCreateView.as_view(),
+        name="support_consultation_create",
+    ),
+    path(
+        "<int:pk>/support/consultations/<int:consultation_id>/",
+        record_views.ConsultationDetailView.as_view(),
+        name="support_consultation",
+    ),
+    path(
+        "<int:pk>/support/consultations/<int:consultation_id>/entries/new/",
+        record_views.ConsultationEntryView.as_view(),
+        name="support_consultation_entry",
+    ),
+    path(
+        "<int:pk>/support/consultations/<int:consultation_id>/void/",
+        record_views.ConsultationVoidView.as_view(),
+        name="support_consultation_void",
+    ),
     path("<int:pk>/deactivate/", views.WorkerDeactivateView.as_view(), name="deactivate"),
     path("<int:pk>/reactivate/", views.WorkerReactivateView.as_view(), name="reactivate"),
     path(

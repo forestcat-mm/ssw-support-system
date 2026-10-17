@@ -245,7 +245,7 @@ def void_interview(interview: PeriodicInterview, *, by: User | None, reason: str
             update_fields=["voided_at", "voided_by", "void_reason", "updated_by", "updated_at"]
         )
         for record in SupportRecord.objects.filter(interview=interview, voided_at__isnull=True):
-            support_records.void_record(record, by=by, reason=reason, with_interview=True)
+            support_records.void_record(record, by=by, reason=reason, as_part=True)
         next_filing = _fresh(interview.next_filing)
         completed = _fresh(interview.completed_filing)
         untouched_next = next_filing is None or next_filing.status == FilingStatus.NOT_STARTED

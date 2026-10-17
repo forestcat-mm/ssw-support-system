@@ -17,21 +17,34 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from django.views.generic import TemplateView
 
 from apps.core.models import Action, Attachment, User
+from apps.core.permissions import ActionRequiredMixin
 from apps.core.web_forms import consume_once_token
 from apps.filings.models import Filing
-from apps.support.models import PeriodicInterview, SupportRecord
+from apps.support.models import Consultation, PeriodicInterview, SupportRecord
 from apps.support.record_forms import (
     AttachmentForm,
+    ConsultationFilterForm,
+    EntryForm,
     InterviewEditor,
     ReasonForm,
+    ReceptionForm,
     RecordFilterForm,
     RecordForm,
 )
 from apps.workers.models import ForeignWorker
 from apps.workers.views import WorkerDetailView, WorkerFormView
-from services import attachments, authorization, support_interviews, support_records, workers
+from services import (
+    attachments,
+    audit,
+    authorization,
+    consultations,
+    support_interviews,
+    support_records,
+    workers,
+)
 from services.support_catalog import SupportItem
 
 PAGE_SIZE = 50
@@ -134,9 +147,9 @@ class RecordFormView(WorkerFormView):
         return get_object_or_404(SupportRecord, pk=record_id, worker=worker, voided_at__isnull=True)
 
     def single_record(self, worker: ForeignWorker, record_id: int) -> SupportRecord:
-        """1 行ずつ取り消せる記録（定期面談の行は組ごとに取り消す）。"""
+        """1 行ずつ取り消せる記録（定期面談の行・相談の受付は、組・案件ごとに取り消す）。"""
         record = self.record(worker, record_id)
-        if record.interview_id is not None:
+        if record.interview_id is not None or hasattr(record, "consultation"):
             raise Http404
         return record
 
@@ -445,3 +458,200 @@ class InterviewVoidView(RecordFormView):
                     )
                 return redirect(interview_url(interview))
         return self.render(request, worker=worker, interview=interview, form=form)
+
+
+# --- 相談・苦情対応（T20）-----------------------------------------------------------------
+
+
+def consultation_url(consultation: Consultation) -> str:
+    return reverse("workers:support_consultation", args=[consultation.worker_id, consultation.pk])
+
+
+class ConsultationCreateView(RecordFormView):
+    """相談の受付（共通の欄＋主な分類・対応状況）。"""
+
+    template_name = "support/consultation_form.html"
+
+    def page(
+        self, request: HttpRequest, worker: ForeignWorker, form: ReceptionForm
+    ) -> HttpResponse:
+        return self.render(request, worker=worker, form=form, back_url=records_url(worker))
+
+    def get(self, request: HttpRequest, pk: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        initial = RecordForm.initial_for(worker, timezone.localdate())
+        return self.page(request, worker, ReceptionForm(initial=initial))
+
+    def post(self, request: HttpRequest, pk: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        if not consume_once_token(request):
+            return self.already_submitted(request, records_url(worker))
+        form = ReceptionForm(request.POST, request.FILES)
+        if form.is_valid():
+            try:
+                consultation = consultations.create_consultation(
+                    worker,
+                    form.to_reception(),
+                    by=_actor(request),
+                    files=form.cleaned_data["uploads"],
+                )
+            except ValidationError as error:
+                form.apply_errors(error)
+            else:
+                messages.success(request, _("Received the consultation."))
+                return redirect(consultation_url(consultation))
+        return self.page(request, worker, form)
+
+
+class ConsultationMixin:
+    request: HttpRequest
+
+    def consultation_of(self, worker: ForeignWorker, consultation_id: int) -> Consultation:
+        return get_object_or_404(consultations.consultations(), pk=consultation_id, worker=worker)
+
+
+class ConsultationDetailView(ConsultationMixin, RecordTabMixin, WorkerDetailView):
+    """相談の案件（受付の内容と経過の時系列）。"""
+
+    tab = "support"
+    template_name = "support/consultation_detail.html"
+
+    def tab_context(self, context: dict[str, Any]) -> dict[str, Any]:
+        consultation = self.consultation_of(self.worker, self.kwargs["consultation_id"])
+        items = consultations.timeline(consultation)
+        open_case = self.can_manage_support() and consultation.voided_at is None
+        context.update(
+            consultation=consultation,
+            timeline=items,
+            can_add_entry=open_case,
+            support_subtab="records",
+        )
+        return {
+            "shown": {
+                "consultation": consultation.pk,
+                "support_record": consultation.record_id,
+                "consultation_entries": [item.entry.pk for item in items if item.entry],
+            }
+        }
+
+
+class ConsultationEntryView(ConsultationMixin, RecordFormView):
+    """経過の追記（これまでの経過を上に出す）。"""
+
+    template_name = "support/consultation_entry.html"
+
+    def target(self, request: HttpRequest, pk: int, consultation_id: int) -> Any:
+        worker = self.worker(request, pk)
+        consultation = self.consultation_of(worker, consultation_id)
+        if consultation.voided_at is not None:
+            raise Http404
+        return worker, consultation
+
+    def page(self, request: HttpRequest, worker: Any, consultation: Any, form: Any) -> HttpResponse:
+        return self.render(
+            request,
+            worker=worker,
+            consultation=consultation,
+            timeline=consultations.timeline(consultation),
+            form=form,
+        )
+
+    def get(self, request: HttpRequest, pk: int, consultation_id: int) -> HttpResponse:
+        worker, consultation = self.target(request, pk, consultation_id)
+        form = EntryForm(initial=EntryForm.initial_for(consultation, timezone.localdate()))
+        return self.page(request, worker, consultation, form)
+
+    def post(self, request: HttpRequest, pk: int, consultation_id: int) -> HttpResponse:
+        worker, consultation = self.target(request, pk, consultation_id)
+        if not consume_once_token(request):
+            return self.already_submitted(request, consultation_url(consultation))
+        form = EntryForm(request.POST)
+        if form.is_valid():
+            try:
+                consultations.add_entry(consultation, form.to_input(), by=_actor(request))
+            except ValidationError as error:
+                form.apply_errors(error)
+            else:
+                messages.success(request, _("Added the entry."))
+                return redirect(consultation_url(consultation))
+        return self.page(request, worker, consultation, form)
+
+
+class ConsultationVoidView(ConsultationMixin, RecordFormView):
+    """案件の取消（理由は必須）。経過は残る。"""
+
+    template_name = "support/consultation_void.html"
+
+    def form(self, data: Any = None) -> ReasonForm:
+        return ReasonForm(data, help_text=_("Example: the consultation of another person."))
+
+    def target(self, request: HttpRequest, pk: int, consultation_id: int) -> Any:
+        worker = self.worker(request, pk)
+        consultation = self.consultation_of(worker, consultation_id)
+        if consultation.voided_at is not None:
+            raise Http404
+        return worker, consultation
+
+    def get(self, request: HttpRequest, pk: int, consultation_id: int) -> HttpResponse:
+        worker, consultation = self.target(request, pk, consultation_id)
+        return self.render(request, worker=worker, consultation=consultation, form=self.form())
+
+    def post(self, request: HttpRequest, pk: int, consultation_id: int) -> HttpResponse:
+        worker, consultation = self.target(request, pk, consultation_id)
+        if not consume_once_token(request):
+            return self.already_submitted(request, consultation_url(consultation))
+        form = self.form(request.POST)
+        if form.is_valid():
+            try:
+                consultations.void_consultation(
+                    consultation, by=_actor(request), reason=form.cleaned_data["reason"]
+                )
+            except ValidationError as error:
+                form.add_error("reason", error)
+            else:
+                messages.success(request, _("Voided the consultation."))
+                return redirect(consultation_url(consultation))
+        return self.render(request, worker=worker, consultation=consultation, form=form)
+
+
+class ConsultationListView(ActionRequiredMixin, TemplateView):
+    """全員分の相談の一覧（既定は未解決）。一覧の閲覧として監査ログに 1 件残す。"""
+
+    required_action = Action.SUPPORT_VIEW
+    template_name = "support/consultation_list.html"
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        form = ConsultationFilterForm(self.request.GET or None)
+        statuses = consultations.OPEN_STATUSES
+        conditions: dict[str, Any] = {}
+        filters: dict[str, Any] = {}
+        if form.is_valid():
+            data = form.cleaned_data
+            statuses = form.statuses()
+            filters = {
+                "category": data["category"],
+                "staff_id": data["staff"].pk if data["staff"] else None,
+                "date_from": data["date_from"],
+                "date_to": data["date_to"],
+            }
+            conditions = {"status": data["status"] or "open", **filters}
+        queryset = consultations.filter_consultations(
+            authorization.scope(self.request.user, consultations.consultations()),
+            statuses=statuses,
+            **filters,
+        )
+        page = Paginator(queryset, PAGE_SIZE).get_page(self.request.GET.get("page"))
+        query = {k: v for k, v in self.request.GET.items() if k != "page" and v}
+        audit.record_list_view(
+            "consultations:list",
+            conditions=conditions or {"status": "open"},
+            object_ids=[item.pk for item in page.object_list],
+        )
+        context.update(
+            form=form,
+            page=page,
+            filtered=bool(query),
+            page_query=urlencode(query),
+        )
+        return context

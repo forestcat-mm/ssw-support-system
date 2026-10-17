@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-17 13:36+0900\n"
+"POT-Creation-Date: 2026-10-17 14:04+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -641,6 +641,9 @@ msgstr "外国人台帳"
 
 msgid "Host organizations"
 msgstr "受入れ機関台帳"
+
+msgid "Consultations"
+msgstr "相談"
 
 msgid "Settings"
 msgstr "設定"
@@ -2567,6 +2570,9 @@ msgstr "共生施策の確認"
 msgid "checks of coexistence measures"
 msgstr "共生施策の確認"
 
+msgid "message (email, social media, etc.)"
+msgstr "メッセージ（メール・SNS 等）"
+
 msgid "the worker"
 msgstr "本人"
 
@@ -2667,6 +2673,72 @@ msgstr "次回の面談のタスク"
 msgid "periodic interviews"
 msgstr "定期面談"
 
+msgid "work"
+msgstr "就業"
+
+msgid "daily life"
+msgstr "生活"
+
+msgid "relationships"
+msgstr "人間関係"
+
+msgid "wages"
+msgstr "賃金"
+
+msgid "health"
+msgstr "健康"
+
+msgid "received"
+msgstr "受付"
+
+msgid "resolved"
+msgstr "解決"
+
+msgid "handed over to another organization"
+msgstr "関係機関へ引継ぎ"
+
+msgid "support record (reception)"
+msgstr "支援実績（受付）"
+
+msgid "main category"
+msgstr "主な分類"
+
+msgid "category (details)"
+msgstr "分類（詳細）"
+
+msgid "consultation status"
+msgstr "対応状況"
+
+msgid "status at reception"
+msgstr "受付時の対応状況"
+
+msgid "handed over to"
+msgstr "引継ぎ先"
+
+msgid "reported to authorities"
+msgstr "通報"
+
+msgid "consulted Hello Work"
+msgstr "ハローワーク相談"
+
+msgid "consultation"
+msgstr "相談"
+
+msgid "consultations"
+msgstr "相談"
+
+msgid "status after this entry"
+msgstr "追記後の対応状況"
+
+msgid "consulted Hello Work on"
+msgstr "ハローワーク相談日"
+
+msgid "consultation entry"
+msgstr "相談の経過"
+
+msgid "consultation entries"
+msgstr "相談の経過"
+
 msgid "Only when the counterpart is the supervisor. Optional."
 msgstr "相手が上司のときだけ。任意。"
 
@@ -2703,6 +2775,34 @@ msgid ""
 msgstr ""
 "任意。次回のタスクの期限になります（3か月以内）。空なら面談日の3か月後が期限"
 "です。"
+
+msgid "If it spans several categories, select the main one."
+msgstr "複数にまたがる場合は主なもの 1 つ"
+
+msgid "Required when \"other\" is selected."
+msgstr "「その他」のときは必須。"
+
+msgid "Required when the case is handed over to another organization."
+msgstr "「関係機関へ引継ぎ」のときは必須。"
+
+msgid ""
+"To correct an earlier entry, add an entry that starts with \"Correction:\"."
+msgstr "前の経過を直すときは、「訂正:」で始まる経過を追記してください。"
+
+msgid "Unresolved"
+msgstr "未解決"
+
+msgid "Resolved"
+msgstr "解決"
+
+msgid "Handed over"
+msgstr "引継ぎ"
+
+msgid "received on (from)"
+msgstr "受付日（から）"
+
+msgid "received on (to)"
+msgstr "受付日（まで）"
 
 #, python-format
 msgid "Record: %(kind)s"
@@ -2745,6 +2845,18 @@ msgstr ""
 "定期面談を取り消しました。タスクはすでに変更されていたため、そのままにしてい"
 "ます。定期面談のタスクを確認してください。"
 
+msgid "Received the consultation."
+msgstr "相談を受け付けました。"
+
+msgid "Added the entry."
+msgstr "経過を追記しました。"
+
+msgid "Example: the consultation of another person."
+msgstr "例: 別の人の相談だった。"
+
+msgid "Voided the consultation."
+msgstr "相談を取り消しました。"
+
 msgid "Void an attachment"
 msgstr "添付の取消"
 
@@ -2757,6 +2869,12 @@ msgstr ""
 
 msgid "No attachments."
 msgstr "添付はありません。"
+
+msgid "received on"
+msgstr "受付日"
+
+msgid "entry"
+msgstr "経過"
 
 #, python-format
 msgid "%(counter)s planned"
@@ -2799,6 +2917,75 @@ msgstr "計画なし"
 
 msgid "Back to records"
 msgstr "記録の一覧へ"
+
+#, python-format
+msgid ""
+"This consultation was voided on %(day)s by %(by)s. Reason: %(reason)s. It is "
+"not counted."
+msgstr ""
+"この相談は %(day)s に %(by)s が取り消しました。理由: %(reason)s。集計には含め"
+"ません。"
+
+msgid "Consultation"
+msgstr "相談"
+
+msgid "Add an entry"
+msgstr "経過を追記"
+
+msgid "Progress"
+msgstr "経過"
+
+msgid "Progress so far"
+msgstr "これまでの経過"
+
+msgid "Report and Hello Work"
+msgstr "通報・ハローワーク相談"
+
+msgid "Add"
+msgstr "追加"
+
+msgid "Receive a consultation"
+msgstr "相談の受付"
+
+msgid "When, how and by whom"
+msgstr "日時・方法・担当"
+
+msgid "Category and status"
+msgstr "分類・対応状況"
+
+msgid "Details of the consultation"
+msgstr "相談の内容"
+
+#, python-format
+msgid "%(counter)s consultation"
+msgid_plural "%(counter)s consultations"
+msgstr[0] "%(counter)s 件"
+
+msgid "reported"
+msgstr "通報あり"
+
+msgid "Hello Work"
+msgstr "ハローワーク"
+
+msgid "Newer"
+msgstr "新しい記録"
+
+msgid "Older"
+msgstr "古い記録"
+
+msgid "No consultations match the conditions."
+msgstr "条件に合う相談はありません。"
+
+msgid "Void a consultation"
+msgstr "相談の取消"
+
+msgid ""
+"The consultation and its reception record are voided and no longer counted. "
+"The progress entries stay. This cannot be undone. To correct a detail, add "
+"an entry instead."
+msgstr ""
+"相談と受付の記録を取り消し、集計に含めなくなります。経過は残ります。元には戻"
+"せません。内容を直すだけなら、経過を追記してください。"
 
 #, python-format
 msgid ""
@@ -2862,9 +3049,6 @@ msgstr ""
 msgid "Add attachments"
 msgstr "添付を追加"
 
-msgid "Add"
-msgstr "追加"
-
 #, python-format
 msgid ""
 "This record was voided on %(day)s by %(by)s. Reason: %(reason)s. It is not "
@@ -2872,6 +3056,14 @@ msgid ""
 msgstr ""
 "この記録は %(day)s に %(by)s が取り消しました。理由: %(reason)s。集計には含め"
 "ません。"
+
+msgid ""
+"This row is the reception of a consultation. Its progress and status are on "
+"the consultation page."
+msgstr "この行は相談の受付です。経過と対応状況は相談の画面にあります。"
+
+msgid "Show the consultation"
+msgstr "相談を表示"
 
 msgid ""
 "This row is part of a periodic interview (worker and supervisor). It is "
@@ -2886,9 +3078,6 @@ msgstr "面談を表示"
 #, python-format
 msgid "Recorded by %(by)s at %(at)s"
 msgstr "記録: %(by)s（%(at)s）"
-
-msgid "When, how and by whom"
-msgstr "日時・方法・担当"
 
 msgid "Details and attachments"
 msgstr "内容・添付"
@@ -2935,6 +3124,9 @@ msgstr "記録する"
 msgid "periodic interviews and reports to authorities"
 msgstr "定期面談・行政機関への通報"
 
+msgid "consultations and complaints"
+msgstr "相談・苦情への対応"
+
 #, python-format
 msgid "%(counter)s record"
 msgid_plural "%(counter)s records"
@@ -2949,12 +3141,6 @@ msgstr "版 %(number)s"
 
 msgid "Interview"
 msgstr "面談"
-
-msgid "Newer"
-msgstr "新しい記録"
-
-msgid "Older"
-msgstr "古い記録"
 
 msgid "No support records match the conditions."
 msgstr "条件に合う記録はありません。"
@@ -3334,6 +3520,51 @@ msgstr "業務画面へ戻る"
 msgid "This attachment is already voided."
 msgstr "この添付は取り消し済みです。"
 
+msgid "Select a valid choice."
+msgstr "選択肢から選んでください。"
+
+msgid "Enter the organization the case was handed over to."
+msgstr "引継ぎ先を入力してください。"
+
+msgid "Enter this only when the case is handed over to another organization."
+msgstr "引継ぎ先は「関係機関へ引継ぎ」のときだけ入力してください。"
+
+msgid "Enter the category."
+msgstr "分類を入力してください。"
+
+msgid "This consultation is voided."
+msgstr "この相談は取り消されています。"
+
+msgid "This foreign worker is deactivated."
+msgstr "この外国人は無効化されています。"
+
+msgid "The date cannot be in the future."
+msgstr "未来の日付は入力できません。"
+
+msgid "The date cannot be before the consultation was received."
+msgstr "受付日より前の日付は入力できません。"
+
+msgid "This field is required."
+msgstr "この項目は必須です。"
+
+msgid "This staff member is no longer active."
+msgstr "この担当者は無効です。"
+
+msgid "Select where to report."
+msgstr "通報先を選んでください。"
+
+msgid "Enter where to report."
+msgstr "通報先を入力してください。"
+
+msgid "Check \"reported\" to enter the report."
+msgstr "通報を入力するときは「通報」にチェックしてください。"
+
+msgid "Check \"consulted Hello Work\" to enter the date."
+msgstr "日付を入力するときは「ハローワーク相談」にチェックしてください。"
+
+msgid "This consultation is already voided."
+msgstr "この相談は取り消し済みです。"
+
 msgid "scheduled"
 msgstr "予定"
 
@@ -3579,9 +3810,6 @@ msgstr "公的手続への同行"
 msgid "opportunities to learn Japanese"
 msgstr "日本語学習の機会の提供"
 
-msgid "consultations and complaints"
-msgstr "相談・苦情への対応"
-
 msgid "exchange with Japanese people"
 msgstr "日本人との交流促進"
 
@@ -3615,17 +3843,8 @@ msgstr "上司の氏名を入力してください。"
 msgid "Select whether a report is required."
 msgstr "通報の要否を選んでください。"
 
-msgid "Select where to report."
-msgstr "通報先を選んでください。"
-
-msgid "Enter where to report."
-msgstr "通報先を入力してください。"
-
 msgid "Enter the report only when a violation of labour laws is suspected."
 msgstr "通報は、労働法令違反の疑いが「あり」のときだけ入力してください。"
-
-msgid "The date cannot be in the future."
-msgstr "未来の日付は入力できません。"
 
 msgid "Enter the date only when a report is required."
 msgstr "通報日は、通報が「要」のときだけ入力してください。"
@@ -3636,9 +3855,6 @@ msgstr "面談日より後で、%(legal)s（3か月）以前の日付を入力�
 
 msgid "This interview is already voided."
 msgstr "この面談は取り消し済みです。"
-
-msgid "This foreign worker is deactivated."
-msgstr "この外国人は無効化されています。"
 
 #, python-format
 msgid "The periodic interview record was voided: %(reason)s"
@@ -3770,23 +3986,14 @@ msgstr "離職時の行政手続の情報提供"
 msgid "arranging a substitute supporter"
 msgstr "代わりの支援者の確保"
 
-msgid "Select a valid choice."
-msgstr "選択肢から選んでください。"
-
 msgid "This value is too long."
 msgstr "長すぎます。"
-
-msgid "This field is required."
-msgstr "この項目は必須です。"
 
 msgid "This kind of support cannot be recorded here."
 msgstr "この種別はこの画面では記録できません。"
 
 msgid "Enter the URL only for online support."
 msgstr "URL はオンラインのときだけ入力してください。"
-
-msgid "This staff member is no longer active."
-msgstr "この担当者は無効です。"
 
 msgid "Enter the name only when the counterpart is the supervisor."
 msgstr "氏名は相手が上司のときだけ入力してください。"
@@ -3803,6 +4010,9 @@ msgstr "ファイルを選んでください。"
 
 msgid "Void the periodic interview as a whole (both rows)."
 msgstr "定期面談は組（2 行）ごとに取り消してください。"
+
+msgid "Void the consultation as a whole."
+msgstr "相談は案件ごとに取り消してください。"
 
 msgid "This record is already voided."
 msgstr "この記録は取り消し済みです。"

@@ -1,0 +1,15 @@
+{% load i18n %}<ol class="timeline" id="consultation-timeline">{% for item in timeline %}
+  <li class="timeline__item" data-kind="{{ item.kind }}">
+    <div class="timeline__head">
+      <span class="mono">{{ item.occurred_on|date:"Y-m-d" }}{% if item.start_time %} {{ item.start_time|time:"H:i" }}{% endif %}</span>
+      <span class="caption">{% if item.kind == "reception" %}{% translate "received" %}{% else %}{% translate "entry" %}{% endif %} · {{ item.method_label }} · {{ item.staff.name }}</span>
+      {% if item.status %}<span class="status" data-status="{{ item.status }}">{{ item.status_label }}</span>{% endif %}
+    </div>
+    <p class="record-body" lang="{{ item.body_language }}">{{ item.body|linebreaksbr }}</p>
+    {% with entry=item.entry %}{% if entry %}
+      {% if entry.handed_over_to %}<p class="caption">{% translate "handed over to" %}: {{ entry.handed_over_to }}</p>{% endif %}
+      {% if entry.reported %}<p class="caption" data-flag="reported">{% translate "reported to authorities" %}: {{ entry.get_report_to_display }}{% if entry.report_to_note %}（{{ entry.report_to_note }}）{% endif %}{% if entry.reported_on %} · {{ entry.reported_on|date:"Y-m-d" }}{% endif %}</p>{% endif %}
+      {% if entry.hello_work %}<p class="caption" data-flag="hello_work">{% translate "consulted Hello Work" %}{% if entry.hello_work_on %}: {{ entry.hello_work_on|date:"Y-m-d" }}{% endif %}</p>{% endif %}
+    {% endif %}{% endwith %}
+  </li>{% endfor %}
+</ol>

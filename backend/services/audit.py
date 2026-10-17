@@ -74,6 +74,8 @@ AUDITED_MODELS: frozenset[str] = frozenset(
         "support.supportplanmunicipalitycheck",
         "support.supportrecord",
         "support.periodicinterview",
+        "support.consultation",
+        "support.consultationentry",
     }
 )
 

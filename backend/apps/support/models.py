@@ -389,6 +389,7 @@ class RecordMethod(models.TextChoices):
     IN_PERSON = "in_person", _("in person")
     ONLINE = "online", _("online")
     PHONE = "phone", _("phone")
+    MESSAGE = "message", _("message (email, social media, etc.)")  # 相談・苦情だけ（T20）
 
 
 class Counterpart(models.TextChoices):
@@ -551,3 +552,137 @@ class PeriodicInterview(TrackedModel):
 
     def __str__(self) -> str:
         return f"{self.worker}: {self.basis_on}"
+
+
+# --- 相談・苦情対応（T20）-----------------------------------------------------------------
+
+
+class ConsultationCategory(models.TextChoices):
+    """主な分類（定期届出の分類。複数にまたがる場合は主なもの 1 つ）。"""
+
+    EMPLOYMENT = "employment", _("work")
+    DAILY_LIFE = "daily_life", _("daily life")
+    RELATIONSHIPS = "relationships", _("relationships")
+    WAGES = "wages", _("wages")
+    HEALTH = "health", _("health")
+    OTHER = "other", _("other")
+
+
+class ConsultationStatus(models.TextChoices):
+    RECEIVED = "received", _("received")
+    IN_PROGRESS = "in_progress", _("in progress")
+    RESOLVED = "resolved", _("resolved")
+    HANDED_OVER = "handed_over", _("handed over to another organization")
+
+
+OPEN_CONSULTATION_STATUSES = (ConsultationStatus.RECEIVED, ConsultationStatus.IN_PROGRESS)
+
+
+class Consultation(TrackedModel):
+    """相談・苦情の案件。受付は支援実績の 1 行（種別「相談・苦情対応」）と 1 対 1。
+
+    対応状況・引継ぎ先・通報とハローワーク相談の有無は、経過（ConsultationEntry）の追記でだけ変わる
+    （案件の値は経過から写したもの）。訂正は「訂正」の経過を足す。案件ごとの取消だけができる。
+    """
+
+    record = models.OneToOneField(
+        SupportRecord,
+        verbose_name=_("support record (reception)"),
+        on_delete=models.PROTECT,
+        related_name="consultation",
+        editable=False,
+    )
+    worker = models.ForeignKey(
+        ForeignWorker,
+        verbose_name=_("foreign worker"),
+        on_delete=models.PROTECT,
+        related_name="consultations",
+        editable=False,
+    )
+    category = models.CharField(
+        _("main category"), max_length=16, choices=ConsultationCategory.choices
+    )
+    category_note = models.CharField(_("category (details)"), max_length=100, blank=True)
+    status = models.CharField(
+        _("consultation status"),
+        max_length=16,
+        choices=ConsultationStatus.choices,
+        default=ConsultationStatus.RECEIVED,
+        editable=False,
+    )
+    initial_status = models.CharField(
+        _("status at reception"),
+        max_length=16,
+        choices=ConsultationStatus.choices,
+        default=ConsultationStatus.RECEIVED,
+        editable=False,
+    )
+    handed_over_to = models.CharField(
+        _("handed over to"), max_length=200, blank=True, editable=False
+    )
+    reported = models.BooleanField(_("reported to authorities"), default=False, editable=False)
+    hello_work = models.BooleanField(_("consulted Hello Work"), default=False, editable=False)
+    voided_at = models.DateTimeField(_("voided at"), null=True, blank=True, editable=False)
+    voided_by = models.ForeignKey(
+        "core.User",
+        verbose_name=_("voided by"),
+        on_delete=models.PROTECT,
+        related_name="+",
+        null=True,
+        blank=True,
+        editable=False,
+    )
+    void_reason = models.CharField(_("void reason"), max_length=200, blank=True, editable=False)
+
+    class Meta:
+        verbose_name = _("consultation")
+        verbose_name_plural = _("consultations")
+        ordering = ["-pk"]
+        indexes = [models.Index(fields=["status", "category"])]
+
+    def __str__(self) -> str:
+        return f"{self.worker}: {self.get_category_display()} ({self.record.occurred_on})"
+
+
+class ConsultationEntry(ImmutableRow):
+    """対応の経過（追記専用。変更・削除しない）。追記のたびに状態を変えられる。"""
+
+    consultation = models.ForeignKey(
+        Consultation,
+        verbose_name=_("consultation"),
+        on_delete=models.PROTECT,
+        related_name="entries",
+    )
+    occurred_on = models.DateField(_("date of support"))
+    start_time = models.TimeField(_("time started"), null=True, blank=True)
+    method = models.CharField(_("method"), max_length=16, choices=RecordMethod.choices)
+    staff = models.ForeignKey(
+        Staff, verbose_name=_("staff in charge"), on_delete=models.PROTECT, related_name="+"
+    )
+    body = models.TextField(_("details"))
+    body_language = models.CharField(
+        _("language of the details"),
+        max_length=8,
+        choices=BodyLanguage.choices,
+        default=BodyLanguage.JA,
+    )
+    status_after = models.CharField(
+        _("status after this entry"), max_length=16, choices=ConsultationStatus.choices
+    )
+    handed_over_to = models.CharField(_("handed over to"), max_length=200, blank=True)
+    reported = models.BooleanField(_("reported to authorities"), default=False)
+    report_to = models.CharField(
+        _("report to"), max_length=32, choices=ReportDestination.choices, blank=True
+    )
+    report_to_note = models.CharField(_("report to (details)"), max_length=200, blank=True)
+    reported_on = models.DateField(_("reported on"), null=True, blank=True)
+    hello_work = models.BooleanField(_("consulted Hello Work"), default=False)
+    hello_work_on = models.DateField(_("consulted Hello Work on"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("consultation entry")
+        verbose_name_plural = _("consultation entries")
+        ordering = ["occurred_on", "start_time", "pk"]
+
+    def __str__(self) -> str:
+        return f"{self.consultation_id}: {self.occurred_on} {self.get_status_after_display()}"

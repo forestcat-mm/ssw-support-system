@@ -12,9 +12,18 @@ from django.utils.translation import gettext_lazy as _
 from apps.core.models import Staff, SupportLanguage
 from apps.core.web_forms import StyledFormMixin
 from apps.support.forms import StaffChoiceField, active_staff
-from apps.support.models import BodyLanguage, Counterpart, RecordMethod, ReportDestination
+from apps.support.models import (
+    OPEN_CONSULTATION_STATUSES,
+    BodyLanguage,
+    ConsultationCategory,
+    ConsultationStatus,
+    Counterpart,
+    RecordMethod,
+    ReportDestination,
+)
 from apps.workers.models import ForeignWorker
 from services import support_records
+from services.consultations import CONSULTATION_METHODS, EntryInput, ReceptionInput
 from services.support_catalog import SupportItem
 from services.support_interviews import INTERVIEW_METHODS, InterviewInput
 from services.support_records import DETAIL_FIELDS, RecordInput
@@ -131,12 +140,12 @@ class RecordForm(StyledFormMixin, forms.Form):
                 name.help_text = ""
             else:
                 del self.fields["counterpart_name"]
-        if methods is not None:
-            method = self.fields["method"]
-            assert isinstance(method, forms.ChoiceField)
-            method.choices = [
-                (value, label) for value, label in RecordMethod.choices if value in methods
-            ]
+        allowed = methods if methods is not None else support_records.DEFAULT_METHODS
+        method = self.fields["method"]
+        assert isinstance(method, forms.ChoiceField)
+        method.choices = [
+            (value, label) for value, label in RecordMethod.choices if value in allowed
+        ]
         self.fields["staff"].queryset = active_staff()  # type: ignore[attr-defined]
         self.fields["languages"].queryset = SupportLanguage.objects.filter(  # type: ignore[attr-defined]
             is_active=True
@@ -370,3 +379,205 @@ class InterviewEditor:
                 self.interview_form.add_error(key, messages)
             else:
                 self.interview_form.add_error(None, messages)
+
+
+# --- 相談・苦情対応（T20）-----------------------------------------------------------------
+
+
+def _status_field(label: Any) -> forms.ChoiceField:
+    return forms.ChoiceField(label=label, choices=ConsultationStatus.choices)
+
+
+class ReceptionForm(RecordForm):
+    """相談の受付（支援実績の共通の欄＋主な分類・対応状況）。相手は本人に固定。"""
+
+    CASE = ("category", "category_note", "status", "handed_over_to")
+
+    category = forms.ChoiceField(
+        label=_("main category"),
+        choices=[("", "---------"), *ConsultationCategory.choices],
+        help_text=_("If it spans several categories, select the main one."),
+    )
+    category_note = forms.CharField(
+        label=_("category (details)"),
+        max_length=100,
+        required=False,
+        help_text=_('Required when "other" is selected.'),
+    )
+    status = _status_field(_("consultation status"))
+    handed_over_to = forms.CharField(
+        label=_("handed over to"),
+        max_length=200,
+        required=False,
+        help_text=_("Required when the case is handed over to another organization."),
+    )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(
+            *args,
+            kind=SupportItem.CONSULTATION,
+            counterpart=Counterpart.WORKER,
+            methods=CONSULTATION_METHODS,
+            **kwargs,
+        )
+
+    def case_fields(self) -> list[forms.BoundField]:
+        return [self[name] for name in self.CASE]
+
+    def to_reception(self) -> ReceptionInput:
+        data = self.cleaned_data
+        return ReceptionInput(
+            record=self.to_input(),
+            category=data["category"],
+            category_note=data.get("category_note") or "",
+            status=data["status"],
+            handed_over_to=data.get("handed_over_to") or "",
+        )
+
+
+class EntryForm(StyledFormMixin, forms.Form):
+    """対応の経過の追記（追記のたびに状態・通報・ハローワーク相談を変えられる）。"""
+
+    occurred_on = forms.DateField(label=_("date of support"), widget=forms.DateInput)
+    start_time = forms.TimeField(
+        label=_("time started"),
+        required=False,
+        widget=forms.TimeInput(attrs={"type": "time"}, format="%H:%M"),
+    )
+    method = forms.ChoiceField(
+        label=_("method"),
+        choices=[(v, label) for v, label in RecordMethod.choices if v in CONSULTATION_METHODS],
+        widget=forms.RadioSelect,
+    )
+    staff = StaffChoiceField(label=_("staff in charge"), queryset=Staff.objects.none())
+    status_after = _status_field(_("status after this entry"))
+    handed_over_to = forms.CharField(
+        label=_("handed over to"),
+        max_length=200,
+        required=False,
+        help_text=_("Required when the case is handed over to another organization."),
+    )
+    body_language = forms.ChoiceField(
+        label=_("language of the details"), choices=BodyLanguage.choices
+    )
+    body = forms.CharField(
+        label=_("details"),
+        widget=forms.Textarea(attrs={"rows": 5}),
+        help_text=_('To correct an earlier entry, add an entry that starts with "Correction:".'),
+    )
+    reported = forms.BooleanField(label=_("reported to authorities"), required=False)
+    report_to = forms.ChoiceField(
+        label=_("report to"),
+        choices=[("", "---------"), *ReportDestination.choices],
+        required=False,
+    )
+    report_to_note = forms.CharField(label=_("report to (details)"), max_length=200, required=False)
+    reported_on = forms.DateField(label=_("reported on"), required=False, widget=forms.DateInput)
+    hello_work = forms.BooleanField(label=_("consulted Hello Work"), required=False)
+    hello_work_on = forms.DateField(
+        label=_("consulted Hello Work on"), required=False, widget=forms.DateInput
+    )
+
+    MAIN = ("occurred_on", "start_time", "method", "staff", "status_after", "handed_over_to")
+    BODY = ("body_language", "body")
+    FLAGS = (
+        "reported",
+        "report_to",
+        "report_to_note",
+        "reported_on",
+        "hello_work",
+        "hello_work_on",
+    )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.fields["staff"].queryset = active_staff()  # type: ignore[attr-defined]
+        self.style_fields()
+
+    @classmethod
+    def initial_for(cls, consultation: Any, today: Any) -> dict[str, Any]:
+        return {
+            "occurred_on": today,
+            "method": consultation.record.method,
+            "staff": consultation.record.staff_id,
+            "status_after": consultation.status,
+            "handed_over_to": consultation.handed_over_to,
+            "body_language": consultation.record.body_language,
+        }
+
+    def group(self, names: tuple[str, ...]) -> list[forms.BoundField]:
+        return [self[name] for name in names]
+
+    def main_fields(self) -> list[forms.BoundField]:
+        return self.group(self.MAIN)
+
+    def body_fields(self) -> list[forms.BoundField]:
+        return self.group(self.BODY)
+
+    def flag_fields(self) -> list[forms.BoundField]:
+        return self.group(self.FLAGS)
+
+    def to_input(self) -> EntryInput:
+        data = self.cleaned_data
+        return EntryInput(
+            occurred_on=data["occurred_on"],
+            start_time=data.get("start_time"),
+            method=data["method"],
+            staff=data["staff"],
+            body=data["body"],
+            body_language=data["body_language"],
+            status_after=data["status_after"],
+            handed_over_to=data.get("handed_over_to") or "",
+            reported=bool(data.get("reported")),
+            report_to=data.get("report_to") or "",
+            report_to_note=data.get("report_to_note") or "",
+            reported_on=data.get("reported_on"),
+            hello_work=bool(data.get("hello_work")),
+            hello_work_on=data.get("hello_work_on"),
+        )
+
+    def apply_errors(self, error: ValidationError) -> None:
+        for key, messages in error.error_dict.items():
+            self.add_error(key if key in self.fields else None, messages)
+
+
+STATUS_OPEN = ""
+STATUS_FILTERS = {
+    STATUS_OPEN: (_("Unresolved"), OPEN_CONSULTATION_STATUSES),
+    "resolved": (_("Resolved"), (ConsultationStatus.RESOLVED,)),
+    "handed_over": (_("Handed over"), (ConsultationStatus.HANDED_OVER,)),
+    "all": (_("All"), ()),
+}
+
+
+class ConsultationFilterForm(StyledFormMixin, forms.Form):
+    """相談の一覧の絞り込み（既定は未解決＝受付・対応中）。"""
+
+    status = forms.ChoiceField(
+        label=_("consultation status"),
+        required=False,
+        choices=[(key, label) for key, (label, _statuses) in STATUS_FILTERS.items()],
+    )
+    category = forms.ChoiceField(
+        label=_("main category"),
+        required=False,
+        choices=[("", _("All")), *ConsultationCategory.choices],
+    )
+    staff = forms.ModelChoiceField(
+        label=_("staff in charge"), queryset=Staff.objects.none(), required=False
+    )
+    date_from = forms.DateField(
+        label=_("received on (from)"), required=False, widget=forms.DateInput
+    )
+    date_to = forms.DateField(label=_("received on (to)"), required=False, widget=forms.DateInput)
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.fields["staff"].queryset = Staff.objects.order_by(  # type: ignore[attr-defined]
+            "name_kana", "name"
+        )
+        self.style_fields()
+
+    def statuses(self) -> tuple[str, ...]:
+        key = self.cleaned_data.get("status") or STATUS_OPEN if self.is_bound else STATUS_OPEN
+        return tuple(STATUS_FILTERS.get(key, STATUS_FILTERS[STATUS_OPEN])[1])

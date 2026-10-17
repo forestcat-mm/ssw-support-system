@@ -1,0 +1,46 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Consultations" %}{% endblock %}
+{% block heading %}{% translate "Consultations" %}{% endblock %}
+{% block content %}
+<form class="filter-bar" method="get" id="consultation-filter">
+  {% for bound in form %}
+  <div class="form-row">
+    <label class="form-row__label" for="{{ bound.id_for_label }}">{{ bound.label }}</label>
+    {{ bound }}
+  </div>
+  {% endfor %}
+  <div class="cluster">
+    <button class="button button--neutral" type="submit">{% translate "Filter" %}</button>
+    {% if filtered %}<a class="button button--neutral button--small" href="{% url 'consultations:list' %}">{% translate "Clear" %}</a>{% endif %}
+  </div>
+</form>
+<p class="caption" data-count="{{ page.paginator.count }}">{% blocktranslate count counter=page.paginator.count %}{{ counter }} consultation{% plural %}{{ counter }} consultations{% endblocktranslate %}</p>
+{% if page.object_list %}
+<div class="table-wrap"><div class="table-scroll">
+  <table class="table table--list" id="consultations">
+    <thead><tr>
+      <th>{% translate "received on" %}</th><th>{% translate "foreign worker" %}</th><th>{% translate "main category" %}</th>
+      <th>{% translate "consultation status" %}</th><th>{% translate "staff in charge" %}</th><th>{% translate "details" %}</th>
+    </tr></thead>
+    <tbody>{% for item in page.object_list %}
+      <tr data-consultation="{{ item.pk }}">
+        <td class="mono"><a href="{% url 'workers:support_consultation' item.worker_id item.pk %}">{{ item.record.occurred_on|date:"Y-m-d" }}</a></td>
+        <td>{{ item.worker }}</td>
+        <td>{{ item.get_category_display }}</td>
+        <td><span class="status">{{ item.get_status_display }}</span>{% if item.reported %} <span class="caption">{% translate "reported" %}</span>{% endif %}{% if item.hello_work %} <span class="caption">{% translate "Hello Work" %}</span>{% endif %}</td>
+        <td>{{ item.record.staff.name }}</td>
+        <td><span class="truncate-line truncate-line--full" title="{{ item.record.body }}"><span class="truncate" lang="{{ item.record.body_language }}">{{ item.record.body }}</span></span></td>
+      </tr>{% endfor %}</tbody>
+  </table>
+</div></div>
+{% if page.has_other_pages %}
+<nav class="cluster" aria-label="{% translate 'Pages' %}">
+  {% if page.has_previous %}<a class="button button--neutral button--small" href="?{% if page_query %}{{ page_query }}&amp;{% endif %}page={{ page.previous_page_number }}">← {% translate "Newer" %}</a>{% endif %}
+  <span class="caption">{{ page.number }} / {{ page.paginator.num_pages }}</span>
+  {% if page.has_next %}<a class="button button--neutral button--small" href="?{% if page_query %}{{ page_query }}&amp;{% endif %}page={{ page.next_page_number }}">{% translate "Older" %} →</a>{% endif %}
+</nav>
+{% endif %}
+{% else %}
+<div class="card"><div class="empty">{% translate "No consultations match the conditions." %}</div></div>
+{% endif %}
+{% endblock %}

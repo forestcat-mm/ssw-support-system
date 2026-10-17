@@ -1,0 +1,30 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Add an entry" %} | {{ worker }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{% url 'workers:support_consultation' worker.pk consultation.pk %}">← {{ worker }}</a></p>
+  <h1>{% translate "Add an entry" %}</h1>
+{% endblock %}
+{% block content %}
+<div class="stack form">
+  <section class="card">
+    {% include "support/components/consultation_summary.html" %}
+    <details style="margin-top: var(--space-16)"><summary>{% translate "Progress so far" %}</summary>{% include "support/components/consultation_timeline.html" %}</details>
+  </section>
+  <form class="form" method="post" novalidate id="entry-form" data-keepalive="{% url 'accounts:keepalive' %}">
+    {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+    {% include "ui/components/form_errors.html" %}
+    <section class="card stack">
+      {% for field in form.main_fields %}{% form_field field %}{% endfor %}
+      {% for field in form.body_fields %}{% form_field field %}{% endfor %}
+    </section>
+    <section class="card stack" id="entry-flags">
+      <h2>{% translate "Report and Hello Work" %}</h2>
+      {% for field in form.flag_fields %}{% form_field field %}{% endfor %}
+    </section>
+    <div class="form-actions">
+      <button class="button button--primary" type="submit">{% translate "Add" %}</button>
+      <a class="button button--neutral" href="{% url 'workers:support_consultation' worker.pk consultation.pk %}">{% translate "Cancel" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

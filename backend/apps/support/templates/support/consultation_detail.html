@@ -1,0 +1,25 @@
+{% extends "workers/detail_base.html" %}{% load i18n ui %}
+{% block tab_content %}
+{% include "support/subtabs.html" %}
+<div class="stack" style="margin-top: var(--space-16)">
+  <p class="caption"><a href="{% url 'workers:support_records' worker.pk %}">← {% translate "Back to records" %}</a> · <a href="{% url 'consultations:list' %}">{% translate "Consultations" %}</a></p>
+  {% if consultation.voided_at %}
+  <p class="message message--warning" role="status" id="consultation-voided">{% blocktranslate with day=consultation.voided_at|date:"Y-m-d H:i" by=consultation.voided_by.get_username|default:"—" reason=consultation.void_reason %}This consultation was voided on {{ day }} by {{ by }}. Reason: {{ reason }}. It is not counted.{% endblocktranslate %}</p>
+  {% endif %}
+  <section class="card{% if consultation.voided_at %} is-voided{% endif %}" id="consultation">
+    <div class="card__header">
+      <h2 class="card__title">{% translate "Consultation" %}</h2>
+      <div class="cluster">
+        {% if can_add_entry %}<a class="button button--primary button--small" href="{% url 'workers:support_consultation_entry' worker.pk consultation.pk %}">{% translate "Add an entry" %}</a>
+        <a class="button button--danger button--small" href="{% url 'workers:support_consultation_void' worker.pk consultation.pk %}">{% translate "Void" %}</a>{% endif %}
+        <a class="button button--neutral button--small" href="{% url 'workers:support_record' worker.pk consultation.record_id %}">{% translate "Attachments" %}</a>
+      </div>
+    </div>
+    {% include "support/components/consultation_summary.html" %}
+  </section>
+  <section class="card" id="consultation-progress">
+    <div class="card__header"><h2 class="card__title">{% translate "Progress" %}</h2></div>
+    {% include "support/components/consultation_timeline.html" %}
+  </section>
+</div>
+{% endblock %}

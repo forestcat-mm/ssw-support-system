@@ -1,0 +1,8 @@
+{% load i18n %}<dl class="fields" id="consultation-fields">
+  <dt>{% translate "received on" %}</dt><dd class="mono">{{ consultation.record.occurred_on|date:"Y-m-d" }}{% if consultation.record.start_time %} {{ consultation.record.start_time|time:"H:i" }}{% endif %}</dd>
+  <dt>{% translate "main category" %}</dt><dd>{{ consultation.get_category_display }}{% if consultation.category_note %}（{{ consultation.category_note }}）{% endif %}</dd>
+  <dt>{% translate "consultation status" %}</dt><dd><span class="status" data-consultation-status="{{ consultation.status }}">{{ consultation.get_status_display }}</span>{% if consultation.handed_over_to %} <span class="caption">{{ consultation.handed_over_to }}</span>{% endif %}</dd>
+  <dt>{% translate "staff in charge" %}</dt><dd>{{ consultation.record.staff.name }}</dd>
+  <dt>{% translate "reported to authorities" %}</dt><dd>{% if consultation.reported %}{% translate "yes" %}{% else %}{% translate "no" %}{% endif %}</dd>
+  <dt>{% translate "consulted Hello Work" %}</dt><dd>{% if consultation.hello_work %}{% translate "yes" %}{% else %}{% translate "no" %}{% endif %}</dd>
+</dl>

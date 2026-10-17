@@ -48,6 +48,9 @@ RECORD_KINDS: tuple[SupportItem, ...] = (
 
 MAX_DURATION_MINUTES = 24 * 60
 
+# 種別ごとに選べる方法の既定（メッセージは相談・苦情だけ、定期面談は電話を除く）
+DEFAULT_METHODS: tuple[str, ...] = (RecordMethod.IN_PERSON, RecordMethod.ONLINE, RecordMethod.PHONE)
+
 
 @dataclass(frozen=True)
 class DetailField:
@@ -226,7 +229,7 @@ def validate(
     *,
     today: datetime.date,
     kinds: Iterable[SupportItem] = RECORD_KINDS,
-    methods: Iterable[str] = tuple(RecordMethod.values),
+    methods: Iterable[str] = DEFAULT_METHODS,
 ) -> dict[str, Any]:
     """入力を検査し、種別ごとの欄を保存する形で返す。エラーは欄の名前ごと。
 
@@ -412,16 +415,19 @@ def add_attachments(
 
 
 def void_record(
-    record: SupportRecord, *, by: User | None, reason: str, with_interview: bool = False
+    record: SupportRecord, *, by: User | None, reason: str, as_part: bool = False
 ) -> None:
     """記録を取り消す（打ち消して残し、集計から外す）。正しい記録は新しく足す。
 
-    定期面談の行は組ごとに取り消す（services.support_interviews.void_interview から呼ぶ）。
+    定期面談の行・相談の受付の行は、組・案件ごとに取り消す（support_interviews.void_interview・
+    consultations.void_consultation から as_part=True で呼ぶ）。
     """
-    if record.interview_id is not None and not with_interview:
+    if record.interview_id is not None and not as_part:
         raise ValidationError(
             _("Void the periodic interview as a whole (both rows)."), code="interview"
         )
+    if hasattr(record, "consultation") and not as_part:
+        raise ValidationError(_("Void the consultation as a whole."), code="consultation")
     if record.voided_at is not None:
         raise ValidationError(_("This record is already voided."), code="voided")
     if not reason.strip():
@@ -440,7 +446,7 @@ def records_of(worker: ForeignWorker) -> models.QuerySet[SupportRecord]:
     """外国人の記録（取り消した記録も含む。新しい順）。"""
     return (
         SupportRecord.objects.filter(worker=worker)
-        .select_related("staff", "plan_version")
+        .select_related("staff", "plan_version", "consultation")
         .prefetch_related("languages")
         .order_by("-occurred_on", models.F("start_time").desc(nulls_last=True), "-pk")
     )

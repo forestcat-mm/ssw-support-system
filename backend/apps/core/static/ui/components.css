@@ -370,6 +370,35 @@ a.badge:hover {
   color: var(--color-ash);
 }
 
+/* 相談の経過（時系列。受付が先頭） */
+.timeline {
+  display: grid;
+  gap: var(--space-16);
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.timeline__item {
+  padding-left: var(--space-16);
+  border-left: 2px solid var(--color-line);
+}
+
+.timeline__item[data-kind="reception"] {
+  border-left-color: var(--color-graphite);
+}
+
+.timeline__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.timeline__item .record-body {
+  margin: var(--space-8) 0 0;
+}
+
 /* --- 入力欄 ------------------------------------------------------------------------- */
 .form {
   display: grid;
