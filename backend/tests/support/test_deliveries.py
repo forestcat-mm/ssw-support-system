@@ -376,6 +376,20 @@ def test_create_attach_and_void_on_screen(
     assert support_staff_client.get(detail_url + "void/").status_code == 404
 
 
+def test_signed_copy_can_be_downloaded(
+    support_staff_client: Client, worker: Any, food_contract: Any
+) -> None:
+    """交付記録の控えは、支援の閲覧権限でダウンロードできる（T22 の対応漏れの修正）。"""
+    delivery = create(worker, career_plan(food_contract), files=[pdf()])
+    attachment = delivery.attachments.get()
+    response = support_staff_client.get(f"/attachments/{attachment.pk}/download/")
+    assert response.status_code == 200
+    assert b"".join(response.streaming_content) == PDF_BYTES  # type: ignore[attr-defined]
+    assert AuditLog.objects.filter(
+        action=AuditAction.DOWNLOAD, object_id=str(attachment.pk)
+    ).exists()
+
+
 def test_after_signing_is_shown_on_screen(
     support_staff_client: Client, worker: Any, food_contract: Any
 ) -> None:

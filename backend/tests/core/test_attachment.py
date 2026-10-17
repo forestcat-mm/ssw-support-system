@@ -2,16 +2,25 @@ import hashlib
 from datetime import date
 
 import pytest
+from django.apps import apps
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client
 
-from apps.core.models import Attachment, AttachmentKind, Organization, User
+from apps.core.models import (
+    Attachment,
+    AttachmentKind,
+    Office,
+    Organization,
+    User,
+    is_attachment_target,
+)
+from services import authorization
 from services.attachments import create_attachment
 from tests.conftest import PDF_BYTES, PNG_BYTES
 
-from .factories import make_organization
+from .factories import make_office, make_organization
 
 pytestmark = pytest.mark.django_db
 
@@ -109,3 +118,33 @@ def test_admin_cannot_add_or_delete_attachment_directly(admin_client: Client) ->
     )
     assert admin_client.get("/admin/core/attachment/add/").status_code == 403
     assert admin_client.get(f"/admin/core/attachment/{attachment.pk}/delete/").status_code == 403
+
+
+def test_every_attachment_target_is_mapped() -> None:
+    """添付を付けられるモデルは、閲覧権限が操作に対応している（漏れると誰もダウンロードできない）。
+
+    添付を保存できるのは GenericRelation(Attachment) を持つモデルだけ（Attachment.save）なので、
+    モデルを足したときの対応漏れはこのテストで見つかる。
+    """
+    targets = [model for model in apps.get_models() if is_attachment_target(model)]
+    assert len(targets) >= 7
+    missing = [
+        f"{model._meta.app_label}.view_{model._meta.model_name}"
+        for model in targets
+        if f"{model._meta.app_label}.view_{model._meta.model_name}"
+        not in authorization.DJANGO_PERMISSION_ACTIONS
+    ]
+    assert missing == []
+
+
+def test_attachment_needs_a_target_with_generic_relation() -> None:
+    """GenericRelation を持たないモデルには添付を保存できない（上のテストから漏れないように）。"""
+    office = make_office(name="本社")
+    assert not is_attachment_target(Office)
+    with pytest.raises(ValueError):
+        create_attachment(
+            target=office,
+            kind=AttachmentKind.SUPPORT_RECORD,
+            file=SimpleUploadedFile("a.pdf", PDF_BYTES, content_type="application/pdf"),
+            created_by=None,
+        )

@@ -154,6 +154,24 @@ class Attachment(TrackedModel):
     def __str__(self) -> str:
         return f"{self.get_kind_display()}: {self.original_filename}"
 
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        # 添付の対象は GenericRelation(Attachment) を持つモデルだけ。対象のモデルの閲覧権限で
+        # ダウンロードを判定するため、対象のモデルはテストで権限の対応表との突き合わせを受ける
+        # （tests/core/test_attachment.py。対応表に無いと誰もダウンロードできない）
+        if self._state.adding:
+            model = self.content_type.model_class()
+            if model is None or not is_attachment_target(model):
+                raise ValueError(f"{model} cannot have attachments (no GenericRelation)")
+        super().save(*args, **kwargs)
+
+
+def is_attachment_target(model: type[models.Model]) -> bool:
+    """添付を付けられるモデル（GenericRelation(Attachment) を持つ）。"""
+    return any(
+        isinstance(field, GenericRelation) and field.related_model is Attachment
+        for field in model._meta.get_fields()
+    )
+
 
 class Organization(TrackedModel):
     """自機関（登録支援機関）。1 行のみ。

@@ -71,9 +71,15 @@ DJANGO_PERMISSION_ACTIONS: dict[str, Action] = {
         add=Action.FILINGS_MANAGE,
         change=Action.FILINGS_MANAGE,
     ),
-    # 支援実績（添付のダウンロードの権限の判定に使う）
+    # 支援実績・交付記録（添付のダウンロードの権限の判定に使う）
     **_model_permissions(
         "support.supportrecord",
+        view=Action.SUPPORT_VIEW,
+        add=Action.SUPPORT_MANAGE,
+        change=Action.SUPPORT_MANAGE,
+    ),
+    **_model_permissions(
+        "support.documentdelivery",
         view=Action.SUPPORT_VIEW,
         add=Action.SUPPORT_MANAGE,
         change=Action.SUPPORT_MANAGE,
