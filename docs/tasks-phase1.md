@@ -93,7 +93,7 @@
 
 ## 段階2 以降の見出し（詳細は着手時に分解）
 - 段階2: SupportPlan / SupportPlanItem / SupportRecord（面談は本人用・上司用で別行）、相談記録の分類、証跡添付、キャリアアッププラン・実務経験証明書の交付記録
-  - パスワードを忘れたときの再設定を業務画面に足す（自社 SMTP でリンクを送る。段階1では `changepassword` コマンドで管理者が仮のパスワードを設定する。`docs/operations.md`）
+  - パスワードを忘れたときの再設定を業務画面に足す（自社 SMTP でリンクを送る。段階1では `changepassword` コマンドで管理者が仮のパスワードを設定する。`docs/operations.md`） → 段階2の T25 で実装（ADR-0013）
   - 外国人の状態を離職・帰国に変えるときの日付（離職日・帰国日）の入力を必須にするか、運用後に判断する（T13d では必須にせず、いつ変えたかは監査ログの前後の値で追う）
   - 外国人詳細の履歴タブに、行ごとの「全桁を表示」を足す（過去の在留カード番号・旅券番号を入管照会や過去書類との突き合わせで使うため。押したときだけ復号し、監査ログに 1 件残す。置き場は `workers/components/history_row.html` の `data-number-actions`）
 - 段階3: forms_engine（FormTemplate / FormMapping / GeneratedDocument）、Word→PDF 変換サービス、支援計画書・事前ガイダンス確認書（日中2言語）、生成前バリデーション
