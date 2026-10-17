@@ -295,9 +295,9 @@ def seed_closed_and_new_report_tasks(ctx: SeedContext) -> None:
 
 
 def _checks(
-    kind: SupportItem, not_applicable: dict[str, str] | None = None
+    ctx: SeedContext, kind: SupportItem, not_applicable: dict[str, str] | None = None
 ) -> dict[str, CheckInput]:
-    checklist = briefings.checklist_for(kind, date.today())
+    checklist = briefings.checklist_for(kind, ctx.base)
     result = {code: CheckInput("done") for code in checklist.item_codes}
     for code, reason in (not_applicable or {}).items():
         result[code] = CheckInput("not_applicable", reason)
@@ -315,7 +315,7 @@ def _briefing(
         "staff": worker.assigned_staff,
         "place": f"受入れ機関の会議室{DUMMY_MARK}",
         "sessions": sessions,
-        "checks": _checks(kind),
+        "checks": _checks(ctx, kind),
         "languages": [worker.support_language],
     }
     if kind == SupportItem.PRE_GUIDANCE:
@@ -357,6 +357,7 @@ def seed_briefings(ctx: SeedContext) -> None:
         SupportItem.ORIENTATION,
         [SessionInput(d(-61), time(9), time(13)), SessionInput(d(-60), time(9), time(13))],
         checks=_checks(
+            ctx,
             SupportItem.ORIENTATION,
             {
                 "4.a.9": f"本人に子どもがいない{DUMMY_MARK}",
