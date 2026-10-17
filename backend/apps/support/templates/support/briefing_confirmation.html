@@ -1,0 +1,19 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Attach the signed confirmation" %} | {{ worker }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{% url 'workers:support_briefing' worker.pk briefing.pk %}">← {{ briefing.record.get_kind_display }} {{ briefing.record.occurred_on|date:"Y-m-d" }}</a></p>
+  <h1>{% translate "Attach the signed confirmation" %}</h1>
+{% endblock %}
+{% block content %}
+<form class="form" method="post" enctype="multipart/form-data" novalidate id="confirmation-form">
+  {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+  {% include "ui/components/form_errors.html" %}
+  <section class="card stack">
+    {% for field in form %}{% form_field field %}{% endfor %}
+  </section>
+  <div class="form-actions">
+    <button class="button button--primary" type="submit">{% translate "Add" %}</button>
+    <a class="button button--neutral" href="{% url 'workers:support_briefing' worker.pk briefing.pk %}">{% translate "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

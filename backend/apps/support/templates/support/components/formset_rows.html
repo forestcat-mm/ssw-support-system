@@ -1,0 +1,11 @@
+{% load i18n ui %}{# 行を足せる入力（Django の formset）。「行を足す」は forms.js が空の行の雛形（template）を複製する #}
+<section class="{% if nested %}stack{% else %}card stack{% endif %}" id="{{ id }}" data-formset="{{ formset.prefix }}">
+  {% if nested %}<h3>{{ title }}</h3>{% else %}<h2>{{ title }}</h2>{% endif %}
+  {{ formset.management_form }}
+  {% if formset.non_form_errors %}<ul class="messages" role="alert">{% for error in formset.non_form_errors %}<li class="message message--error">{{ error }}</li>{% endfor %}</ul>{% endif %}
+  <ol class="formset-rows" data-formset-rows>
+    {% for row in formset %}{% include "support/components/formset_row.html" with form=row %}{% endfor %}
+  </ol>
+  <template data-formset-template>{% include "support/components/formset_row.html" with form=formset.empty_form %}</template>
+  <div><button class="button button--neutral button--small" type="button" data-formset-add hidden>{{ add_label }}</button></div>
+</section>

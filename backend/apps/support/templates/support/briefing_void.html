@@ -1,0 +1,22 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Void a support record" %} | {{ worker }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{% url 'workers:support_briefing' worker.pk briefing.pk %}">← {{ worker }}</a></p>
+  <h1>{% translate "Void a support record" %}</h1>
+{% endblock %}
+{% block content %}
+<div class="stack form">
+  <section class="card">
+    {% include "support/components/record_fields.html" with record=briefing.record details=None %}
+  </section>
+  <p class="message message--warning">{% translate "The record is voided and no longer counted. The dates and times, the checklist and the attachments stay. This cannot be undone. To correct it, add a new record." %}</p>
+  <form class="form" method="post" novalidate id="void-form">
+    {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+    {% for field in form %}{% form_field field %}{% endfor %}
+    <div class="form-actions">
+      <button class="button button--danger" type="submit">{% translate "Void" %}</button>
+      <a class="button button--neutral" href="{% url 'workers:support_briefing' worker.pk briefing.pk %}">{% translate "Cancel" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

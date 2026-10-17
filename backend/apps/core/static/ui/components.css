@@ -256,6 +256,11 @@ a.badge:hover {
   overflow-wrap: anywhere; /* 長いメールアドレスなどでカードからはみ出さない */
 }
 
+/* 長い項目名がある一覧: 項目名の列を 14em までにして折り返す（狭い画面ではみ出さない） */
+.fields--long-labels {
+  grid-template-columns: fit-content(14em) minmax(0, 1fr);
+}
+
 /* --- 表 ----------------------------------------------------------------------------- */
 .table-wrap {
   background: var(--color-surface);
@@ -704,4 +709,100 @@ a.badge:hover {
 
 .plan-hours .input {
   min-width: 7rem;
+}
+
+/* --- 事前ガイダンス・生活オリエンテーション（T21）: 行を足せる入力・チェックリスト ------------------ */
+.formset-rows {
+  display: grid;
+  gap: var(--space-12);
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.formset-row {
+  border-top: 1px solid var(--color-line);
+  padding-top: var(--space-12);
+}
+
+.formset-row:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+/* 実施日時は 3 列（日付・から・まで）、費用は 2 列。狭い画面は 1 列 */
+.formset-row__fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-8) var(--space-16);
+  align-items: start;
+}
+
+.briefing-row--session .formset-row__fields {
+  grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 599px) {
+  .formset-row__fields,
+  .briefing-row--session .formset-row__fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.checklist-section {
+  margin: 0;
+  padding: var(--space-12) 0 0;
+  border: 0;
+  border-top: 1px solid var(--color-line);
+  min-width: 0;
+}
+
+.checklist-section__title {
+  padding: 0;
+  font-weight: 600;
+}
+
+.checklist-item {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-8) 0;
+}
+
+.checklist-item__label {
+  margin: 0;
+}
+
+.checklist-item__choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-16);
+}
+
+.checklist-item .input {
+  margin: 0;
+}
+
+/* 詳細: 欄と細目の状態 */
+.checklist-view {
+  display: grid;
+  gap: var(--space-12);
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.checklist-view__items {
+  display: grid;
+  gap: var(--space-4);
+  margin: var(--space-4) 0 0;
+  padding-left: var(--space-16);
+  list-style: none;
+}
+
+.checklist-view__items [data-status=""] {
+  color: var(--notice-error-fg);
+}
+
+.message--strong {
+  font-weight: 600;
 }

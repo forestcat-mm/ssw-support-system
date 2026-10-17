@@ -230,10 +230,12 @@ def validate(
     today: datetime.date,
     kinds: Iterable[SupportItem] = RECORD_KINDS,
     methods: Iterable[str] = DEFAULT_METHODS,
+    require_body: bool = True,
 ) -> dict[str, Any]:
     """入力を検査し、種別ごとの欄を保存する形で返す。エラーは欄の名前ごと。
 
     kinds・methods は記録できる種別・方法（定期面談は電話を除く。T19）。
+    require_body=False は本文を任意にする（事前ガイダンス等は細目のチェックが内容。T21）。
     """
     errors: dict[str, list[ValidationError]] = {}
 
@@ -270,7 +272,7 @@ def validate(
         )
     if data.body_language not in BodyLanguage.values:
         add("body_language", _("Select a valid choice."), "invalid_choice")
-    if not data.body.strip():
+    if require_body and not data.body.strip():
         add("body", _("This field is required."), "required")
     details: dict[str, Any] = {}
     try:
@@ -419,8 +421,9 @@ def void_record(
 ) -> None:
     """記録を取り消す（打ち消して残し、集計から外す）。正しい記録は新しく足す。
 
-    定期面談の行・相談の受付の行は、組・案件ごとに取り消す（support_interviews.void_interview・
-    consultations.void_consultation から as_part=True で呼ぶ）。
+    定期面談の行・相談の受付の行・事前ガイダンス等の行は、それぞれの画面から取り消す
+    （support_interviews.void_interview・consultations.void_consultation・briefings.void_briefing
+    から as_part=True で呼ぶ）。
     """
     if record.interview_id is not None and not as_part:
         raise ValidationError(
@@ -428,6 +431,10 @@ def void_record(
         )
     if hasattr(record, "consultation") and not as_part:
         raise ValidationError(_("Void the consultation as a whole."), code="consultation")
+    if hasattr(record, "briefing") and not as_part:
+        raise ValidationError(
+            _("Void it on the page of the guidance or orientation."), code="briefing"
+        )
     if record.voided_at is not None:
         raise ValidationError(_("This record is already voided."), code="voided")
     if not reason.strip():
@@ -446,7 +453,7 @@ def records_of(worker: ForeignWorker) -> models.QuerySet[SupportRecord]:
     """外国人の記録（取り消した記録も含む。新しい順）。"""
     return (
         SupportRecord.objects.filter(worker=worker)
-        .select_related("staff", "plan_version", "consultation")
+        .select_related("staff", "plan_version", "consultation", "briefing")
         .prefetch_related("languages")
         .order_by("-occurred_on", models.F("start_time").desc(nulls_last=True), "-pk")
     )

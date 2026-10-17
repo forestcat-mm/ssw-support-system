@@ -23,9 +23,11 @@ from apps.core.models import Action, Attachment, User
 from apps.core.permissions import ActionRequiredMixin
 from apps.core.web_forms import consume_once_token
 from apps.filings.models import Filing
-from apps.support.models import Consultation, PeriodicInterview, SupportRecord
+from apps.support.models import Briefing, Consultation, PeriodicInterview, SupportRecord
 from apps.support.record_forms import (
     AttachmentForm,
+    BriefingEditor,
+    ConfirmationForm,
     ConsultationFilterForm,
     EntryForm,
     InterviewEditor,
@@ -40,6 +42,7 @@ from services import (
     attachments,
     audit,
     authorization,
+    briefings,
     consultations,
     support_interviews,
     support_records,
@@ -106,6 +109,13 @@ class RecordListView(RecordTabMixin, WorkerDetailView):
             filtered=any(filters.values()),
             page_query=urlencode(query),
             record_kinds=support_records.RECORD_KINDS,
+            briefing_kinds=briefings.BRIEFING_KINDS,
+            signed_record_ids={
+                record.pk
+                for record in page.object_list
+                if hasattr(record, "briefing")
+                and briefings.is_signed(record.briefing, record.attachments.all())
+            },
             can_manage_support=self.can_manage_support(),
             support_subtab="records",
         )
@@ -147,9 +157,13 @@ class RecordFormView(WorkerFormView):
         return get_object_or_404(SupportRecord, pk=record_id, worker=worker, voided_at__isnull=True)
 
     def single_record(self, worker: ForeignWorker, record_id: int) -> SupportRecord:
-        """1 行ずつ取り消せる記録（定期面談の行・相談の受付は、組・案件ごとに取り消す）。"""
+        """1 行ずつ取り消せる記録（面談・相談・事前ガイダンス等は、それぞれの画面で取り消す）。"""
         record = self.record(worker, record_id)
-        if record.interview_id is not None or hasattr(record, "consultation"):
+        if (
+            record.interview_id is not None
+            or hasattr(record, "consultation")
+            or hasattr(record, "briefing")
+        ):
             raise Http404
         return record
 
@@ -655,3 +669,173 @@ class ConsultationListView(ActionRequiredMixin, TemplateView):
             page_query=urlencode(query),
         )
         return context
+
+
+# --- 事前ガイダンス・生活オリエンテーション（T21）---------------------------------------------
+
+
+def briefing_url(briefing: Briefing) -> str:
+    return reverse("workers:support_briefing", args=[briefing.worker_id, briefing.pk])
+
+
+class BriefingMixin:
+    def briefing_of(self, worker: ForeignWorker, briefing_id: int) -> Briefing:
+        return get_object_or_404(briefings.briefings_of(worker), pk=briefing_id)
+
+    def open_briefing(self, worker: ForeignWorker, briefing_id: int) -> Briefing:
+        """取り消していない記録（取り消した記録には添付・取消をしない）。"""
+        briefing = self.briefing_of(worker, briefing_id)
+        if briefing.record.voided_at is not None:
+            raise Http404
+        return briefing
+
+
+class BriefingCreateView(RecordFormView):
+    """事前ガイダンス・生活オリエンテーションの記録（実施日時の行・チェックリスト・費用・署名済みの確認書）。"""
+
+    template_name = "support/briefing_form.html"
+
+    def kind(self, value: str) -> SupportItem:
+        kind = next((kind for kind in briefings.BRIEFING_KINDS if kind.value == value), None)
+        if kind is None:
+            raise Http404
+        return kind
+
+    def page(
+        self, request: HttpRequest, worker: ForeignWorker, editor: BriefingEditor
+    ) -> HttpResponse:
+        return self.render(
+            request,
+            worker=worker,
+            editor=editor,
+            form=editor.form,
+            title=_("Record: %(kind)s") % {"kind": editor.kind.label},
+            duration=editor.checklist.duration,
+            guideline_hours=briefings.hours_text(editor.checklist.duration.guideline_minutes),
+            minimum_hours=briefings.hours_text(editor.checklist.duration.minimum_minutes),
+            back_url=records_url(worker),
+        )
+
+    def get(self, request: HttpRequest, pk: int, kind: str) -> HttpResponse:
+        worker = self.worker(request, pk)
+        return self.page(request, worker, BriefingEditor(worker, self.kind(kind)))
+
+    def post(self, request: HttpRequest, pk: int, kind: str) -> HttpResponse:
+        worker = self.worker(request, pk)
+        item = self.kind(kind)
+        if not consume_once_token(request):
+            return self.already_submitted(request, records_url(worker))
+        editor = BriefingEditor(worker, item, request.POST, request.FILES)
+        if editor.is_valid():
+            try:
+                briefing = briefings.create_briefing(
+                    worker,
+                    editor.to_input(),
+                    by=_actor(request),
+                    confirmations=editor.confirmations(),
+                )
+            except ValidationError as error:
+                editor.apply_errors(error)
+            else:
+                messages.success(request, _("Saved the support record."))
+                return redirect(briefing_url(briefing))
+        return self.page(request, worker, editor)
+
+
+class BriefingDetailView(BriefingMixin, RecordTabMixin, WorkerDetailView):
+    """記録 1 件（実施日時・チェックリスト・費用・署名済みの確認書・警告）。"""
+
+    tab = "support"
+    template_name = "support/briefing_detail.html"
+
+    def tab_context(self, context: dict[str, Any]) -> dict[str, Any]:
+        briefing = self.briefing_of(self.worker, self.kwargs["briefing_id"])
+        record = briefing.record
+        files = list(record.attachments.select_related("created_by", "voided_by").order_by("pk"))
+        open_record = self.can_manage_support() and record.voided_at is None
+        context.update(
+            briefing=briefing,
+            record=record,
+            sessions=list(briefing.sessions.all()),
+            total_minutes=briefings.total_minutes(briefing),
+            sections=briefings.checklist_states(briefing),
+            counts=briefings.check_counts(briefing),
+            checklist=briefings.checklist_of(briefing),
+            fees=list(briefing.fees.all()),
+            briefing_warnings=briefings.warnings(briefing),
+            confirmation_kind=briefings.CONFIRMATION_KINDS[SupportItem(record.kind)],
+            files=files,
+            can_change_record=open_record,
+            support_subtab="records",
+        )
+        return {
+            "shown": {
+                "briefing": briefing.pk,
+                "support_record": record.pk,
+                "attachments": [file.pk for file in files],
+            }
+        }
+
+
+class BriefingConfirmationView(BriefingMixin, RecordFormView):
+    """署名済みの確認書を後から添付する（署名日は必須）。"""
+
+    template_name = "support/briefing_confirmation.html"
+
+    def get(self, request: HttpRequest, pk: int, briefing_id: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        briefing = self.open_briefing(worker, briefing_id)
+        return self.render(request, worker=worker, briefing=briefing, form=ConfirmationForm())
+
+    def post(self, request: HttpRequest, pk: int, briefing_id: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        briefing = self.open_briefing(worker, briefing_id)
+        if not consume_once_token(request):
+            return self.already_submitted(request, briefing_url(briefing))
+        form = ConfirmationForm(request.POST, request.FILES)
+        if form.is_valid():
+            try:
+                briefings.add_confirmation(
+                    briefing,
+                    form.cleaned_data["confirmation"],
+                    signed_on=form.cleaned_data["signed_on"],
+                    by=_actor(request),
+                )
+            except ValidationError as error:
+                form.apply_errors(error)
+            else:
+                messages.success(request, _("Attached the signed confirmation."))
+                return redirect(briefing_url(briefing))
+        return self.render(request, worker=worker, briefing=briefing, form=form)
+
+
+class BriefingVoidView(BriefingMixin, RecordFormView):
+    """取消（理由は必須）。チェック・実施日時・費用・添付は残る。"""
+
+    template_name = "support/briefing_void.html"
+
+    def form(self, data: Any = None) -> ReasonForm:
+        return ReasonForm(data, help_text=_("Example: the record of another person."))
+
+    def get(self, request: HttpRequest, pk: int, briefing_id: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        briefing = self.open_briefing(worker, briefing_id)
+        return self.render(request, worker=worker, briefing=briefing, form=self.form())
+
+    def post(self, request: HttpRequest, pk: int, briefing_id: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        briefing = self.open_briefing(worker, briefing_id)
+        if not consume_once_token(request):
+            return self.already_submitted(request, briefing_url(briefing))
+        form = self.form(request.POST)
+        if form.is_valid():
+            try:
+                briefings.void_briefing(
+                    briefing, by=_actor(request), reason=form.cleaned_data["reason"]
+                )
+            except ValidationError as error:
+                form.add_error("reason", error)
+            else:
+                messages.success(request, _("Voided the support record."))
+                return redirect(briefing_url(briefing))
+        return self.render(request, worker=worker, briefing=briefing, form=form)

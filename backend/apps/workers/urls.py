@@ -90,6 +90,26 @@ urlpatterns = [
         record_views.ConsultationVoidView.as_view(),
         name="support_consultation_void",
     ),
+    path(
+        "<int:pk>/support/briefings/new/<str:kind>/",
+        record_views.BriefingCreateView.as_view(),
+        name="support_briefing_create",
+    ),
+    path(
+        "<int:pk>/support/briefings/<int:briefing_id>/",
+        record_views.BriefingDetailView.as_view(),
+        name="support_briefing",
+    ),
+    path(
+        "<int:pk>/support/briefings/<int:briefing_id>/confirmation/",
+        record_views.BriefingConfirmationView.as_view(),
+        name="support_briefing_confirmation",
+    ),
+    path(
+        "<int:pk>/support/briefings/<int:briefing_id>/void/",
+        record_views.BriefingVoidView.as_view(),
+        name="support_briefing_void",
+    ),
     path("<int:pk>/deactivate/", views.WorkerDeactivateView.as_view(), name="deactivate"),
     path("<int:pk>/reactivate/", views.WorkerReactivateView.as_view(), name="reactivate"),
     path(

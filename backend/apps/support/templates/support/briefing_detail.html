@@ -1,0 +1,80 @@
+{% extends "workers/detail_base.html" %}{% load i18n ui %}
+{% block tab_content %}
+{% include "support/subtabs.html" %}
+<div class="stack" style="margin-top: var(--space-16)">
+  <p class="caption"><a href="{% url 'workers:support_records' worker.pk %}">← {% translate "Back to records" %}</a></p>
+  {% if record.voided_at %}
+  <p class="message message--warning" role="status" id="record-voided">{% blocktranslate with day=record.voided_at|date:"Y-m-d H:i" by=record.voided_by.get_username|default:"—" reason=record.void_reason %}This record was voided on {{ day }} by {{ by }}. Reason: {{ reason }}. It is not counted.{% endblocktranslate %}</p>
+  {% endif %}
+  {% if briefing_warnings %}
+  <ul class="messages" id="briefing-warnings">{% for warning in briefing_warnings %}<li class="message message--warning{% if warning.strong %} message--strong{% endif %}" data-warning="{{ warning.code }}">{{ warning.message }}</li>{% endfor %}</ul>
+  {% endif %}
+  <section class="card{% if record.voided_at %} is-voided{% endif %}" id="briefing">
+    <div class="card__header">
+      <h2 class="card__title">{{ record.get_kind_display }}</h2>
+      {% if can_change_record %}<a class="button button--danger button--small" href="{% url 'workers:support_briefing_void' worker.pk briefing.pk %}">{% translate "Void" %}</a>{% endif %}
+    </div>
+    {% include "support/components/record_fields.html" with details=None %}
+    <dl class="fields fields--long-labels" id="briefing-fields">
+      <dt>{% translate "place" %}</dt><dd>{{ briefing.place }}</dd>
+      <dt>{% translate "interpreter (name and affiliation)" %}</dt><dd>{{ briefing.interpreter|default:"—" }}</dd>
+      {% if record.kind == "orientation" %}<dt>{% translate "explained legal protection (name and affiliation)" %}</dt><dd>{{ briefing.legal_info_provider|default:_("same as the staff in charge") }}</dd>{% endif %}
+      {% if record.method == "online" and record.kind == "pre_guidance" %}<dt>{% translate "identity of the worker confirmed" %}</dt><dd>{% if briefing.identity_confirmed %}{% translate "yes" %}{% else %}{% translate "no" %}{% endif %}</dd>{% endif %}
+      <dt>{% translate "continuing at the same organization without a change in living environment" %}</dt><dd>{% if briefing.continuing_employment %}{% translate "yes" %}{% else %}{% translate "no" %}{% endif %}</dd>
+      <dt>{% translate "date of signature" %}</dt><dd class="mono">{{ briefing.signed_on|date:"Y-m-d"|default:"—" }}</dd>
+    </dl>
+    {% if record.body %}<h3 style="margin-top: var(--space-16)">{% translate "notes" %}</h3>
+    <p class="record-body" lang="{{ record.body_language }}">{{ record.body|linebreaksbr }}</p>{% endif %}
+    <p class="caption">{% blocktranslate with by=record.created_by.get_username|default:"—" at=record.created_at|date:"Y-m-d H:i" %}Recorded by {{ by }} at {{ at }}{% endblocktranslate %}</p>
+  </section>
+
+  <section class="card" id="briefing-sessions">
+    <div class="card__header"><h2 class="card__title">{% translate "Dates and times" %}</h2>
+      <span class="caption" data-total-minutes="{{ total_minutes }}">{% blocktranslate count counter=total_minutes %}{{ counter }} minute in total{% plural %}{{ counter }} minutes in total{% endblocktranslate %}</span></div>
+    <div class="table-wrap"><div class="table-scroll"><table class="table table--list">
+      <thead><tr><th>{% translate "date" %}</th><th>{% translate "starts at" %}</th><th>{% translate "ends at" %}</th><th>{% translate "duration (minutes)" %}</th></tr></thead>
+      <tbody>{% for session in sessions %}<tr><td class="mono">{{ session.occurred_on|date:"Y-m-d" }}</td><td class="mono">{{ session.start_time|time:"H:i" }}</td><td class="mono">{{ session.end_time|time:"H:i" }}</td><td class="mono">{{ session.minutes }}</td></tr>{% endfor %}</tbody>
+    </table></div></div>
+  </section>
+
+  <section class="card" id="briefing-checklist">
+    <div class="card__header"><h2 class="card__title">{% translate "Items explained" %}</h2>
+      <span class="caption" id="briefing-counts" data-done="{{ counts.done }}" data-not-applicable="{{ counts.not_applicable }}" data-missing="{{ counts.missing }}">{% blocktranslate with done=counts.done na=counts.not_applicable missing=counts.missing %}explained {{ done }} · not applicable {{ na }} · not checked {{ missing }}{% endblocktranslate %}</span></div>
+    <ol class="checklist-view">{% for state in sections %}
+      <li data-section="{{ state.section.code }}" data-complete="{{ state.complete|yesno:'true,false' }}">
+        <strong>{% if state.complete %}✓{% else %}—{% endif %} {% if state.section.form_number %}<span class="mono">{{ state.section.form_number }}.</span> {% endif %}{{ state.section.title }}</strong>
+        <ul class="checklist-view__items">{% for item in state.items %}
+          <li data-item="{{ item.item.code }}" data-status="{{ item.status }}"><span class="mono caption">{{ item.item.code }}</span> {{ item.item.label }} — {% if item.check %}{{ item.check.get_status_display }}{% if item.check.reason %}（{{ item.check.reason }}）{% endif %}{% else %}{% translate "not checked" %}{% endif %}</li>
+        {% endfor %}</ul>
+      </li>{% endfor %}
+    </ol>
+    <p class="caption">{% blocktranslate with version=checklist.version form=checklist.form %}Checklist version {{ version }} ({{ form }}){% endblocktranslate %}</p>
+  </section>
+
+  {% if record.kind == "pre_guidance" %}
+  <section class="card" id="briefing-fees">
+    <div class="card__header"><h2 class="card__title">{% translate "Deposits and fees paid abroad" %}</h2></div>
+    <dl class="fields fields--long-labels">
+      <dt>{% translate "contract on a deposit or penalty" %}</dt><dd>{{ briefing.get_deposit_contract_display|default:"—" }}{% if briefing.deposit_collector %}（{{ briefing.deposit_collector }}: {{ briefing.deposit_detail }}）{% endif %}</dd>
+      <dt>{% translate "fees paid to organizations abroad" %}</dt><dd>{{ briefing.get_foreign_fees_display|default:"—" }}</dd>
+      {% if briefing.foreign_fees == "paid" %}<dt>{% translate "understood and agreed on the amount and breakdown" %}</dt><dd>{% if briefing.fees_agreed %}{% translate "yes" %}{% else %}{% translate "no" %}{% endif %}</dd>{% endif %}
+    </dl>
+    {% if fees %}<div class="table-wrap"><div class="table-scroll"><table class="table table--list" id="briefing-fee-table">
+      <thead><tr><th>{% translate "name of the organization abroad" %}</th><th>{% translate "paid on" %}</th><th>{% translate "amount (converted into yen)" %}</th><th>{% translate "breakdown" %}</th></tr></thead>
+      <tbody>{% for fee in fees %}<tr><td>{{ fee.organization_name }}</td><td class="mono">{{ fee.paid_on|date:"Y-m-d" }}</td><td class="mono">{{ fee.amount_jpy }}</td><td>{{ fee.breakdown }}</td></tr>{% endfor %}</tbody>
+    </table></div></div>{% endif %}
+  </section>
+  {% endif %}
+
+  <section class="card" id="record-attachments">
+    <div class="card__header">
+      <h2 class="card__title">{% translate "Signed confirmation and attachments" %}</h2>
+      {% if can_change_record %}<span class="cluster">
+        <a class="button button--primary button--small" href="{% url 'workers:support_briefing_confirmation' worker.pk briefing.pk %}">{% translate "Attach the signed confirmation" %}</a>
+        <a class="button button--neutral button--small" href="{% url 'workers:support_record_attach' worker.pk record.pk %}">{% translate "Add attachments" %}</a>
+      </span>{% endif %}
+    </div>
+    {% include "support/components/attachment_list.html" %}
+  </section>
+</div>
+{% endblock %}

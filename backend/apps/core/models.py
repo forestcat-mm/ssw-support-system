@@ -99,6 +99,15 @@ class AttachmentKind(models.TextChoices):
         "support_record",
         _("Evidence of support (signed confirmation, photo, etc.)"),
     )
+    # 署名済みの確認書（第6章「署名を要する書類の扱い」。段階3で生成履歴に紐づける。T21）
+    PRE_GUIDANCE_CONFIRMATION = (
+        "pre_guidance_confirmation",
+        _("Signed confirmation of the pre-entry guidance (reference form 5-9)"),
+    )
+    ORIENTATION_CONFIRMATION = (
+        "orientation_confirmation",
+        _("Signed confirmation of the life orientation (reference form 5-8)"),
+    )
 
 
 class Attachment(TrackedModel):

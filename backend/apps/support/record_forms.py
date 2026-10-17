@@ -1,4 +1,4 @@
-"""支援実績の画面のフォーム（T18）。型の検査だけを行い、記録の検査は services.support_records。"""
+"""支援実績の画面のフォーム（T18〜T21）。型の検査だけを行い、記録の検査はサービス（services）。"""
 
 from __future__ import annotations
 
@@ -15,14 +15,17 @@ from apps.support.forms import StaffChoiceField, active_staff
 from apps.support.models import (
     OPEN_CONSULTATION_STATUSES,
     BodyLanguage,
+    CheckStatus,
     ConsultationCategory,
     ConsultationStatus,
     Counterpart,
+    DepositContract,
+    ForeignFees,
     RecordMethod,
     ReportDestination,
 )
 from apps.workers.models import ForeignWorker
-from services import support_records
+from services import briefings, support_records
 from services.consultations import CONSULTATION_METHODS, EntryInput, ReceptionInput
 from services.support_catalog import SupportItem
 from services.support_interviews import INTERVIEW_METHODS, InterviewInput
@@ -581,3 +584,371 @@ class ConsultationFilterForm(StyledFormMixin, forms.Form):
     def statuses(self) -> tuple[str, ...]:
         key = self.cleaned_data.get("status") or STATUS_OPEN if self.is_bound else STATUS_OPEN
         return tuple(STATUS_FILTERS.get(key, STATUS_FILTERS[STATUS_OPEN])[1])
+
+
+# --- 事前ガイダンス・生活オリエンテーション（T21）---------------------------------------------
+
+
+class SessionForm(StyledFormMixin, forms.Form):
+    """実施日時の 1 行（確認書の「年月日 時分から時分まで」）。"""
+
+    occurred_on = forms.DateField(label=_("date"), widget=forms.DateInput)
+    start_time = forms.TimeField(
+        label=_("starts at"), widget=forms.TimeInput(attrs={"type": "time"}, format="%H:%M")
+    )
+    end_time = forms.TimeField(
+        label=_("ends at"), widget=forms.TimeInput(attrs={"type": "time"}, format="%H:%M")
+    )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.style_fields()
+
+
+class FeeForm(StyledFormMixin, forms.Form):
+    """外国の機関に支払った費用の 1 行。"""
+
+    organization_name = forms.CharField(label=_("name of the organization abroad"), max_length=200)
+    paid_on = forms.DateField(label=_("paid on"), widget=forms.DateInput)
+    amount_jpy = forms.IntegerField(label=_("amount (converted into yen)"), min_value=1)
+    breakdown = forms.CharField(
+        label=_("breakdown"),
+        max_length=500,
+        help_text=_("Example: placement fee 150,000 yen, training fee 50,000 yen."),
+    )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.style_fields()
+
+
+SessionFormSet = forms.formset_factory(SessionForm, extra=0, min_num=1)
+FeeFormSet = forms.formset_factory(FeeForm, extra=1)
+
+AGREED_CHOICES = [("yes", _("understood and agreed")), ("no", _("not agreed"))]
+CHECK_CHOICES = [
+    ("", _("not checked")),
+    (CheckStatus.DONE.value, CheckStatus.DONE.label),
+    (CheckStatus.NOT_APPLICABLE.value, CheckStatus.NOT_APPLICABLE.label),
+]
+
+
+def _check_name(code: str) -> str:
+    return "check_" + code.replace(".", "_")
+
+
+def _reason_name(code: str) -> str:
+    return "reason_" + code.replace(".", "_")
+
+
+class BriefingForm(StyledFormMixin, forms.Form):
+    """事前ガイダンス・生活オリエンテーションの欄（実施日時・費用の行は別の formset）。
+
+    細目のチェックは check_<符号>（未・説明した・該当なし）と reason_<符号>（該当なしの理由）。
+    """
+
+    method = forms.ChoiceField(label=_("method"), choices=(), widget=forms.RadioSelect)
+    meeting_url = forms.URLField(
+        label=_("online meeting URL"), required=False, max_length=500, assume_scheme="https"
+    )
+    identity_confirmed = forms.BooleanField(
+        label=_("identity of the worker confirmed"),
+        required=False,
+        help_text=_("Required for online guidance (video call)."),
+    )
+    staff = StaffChoiceField(label=_("explained by"), queryset=Staff.objects.none())
+    place = forms.CharField(
+        label=_("place"),
+        max_length=200,
+        help_text=_("Example: meeting room of the host organization / online (our office)."),
+    )
+    languages = forms.ModelMultipleChoiceField(
+        label=_("languages used"),
+        queryset=SupportLanguage.objects.none(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
+    interpreter = forms.CharField(
+        label=_("interpreter (name and affiliation)"),
+        max_length=200,
+        required=False,
+        help_text=_("Only when someone other than the staff in charge interpreted."),
+    )
+    legal_info_provider = forms.CharField(
+        label=_("explained legal protection (name and affiliation)"),
+        max_length=200,
+        required=False,
+        help_text=_("Only when someone other than the staff in charge explained item 6."),
+    )
+    continuing_employment = forms.BooleanField(
+        label=_("continuing at the same organization without a change in living environment"),
+        required=False,
+        help_text=_(
+            "Example: a technical intern or student who continues at the same organization. "
+            "Only the minimum time is checked."
+        ),
+    )
+    deposit_contract = forms.ChoiceField(
+        label=_("contract on a deposit or penalty (declared by the worker)"),
+        choices=DepositContract.choices,
+        widget=forms.RadioSelect,
+        required=False,
+    )
+    deposit_collector = forms.CharField(
+        label=_("organization collecting the deposit or managing property"),
+        max_length=200,
+        required=False,
+    )
+    deposit_detail = forms.CharField(
+        label=_("deposit amount or property managed"), max_length=200, required=False
+    )
+    foreign_fees = forms.ChoiceField(
+        label=_("fees paid to organizations abroad (placement, preparation)"),
+        choices=ForeignFees.choices,
+        widget=forms.RadioSelect,
+        required=False,
+    )
+    fees_agreed = forms.ChoiceField(
+        label=_("understood and agreed on the amount and breakdown"),
+        choices=AGREED_CHOICES,
+        widget=forms.RadioSelect,
+        required=False,
+    )
+    body_language = forms.ChoiceField(
+        label=_("language of the details"), choices=BodyLanguage.choices
+    )
+    body = forms.CharField(
+        label=_("notes"),
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 4}),
+        help_text=_("Optional. Example: questions from the worker and the answers."),
+    )
+    signed_on = forms.DateField(
+        label=_("date of signature"),
+        required=False,
+        widget=forms.DateInput,
+        help_text=_("Enter when attaching the signed confirmation."),
+    )
+    confirmation = MultipleFileField(
+        label=_("signed confirmation (scan)"),
+        required=False,
+        help_text=_("PDF, PNG or JPEG, up to 10 MB each. You can also attach it later."),
+    )
+
+    MAIN = (
+        "method",
+        "meeting_url",
+        "identity_confirmed",
+        "staff",
+        "place",
+        "languages",
+        "interpreter",
+        "legal_info_provider",
+        "continuing_employment",
+    )
+    DEPOSIT = ("deposit_contract", "deposit_collector", "deposit_detail")
+    FEES = ("foreign_fees", "fees_agreed")
+    BODY = ("body_language", "body")
+    SIGNATURE = ("signed_on", "confirmation")
+    GUIDANCE_ONLY = ("identity_confirmed", *DEPOSIT, *FEES)
+
+    def __init__(self, *args: Any, kind: SupportItem, checklist: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.kind = kind
+        self.checklist = checklist
+        method = self.fields["method"]
+        assert isinstance(method, forms.ChoiceField)
+        allowed = briefings.METHODS[kind]
+        method.choices = [(v, label) for v, label in RecordMethod.choices if v in allowed]
+        if kind == SupportItem.PRE_GUIDANCE:
+            del self.fields["legal_info_provider"]
+        else:
+            for name in self.GUIDANCE_ONLY:
+                del self.fields[name]
+        self.fields["staff"].queryset = active_staff()  # type: ignore[attr-defined]
+        self.fields["languages"].queryset = SupportLanguage.objects.filter(  # type: ignore[attr-defined]
+            is_active=True
+        )
+        for item in checklist.items:
+            self.fields[_check_name(item.code)] = forms.ChoiceField(
+                label=item.label, choices=CHECK_CHOICES, required=False, widget=forms.RadioSelect
+            )
+            self.fields[_reason_name(item.code)] = forms.CharField(
+                label=_("reason for not applicable"), max_length=200, required=False
+            )
+        self.style_fields()
+
+    @property
+    def is_guidance(self) -> bool:
+        return self.kind == SupportItem.PRE_GUIDANCE
+
+    def group(self, names: tuple[str, ...]) -> list[forms.BoundField]:
+        return [self[name] for name in names if name in self.fields]
+
+    def main_fields(self) -> list[forms.BoundField]:
+        return self.group(self.MAIN)
+
+    def deposit_fields(self) -> list[forms.BoundField]:
+        return self.group(self.DEPOSIT)
+
+    def fee_fields(self) -> list[forms.BoundField]:
+        return self.group(self.FEES)
+
+    def body_fields(self) -> list[forms.BoundField]:
+        return self.group(self.BODY)
+
+    def signature_fields(self) -> list[forms.BoundField]:
+        return self.group(self.SIGNATURE)
+
+    def checklist_rows(self) -> list[tuple[Any, list[tuple[Any, Any, Any]]]]:
+        """欄ごとの（欄, [(細目, チェックの欄, 理由の欄)]）。"""
+        return [
+            (
+                section,
+                [
+                    (item, self[_check_name(item.code)], self[_reason_name(item.code)])
+                    for item in section.items
+                ],
+            )
+            for section in self.checklist.sections
+        ]
+
+    def checks(self) -> dict[str, briefings.CheckInput]:
+        data = self.cleaned_data
+        result = {}
+        for code in self.checklist.item_codes:
+            status = data.get(_check_name(code)) or ""
+            if status:
+                result[code] = briefings.CheckInput(
+                    status=status, reason=data.get(_reason_name(code)) or ""
+                )
+        return result
+
+    def field_for_error(self, key: str) -> str | None:
+        """サービスのエラーのキー（"checks.4.a.1" など）から入力欄の名前。"""
+        if key.startswith("checks."):
+            code = key.removeprefix("checks.")
+            name = _reason_name(code)
+            return name if name in self.fields else None
+        return key if key in self.fields else None
+
+
+class BriefingEditor:
+    """事前ガイダンス・生活オリエンテーションの画面のフォーム（欄・実施日時の行・費用の行）を束ねる。"""
+
+    def __init__(
+        self, worker: ForeignWorker, kind: SupportItem, data: Any = None, files: Any = None
+    ) -> None:
+        today = timezone.localdate()
+        self.kind = kind
+        self.checklist = briefings.checklist_for(kind, today)
+        language = worker.support_language
+        initial = {
+            "method": RecordMethod.IN_PERSON,
+            "staff": worker.assigned_staff_id,
+            "languages": [language.pk] if language and language.is_active else [],
+            "body_language": support_records.body_language_for(worker),
+        }
+        self.form = BriefingForm(data, files, kind=kind, checklist=self.checklist, initial=initial)
+        self.sessions = SessionFormSet(
+            data, prefix="sessions", initial=None if data is not None else [{"occurred_on": today}]
+        )
+        self.fees = FeeFormSet(data, prefix="fees") if kind == SupportItem.PRE_GUIDANCE else None
+        self._session_forms: list[SessionForm] = []
+        self._fee_forms: list[FeeForm] = []
+
+    def formsets(self) -> list[Any]:
+        return [formset for formset in (self.sessions, self.fees) if formset is not None]
+
+    def is_valid(self) -> bool:
+        return all([self.form.is_valid(), *[formset.is_valid() for formset in self.formsets()]])
+
+    @staticmethod
+    def _filled(formset: Any) -> list[Any]:
+        """入力のある行（空のまま足した行は除く）。"""
+        return [form for form in formset.forms if form.has_changed() and form.cleaned_data]
+
+    def to_input(self) -> briefings.BriefingInput:
+        data = self.form.cleaned_data
+        self._session_forms = self._filled(self.sessions)
+        self._fee_forms = self._filled(self.fees) if self.fees is not None else []
+        agreed = data.get("fees_agreed")
+        return briefings.BriefingInput(
+            kind=self.kind,
+            method=data["method"],
+            meeting_url=data.get("meeting_url") or "",
+            staff=data["staff"],
+            place=data["place"],
+            languages=list(data.get("languages") or []),
+            interpreter=data.get("interpreter") or "",
+            legal_info_provider=data.get("legal_info_provider") or "",
+            continuing_employment=bool(data.get("continuing_employment")),
+            identity_confirmed=bool(data.get("identity_confirmed")),
+            sessions=[
+                briefings.SessionInput(
+                    occurred_on=form.cleaned_data["occurred_on"],
+                    start_time=form.cleaned_data["start_time"],
+                    end_time=form.cleaned_data["end_time"],
+                )
+                for form in self._session_forms
+            ],
+            checks=self.form.checks(),
+            deposit_contract=data.get("deposit_contract") or "",
+            deposit_collector=data.get("deposit_collector") or "",
+            deposit_detail=data.get("deposit_detail") or "",
+            foreign_fees=data.get("foreign_fees") or "",
+            fees=[
+                briefings.FeeInput(
+                    organization_name=form.cleaned_data["organization_name"],
+                    paid_on=form.cleaned_data["paid_on"],
+                    amount_jpy=form.cleaned_data["amount_jpy"],
+                    breakdown=form.cleaned_data["breakdown"],
+                )
+                for form in self._fee_forms
+            ],
+            fees_agreed=None if not agreed else agreed == "yes",
+            body=data.get("body") or "",
+            body_language=data["body_language"],
+            signed_on=data.get("signed_on"),
+        )
+
+    def confirmations(self) -> list[Any]:
+        return list(self.form.cleaned_data.get("confirmation") or [])
+
+    def apply_errors(self, error: ValidationError) -> None:
+        """サービスのエラー（"sessions.0.end_time"・"checks.4.a.1" など）を該当する入力欄に戻す。"""
+        rows: dict[str, list[Any]] = {"sessions": self._session_forms, "fees": self._fee_forms}
+        for key, messages in error.error_dict.items():
+            prefix, _dot, rest = key.partition(".")
+            if prefix in rows and rest:
+                index, _dot, name = rest.partition(".")
+                forms_ = rows[prefix]
+                if index.isdigit() and int(index) < len(forms_):
+                    form = forms_[int(index)]
+                    form.add_error(name if name in form.fields else None, messages)
+                    continue
+            if key in ("sessions", "fees"):
+                self.form.add_error(None, messages)
+                continue
+            self.form.add_error(self.form.field_for_error(key), messages)
+
+
+class ConfirmationForm(StyledFormMixin, forms.Form):
+    """署名済みの確認書を後から添付する（署名日は必須）。"""
+
+    signed_on = forms.DateField(label=_("date of signature"), widget=forms.DateInput)
+    confirmation = MultipleFileField(
+        label=_("signed confirmation (scan)"),
+        help_text=_("PDF, PNG or JPEG, up to 10 MB each. You can select more than one."),
+    )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.style_fields()
+
+    def apply_errors(self, error: ValidationError) -> None:
+        if not hasattr(error, "error_dict"):
+            self.add_error(None, error)
+            return
+        for key, messages in error.error_dict.items():
+            self.add_error(key if key in self.fields else None, messages)

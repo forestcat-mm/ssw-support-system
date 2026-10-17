@@ -1,0 +1,1 @@
+{% load ui %}<li class="formset-row {{ row_class }}">{% include "ui/components/form_errors.html" with form=form %}<div class="formset-row__fields">{% for field in form %}{% form_field field %}{% endfor %}</div></li>

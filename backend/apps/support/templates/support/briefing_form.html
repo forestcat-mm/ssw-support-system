@@ -1,0 +1,60 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{{ title }} | {{ worker }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{{ back_url }}">← {{ worker }}</a></p>
+  <h1>{{ title }}</h1>
+{% endblock %}
+{% block content %}
+<form class="form" method="post" enctype="multipart/form-data" novalidate id="briefing-form" data-keepalive="{% url 'accounts:keepalive' %}">
+  {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+  {% include "ui/components/form_errors.html" with form=form %}
+  <section class="card stack" id="briefing-main">
+    <h2>{% translate "How, where and by whom" %}</h2>
+    {% for field in form.main_fields %}{% form_field field %}{% endfor %}
+  </section>
+
+  {% include "support/components/formset_rows.html" with formset=editor.sessions id="briefing-sessions" title=_("Dates and times") add_label=_("Add a date and time") row_class="briefing-row--session" %}
+  <p class="caption" id="briefing-duration">{% if duration.guideline_kind == "at_least" %}{% blocktranslate with hours=guideline_hours minimum=minimum_hours %}The orientation needs {{ hours }} hours or more in total (at least {{ minimum }} hours even when the living environment does not change). The confirmation form has 3 rows for dates and times.{% endblocktranslate %}{% else %}{% blocktranslate with hours=guideline_hours minimum=minimum_hours %}The guidance takes about {{ hours }} hours in total (at least {{ minimum }} hour even when the worker continues at the same organization). The confirmation form has 3 rows for dates and times.{% endblocktranslate %}{% endif %}</p>
+
+  <section class="card stack" id="briefing-checklist">
+    <h2>{% translate "Items explained" %}</h2>
+    <p class="caption">{% translate "Every item is required. Select “explained” or “not applicable” (with the reason) for each item. An item of the confirmation form is complete when all its items are selected." %}</p>
+    {% for section, rows in form.checklist_rows %}
+    <fieldset class="checklist-section" data-section="{{ section.code }}">
+      <legend class="checklist-section__title">{% if section.form_number %}<span class="mono">{{ section.form_number }}.</span> {% endif %}{{ section.title }}{% if not section.form_number %} <span class="caption">{% translate "(not on the confirmation form)" %}</span>{% endif %}</legend>
+      {% for item, check, reason in rows %}
+      <div class="checklist-item{% if check.errors or reason.errors %} form-row--error{% endif %}" data-item="{{ item.code }}">
+        <p class="checklist-item__label"><span class="mono caption">{{ item.code }}</span> {{ item.label }}</p>
+        <div class="checklist-item__choices" role="radiogroup" aria-label="{{ item.code }}">{% for radio in check %}<label class="form-row__check">{{ radio.tag }} {{ radio.choice_label }}</label>{% endfor %}</div>
+        <input class="input checklist-item__reason" type="text" name="{{ reason.html_name }}" id="{{ reason.auto_id }}" value="{{ reason.value|default:'' }}" maxlength="200" placeholder="{% translate 'reason for not applicable' %}" aria-label="{% blocktranslate with code=item.code %}reason for not applicable ({{ code }}){% endblocktranslate %}">
+        {% for error in check.errors %}<span class="form-row__error">{{ error }}</span>{% endfor %}{% for error in reason.errors %}<span class="form-row__error">{{ error }}</span>{% endfor %}
+      </div>
+      {% endfor %}
+    </fieldset>
+    {% endfor %}
+  </section>
+
+  {% if form.is_guidance %}
+  <section class="card stack" id="briefing-fees">
+    <h2>{% translate "Deposits and fees paid abroad" %}</h2>
+    <p class="caption">{% translate "Confirmed in the guidance. Used for the application forms." %}</p>
+    {% for field in form.deposit_fields %}{% form_field field %}{% endfor %}
+    {% for field in form.fee_fields %}{% form_field field %}{% endfor %}
+    {% include "support/components/formset_rows.html" with formset=editor.fees id="briefing-fee-rows" title=_("Fees paid") add_label=_("Add a fee") row_class="briefing-row--fee" nested=True %}
+  </section>
+  {% endif %}
+
+  <section class="card stack" id="briefing-body">
+    <h2>{% translate "Notes" %}</h2>
+    {% for field in form.body_fields %}{% form_field field %}{% endfor %}
+  </section>
+  <section class="card stack" id="briefing-signature">
+    <h2>{% translate "Signed confirmation" %}</h2>
+    {% for field in form.signature_fields %}{% form_field field %}{% endfor %}
+  </section>
+  <div class="form-actions">
+    <button class="button button--primary" type="submit">{% translate "Save" %}</button>
+    <a class="button button--neutral" href="{{ back_url }}">{% translate "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

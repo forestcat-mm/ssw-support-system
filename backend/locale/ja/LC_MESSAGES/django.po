@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-17 14:04+0900\n"
+"POT-Creation-Date: 2026-10-17 14:37+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -716,6 +716,12 @@ msgstr "変形労働時間制の年間カレンダー・労使協定書"
 
 msgid "Evidence of support (signed confirmation, photo, etc.)"
 msgstr "支援の証跡（署名入りの確認書・写真など）"
+
+msgid "Signed confirmation of the pre-entry guidance (reference form 5-9)"
+msgstr "署名済みの事前ガイダンスの確認書（参考様式第5-9号）"
+
+msgid "Signed confirmation of the life orientation (reference form 5-8)"
+msgstr "署名済みの生活オリエンテーションの確認書（参考様式第5-8号）"
 
 msgid "original filename"
 msgstr "元のファイル名"
@@ -2570,6 +2576,9 @@ msgstr "共生施策の確認"
 msgid "checks of coexistence measures"
 msgstr "共生施策の確認"
 
+msgid "watching videos (DVD, etc.)"
+msgstr "動画視聴（DVD 等）"
+
 msgid "message (email, social media, etc.)"
 msgstr "メッセージ（メール・SNS 等）"
 
@@ -2739,6 +2748,106 @@ msgstr "相談の経過"
 msgid "consultation entries"
 msgstr "相談の経過"
 
+msgid "none"
+msgstr "無"
+
+msgid "exists"
+msgstr "有"
+
+msgid "not paid"
+msgstr "支払っていない"
+
+msgid "paid"
+msgstr "支払った"
+
+msgid "explained"
+msgstr "説明した"
+
+msgid "not applicable"
+msgstr "該当なし"
+
+msgid "checklist version"
+msgstr "チェックリストの版"
+
+msgid "interpreter (name and affiliation)"
+msgstr "通訳人の氏名・所属"
+
+msgid "explained legal protection (name and affiliation)"
+msgstr "法的保護に関する情報提供の実施者（氏名・所属）"
+
+msgid "Only when someone other than the staff in charge explained it."
+msgstr "説明者以外の人が説明したときだけ。"
+
+msgid ""
+"continuing at the same organization without a change in living environment"
+msgstr "同一機関で引き続き雇用し、生活環境に変化が無い"
+
+msgid "identity confirmed online"
+msgstr "オンラインでの本人確認"
+
+msgid "contract on a deposit or penalty"
+msgstr "保証金・違約金等の契約"
+
+msgid "organization collecting the deposit or managing property"
+msgstr "徴収又は管理機関名"
+
+msgid "deposit amount or property managed"
+msgstr "徴収金額又は管理財産"
+
+msgid "fees paid to organizations abroad"
+msgstr "外国の機関への費用の支払"
+
+msgid "understood and agreed on the amount and breakdown"
+msgstr "額と内訳を十分に理解して合意している"
+
+msgid "date of signature"
+msgstr "署名日"
+
+msgid "guidance or orientation"
+msgstr "事前ガイダンス・生活オリエンテーション"
+
+msgid "guidance and orientation"
+msgstr "事前ガイダンス・生活オリエンテーション"
+
+msgid "date"
+msgstr "日付"
+
+msgid "starts at"
+msgstr "開始時刻"
+
+msgid "ends at"
+msgstr "終了時刻"
+
+msgid "date and time of guidance or orientation"
+msgstr "事前ガイダンス・生活オリエンテーションの実施日時"
+
+msgid "dates and times of guidance or orientation"
+msgstr "事前ガイダンス・生活オリエンテーションの実施日時"
+
+msgid "reason for not applicable"
+msgstr "該当なしの理由"
+
+msgid "checklist item"
+msgstr "チェックリストの細目"
+
+msgid "checklist items"
+msgstr "チェックリストの細目"
+
+msgid "name of the organization abroad"
+msgstr "外国の機関名"
+
+msgid "paid on"
+msgstr "支払日"
+
+msgid "amount (converted into yen)"
+msgstr "支払額（日本円に換算）"
+
+msgid "breakdown"
+msgstr "内訳"
+
+msgid "fee paid to an organization abroad"
+msgstr "外国の機関に支払った費用"
+
 msgid "Only when the counterpart is the supervisor. Optional."
 msgstr "相手が上司のときだけ。任意。"
 
@@ -2804,6 +2913,64 @@ msgstr "受付日（から）"
 msgid "received on (to)"
 msgstr "受付日（まで）"
 
+msgid "Example: placement fee 150,000 yen, training fee 50,000 yen."
+msgstr "例: 紹介料 15 万円、研修費 5 万円"
+
+msgid "understood and agreed"
+msgstr "理解して合意している"
+
+msgid "not agreed"
+msgstr "合意していない"
+
+msgid "not checked"
+msgstr "未チェック"
+
+msgid "identity of the worker confirmed"
+msgstr "本人確認をした"
+
+msgid "Required for online guidance (video call)."
+msgstr "オンライン（テレビ電話等）で行うときは必須。"
+
+msgid "explained by"
+msgstr "説明者"
+
+msgid "Example: meeting room of the host organization / online (our office)."
+msgstr "例: 受入れ機関の会議室／オンライン（自機関の事務所）"
+
+msgid "Only when someone other than the staff in charge interpreted."
+msgstr "説明者以外の人が通訳したときだけ。"
+
+msgid "Only when someone other than the staff in charge explained item 6."
+msgstr "6 の事項を説明者以外の人が説明したときだけ。空なら説明者と同じ。"
+
+msgid ""
+"Example: a technical intern or student who continues at the same "
+"organization. Only the minimum time is checked."
+msgstr ""
+"例: 技能実習生・留学生を同じ機関で引き続き雇用する場合。所要時間は下限だけを"
+"確かめる。"
+
+msgid "contract on a deposit or penalty (declared by the worker)"
+msgstr "保証金・違約金等の契約（本人の申告）"
+
+msgid "fees paid to organizations abroad (placement, preparation)"
+msgstr "外国の機関への費用の支払（取次ぎ・活動の準備）"
+
+msgid "notes"
+msgstr "メモ"
+
+msgid "Optional. Example: questions from the worker and the answers."
+msgstr "任意。例: 本人からの質問と回答"
+
+msgid "Enter when attaching the signed confirmation."
+msgstr "署名済みの確認書を添付するときに入れる。"
+
+msgid "signed confirmation (scan)"
+msgstr "署名済みの確認書（スキャン）"
+
+msgid "PDF, PNG or JPEG, up to 10 MB each. You can also attach it later."
+msgstr "PDF・PNG・JPEG、1 つ 10 MB まで。後から添付することもできる。"
+
 #, python-format
 msgid "Record: %(kind)s"
 msgstr "記録: %(kind)s"
@@ -2857,6 +3024,12 @@ msgstr "例: 別の人の相談だった。"
 msgid "Voided the consultation."
 msgstr "相談を取り消しました。"
 
+msgid "Attached the signed confirmation."
+msgstr "署名済みの確認書を添付しました。"
+
+msgid "Example: the record of another person."
+msgstr "例: 別の人の記録だった。"
+
 msgid "Void an attachment"
 msgstr "添付の取消"
 
@@ -2866,6 +3039,123 @@ msgid ""
 msgstr ""
 "ファイルは削除しません。打ち消し線を付けて残し、証跡として扱わなくなります。"
 "元には戻せません。"
+
+msgid "Attach the signed confirmation"
+msgstr "署名済みの確認書を添付"
+
+msgid "Add"
+msgstr "追加"
+
+msgid "Back to records"
+msgstr "記録の一覧へ"
+
+#, python-format
+msgid ""
+"This record was voided on %(day)s by %(by)s. Reason: %(reason)s. It is not "
+"counted."
+msgstr ""
+"この記録は %(day)s に %(by)s が取り消しました。理由: %(reason)s。集計には含め"
+"ません。"
+
+msgid "same as the staff in charge"
+msgstr "説明者と同じ"
+
+#, python-format
+msgid "Recorded by %(by)s at %(at)s"
+msgstr "記録: %(by)s（%(at)s）"
+
+msgid "Dates and times"
+msgstr "実施日時"
+
+#, python-format
+msgid "%(counter)s minute in total"
+msgid_plural "%(counter)s minutes in total"
+msgstr[0] "合計 %(counter)s 分"
+
+msgid "Items explained"
+msgstr "説明した項目"
+
+#, python-format
+msgid "explained %(done)s · not applicable %(na)s · not checked %(missing)s"
+msgstr "説明した %(done)s・該当なし %(na)s・未チェック %(missing)s"
+
+#, python-format
+msgid "Checklist version %(version)s (%(form)s)"
+msgstr "チェックリストの版 %(version)s（%(form)s）"
+
+msgid "Deposits and fees paid abroad"
+msgstr "保証金・外国の機関に支払った費用"
+
+msgid "Signed confirmation and attachments"
+msgstr "署名済みの確認書・添付"
+
+msgid "Add attachments"
+msgstr "添付を追加"
+
+msgid "How, where and by whom"
+msgstr "方法・場所・説明者"
+
+msgid "Add a date and time"
+msgstr "実施日時を足す"
+
+#, python-format
+msgid ""
+"The orientation needs %(hours)s hours or more in total (at least %(minimum)s "
+"hours even when the living environment does not change). The confirmation "
+"form has 3 rows for dates and times."
+msgstr ""
+"生活オリエンテーションは合計 %(hours)s 時間以上が必要です（生活環境に変化が無"
+"い場合でも下限は %(minimum)s 時間）。確認書の実施日時の欄は 3 行です。"
+
+#, python-format
+msgid ""
+"The guidance takes about %(hours)s hours in total (at least %(minimum)s hour "
+"even when the worker continues at the same organization). The confirmation "
+"form has 3 rows for dates and times."
+msgstr ""
+"事前ガイダンスは合計 %(hours)s 時間程度が目安です（同じ機関で引き続き雇用する"
+"場合でも下限は %(minimum)s 時間）。確認書の実施日時の欄は 3 行です。"
+
+msgid ""
+"Every item is required. Select “explained” or “not applicable” (with the "
+"reason) for each item. An item of the confirmation form is complete when all "
+"its items are selected."
+msgstr ""
+"細目はすべて必須です。細目ごとに「説明した」か「該当なし」（理由が必須）を選"
+"びます。確認書の項目は、配下の細目がすべて選ばれると完了になります。"
+
+msgid "(not on the confirmation form)"
+msgstr "（確認書には無い項目）"
+
+#, python-format
+msgid "reason for not applicable (%(code)s)"
+msgstr "該当なしの理由（%(code)s）"
+
+msgid "Confirmed in the guidance. Used for the application forms."
+msgstr "事前ガイダンスで確認する。在留諸申請の申請書に使う。"
+
+msgid "Fees paid"
+msgstr "支払った費用"
+
+msgid "Add a fee"
+msgstr "費用を足す"
+
+msgid "Notes"
+msgstr "メモ"
+
+msgid "Signed confirmation"
+msgstr "署名済みの確認書"
+
+msgid "Void a support record"
+msgstr "支援実績の取消"
+
+msgid ""
+"The record is voided and no longer counted. The dates and times, the "
+"checklist and the attachments stay. This cannot be undone. To correct it, "
+"add a new record."
+msgstr ""
+"この記録を取り消し、集計から外します。実施日時・チェックリスト・添付は残りま"
+"す。元に戻せません。誤りを直すときは、新しく記録します。"
 
 msgid "No attachments."
 msgstr "添付はありません。"
@@ -2915,9 +3205,6 @@ msgstr[0] "%(counter)s 分"
 msgid "no plan"
 msgstr "計画なし"
 
-msgid "Back to records"
-msgstr "記録の一覧へ"
-
 #, python-format
 msgid ""
 "This consultation was voided on %(day)s by %(by)s. Reason: %(reason)s. It is "
@@ -2940,9 +3227,6 @@ msgstr "これまでの経過"
 
 msgid "Report and Hello Work"
 msgstr "通報・ハローワーク相談"
-
-msgid "Add"
-msgstr "追加"
 
 msgid "Receive a consultation"
 msgstr "相談の受付"
@@ -3046,17 +3330,6 @@ msgstr ""
 "エラーか注意のある区分を開いています。注意（時期や担当者が空）があっても保存"
 "できます。"
 
-msgid "Add attachments"
-msgstr "添付を追加"
-
-#, python-format
-msgid ""
-"This record was voided on %(day)s by %(by)s. Reason: %(reason)s. It is not "
-"counted."
-msgstr ""
-"この記録は %(day)s に %(by)s が取り消しました。理由: %(reason)s。集計には含め"
-"ません。"
-
 msgid ""
 "This row is the reception of a consultation. Its progress and status are on "
 "the consultation page."
@@ -3064,6 +3337,16 @@ msgstr "この行は相談の受付です。経過と対応状況は相談の画
 
 msgid "Show the consultation"
 msgstr "相談を表示"
+
+msgid ""
+"The dates and times, the checklist and the signed confirmation are on the "
+"page of the guidance or orientation. It is voided there."
+msgstr ""
+"実施日時・チェックリスト・署名済みの確認書は、事前ガイダンス・生活オリエン"
+"テーションの画面にあります。取消もその画面で行います。"
+
+msgid "Show the checklist"
+msgstr "チェックリストを見る"
 
 msgid ""
 "This row is part of a periodic interview (worker and supervisor). It is "
@@ -3075,15 +3358,8 @@ msgstr ""
 msgid "Show the interview"
 msgstr "面談を表示"
 
-#, python-format
-msgid "Recorded by %(by)s at %(at)s"
-msgstr "記録: %(by)s（%(at)s）"
-
 msgid "Details and attachments"
 msgstr "内容・添付"
-
-msgid "Void a support record"
-msgstr "支援実績の取消"
 
 msgid ""
 "A voided record stays in the list with a strikethrough and is no longer "
@@ -3135,12 +3411,21 @@ msgstr[0] "%(counter)s 件"
 msgid "void"
 msgstr "取り消す"
 
+msgid "signed"
+msgstr "署名済み"
+
+msgid "not signed"
+msgstr "未署名"
+
 #, python-format
 msgid "version %(number)s"
 msgstr "版 %(number)s"
 
 msgid "Interview"
 msgstr "面談"
+
+msgid "Checklist"
+msgstr "チェックリスト"
 
 msgid "No support records match the conditions."
 msgstr "条件に合う記録はありません。"
@@ -3450,9 +3735,6 @@ msgstr "手当・控除"
 msgid "No filing tasks for this foreign worker."
 msgstr "この外国人の届出タスクはありません。"
 
-msgid "date"
-msgstr "日付"
-
 msgid "number"
 msgstr "番号"
 
@@ -3520,8 +3802,123 @@ msgstr "業務画面へ戻る"
 msgid "This attachment is already voided."
 msgstr "この添付は取り消し済みです。"
 
+msgid "Enter at least one date and time."
+msgstr "実施日時を 1 行以上入力してください。"
+
+msgid "The date cannot be in the future."
+msgstr "未来の日付は入力できません。"
+
+msgid "Enter an end time later than the start time."
+msgstr "終了の時刻は開始より後にしてください。"
+
+msgid "This overlaps another date and time."
+msgstr "ほかの実施日時と重なっています。"
+
 msgid "Select a valid choice."
 msgstr "選択肢から選んでください。"
+
+msgid "Enter the reason why it is not applicable."
+msgstr "該当なしの理由を入力してください。"
+
+msgid "Select whether there is such a contract."
+msgstr "契約の有無を選んでください。"
+
+msgid "This field is required."
+msgstr "この項目は必須です。"
+
+msgid "Enter this only when there is such a contract."
+msgstr "契約が「有」のときだけ入力してください。"
+
+msgid "Select whether fees were paid."
+msgstr "費用の支払の有無を選んでください。"
+
+msgid "Enter at least one fee paid."
+msgstr "支払った費用を 1 行以上入力してください。"
+
+msgid "Select whether the worker understood and agreed on them."
+msgstr "本人が理解して合意しているかを選んでください。"
+
+msgid "Enter fees only when they were paid."
+msgstr "費用は、支払ったときだけ入力してください。"
+
+msgid "Enter this only when fees were paid."
+msgstr "費用を支払ったときだけ入力してください。"
+
+msgid "Enter the amount in yen."
+msgstr "金額を円で入力してください。"
+
+msgid "Enter the date of the signature."
+msgstr "署名日を入力してください。"
+
+msgid "Attach the signed confirmation."
+msgstr "署名済みの確認書を添付してください。"
+
+msgid ""
+"The date of the signature cannot be before the last date of the explanation."
+msgstr "署名日は、最後の実施日より前にできません。"
+
+msgid "This kind of support cannot be recorded here."
+msgstr "この種別はこの画面では記録できません。"
+
+msgid ""
+"Online guidance must be given after confirming the identity of the worker."
+msgstr "オンラインの事前ガイダンスは、本人確認をしたうえで行う必要があります。"
+
+msgid "Attachments cannot be added to this record."
+msgstr "この記録には添付を追加できません。"
+
+msgid "Select a file."
+msgstr "ファイルを選んでください。"
+
+msgid "This foreign worker is deactivated."
+msgstr "この外国人は無効化されています。"
+
+#, python-format
+msgid ""
+"Shorter than the minimum of %(hours)s hours, so the %(kind)s cannot be "
+"regarded as properly given."
+msgstr ""
+"下限の %(hours)s 時間に満たないため、%(kind)sを適切に行ったとはいえません。"
+
+#, python-format
+msgid "Does not meet the required %(hours)s hours or more."
+msgstr "必要な %(hours)s 時間以上を満たしていません。"
+
+#, python-format
+msgid "Shorter than the guideline of about %(hours)s hours."
+msgstr "目安の %(hours)s 時間を下回っています。"
+
+msgid ""
+"A contract on a deposit or penalty is declared. This may not meet the "
+"standards for landing."
+msgstr ""
+"保証金・違約金等の契約があると申告されています。上陸基準省令の基準に適合しな"
+"いおそれがあります。"
+
+msgid ""
+"The worker has not understood and agreed on the amount and breakdown of the "
+"fees paid abroad."
+msgstr ""
+"外国の機関に支払った費用の額と内訳について、本人の理解と合意が確認できていま"
+"せん。"
+
+#, python-format
+msgid "%(count)s required item is not checked."
+msgid_plural "%(count)s required items are not checked."
+msgstr[0] "未チェックの必須項目が %(count)s 件あります。"
+
+#, python-format
+msgid "Shorter than the planned %(hours)s hours in the support plan."
+msgstr "支援計画の実施予定時間（%(hours)s 時間）を下回っています。"
+
+#, python-format
+msgid ""
+"There are more than %(rows)s dates and times, so they do not fit in the rows "
+"of the confirmation form."
+msgstr "実施日時が %(rows)s 行を超えるため、確認書の欄に収まりません。"
+
+msgid "The signed confirmation is not attached."
+msgstr "署名済みの確認書が添付されていません。"
 
 msgid "Enter the organization the case was handed over to."
 msgstr "引継ぎ先を入力してください。"
@@ -3535,17 +3932,8 @@ msgstr "分類を入力してください。"
 msgid "This consultation is voided."
 msgstr "この相談は取り消されています。"
 
-msgid "This foreign worker is deactivated."
-msgstr "この外国人は無効化されています。"
-
-msgid "The date cannot be in the future."
-msgstr "未来の日付は入力できません。"
-
 msgid "The date cannot be before the consultation was received."
 msgstr "受付日より前の日付は入力できません。"
-
-msgid "This field is required."
-msgstr "この項目は必須です。"
 
 msgid "This staff member is no longer active."
 msgstr "この担当者は無効です。"
@@ -3989,9 +4377,6 @@ msgstr "代わりの支援者の確保"
 msgid "This value is too long."
 msgstr "長すぎます。"
 
-msgid "This kind of support cannot be recorded here."
-msgstr "この種別はこの画面では記録できません。"
-
 msgid "Enter the URL only for online support."
 msgstr "URL はオンラインのときだけ入力してください。"
 
@@ -4002,17 +4387,14 @@ msgstr "氏名は相手が上司のときだけ入力してください。"
 msgid "Enter the duration in minutes (1 to %(max)s)."
 msgstr "所要時間は分で入力してください（1〜%(max)s）。"
 
-msgid "Attachments cannot be added to this record."
-msgstr "この記録には添付を追加できません。"
-
-msgid "Select a file."
-msgstr "ファイルを選んでください。"
-
 msgid "Void the periodic interview as a whole (both rows)."
 msgstr "定期面談は組（2 行）ごとに取り消してください。"
 
 msgid "Void the consultation as a whole."
 msgstr "相談は案件ごとに取り消してください。"
+
+msgid "Void it on the page of the guidance or orientation."
+msgstr "事前ガイダンス・生活オリエンテーションの画面で取り消してください。"
 
 msgid "This record is already voided."
 msgstr "この記録は取り消し済みです。"

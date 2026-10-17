@@ -389,6 +389,7 @@ class RecordMethod(models.TextChoices):
     IN_PERSON = "in_person", _("in person")
     ONLINE = "online", _("online")
     PHONE = "phone", _("phone")
+    VIDEO = "video", _("watching videos (DVD, etc.)")  # 生活オリエンテーションだけ（T21）
     MESSAGE = "message", _("message (email, social media, etc.)")  # 相談・苦情だけ（T20）
 
 
@@ -686,3 +687,174 @@ class ConsultationEntry(ImmutableRow):
 
     def __str__(self) -> str:
         return f"{self.consultation_id}: {self.occurred_on} {self.get_status_after_display()}"
+
+
+# --- 事前ガイダンス・生活オリエンテーション（T21、ADR-0009）----------------------------------
+
+
+class DepositContract(models.TextChoices):
+    """保証金の徴収・財産の管理・違約金等の契約（本人の申告。申請書の「有・無」）。"""
+
+    NONE = "none", _("none")
+    EXISTS = "exists", _("exists")
+
+
+class ForeignFees(models.TextChoices):
+    """外国の機関（取次ぎ・活動の準備）への費用の支払。"""
+
+    NONE = "none", _("not paid")
+    PAID = "paid", _("paid")
+
+
+class CheckStatus(models.TextChoices):
+    """チェックリストの細目の状態（どちらも付いていない細目は「未チェック」）。"""
+
+    DONE = "done", _("explained")
+    NOT_APPLICABLE = "not_applicable", _("not applicable")
+
+
+class Briefing(TrackedModel):
+    """事前ガイダンス・生活オリエンテーション。支援実績の 1 行（種別 1 か 4）と 1 対 1。
+
+    実施日時の行・細目のチェック・外国の機関への費用の行を子に持つ（作成後は変更しない）。
+    後から変わるのは署名日だけ（署名済みの確認書を添付したとき）。取消は支援実績の行で行う。
+    チェックリストの文言と時間の基準は services/data/briefing_checklists.json の版
+    （checklist_version）。
+    """
+
+    record = models.OneToOneField(
+        SupportRecord,
+        verbose_name=_("support record"),
+        on_delete=models.PROTECT,
+        related_name="briefing",
+        editable=False,
+    )
+    worker = models.ForeignKey(
+        ForeignWorker,
+        verbose_name=_("foreign worker"),
+        on_delete=models.PROTECT,
+        related_name="briefings",
+        editable=False,
+    )
+    checklist_version = models.CharField(_("checklist version"), max_length=32, editable=False)
+    place = models.CharField(_("place"), max_length=200)
+    interpreter = models.CharField(
+        _("interpreter (name and affiliation)"), max_length=200, blank=True
+    )
+    legal_info_provider = models.CharField(
+        _("explained legal protection (name and affiliation)"),
+        max_length=200,
+        blank=True,
+        help_text=_("Only when someone other than the staff in charge explained it."),
+    )
+    continuing_employment = models.BooleanField(
+        _("continuing at the same organization without a change in living environment"),
+        default=False,
+    )
+    identity_confirmed = models.BooleanField(_("identity confirmed online"), default=False)
+    deposit_contract = models.CharField(
+        _("contract on a deposit or penalty"),
+        max_length=8,
+        choices=DepositContract.choices,
+        blank=True,
+    )
+    deposit_collector = models.CharField(
+        _("organization collecting the deposit or managing property"), max_length=200, blank=True
+    )
+    deposit_detail = models.CharField(
+        _("deposit amount or property managed"), max_length=200, blank=True
+    )
+    foreign_fees = models.CharField(
+        _("fees paid to organizations abroad"),
+        max_length=8,
+        choices=ForeignFees.choices,
+        blank=True,
+    )
+    fees_agreed = models.BooleanField(
+        _("understood and agreed on the amount and breakdown"), null=True, blank=True
+    )
+    signed_on = models.DateField(_("date of signature"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("guidance or orientation")
+        verbose_name_plural = _("guidance and orientation")
+        ordering = ["-pk"]
+
+    def __str__(self) -> str:
+        return f"{self.worker}: {self.record.get_kind_display()} ({self.record.occurred_on})"
+
+
+class BriefingSession(ImmutableRow):
+    """実施日時の 1 行（確認書の「年月日 時分から時分まで」）。行数に上限は無い。"""
+
+    briefing = models.ForeignKey(
+        Briefing,
+        verbose_name=_("guidance or orientation"),
+        on_delete=models.PROTECT,
+        related_name="sessions",
+    )
+    occurred_on = models.DateField(_("date"))
+    start_time = models.TimeField(_("starts at"))
+    end_time = models.TimeField(_("ends at"))
+
+    class Meta:
+        verbose_name = _("date and time of guidance or orientation")
+        verbose_name_plural = _("dates and times of guidance or orientation")
+        ordering = ["occurred_on", "start_time", "pk"]
+
+    def __str__(self) -> str:
+        return f"{self.occurred_on} {self.start_time:%H:%M}-{self.end_time:%H:%M}"
+
+    @property
+    def minutes(self) -> int:
+        return (self.end_time.hour * 60 + self.end_time.minute) - (
+            self.start_time.hour * 60 + self.start_time.minute
+        )
+
+
+class BriefingCheck(ImmutableRow):
+    """チェックリストの細目 1 つ（「説明した」か「該当なし」。該当なしは理由が必須）。"""
+
+    briefing = models.ForeignKey(
+        Briefing,
+        verbose_name=_("guidance or orientation"),
+        on_delete=models.PROTECT,
+        related_name="checks",
+    )
+    code = models.CharField(_("item"), max_length=16)
+    status = models.CharField(_("status"), max_length=16, choices=CheckStatus.choices)
+    reason = models.CharField(_("reason for not applicable"), max_length=200, blank=True)
+
+    class Meta:
+        verbose_name = _("checklist item")
+        verbose_name_plural = _("checklist items")
+        ordering = ["pk"]
+        constraints = [
+            models.UniqueConstraint(fields=["briefing", "code"], name="briefing_check_unique"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.code}: {self.status}"
+
+
+class BriefingForeignFee(ImmutableRow):
+    """外国の機関に支払った費用の 1 行（事前ガイダンスで確認する。申請書の欄の元。ADR-0009）。"""
+
+    briefing = models.ForeignKey(
+        Briefing,
+        verbose_name=_("guidance or orientation"),
+        on_delete=models.PROTECT,
+        related_name="fees",
+    )
+    organization_name = models.CharField(_("name of the organization abroad"), max_length=200)
+    paid_on = models.DateField(_("paid on"))
+    amount_jpy = models.PositiveIntegerField(_("amount (converted into yen)"))
+    breakdown = models.CharField(_("breakdown"), max_length=500)
+
+    class Meta:
+        verbose_name = _("fee paid to an organization abroad")
+        verbose_name_plural = _("fees paid to organizations abroad")
+        ordering = ["paid_on", "pk"]
+
+    def __str__(self) -> str:
+        return f"{self.organization_name}: {self.amount_jpy}"

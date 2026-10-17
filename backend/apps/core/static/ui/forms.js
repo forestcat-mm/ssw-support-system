@@ -31,3 +31,22 @@ document.querySelectorAll("form[data-keepalive]").forEach((form) => {
     });
   });
 });
+
+// 行を足せる入力（Django の formset。[data-formset]）: 空の行の雛形を複製し、__prefix__ を行の番号に
+// 置き換えて、行の数（TOTAL_FORMS）を 1 増やす。JS が無いときは表示した行だけを送る。
+document.querySelectorAll("[data-formset]").forEach((container) => {
+  const prefix = container.dataset.formset;
+  const total = container.querySelector(`input[name="${prefix}-TOTAL_FORMS"]`);
+  const template = container.querySelector("template[data-formset-template]");
+  const rows = container.querySelector("[data-formset-rows]");
+  const button = container.querySelector("[data-formset-add]");
+  if (!total || !template || !rows || !button) return;
+  button.hidden = false;
+  button.addEventListener("click", () => {
+    const index = Number(total.value);
+    rows.insertAdjacentHTML("beforeend", template.innerHTML.replaceAll("__prefix__", String(index)));
+    total.value = String(index + 1);
+    const first = rows.lastElementChild?.querySelector("input, select, textarea");
+    if (first instanceof HTMLElement) first.focus();
+  });
+});

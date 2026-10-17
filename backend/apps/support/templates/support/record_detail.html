@@ -7,11 +7,12 @@
   <p class="message message--warning" role="status" id="record-voided">{% blocktranslate with day=record.voided_at|date:"Y-m-d H:i" by=record.voided_by.get_username|default:"—" reason=record.void_reason %}This record was voided on {{ day }} by {{ by }}. Reason: {{ reason }}. It is not counted.{% endblocktranslate %}</p>
   {% endif %}
   {% if record.consultation %}<p class="message message--success" id="record-consultation">{% translate "This row is the reception of a consultation. Its progress and status are on the consultation page." %} <a href="{% url 'workers:support_consultation' worker.pk record.consultation.pk %}">{% translate "Show the consultation" %}</a></p>{% endif %}
+  {% if record.briefing %}<p class="message message--success" id="record-briefing">{% translate "The dates and times, the checklist and the signed confirmation are on the page of the guidance or orientation. It is voided there." %} <a href="{% url 'workers:support_briefing' worker.pk record.briefing.pk %}">{% translate "Show the checklist" %}</a></p>{% endif %}
   {% if record.interview_id %}<p class="message message--success" id="record-interview">{% translate "This row is part of a periodic interview (worker and supervisor). It is voided together with the other row." %} <a href="{% url 'workers:support_interview' worker.pk record.interview_id %}">{% translate "Show the interview" %}</a></p>{% endif %}
   <section class="card{% if record.voided_at %} is-voided{% endif %}" id="support-record">
     <div class="card__header">
       <h2 class="card__title">{{ record.get_kind_display }}</h2>
-      {% if can_change_record and not record.interview_id and not record.consultation %}<a class="button button--danger button--small" href="{% url 'workers:support_record_void' worker.pk record.pk %}">{% translate "Void" %}</a>{% endif %}
+      {% if can_change_record and not record.interview_id and not record.consultation and not record.briefing %}<a class="button button--danger button--small" href="{% url 'workers:support_record_void' worker.pk record.pk %}">{% translate "Void" %}</a>{% endif %}
     </div>
     {% include "support/components/record_fields.html" %}
     <h3 style="margin-top: var(--space-16)">{% translate "details" %}</h3>
