@@ -30,6 +30,7 @@
   - `SupportPlanHousing`・`SupportPlanConsultation`: 版と 1 対 1 の構造化された欄
   - `SupportPlanMunicipalityCheck`: 共生施策の確認（事業所と住居地の 2 行まで）
   - 版 `SupportPlanVersion` に計画全体の欄
+- 行は 33 行（細目の行 23 ＋ 区分ごとの自由記入 10）で、細目 42 をちょうど 1 回ずつ受け持つ（`tests/support/test_support_plans.py` で固定）。
 - 行の一覧（符号・受け持つ細目・実施方法の選択肢）は `services/support_catalog.py`、細目の文言は
   `services/data/support_plan_1-17.json`（様式の出典 URL と取得日つき）に、データとして持つ。
   様式が改正されたら一覧を差し替える。保存済みの版は当時の値のまま残る。

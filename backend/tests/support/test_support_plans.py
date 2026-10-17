@@ -30,6 +30,22 @@ pytestmark = pytest.mark.django_db
 # --- 細目の一覧（参考様式第1-17号） ------------------------------------------------------
 
 
+def test_catalog_rows_match_the_form_exactly() -> None:
+    """様式の行: 33 行（細目の行 23 ＋ 自由記入 10）。細目 42 を 1 回ずつ受け持つ。"""
+    assert len(ROWS) == 33
+    assert sum(row.is_free for row in ROWS) == 10
+    assert len({row.code for row in ROWS}) == len(ROWS)
+    per_section = {
+        "1": 2, "2": 3, "3a": 4, "3b": 4, "4": 2, "5": 4, "6": 2, "7": 2, "8": 8, "9": 2,
+    }  # fmt: skip
+    assert {
+        prefix: sum(row.code.split(".")[0] == prefix for row in ROWS) for prefix in per_section
+    } == per_section
+    covered = [f"{row.code.split('.')[0]}.{letter}" for row in ROWS for letter in row.letters]
+    assert len(covered) == len(set(covered)) == 42
+    assert set(covered) == set(ACTIVITY_LABELS)
+
+
 def test_catalog_covers_the_form() -> None:
     assert len(ACTIVITY_LABELS) == 42
     for row in ROWS:
