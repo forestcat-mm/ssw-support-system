@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-17 17:45+0900\n"
+"POT-Creation-Date: 2026-10-17 17:48+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -3095,6 +3095,9 @@ msgstr "相手が上司のときだけ。任意。"
 msgid "PDF, PNG or JPEG, up to 10 MB each. You can select more than one."
 msgstr "PDF・PNG・JPEG、1 ファイル 10MB まで。複数選べます。"
 
+msgid "This kind of support uses only this method."
+msgstr "この種類の支援は、この方法だけで記録します。"
+
 msgid "date of support (from)"
 msgstr "実施日（から）"
 
@@ -4810,6 +4813,9 @@ msgstr "代わりの支援者の確保"
 
 msgid "This value is too long."
 msgstr "長すぎます。"
+
+msgid "This method cannot be used for this kind of support."
+msgstr "この種類の支援では選べない方法です。"
 
 msgid "Enter the URL only for online support."
 msgstr "URL はオンラインのときだけ入力してください。"

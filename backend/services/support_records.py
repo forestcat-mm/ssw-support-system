@@ -51,6 +51,22 @@ MAX_DURATION_MINUTES = 24 * 60
 # 種別ごとに選べる方法の既定（メッセージは相談・苦情だけ、定期面談は電話を除く）
 DEFAULT_METHODS: tuple[str, ...] = (RecordMethod.IN_PERSON, RecordMethod.ONLINE, RecordMethod.PHONE)
 
+# この画面で記録する種別ごとの方法（ADR-0014）。送迎・公的手続への同行は対面だけ
+# （港・飛行場への送迎、窓口への同行。運用要領 別冊 12〜13頁・21〜23頁）。
+METHODS_BY_KIND: dict[SupportItem, tuple[str, ...]] = {
+    SupportItem.AIRPORT_TRANSFER: (RecordMethod.IN_PERSON,),
+    SupportItem.HOUSING_AND_CONTRACTS: DEFAULT_METHODS,
+    SupportItem.PUBLIC_PROCEDURES: (RecordMethod.IN_PERSON,),
+    SupportItem.JAPANESE_LEARNING: DEFAULT_METHODS,
+    SupportItem.EXCHANGE: DEFAULT_METHODS,
+    SupportItem.JOB_CHANGE: DEFAULT_METHODS,
+}
+
+
+def methods_for(kind: SupportItem | str) -> tuple[str, ...]:
+    """種別で選べる方法（METHODS_BY_KIND に無い種別は既定）。"""
+    return METHODS_BY_KIND.get(SupportItem(kind), DEFAULT_METHODS)
+
 
 @dataclass(frozen=True)
 class DetailField:
@@ -240,12 +256,13 @@ def validate(
     *,
     today: datetime.date,
     kinds: Iterable[SupportItem] = RECORD_KINDS,
-    methods: Iterable[str] = DEFAULT_METHODS,
+    methods: Iterable[str] | None = None,
     require_body: bool = True,
 ) -> dict[str, Any]:
     """入力を検査し、種別ごとの欄を保存する形で返す。エラーは欄の名前ごと。
 
-    kinds・methods は記録できる種別・方法（定期面談は電話を除く。T19）。
+    kinds・methods は記録できる種別・方法（定期面談は電話を除く。T19）。methods を省くと
+    種別ごとの方法（methods_for。ADR-0014）。
     require_body=False は本文を任意にする（事前ガイダンス等は細目のチェックが内容。T21）。
     """
     errors: dict[str, list[ValidationError]] = {}
@@ -259,8 +276,11 @@ def validate(
         add("kind", _("This kind of support cannot be recorded here."), "kind")
     if data.occurred_on > today:
         add("occurred_on", _("The date cannot be in the future."), "future")
-    if data.method not in tuple(methods):
+    allowed = tuple(methods) if methods is not None else methods_for(data.kind)
+    if data.method not in RecordMethod.values:
         add("method", _("Select a valid choice."), "invalid_choice")
+    elif data.method not in allowed:
+        add("method", _("This method cannot be used for this kind of support."), "method_for_kind")
     if data.meeting_url and data.method != RecordMethod.ONLINE:
         add("meeting_url", _("Enter the URL only for online support."), "meeting_url")
     if data.staff is None:

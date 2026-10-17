@@ -92,17 +92,43 @@ def test_validate_common_fields(worker: Any) -> None:
 def test_supervisor_name_and_online_url_are_allowed(worker: Any) -> None:
     data = transfer(
         worker,
-        kind=SupportItem.PUBLIC_PROCEDURES,
+        kind=SupportItem.EXCHANGE,
         method=RecordMethod.ONLINE,
         meeting_url="https://example.com/meet",
         counterpart=Counterpart.SUPERVISOR,
         counterpart_name="工場長 田中",
         start_time=time(10, 0),
         duration_minutes=30,
-        details={"procedure": "転入届", "office": "○○市役所"},
+        details={"event": "地域の交流会"},
     )
     record = support_records.create_record(worker, data, by=None, today=TODAY)
     assert (record.counterpart_name, record.duration_minutes) == ("工場長 田中", 30)
+
+
+ALL_METHODS = ("in_person", "online", "phone", "video", "message")
+METHODS = {
+    SupportItem.AIRPORT_TRANSFER: {"in_person"},
+    SupportItem.PUBLIC_PROCEDURES: {"in_person"},
+    SupportItem.HOUSING_AND_CONTRACTS: {"in_person", "online", "phone"},
+    SupportItem.JAPANESE_LEARNING: {"in_person", "online", "phone"},
+    SupportItem.EXCHANGE: {"in_person", "online", "phone"},
+    SupportItem.JOB_CHANGE: {"in_person", "online", "phone"},
+}
+
+
+@pytest.mark.parametrize("kind", list(METHODS))
+@pytest.mark.parametrize("method", ALL_METHODS)
+def test_methods_are_limited_per_kind(worker: Any, kind: SupportItem, method: str) -> None:
+    """送迎・公的手続への同行は対面だけ。ほかは対面・オンライン・電話（ADR-0014）。"""
+    assert set(support_records.methods_for(kind)) == METHODS[kind]
+    data = transfer(worker, kind=kind, method=method, details={})
+    try:
+        support_records.validate(worker, data, today=TODAY)
+    except ValidationError as error:
+        codes = {e.code for e in error.error_dict.get("method", [])}
+    else:
+        codes = set()
+    assert codes == (set() if method in METHODS[kind] else {"method_for_kind"})
 
 
 @pytest.mark.parametrize(

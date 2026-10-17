@@ -147,12 +147,18 @@ class RecordForm(StyledFormMixin, forms.Form):
                 name.help_text = ""
             else:
                 del self.fields["counterpart_name"]
-        allowed = methods if methods is not None else support_records.DEFAULT_METHODS
+        allowed = methods if methods is not None else support_records.methods_for(kind)
         method = self.fields["method"]
         assert isinstance(method, forms.ChoiceField)
         method.choices = [
             (value, label) for value, label in RecordMethod.choices if value in allowed
         ]
+        if len(allowed) == 1:  # 送迎・公的手続への同行は対面で固定し、選ばせない（ADR-0014）
+            method.disabled = True
+            method.initial = allowed[0]
+            method.help_text = _("This kind of support uses only this method.")
+        if RecordMethod.ONLINE not in allowed:
+            del self.fields["meeting_url"]
         self.fields["staff"].queryset = active_staff()  # type: ignore[attr-defined]
         self.fields["languages"].queryset = SupportLanguage.objects.filter(  # type: ignore[attr-defined]
             is_active=True

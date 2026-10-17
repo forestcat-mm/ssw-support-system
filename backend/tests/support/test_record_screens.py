@@ -77,6 +77,35 @@ def test_create_form_has_defaults_and_keepalive(support_staff_client: Client, wo
     assert 'name="detail_airport"' in html
 
 
+def test_transfer_and_procedures_are_fixed_to_in_person(
+    support_staff_client: Client, worker: Any
+) -> None:
+    """送迎・公的手続への同行は方法を選ばせず、対面で保存する（ADR-0014）。"""
+    for kind in ("airport_transfer", "public_procedures"):
+        page = support_staff_client.get(f"/workers/{worker.pk}/support/records/new/{kind}/")
+        form = page.context["form"]
+        assert form.fields["method"].disabled
+        assert [value for value, _label in form.fields["method"].choices] == ["in_person"]
+        assert "meeting_url" not in form.fields  # オンラインの URL の欄も出さない
+        html = page.content.decode()
+        assert 'value="phone"' not in html and 'value="online"' not in html
+    response = post_transfer(support_staff_client, worker, method="phone")  # 送っても使わない
+    assert response.status_code == 302
+    assert SupportRecord.objects.get(worker=worker).method == "in_person"
+
+
+def test_other_kinds_offer_in_person_online_and_phone(
+    support_staff_client: Client, worker: Any
+) -> None:
+    for kind in ("housing_and_contracts", "japanese_learning", "exchange", "job_change"):
+        page = support_staff_client.get(f"/workers/{worker.pk}/support/records/new/{kind}/")
+        form = page.context["form"]
+        assert not form.fields["method"].disabled
+        choices = [value for value, _label in form.fields["method"].choices]
+        assert choices == ["in_person", "online", "phone"]
+        assert "meeting_url" in form.fields
+
+
 def test_unknown_kind_is_404(support_staff_client: Client, worker: Any) -> None:
     url = f"/workers/{worker.pk}/support/records/new/periodic_interview/"
     assert support_staff_client.get(url).status_code == 404
