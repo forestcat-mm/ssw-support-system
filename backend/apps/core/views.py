@@ -22,10 +22,10 @@ from django.utils.translation import gettext as _
 from django.views import View
 from django_otp import login as otp_login
 
-from apps.core.forms import SecondFactorForm, TokenForm
+from apps.core.forms import PasswordResetRequestForm, SecondFactorForm, TokenForm
 from apps.core.middleware import mfa_exempt
 from apps.core.models import Attachment, AuditAction, RecoveryCodeDevice, User
-from services import attachments, audit, invitations, mfa
+from services import attachments, audit, invitations, mfa, password_reset
 
 NEW_RECOVERY_CODES_SESSION_KEY = "new_recovery_codes"
 
@@ -244,3 +244,99 @@ class KeepAliveView(View):
 
     def post(self, request: HttpRequest) -> HttpResponse:
         return HttpResponse(status=204)
+
+
+# --- パスワードの再設定（T25）-------------------------------------------------------------
+
+
+def _no_referrer(response: HttpResponse) -> HttpResponse:
+    """リファラーを送らない（トークンを含むリンクの応答と、フォームの無い画面）。"""
+    response["Referrer-Policy"] = "no-referrer"
+    return response
+
+
+def _same_origin(response: HttpResponse) -> HttpResponse:
+    """フォームのある画面は same-origin にする。no-referrer にするとブラウザがフォームの送信に
+    Origin: null を付け、CSRF の Origin の検査で拒否されるため。これらの画面の URL には
+    トークンを含まない（リンクを開いたらトークンをセッションに移してリダイレクトする）。"""
+    response["Referrer-Policy"] = "same-origin"
+    return response
+
+
+@mfa_exempt
+class PasswordResetRequestView(View):
+    """申請（メールアドレス）。アカウントの有無で処理も結果も変えない（送信はジョブ）。"""
+
+    template_name = "accounts/password_reset_request.html"
+
+    def get(self, request: HttpRequest) -> HttpResponse:
+        if request.user.is_authenticated:
+            return redirect("home")
+        return _same_origin(
+            render(request, self.template_name, {"form": PasswordResetRequestForm()})
+        )
+
+    def post(self, request: HttpRequest) -> HttpResponse:
+        form = PasswordResetRequestForm(request.POST)
+        if not form.is_valid():
+            return _same_origin(render(request, self.template_name, {"form": form}))
+        password_reset.request_reset(request, form.cleaned_data["email"])
+        return redirect("accounts:password_reset_done")
+
+
+@mfa_exempt
+class PasswordResetDoneView(View):
+    def get(self, request: HttpRequest) -> HttpResponse:
+        return _no_referrer(render(request, "accounts/password_reset_done.html"))
+
+
+@mfa_exempt
+class PasswordResetOpenView(View):
+    """メールのリンク。トークンをセッションに移し、トークンを含まない URL へリダイレクトする。"""
+
+    def get(self, request: HttpRequest, token: str) -> HttpResponse:
+        request.session[password_reset.SESSION_KEY] = token
+        return _no_referrer(redirect("accounts:password_reset_set"))
+
+
+@mfa_exempt
+class PasswordResetSetView(View):
+    """新しいパスワード（2 回）。トークンはセッションから読む。"""
+
+    template_name = "accounts/password_reset_set.html"
+
+    def reset(self, request: HttpRequest) -> Any:
+        token = request.session.get(password_reset.SESSION_KEY, "")
+        return password_reset.find_valid(token) if token else None
+
+    def invalid(self, request: HttpRequest) -> HttpResponse:
+        request.session.pop(password_reset.SESSION_KEY, None)
+        return _no_referrer(render(request, "accounts/password_reset_invalid.html", status=400))
+
+    def get(self, request: HttpRequest) -> HttpResponse:
+        reset = self.reset(request)
+        if reset is None:
+            return self.invalid(request)
+        form = SetPasswordForm(reset.user)
+        return _same_origin(render(request, self.template_name, {"form": form}))
+
+    def post(self, request: HttpRequest) -> HttpResponse:
+        reset = self.reset(request)
+        if reset is None:
+            return self.invalid(request)
+        form = SetPasswordForm(reset.user, request.POST)
+        if form.is_valid():
+            token = request.session.pop(password_reset.SESSION_KEY)
+            completed = password_reset.complete(token, form.cleaned_data["new_password1"])
+            if completed is None:
+                return self.invalid(request)
+            request.session["password_reset_lock_minutes"] = completed.lock_minutes
+            return redirect("accounts:password_reset_complete")
+        return _same_origin(render(request, self.template_name, {"form": form}))
+
+
+@mfa_exempt
+class PasswordResetCompleteView(View):
+    def get(self, request: HttpRequest) -> HttpResponse:
+        context = {"lock_minutes": request.session.pop("password_reset_lock_minutes", None)}
+        return _no_referrer(render(request, "accounts/password_reset_complete.html", context))

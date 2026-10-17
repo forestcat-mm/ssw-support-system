@@ -8,4 +8,5 @@
   <input type="hidden" name="next" value="{{ next }}">
   <button type="submit">{% translate "Next" %}</button>
 </form>
+<p><a href="{% url 'accounts:password_reset' %}">{% translate "Forgot your password?" %}</a></p>
 {% endblock %}

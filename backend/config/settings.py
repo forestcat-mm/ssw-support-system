@@ -105,6 +105,9 @@ Q_CLUSTER = {
     "redis": REDIS_URL,
 }
 
+# ジョブをその場で実行する（単体テストと e2e だけ。services.jobs）
+JOBS_INLINE: bool = env.bool("JOBS_INLINE", default=False)
+
 # --- メール（開発は Mailpit、本番は自社 SMTP） ---
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST: str = env.str("EMAIL_HOST")

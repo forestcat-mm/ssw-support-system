@@ -7,3 +7,6 @@ INSTALLED_APPS = [*INSTALLED_APPS, "tests.testapp"]
 
 # テストだけパスワードのハッシュを速くする（本番・開発は Django 既定の PBKDF2 のまま）
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+
+# ジョブ（Django-Q2）をその場で実行する（単体テスト・e2e にはジョブを処理するワーカーが無い）
+JOBS_INLINE = True

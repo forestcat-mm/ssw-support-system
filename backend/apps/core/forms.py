@@ -61,3 +61,9 @@ def allow_formatted_number_input(field: forms.Field, max_length: int = 30) -> No
     field.max_length = max_length
     field.validators = [v for v in field.validators if not isinstance(v, MaxLengthValidator)]
     field.widget.attrs["maxlength"] = str(max_length)
+
+
+class PasswordResetRequestForm(forms.Form):
+    """パスワードの再設定の申請（メールアドレス）。アカウントの有無は画面に出さない。"""
+
+    email = forms.EmailField(label=_("Email address"), max_length=254)

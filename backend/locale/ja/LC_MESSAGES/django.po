@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-17 16:15+0900\n"
+"POT-Creation-Date: 2026-10-17 16:26+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -678,6 +678,9 @@ msgstr "まだログインユーザーがない支援責任者・支援担当者
 msgid "A user with this email address already exists."
 msgstr "このメールアドレスのユーザーはすでに登録されています。"
 
+msgid "Email address"
+msgstr "メールアドレス"
+
 msgid "deactivated at"
 msgstr "無効化日時"
 
@@ -999,6 +1002,18 @@ msgstr "取消日時"
 msgid "invitations"
 msgstr "招待"
 
+msgid "invalidated at"
+msgstr "無効にした日時"
+
+msgid "requested from"
+msgstr "申請元"
+
+msgid "password reset"
+msgstr "パスワードの再設定"
+
+msgid "password resets"
+msgstr "パスワードの再設定"
+
 msgid "view"
 msgstr "閲覧"
 
@@ -1046,6 +1061,12 @@ msgstr "多要素認証の設定"
 
 msgid "download of a sensitive document denied"
 msgstr "要配慮の書類のダウンロードの拒否"
+
+msgid "password reset requested"
+msgstr "パスワードの再設定の申請"
+
+msgid "password reset link sent"
+msgstr "パスワードの再設定のリンクの送信"
 
 msgid "regenerate recovery codes"
 msgstr "回復用コードの作り直し"
@@ -1270,6 +1291,58 @@ msgstr ""
 msgid "[%(organization_name)s] Invitation to the management system"
 msgstr "【%(organization_name)s】業務管理システムへの招待"
 
+#, python-format
+msgid ""
+"Hello %(name)s,\n"
+"\n"
+"The password of your account (%(username)s) for the %(organization_name)s "
+"management system was changed at %(changed)s (Japan time).\n"
+"\n"
+"If you did not change it, contact an administrator immediately."
+msgstr ""
+"%(name)s 様\n"
+"\n"
+"%(organization_name)s の業務管理システムのアカウント（%(username)s）のパス"
+"ワードが、%(changed)s（日本時間）に変更されました。\n"
+"\n"
+"心当たりがない場合は、すぐに管理者に連絡してください。"
+
+#, python-format
+msgid "[%(organization_name)s] Your password was changed"
+msgstr "【%(organization_name)s】パスワードが変更されました"
+
+#, python-format
+msgid ""
+"Hello %(name)s,\n"
+"\n"
+"We received a request to reset the password for the %(organization_name)s "
+"management system.\n"
+"Open the link below to set a new password. Your two-factor authentication "
+"stays the same."
+msgstr ""
+"%(name)s 様\n"
+"\n"
+"%(organization_name)s の業務管理システムのパスワードの再設定の申請を受け付け"
+"ました。\n"
+"次のリンクを開いて、新しいパスワードを設定してください。二要素認証の設定は変"
+"わりません。"
+
+#, python-format
+msgid ""
+"Your username: %(username)s\n"
+"This link can be used once and expires at %(expires)s (Japan time).\n"
+"If you did not request this, ignore this email. Your password does not "
+"change."
+msgstr ""
+"ユーザー名: %(username)s\n"
+"このリンクは 1 回だけ使えます。有効期限は %(expires)s（日本時間）です。\n"
+"心当たりがない場合は、このメールを無視してください。パスワードは変わりませ"
+"ん。"
+
+#, python-format
+msgid "[%(organization_name)s] Reset your password"
+msgstr "【%(organization_name)s】パスワードの再設定"
+
 msgid "Set your password"
 msgstr "パスワードの設定"
 
@@ -1307,6 +1380,9 @@ msgstr "ログイン画面に戻る"
 msgid "Sign in"
 msgstr "ログイン"
 
+msgid "Forgot your password?"
+msgstr "パスワードを忘れた場合"
+
 msgid "Set up two-factor authentication"
 msgstr "多要素認証の設定"
 
@@ -1335,6 +1411,67 @@ msgstr ""
 
 msgid "Cancel"
 msgstr "キャンセル"
+
+msgid "Your password has been changed"
+msgstr "パスワードを変更しました"
+
+msgid "Sign in with the new password and your authenticator app as before."
+msgstr "新しいパスワードと、これまでどおり認証アプリでログインしてください。"
+
+#, python-format
+msgid ""
+"Your account is temporarily locked. Sign in after %(minutes)s minute, or ask "
+"an administrator to unlock it."
+msgid_plural ""
+"Your account is temporarily locked. Sign in after %(minutes)s minutes, or "
+"ask an administrator to unlock it."
+msgstr[0] ""
+"アカウントは一時的にロックされています。%(minutes)s 分後にログインするか、管"
+"理者に解除を依頼してください。"
+
+msgid "Check your email"
+msgstr "メールを確認してください"
+
+msgid ""
+"If an account is registered with that email address, we have sent a link to "
+"set a new password. The link can be used once within 60 minutes. If no email "
+"arrives, check the address or ask an administrator."
+msgstr ""
+"そのメールアドレスでアカウントが登録されていれば、新しいパスワードを設定する"
+"リンクを送りました。リンクは 60 分以内に 1 回だけ使えます。メールが届かないと"
+"きは、メールアドレスを確かめるか、管理者に相談してください。"
+
+msgid "This link cannot be used"
+msgstr "このリンクは使えません"
+
+msgid ""
+"The link has expired, has already been used, or has been replaced by a newer "
+"link. Request a new link."
+msgstr ""
+"リンクの有効期限が切れたか、すでに使われたか、新しいリンクに置き換わっていま"
+"す。もう一度申請してください。"
+
+msgid "Request a new link"
+msgstr "もう一度申請する"
+
+msgid "Reset your password"
+msgstr "パスワードの再設定"
+
+msgid ""
+"Enter the email address registered for your account. We will send a link to "
+"set a new password. Your two-factor authentication stays the same."
+msgstr ""
+"アカウントに登録しているメールアドレスを入力してください。新しいパスワードを"
+"設定するリンクを送ります。二要素認証の設定は変わりません。"
+
+msgid "Send the link"
+msgstr "リンクを送る"
+
+msgid "Set a new password"
+msgstr "新しいパスワードの設定"
+
+msgid "Set the password"
+msgstr "設定する"
 
 msgid "Recovery codes"
 msgstr "回復用コード"

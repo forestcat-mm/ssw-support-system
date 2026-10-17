@@ -45,6 +45,7 @@ AUDITED_MODELS: frozenset[str] = frozenset(
         "core.supportlanguage",
         "core.attachment",
         "core.invitation",
+        "core.passwordreset",
         "core.country",
         "workers.foreignworker",
         "workers.residencerecord",
@@ -131,6 +132,7 @@ MASKED_FIELDS: frozenset[str] = frozenset(
     {
         "core.user.password",
         "core.invitation.token_hash",
+        "core.passwordreset.token_hash",
     }
 )
 
@@ -204,8 +206,12 @@ def record(
     changes: Mapping[str, Any] | None = None,
     context: Mapping[str, Any] | None = None,
     actor: User | None = _UNSET,
+    ip_address: str | None = None,
 ) -> AuditLog:
-    """監査ログを 1 件追加する。actor を省略するとリクエストのログインユーザーになる。"""
+    """監査ログを 1 件追加する。actor を省略するとリクエストのログインユーザーになる。
+
+    ip_address はリクエストの無いところ（ジョブ）で、元のリクエストの接続元を残すときに渡す。
+    """
     request = _current().request
     if actor is _UNSET:
         actor = _request_user(request)
@@ -215,7 +221,7 @@ def record(
         actor_username=actor.get_username() if actor is not None else "",
         changes=dict(changes or {}),
         context=dict(context or {}),
-        ip_address=client_ip(request) if request is not None else None,
+        ip_address=client_ip(request) if request is not None else ip_address,
         path=request.path[:255] if request is not None else "",
     )
     if target is not None:
@@ -282,6 +288,7 @@ def event(
     target: models.Model,
     actor: User | None = _UNSET,
     context: Mapping[str, Any] | None = None,
+    ip_address: str | None = None,
 ) -> Iterator[Event]:
     """意味のある操作を 1 件で記録する。対象の変更前後の値（マスク済み）を changes に入れる。
 
@@ -295,7 +302,14 @@ def event(
     with suppressed():
         yield holder
     changes = diff(before, snapshot(target)) | masked_changes(old, target) | holder.changes
-    record(action, target=target, changes=changes, context=holder.context, actor=actor)
+    record(
+        action,
+        target=target,
+        changes=changes,
+        context=holder.context,
+        actor=actor,
+        ip_address=ip_address,
+    )
 
 
 # --- 差分・マスク ------------------------------------------------------------

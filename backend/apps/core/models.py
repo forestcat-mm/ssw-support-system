@@ -560,6 +560,30 @@ class Invitation(TrackedModel):
         return f"{self.user}: {self.created_at:%Y-%m-%d %H:%M}"
 
 
+class PasswordReset(TrackedModel):
+    """パスワードの再設定のリンク（T25）。招待と同じく、トークンは SHA-256 だけを保存する。
+
+    一度だけ使える。期限は発行から 60 分。新しく発行すると、それより前の未使用のリンクは無効にする。
+    """
+
+    user = models.ForeignKey(
+        User, verbose_name=_("user"), on_delete=models.PROTECT, related_name="password_resets"
+    )
+    token_hash = models.CharField(max_length=64, unique=True, editable=False)
+    expires_at = models.DateTimeField(_("expires at"))
+    used_at = models.DateTimeField(_("used at"), null=True, blank=True)
+    invalidated_at = models.DateTimeField(_("invalidated at"), null=True, blank=True)
+    requested_ip = models.GenericIPAddressField(_("requested from"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("password reset")
+        verbose_name_plural = _("password resets")
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.user}: {self.created_at:%Y-%m-%d %H:%M}"
+
+
 class AuditAction(models.TextChoices):
     VIEW = "view", _("view")
     CREATE = "create", _("create")
@@ -578,6 +602,10 @@ class AuditAction(models.TextChoices):
     MFA_RESET = "mfa_reset", _("reset two-factor authentication")
     MFA_ENROLL = "mfa_enroll", _("set up two-factor authentication")
     DOWNLOAD_DENIED = "download_denied", _("download of a sensitive document denied")
+    # パスワードの再設定（T25）: 申請の受付（画面）・リンクの送信（ジョブ）・再設定の完了
+    PASSWORD_RESET_REQUEST = "password_reset_request", _("password reset requested")
+    PASSWORD_RESET_LINK = "password_reset_link", _("password reset link sent")
+    PASSWORD_RESET = "password_reset", _("password reset")
     RECOVERY_CODES_REGENERATE = "recovery_codes_regenerate", _("regenerate recovery codes")
     ENCRYPTION_KEY_ROTATION = "encryption_key_rotation", _("rotate encryption keys")
     BLIND_INDEX_REBUILD = "blind_index_rebuild", _("rebuild blind indexes")
