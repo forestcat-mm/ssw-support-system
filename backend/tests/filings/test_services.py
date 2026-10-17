@@ -5,6 +5,7 @@ from datetime import date
 import pytest
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
+from django.utils import translation
 
 from apps.contracts.models import EmploymentContractAllowance, TerminationReason
 from apps.core.models import AuditAction, AuditLog, Organization
@@ -306,6 +307,13 @@ def test_every_kind_has_a_definition() -> None:
         is filings.Filer.SUPPORT_ORGANIZATION
     )
     assert filings.definition(FilingKind.PERIODIC_HOST).filer is filings.Filer.HOST
+
+
+def test_support_difficulty_is_the_report_of_the_support_organization() -> None:
+    """登録支援機関が出すのは特異事案報告（第4-3号）。所属機関の届出（第3-7号）ではない。"""
+    with translation.override("ja"):
+        label = str(FilingKind.SUPPORT_DIFFICULTY.label)
+    assert "第4-3号" in label and "第3-7号" not in label
 
 
 def test_periodic_filing_is_created_only_during_the_filing_period() -> None:

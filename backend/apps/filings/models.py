@@ -30,7 +30,8 @@ class FilingKind(models.TextChoices):
     MISSING = "missing", _("notification of missing worker, etc.")
     SUPPORT_DIFFICULTY = (
         "support_difficulty",
-        _("notification of difficulty in implementing support (form 3-7)"),
+        # 登録支援機関が出す報告（施行規則 第19条の24の2）。所属機関の届出（第3-7号）ではない
+        _("report of a special incident in implementing the support plan (form 4-3)"),
     )
     PERIODIC_HOST = "periodic_host", _("periodic notification (host organization)")
     PERIODIC_SUPPORT_ORGANIZATION = (
