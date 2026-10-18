@@ -137,6 +137,30 @@ def written_values(form_id: str, data: dict[str, Any]) -> dict[str, object]:
     return form_generation.field_values(mapping(form_id), data)
 
 
+def workbook_structure(path: Path) -> dict[str, object]:
+    """制約3: ファイルの一覧・結合セル・入力規則・保護・印刷の設定・名前の定義（T40 で足した）。"""
+    with zipfile.ZipFile(path) as archive:
+        sheet = archive.read("xl/worksheets/sheet1.xml").decode("utf-8")
+        workbook = archive.read("xl/workbook.xml").decode("utf-8")
+        return {
+            "files": archive.namelist(),
+            "page_setup": re.findall(r"<pageSetup[^>]*/>", sheet),
+            "margins": re.findall(r"<pageMargins[^>]*/>", sheet),
+            "print_options": re.findall(r"<printOptions[^>]*/>", sheet),
+            "header_footer": re.findall(r"<headerFooter.*?</headerFooter>", sheet, re.S),
+            "breaks": re.findall(r"<rowBreaks.*?</rowBreaks>", sheet, re.S),
+            "merges": re.findall(r"<mergeCell [^>]*/>", sheet),
+            "validations": re.findall(r"<dataValidations.*?</dataValidations>", sheet, re.S),
+            "protection": re.findall(r"<sheetProtection[^>]*/>", sheet),
+            "defined_names": re.findall(r"<definedName .*?</definedName>", workbook),
+            "others": {
+                name: archive.read(name)
+                for name in archive.namelist()
+                if name not in ("xl/worksheets/sheet1.xml", "xl/styles.xml")
+            },
+        }
+
+
 def check_document(document: GeneratedDocument, form_id: str, data: dict[str, Any]) -> None:
     document.refresh_from_db()
     assert document.status == GenerationStatus.COMPLETED, document.failure_reason
@@ -155,6 +179,8 @@ def check_document(document: GeneratedDocument, form_id: str, data: dict[str, An
     for target, value in values.items():
         got = str(filled[target.split("!")[1]].value)
         assert "".join(got.split()) == "".join(str(value).split()), target
+    # 制約3: シートの構造とほかのファイルは公式のブックと同じ（違うのは書いたセルと字の大きさだけ）
+    assert workbook_structure(Path(document.filled_file.path)) == workbook_structure(original)
 
 
 def test_reports_are_generated_together_from_the_interview(worker: Any) -> None:

@@ -42,11 +42,15 @@ e2e:        ## 通しのテスト（Playwright、Chromium）。初回はイメ�
 gate2:      ## 段階2の受け入れ確認（seed → 担当者 2 人が定期面談と相談を画面で記録。DATE=YYYY-MM-DD で基準日）
 	$(COMPOSE) --profile e2e run --rm -e GATE2=1 $(if $(DATE),-e GATE_DATE=$(DATE),) e2e pytest -s e2e/test_phase2_gate.py
 
+gate3:      ## 段階3の受け入れ確認（seed → seed_documents → 署名・生成・併記・警告・生成不可を画面で。DATE=YYYY-MM-DD で基準日）
+	$(COMPOSE) --profile e2e run --rm -e GATE3=1 $(if $(DATE),-e GATE_DATE=$(DATE),) e2e pytest -s e2e/test_phase3_gate.py
+
 CHECKS_LOG ?= .checks/checks.log
 CHECK_LIMIT ?= 900
 GATE2_DATES ?=
-checks:     ## lint・test・e2e（GATE2_DATES="2026-10-17 …" で gate2 も）を順に流し、終了コードと === DONE を CHECKS_LOG に書く
-	tools/run_checks.sh $(CHECKS_LOG) $(CHECK_LIMIT) "LINT::make lint" "TEST::make test" "E2E::make e2e" $(foreach d,$(GATE2_DATES),"GATE2 $(d)::make gate2 DATE=$(d)")
+GATE3 ?=
+checks:     ## lint・test・e2e（GATE2_DATES="2026-10-17 …" で gate2、GATE3=1 で gate3 も）を順に流し、終了コードと === DONE を CHECKS_LOG に書く
+	tools/run_checks.sh $(CHECKS_LOG) $(CHECK_LIMIT) "LINT::make lint" "TEST::make test" "E2E::make e2e" $(foreach d,$(GATE2_DATES),"GATE2 $(d)::make gate2 DATE=$(d)") $(if $(GATE3),"GATE3::make gate3",)
 
 design-shots: ## 見本画面（/ui/）のスクリーンショットを docs/design/ に保存する
 	$(COMPOSE) --profile e2e run --rm -e DESIGN_SHOTS=1 e2e pytest e2e/test_design_shots.py
