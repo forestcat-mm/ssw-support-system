@@ -423,6 +423,7 @@ class Action(models.TextChoices):
     SUPPORT_MANAGE = "support.manage", _("register support plans and records")
     FILINGS_VIEW = "filings.view", _("view filing tasks")
     FILINGS_MANAGE = "filings.manage", _("register and update filing tasks")
+    FORMS_GENERATE = "forms.generate", _("generate and download forms (PDF)")
     SYSTEM_MANAGE = "system.manage", _("manage background jobs")
 
 

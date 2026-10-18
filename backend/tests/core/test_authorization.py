@@ -39,6 +39,7 @@ def test_initial_role_matrix() -> None:
         Action.FILINGS_MANAGE,
         Action.SUPPORT_VIEW,
         Action.SUPPORT_MANAGE,
+        Action.FORMS_GENERATE,
     }
 
 

@@ -12,9 +12,18 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PATH="/opt/venv/bin:$PATH"
 
 # gettext: UI 文言の .po/.mo（makemessages / compilemessages）に使う。
+# LibreOffice（GUI なし）とフォント: 帳票の PDF 変換（services.forms.convert。ADR-0018）。
+#   IPA フォントは参考様式の MS 明朝・MS ゴシックの置き換え、Noto CJK は中国語（簡体字）、
+#   Carlito は Calibri の置き換え。置き換えの規則は backend/config/fonts/99-form-fonts.conf。
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends gettext \
+    && apt-get install -y --no-install-recommends \
+        gettext \
+        libreoffice-writer-nogui libreoffice-calc-nogui \
+        fontconfig fonts-ipafont-mincho fonts-ipafont-gothic fonts-noto-cjk \
+        fonts-crosextra-carlito \
     && rm -rf /var/lib/apt/lists/*
+COPY backend/config/fonts/99-form-fonts.conf /etc/fonts/conf.d/99-form-fonts.conf
+RUN fc-cache -f
 
 RUN useradd --create-home --uid 1000 app \
     && mkdir -p /opt/venv /app \

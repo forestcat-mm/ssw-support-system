@@ -14,6 +14,7 @@ urlpatterns = [
     path("filings/", include("apps.filings.urls")),
     path("consultations/", include("apps.support.urls")),
     path("settings/", include("apps.core.settings_urls")),
+    path("forms/", include("apps.forms_engine.urls")),
     path(
         "attachments/<int:pk>/download/",
         AttachmentDownloadView.as_view(),

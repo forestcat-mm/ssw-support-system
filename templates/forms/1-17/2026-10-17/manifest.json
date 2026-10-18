@@ -1,0 +1,21 @@
+{
+  "form_id": "1-17",
+  "name": "1号特定技能外国人支援計画書（参考様式第1-17号）",
+  "valid_from": "2026-10-17",
+  "language": "ja",
+  "owner": "common",
+  "method": "xlsx-cells",
+  "requires_signed_copy": true,
+  "original": "original.xlsx",
+  "template": null,
+  "source": {
+    "url": "https://www.moj.go.jp/isa/content/001459168.xlsx",
+    "page": "https://www.moj.go.jp/isa/applications/ssw/10_00020.html",
+    "retrieved_on": "2026-10-17",
+    "revision_date": null,
+    "revision_date_unknown": true,
+    "original_sha256": "e5d6e4a65a6117b7bb8a1668d56712b3119e74baf19e150d253a8a7e79e68c81",
+    "template_sha256": null,
+    "adr": "ADR-0007（取得日 2026-10-17）、ADR-0018"
+  }
+}

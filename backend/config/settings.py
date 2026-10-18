@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "apps.filings",
     "apps.support",
     "apps.seed",
+    "apps.forms_engine",
 ]
 
 MIDDLEWARE = [
@@ -180,3 +181,10 @@ STORAGES = {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
+
+# --- 帳票（段階3。ADR-0018）---
+# 様式の original・template・manifest と、マッピング定義の置き場（リポジトリで管理する。制約5）。
+FORM_TEMPLATES_ROOT = REPO_ROOT / "templates" / "forms"
+FORM_MAPPINGS_ROOT = REPO_ROOT / "mappings"
+# LibreOffice headless の PDF 変換の時間の上限（秒）
+FORM_CONVERT_TIMEOUT = 120

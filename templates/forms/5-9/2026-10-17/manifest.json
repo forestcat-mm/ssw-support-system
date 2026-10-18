@@ -1,0 +1,21 @@
+{
+  "form_id": "5-9",
+  "name": "事前ガイダンスの確認書（参考様式第5-9号）",
+  "valid_from": "2026-10-17",
+  "language": "ja",
+  "owner": "common",
+  "method": "docx-tags",
+  "requires_signed_copy": true,
+  "original": "original.docx",
+  "template": "template.docx",
+  "source": {
+    "url": "https://www.moj.go.jp/isa/content/001341755.docx",
+    "page": "https://www.moj.go.jp/isa/applications/ssw/10_00020.html",
+    "retrieved_on": "2026-10-17",
+    "revision_date": null,
+    "revision_date_unknown": true,
+    "original_sha256": "601617564016926dfcba0e557a2f9e6d190ac2ad1ec4b1cac2f945d47550588e",
+    "template_sha256": "a2bb70be1c6daf3136897106fc7992757fde445f1b20a01a8f3bcb431bdca651",
+    "adr": "ADR-0009（取得日 2026-10-17）、ADR-0018"
+  }
+}

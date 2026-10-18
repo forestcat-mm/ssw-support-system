@@ -1,0 +1,17 @@
+{
+  "form_id": "5-9",
+  "valid_from": "2026-10-17",
+  "note": "T29 の見本（所属機関名・説明者・実施日時の 1 行目だけ）。すべての欄は T32 で埋める。",
+  "fields": [
+    {"key": "organization.name", "target": "organization_name", "format": "text"},
+    {"key": "staff.name", "target": "explainer_name", "format": "text"},
+    {"key": "session1.date", "target": "s1_year", "format": "year"},
+    {"key": "session1.date", "target": "s1_month", "format": "month"},
+    {"key": "session1.date", "target": "s1_day", "format": "day"},
+    {"key": "session1.start_hour", "target": "s1_start_hour", "format": "number"},
+    {"key": "session1.start_minute", "target": "s1_start_minute", "format": "number"},
+    {"key": "session1.end_hour", "target": "s1_end_hour", "format": "number"},
+    {"key": "session1.end_minute", "target": "s1_end_minute", "format": "number"}
+  ],
+  "rules": []
+}

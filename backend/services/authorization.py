@@ -84,6 +84,10 @@ DJANGO_PERMISSION_ACTIONS: dict[str, Action] = {
         add=Action.SUPPORT_MANAGE,
         change=Action.SUPPORT_MANAGE,
     ),
+    # 帳票（admin は開発者が様式マスタ・生成履歴を見るだけ。T29）
+    **_model_permissions("forms_engine.formtemplate", view=Action.FORMS_GENERATE),
+    **_model_permissions("forms_engine.formmapping", view=Action.FORMS_GENERATE),
+    **_model_permissions("forms_engine.generateddocument", view=Action.FORMS_GENERATE),
     # Django-Q2 の実行予定・結果（管理者のみ）
     **_model_permissions(
         "django_q.schedule",

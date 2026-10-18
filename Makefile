@@ -60,5 +60,8 @@ seed-reset: ## ダミーデータだけを消して作り直す（DATE=YYYY-MM-D
 filings:    ## 日次の届出タスクの起票を手で実行する（DATE=YYYY-MM-DD で基準日を指定できる）
 	$(MANAGE) create_scheduled_filings $(if $(DATE),--date $(DATE),)
 
+forms:      ## 様式マスタ（templates/forms・mappings）を読み込む。何度実行しても同じ結果
+	$(MANAGE) load_form_templates
+
 messages:   ## UI 文言を .po に抽出し .mo にコンパイルする（.po と .mo の両方をコミットする）
 	$(COMPOSE) exec web sh -c 'python manage.py makemessages -l ja --no-location --no-obsolete && python manage.py compilemessages -l ja'

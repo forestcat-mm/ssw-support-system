@@ -1,0 +1,13 @@
+{
+  "form_id": "1-17",
+  "valid_from": "2026-10-17",
+  "note": "T29 の見本（Ⅰ 支援対象者の氏名・生年月日・国籍だけ）。すべての欄は T31 で埋める。",
+  "fields": [
+    {"key": "worker.name_romaji", "target": "参考様式第１－１７号!O18", "format": "text"},
+    {"key": "worker.birth_date", "target": "参考様式第１－１７号!Q26", "format": "year"},
+    {"key": "worker.birth_date", "target": "参考様式第１－１７号!V26", "format": "month"},
+    {"key": "worker.birth_date", "target": "参考様式第１－１７号!Z26", "format": "day"},
+    {"key": "worker.nationality", "target": "参考様式第１－１７号!BC26", "format": "text"}
+  ],
+  "rules": []
+}

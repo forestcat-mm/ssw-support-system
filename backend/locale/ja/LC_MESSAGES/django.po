@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-18 12:18+0900\n"
+"POT-Creation-Date: 2026-10-18 13:06+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -1181,6 +1181,9 @@ msgstr "届出タスクの閲覧"
 
 msgid "register and update filing tasks"
 msgstr "届出タスクの登録・更新"
+
+msgid "generate and download forms (PDF)"
+msgstr "帳票（PDF）の生成とダウンロード"
 
 msgid "manage background jobs"
 msgstr "ジョブ（実行予定・結果）の管理"
@@ -2539,6 +2542,126 @@ msgstr "期限を計算し直しました。"
 msgid "Created the filing task."
 msgstr "届出タスクを起票しました。"
 
+msgid "Forms"
+msgstr "帳票"
+
+msgid "common"
+msgstr "共通"
+
+msgid "Excel: write values into cells"
+msgstr "Excel: セルに値を書く"
+
+msgid "Word: fill in tags"
+msgstr "Word: 差込タグに差し込む"
+
+msgid "form ID"
+msgstr "様式 ID"
+
+msgid "valid from"
+msgstr "適用開始日"
+
+msgid "language"
+msgstr "言語"
+
+msgid "owner"
+msgstr "所有者"
+
+msgid "method"
+msgstr "方法"
+
+msgid "signed copy required"
+msgstr "署名済み添付が必須"
+
+msgid "source URL"
+msgstr "出典の URL"
+
+msgid "source page"
+msgstr "掲載ページ"
+
+msgid "retrieved on"
+msgstr "取得日"
+
+msgid "revision date"
+msgstr "改正日"
+
+msgid "revision date unknown"
+msgstr "改正日不明"
+
+msgid "The valid-from date is the earliest retrieval date recorded in an ADR."
+msgstr "適用開始日は、ADR に記録した最も早い取得日です。"
+
+msgid "original file"
+msgstr "original のファイル"
+
+msgid "original SHA-256"
+msgstr "original の SHA-256"
+
+msgid "template file"
+msgstr "template のファイル"
+
+msgid "template SHA-256"
+msgstr "template の SHA-256"
+
+msgid "manifest"
+msgstr "様式の定義（manifest）"
+
+msgid "form template"
+msgstr "様式"
+
+msgid "form templates"
+msgstr "様式"
+
+msgid "mapping file"
+msgstr "マッピング定義のファイル"
+
+msgid "definition"
+msgstr "定義"
+
+msgid "form mapping"
+msgstr "マッピング定義"
+
+msgid "form mappings"
+msgstr "マッピング定義"
+
+msgid "requested"
+msgstr "依頼"
+
+msgid "failed"
+msgstr "失敗"
+
+msgid "data snapshot"
+msgstr "データのスナップショット"
+
+msgid "failure reason"
+msgstr "失敗の理由"
+
+msgid "generated at"
+msgstr "生成日時"
+
+msgid "converter"
+msgstr "変換の環境"
+
+msgid "filled file"
+msgstr "記入済みのファイル"
+
+msgid "filled file SHA-256"
+msgstr "記入済みのファイルの SHA-256"
+
+msgid "PDF"
+msgstr "PDF ファイル"
+
+msgid "PDF SHA-256"
+msgstr "PDF の SHA-256"
+
+msgid "pages"
+msgstr "頁数"
+
+msgid "generated document"
+msgstr "生成履歴"
+
+msgid "generated documents"
+msgstr "生成履歴"
+
 msgid "Support contracts entered on this page overlap each other."
 msgstr "この画面で入力した支援委託契約どうしの期間が重なっています。"
 
@@ -2842,9 +2965,6 @@ msgstr "分野"
 
 msgid "specified skill fields"
 msgstr "分野"
-
-msgid "valid from"
-msgstr "適用開始日"
 
 msgid "operation category"
 msgstr "業務区分"
@@ -3368,9 +3488,6 @@ msgstr "開始時刻"
 
 msgid "duration (minutes)"
 msgstr "所要時間（分）"
-
-msgid "method"
-msgstr "方法"
 
 msgid "online meeting URL"
 msgstr "オンライン会議の URL"
@@ -5289,6 +5406,28 @@ msgstr "対象を 1 つだけ選んでください。"
 
 msgid "Filing tasks cannot be created for a deactivated foreign worker."
 msgstr "無効化した外国人の届出タスクは起票できません。"
+
+#, python-format
+msgid ""
+"%(key)s: the original file changed. Add it as a new version (valid-from "
+"date) instead of replacing it."
+msgstr ""
+"%(key)s: original のファイルが変わっています。置き換えずに、新しい版（適用開"
+"始日）として足してください。"
+
+#, python-format
+msgid ""
+"%(key)s: documents were generated with this version. Add the changed "
+"template or mapping as a new version."
+msgstr ""
+"%(key)s: この版で生成した履歴があります。変えた template・マッピング定義は、"
+"新しい版として足してください。"
+
+#, python-format
+msgid "The form %(form_id)s is not loaded. Run load_form_templates."
+msgstr ""
+"様式 %(form_id)s が読み込まれていません。load_form_templates を実行してくださ"
+"い。"
 
 msgid "The field of a membership cannot be changed after registration."
 msgstr "加入状況の分野は、登録した後は変えられません。"

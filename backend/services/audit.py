@@ -83,6 +83,10 @@ AUDITED_MODELS: frozenset[str] = frozenset(
         "support.briefingcheck",
         "support.briefingforeignfee",
         "support.documentdelivery",
+        # 帳票（様式マスタの読み込み・生成履歴。T29）
+        "forms_engine.formtemplate",
+        "forms_engine.formmapping",
+        "forms_engine.generateddocument",
     }
 )
 

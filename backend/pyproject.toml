@@ -18,6 +18,9 @@ dependencies = [
     "psycopg[binary]==3.3.6",
     "qrcode==8.2",
     "redis==8.1.0",
+    "docxtpl==0.20.1",
+    "openpyxl==3.1.5",
+    "pypdf==6.1.1",
 ]
 
 [tool.uv]

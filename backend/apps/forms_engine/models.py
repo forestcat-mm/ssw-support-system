@@ -1,0 +1,193 @@
+"""帳票の基盤（仕様書 第6章「様式のバージョン管理」「生成履歴」、第7章 form_templates /
+form_mappings / generated_documents。T29、ADR-0018）。
+
+- 様式マスタ（FormTemplate）とマッピング定義（FormMapping）は、リポジトリのファイル
+  （templates/forms/・mappings/）から読み込む（load_form_templates）。旧版は消さない（制約5）。
+- 生成履歴（GeneratedDocument）は上書きしない。依頼 → 完了／失敗の状態の変更だけを許す。
+  データのスナップショットは暗号化して持つ（在留カード番号などを含むため。制約2）。
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+from django.db import models
+from django.db.models import Q
+from django.utils.translation import gettext_lazy as _
+
+from apps.core.fields import EncryptedCharField
+from apps.core.models import PrivateFileField, TrackedModel
+from services.files import upload_path
+
+
+class ImmutableRowError(Exception):
+    """生成履歴は完了・失敗の後に変更・削除できない。"""
+
+
+class FormOwner(models.TextChoices):
+    COMMON = "common", _("common")
+    HOST = "host", _("host organization")
+
+
+class FormMethod(models.TextChoices):
+    XLSX_CELLS = "xlsx-cells", _("Excel: write values into cells")
+    DOCX_TAGS = "docx-tags", _("Word: fill in tags")
+
+
+class FormTemplate(TrackedModel):
+    """様式マスタの 1 行＝様式 ID × 適用開始日 × 言語 × 所有者。"""
+
+    form_id = models.CharField(_("form ID"), max_length=32)
+    name = models.CharField(_("name"), max_length=200)
+    valid_from = models.DateField(_("valid from"))
+    language = models.CharField(_("language"), max_length=10, default="ja")
+    owner = models.CharField(
+        _("owner"), max_length=16, choices=FormOwner.choices, default=FormOwner.COMMON
+    )
+    # 受入れ機関固有のテンプレート（段階4以降。今は列だけ）
+    host_organization = models.ForeignKey(
+        "hosts.HostOrganization",
+        verbose_name=_("host organization"),
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    method = models.CharField(_("method"), max_length=16, choices=FormMethod.choices)
+    requires_signed_copy = models.BooleanField(_("signed copy required"), default=False)
+    # 出典（manifest.json の source）
+    source_url = models.URLField(_("source URL"), max_length=500)
+    source_page = models.URLField(_("source page"), max_length=500, blank=True)
+    retrieved_on = models.DateField(_("retrieved on"))
+    revision_date = models.DateField(_("revision date"), null=True, blank=True)
+    revision_unknown = models.BooleanField(
+        _("revision date unknown"),
+        default=False,
+        help_text=_("The valid-from date is the earliest retrieval date recorded in an ADR."),
+    )
+    # リポジトリの中のファイル（FORM_TEMPLATES_ROOT からの相対パス）と SHA-256
+    original_path = models.CharField(_("original file"), max_length=255)
+    original_sha256 = models.CharField(_("original SHA-256"), max_length=64)
+    template_path = models.CharField(_("template file"), max_length=255, blank=True)
+    template_sha256 = models.CharField(_("template SHA-256"), max_length=64, blank=True)
+    manifest = models.JSONField(_("manifest"), default=dict)
+
+    class Meta:
+        verbose_name = _("form template")
+        verbose_name_plural = _("form templates")
+        ordering = ["form_id", "-valid_from", "language"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["form_id", "valid_from", "language", "owner"],
+                condition=Q(host_organization__isnull=True),
+                name="forms_engine_template_unique_common",
+            ),
+            models.UniqueConstraint(
+                fields=["form_id", "valid_from", "language", "owner", "host_organization"],
+                condition=Q(host_organization__isnull=False),
+                name="forms_engine_template_unique_host",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.form_id} {self.name} ({self.valid_from:%Y-%m-%d} {self.language})"
+
+
+class FormMapping(TrackedModel):
+    """様式の版ごとのマッピング定義（データ項目 → セル・差込タグ、書式、検査の規則。JSON）。"""
+
+    template = models.OneToOneField(
+        FormTemplate,
+        verbose_name=_("form template"),
+        on_delete=models.PROTECT,
+        related_name="mapping",
+    )
+    path = models.CharField(_("mapping file"), max_length=255)
+    sha256 = models.CharField("SHA-256", max_length=64)
+    definition = models.JSONField(_("definition"), default=dict)
+
+    class Meta:
+        verbose_name = _("form mapping")
+        verbose_name_plural = _("form mappings")
+
+    def __str__(self) -> str:
+        return f"{self.template} mapping"
+
+
+def generated_upload_to(instance: object, filename: str) -> str:
+    return upload_path("generated", filename)
+
+
+class GenerationStatus(models.TextChoices):
+    REQUESTED = "requested", _("requested")
+    COMPLETED = "completed", _("completed")
+    FAILED = "failed", _("failed")
+
+
+class GeneratedDocument(TrackedModel):
+    """生成履歴（上書きしない）。どの様式の版・どのデータから作ったかを残す。"""
+
+    template = models.ForeignKey(
+        FormTemplate,
+        verbose_name=_("form template"),
+        on_delete=models.PROTECT,
+        related_name="generated_documents",
+    )
+    # 帳票の対象（外国人・受入れ機関など）。外国人の帳票は worker にも入れる（一覧のため）
+    content_type = models.ForeignKey(
+        ContentType, verbose_name=_("target type"), on_delete=models.PROTECT
+    )
+    object_id = models.PositiveBigIntegerField(_("target ID"))
+    target = GenericForeignKey("content_type", "object_id")
+    worker = models.ForeignKey(
+        "workers.ForeignWorker",
+        verbose_name=_("foreign worker"),
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="generated_documents",
+    )
+    basis_on = models.DateField(_("basis date"))
+    # 基準日に適用される版が無く、最も古い版（改正日不明）を使った印
+    revision_unknown = models.BooleanField(_("revision date unknown"), default=False)
+    # データのスナップショット（JSON を暗号化。長さの上限なし）
+    snapshot = EncryptedCharField(_("data snapshot"))
+    status = models.CharField(
+        _("status"),
+        max_length=16,
+        choices=GenerationStatus.choices,
+        default=GenerationStatus.REQUESTED,
+    )
+    failure_reason = models.CharField(_("failure reason"), max_length=200, blank=True)
+    generated_at = models.DateTimeField(_("generated at"), null=True, blank=True)
+    converter_version = models.CharField(_("converter"), max_length=100, blank=True)
+    # 記入済みの docx・xlsx（保存だけ。取り出しは段階4 の F13 で決める）と PDF
+    filled_file = PrivateFileField(
+        _("filled file"), upload_to=generated_upload_to, max_length=255, blank=True
+    )
+    filled_sha256 = models.CharField(_("filled file SHA-256"), max_length=64, blank=True)
+    pdf_file = PrivateFileField(_("PDF"), upload_to=generated_upload_to, max_length=255, blank=True)
+    pdf_sha256 = models.CharField(_("PDF SHA-256"), max_length=64, blank=True)
+    page_count = models.PositiveSmallIntegerField(_("pages"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("generated document")
+        verbose_name_plural = _("generated documents")
+        ordering = ["-created_at", "-pk"]
+        indexes = [models.Index(fields=["content_type", "object_id"])]
+
+    def __str__(self) -> str:
+        return f"{self.template.form_id} #{self.pk}"
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        # 完了・失敗の後は変えない（上書きしない。再生成は新しい行）
+        if not self._state.adding:
+            stored = GeneratedDocument.objects.filter(pk=self.pk).values_list("status", flat=True)
+            if stored and stored[0] != GenerationStatus.REQUESTED:
+                raise ImmutableRowError("generated documents cannot be changed after completion")
+        super().save(*args, **kwargs)
+
+    def delete(self, *args: Any, **kwargs: Any) -> tuple[int, dict[str, int]]:
+        raise ImmutableRowError("generated documents cannot be deleted")
