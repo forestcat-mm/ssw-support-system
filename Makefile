@@ -1,7 +1,7 @@
 COMPOSE := docker compose
 MANAGE := $(COMPOSE) exec web python manage.py
 
-.PHONY: e2e gate2 design-shots seed seed-reset filings env up down build logs migrate admin shell psql lock test lint format messages
+.PHONY: checks e2e gate2 design-shots seed seed-reset filings env up down build logs migrate admin shell psql lock test lint format messages
 
 env:        ## .env を作る・足りないキーを補う・鍵を生成する（既存の値は変えない）
 	python3 scripts/init_env.py
@@ -41,6 +41,12 @@ e2e:        ## 通しのテスト（Playwright、Chromium）。初回はイメ�
 
 gate2:      ## 段階2の受け入れ確認（seed → 担当者 2 人が定期面談と相談を画面で記録。DATE=YYYY-MM-DD で基準日）
 	$(COMPOSE) --profile e2e run --rm -e GATE2=1 $(if $(DATE),-e GATE_DATE=$(DATE),) e2e pytest -s e2e/test_phase2_gate.py
+
+CHECKS_LOG ?= .checks/checks.log
+CHECK_LIMIT ?= 900
+GATE2_DATES ?=
+checks:     ## lint・test・e2e（GATE2_DATES="2026-10-17 …" で gate2 も）を順に流し、終了コードと === DONE を CHECKS_LOG に書く
+	tools/run_checks.sh $(CHECKS_LOG) $(CHECK_LIMIT) "LINT::make lint" "TEST::make test" "E2E::make e2e" $(foreach d,$(GATE2_DATES),"GATE2 $(d)::make gate2 DATE=$(d)")
 
 design-shots: ## 見本画面（/ui/）のスクリーンショットを docs/design/ に保存する
 	$(COMPOSE) --profile e2e run --rm -e DESIGN_SHOTS=1 e2e pytest e2e/test_design_shots.py

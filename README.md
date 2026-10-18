@@ -62,9 +62,12 @@ make lint           # ruff check / ruff format --check / mypy（strict）
 make format         # 整形と自動修正
 make e2e            # 通しのテスト（Playwright・Chromium。e2e コンテナ。初回はイメージの作成に時間がかかる）
 make gate2          # 段階2の受け入れ確認（seed → 担当者 2 人が定期面談と相談を画面で記録。DATE=YYYY-MM-DD で基準日）
+make checks        # lint・test・e2e を順に流し、終了コードと === DONE を .checks/checks.log に書く
 make design-shots   # 見本画面（/ui/）のスクリーンショットを docs/design/ に保存する
 make messages       # UI 文言を .po に抽出し .mo にコンパイルする（両方をコミットする）
 ```
+
+まとめて流すときは `make checks`（lint・test・e2e。`GATE2_DATES="2026-10-17 2026-11-30 2026-12-28"` を付けると gate2 も）。`tools/run_checks.sh` が検査を順に流し、`.checks/checks.log` に検査ごとの開始・終了の時刻・件数・終了コードと、最後に必ず `=== DONE` を書く（出力そのものは `.checks/checks.log.full`）。1 件の上限は `CHECK_LIMIT`（秒。既定 900）で、超えたら止めて終了コード 124 にする。別のシェルから待つときは、`=== DONE` の行と上限の時間（例: 30 分）の両方で待つ。前の実行が終わる前に次を始めない（DB と e2e のコンテナを取り合う）。
 
 コミットの前に `make test`・`make lint`・`make e2e` を通す。`make gate2` は通常の `make e2e` では飛ばす（seed を入れて 27 人分の面談を記録するため時間がかかる）。基準日を変えて流すときは `make gate2 DATE=2026-12-28` のようにする（画面の「今日」も基準日になる）。コミットは 1 タスク 1 コミットで、接頭辞は `feat: ` / `fix: ` / `chore: ` / `docs: `。
 

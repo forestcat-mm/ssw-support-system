@@ -18,6 +18,7 @@ __pycache__/
 
 # 生成物・個人情報を含みうるファイル
 /output/
+/.checks/
 /generated/
 *.dump
 *.sql.gz
