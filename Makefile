@@ -57,11 +57,14 @@ lint:       ## 静的検査（ruff check / ruff format --check / mypy）
 format:     ## 整形と自動修正
 	$(COMPOSE) exec web sh -c 'ruff format . && ruff check --fix .'
 
-seed:       ## ダミーデータを作る（外国人30人・受入れ機関3社。作成済みなら何もしない）
+seed:       ## ダミーデータを作る（外国人31人・受入れ機関4社。作成済みなら何もしない）
 	$(MANAGE) seed_dummy $(if $(DATE),--date $(DATE),)
 
 seed-reset: ## ダミーデータだけを消して作り直す（DATE=YYYY-MM-DD で基準日を指定できる）
 	$(MANAGE) seed_dummy --reset $(if $(DATE),--date $(DATE),)
+
+seed-docs:  ## ダミーの生成物の場面（署名待ち・署名済み・回収のタスク・警告つき。seed の後に。T39）
+	$(MANAGE) seed_documents
 
 filings:    ## 日次の届出タスクの起票を手で実行する（DATE=YYYY-MM-DD で基準日を指定できる）
 	$(MANAGE) create_scheduled_filings $(if $(DATE),--date $(DATE),)

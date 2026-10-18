@@ -56,19 +56,21 @@ def _fingerprint() -> list[tuple[str, str, str]]:
 def test_counts_and_running_twice_does_not_add_rows() -> None:
     """T12 の完了条件: 何度実行しても同じ件数で再現。"""
     _seed()
-    assert ForeignWorker.objects.count() == 30
+    # 31 番は加入証明なしの場面（T39）。1〜30 番の場面とは別
+    assert ForeignWorker.objects.count() == 31
     assert Counter(ForeignWorker.objects.values_list("nationality__code", flat=True)) == {
         "CN": 25,
-        "VN": 3,
+        "VN": 4,
         "ID": 2,
     }
-    assert HostOrganization.objects.count() == 3  # 3 社目は転籍の場面（T26）
-    assert HostSite.objects.count() == 4
-    assert EmploymentContract.objects.count() == 31  # 9 番の転籍で 1 つ増える
+    # 3 社目は転籍の場面（T26）、4 社目は加入証明なしの場面（T39）
+    assert HostOrganization.objects.count() == 4
+    assert HostSite.objects.count() == 5
+    assert EmploymentContract.objects.count() == 32  # 9 番の転籍で 1 つ、31 番で 1 つ増える
     rows = SeedObject.objects.count()
     assert "already exists" in _seed()
     assert SeedObject.objects.count() == rows
-    assert ForeignWorker.objects.count() == 30
+    assert ForeignWorker.objects.count() == 31
 
 
 def test_reset_recreates_the_same_content_for_the_same_base_date() -> None:
@@ -117,7 +119,8 @@ def test_names_are_unique_and_only_number_30_is_renamed() -> None:
     assert romaji[:29] == NAMES_1_TO_29
     assert romaji[29] in ("SARI KURNIAWATI", "RIZKY PRATAMA")
     assert seeded[29].name_native.upper() == romaji[29] and seeded[29].name_kanji == ""
-    assert len(set(romaji)) == 30
+    assert romaji[30] == "NGUYEN VAN AN"  # 31 番（T39。固定の氏名）
+    assert len(set(romaji)) == 31
 
 
 def test_numbers_pass_the_format_checks() -> None:
@@ -177,11 +180,11 @@ def test_reset_keeps_non_dummy_data() -> None:
     own_worker = make_worker(name_romaji="REAL TEST")
     own_host = make_host(name="手入力の会社", corporate_number="7000012050002")
     _seed()
-    assert ForeignWorker.objects.count() == 31
+    assert ForeignWorker.objects.count() == 32
     _seed("--reset")
     assert ForeignWorker.objects.filter(pk=own_worker.pk).exists()
     assert HostOrganization.objects.filter(pk=own_host.pk).exists()
-    assert ForeignWorker.objects.count() == 31
+    assert ForeignWorker.objects.count() == 32
     from apps.core.models import Organization
 
     assert list(Organization.objects.all()) == [organization]  # 既存の自機関は触らない

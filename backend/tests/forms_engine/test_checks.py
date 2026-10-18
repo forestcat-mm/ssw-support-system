@@ -40,12 +40,18 @@ EXPECTED_1_17 = {
     6: {("contract", "contract_missing")},  # 会社都合で離職（D−9）
     9: {("career_plan", "career_plan_missing")},  # 転籍の後の契約（水産加工）が未交付
     15: {("career_plan", "career_plan_missing")},  # 食品の契約が未交付
+    31: {("membership", "certificate_missing")},  # 4 社目は構成員証明書が無い（T39）
 }
 EXPECTED_5_9 = {
     10: {("briefing_warnings", "below_guideline")},  # 2 時間（署名なしは生成の後なので出さない）
     25: set(),  # 完全・署名済み
 }
-BLOCKING_CODES = {"residence_expired", "contract_missing", "briefing_missing"}
+BLOCKING_CODES = {
+    "residence_expired",
+    "contract_missing",
+    "briefing_missing",
+    "certificate_missing",
+}
 
 
 def check(form_id: str, worker: ForeignWorker, on: datetime.date = BASE) -> form_checks.CheckResult:

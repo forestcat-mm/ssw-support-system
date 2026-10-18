@@ -1,4 +1,4 @@
-"""ダミーデータを作る（開発用）。外国人 30 人・受入れ機関 2 社・契約・届出タスク。
+"""ダミーデータを作る（開発用）。外国人 31 人・受入れ機関 4 社・契約・届出タスク。
 
 - 同じ基準日なら同じ内容（乱数の種は固定）。作成済みなら何もしない。--reset で作り直す。
 - DEBUG かつ ALLOW_DUMMY_DATA=true のときだけ動く（本番で誤って実行しない）。
@@ -15,7 +15,7 @@ from apps.seed import builders
 
 
 class Command(BaseCommand):
-    help = "Create dummy data for development (30 foreign workers, 2 host organizations)."
+    help = "Create dummy data for development (31 foreign workers, 4 host organizations)."
 
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument(

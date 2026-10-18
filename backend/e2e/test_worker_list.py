@@ -80,7 +80,7 @@ def test_rows_have_the_same_height_for_any_script(
 
 @pytest.fixture
 def dummy_data(settings: Settings, tmp_path: Path) -> None:
-    """seed_dummy の 30 人（受入れ機関名・担当者名が長い実際に近いデータ）。"""
+    """seed_dummy の 31 人（受入れ機関名・担当者名が長い実際に近いデータ。31 番は T39）。"""
     settings.DEBUG = True
     settings.ALLOW_DUMMY_DATA = True
     settings.STORAGES = {
@@ -102,7 +102,7 @@ def test_dummy_30_workers_fit_one_line_per_row(
     sign_in(support_staff)
     page.goto(page.url.rstrip("/") + "/workers/?status=all")
     rows = page.locator("#worker-list tbody tr")
-    expect(rows).to_have_count(30)
+    expect(rows).to_have_count(31)
     heights = rows.evaluate_all(ROW_HEIGHTS)
     assert max(heights) - min(heights) < 0.5, heights
     assert 34 <= heights[0] <= 40, heights[0]

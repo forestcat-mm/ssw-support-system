@@ -650,7 +650,7 @@ def test_dummy_contracts_follow_article_19_and_have_wage_explanations(seeded: li
         "wage_below_rules",
     }
     versions = EmploymentContractVersion.objects.filter(contract__worker__in=seeded)
-    assert versions.count() == 31 + 5  # 31 契約。昇給 3・減給 2 の 2 版目
+    assert versions.count() == 32 + 5  # 32 契約（31 番は T39）。昇給 3・減給 2 の 2 版目
     for version in versions:
         assert wage_explanations.explanation_of(version) is not None
         for form_id in ("1-6", "1-4"):

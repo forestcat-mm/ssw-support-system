@@ -79,7 +79,7 @@ def base_date(monkeypatch: pytest.MonkeyPatch) -> date:
 
 @pytest.fixture
 def seeded(settings: Settings, tmp_path: Path, base_date: date) -> list[ForeignWorker]:
-    """seed_dummy の 30 人（外国人の番号の順）。ログイン用の 2 人にパスワードを設定する。"""
+    """seed_dummy の 31 人（番号の順。31 番は T39）。ログイン用の 2 人にパスワードを設定する。"""
     settings.DEBUG = True
     settings.ALLOW_DUMMY_DATA = True
     settings.STORAGES = {

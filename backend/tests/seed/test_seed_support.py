@@ -163,7 +163,7 @@ def test_interview_due_dates_are_spread() -> None:
 
 
 def test_plans_and_interviews() -> None:
-    assert SupportPlan.objects.filter(is_template=False).count() == 31  # 9 番は 2 社分
+    assert SupportPlan.objects.filter(is_template=False).count() == 32  # 9 番は 2 社分。31 番も
     assert PeriodicInterview.objects.filter(voided_at__isnull=True).count() >= 27
     voided = PeriodicInterview.objects.get(voided_at__isnull=False)
     assert voided.worker == worker(8)

@@ -88,6 +88,7 @@ from services import (
     host_records,
     passport,
     residence_card,
+    support_plans,
 )
 from services.attachments import create_attachment
 
@@ -873,6 +874,122 @@ def seed_transfer(ctx: SeedContext) -> None:
         filings.transition(filing, FilingStatus.SUBMITTED, by=None, submitted_on=ctx.days(-50))
 
 
+# 加入証明なしの場面（T39-D1）: 4 社目（サンプル部品工業。工業）に、加入はあるが構成員証明書が無い。
+# 31 番（入国前）がその会社と雇用契約を結ぶ。第3-1号などが「証明書が添付されていません」で
+# 生成不可になる。1〜30 番・3 社の場面は変えない（31 番は ctx.workers に入れず、支援計画のほかの
+# 支援の記録は作らない）
+UNCERTIFIED_NUMBER = 31
+
+
+def seed_uncertified_host(ctx: SeedContext) -> None:
+    """4 社目と 31 番。乱数は別の種を使い、既存のダミーの並びを変えない。"""
+    rng = random.Random(SEED + UNCERTIFIED_NUMBER)
+    industrial = SpecifiedSkillField.objects.get(code="industrial_products")
+    host = HostOrganization.objects.create(
+        name=f"{DUMMY_MARK}サンプル部品工業株式会社",
+        name_kana="サンプルブヒンコウギョウ",
+        corporate_number=corporate_number.generate_dummy(rng),
+        representative_title="代表取締役",
+        representative_name=f"代表 四郎{DUMMY_MARK}",
+        postal_code="000-0005",
+        address="岐阜県ダミー市サンプル町2-4-6",
+        phone_number="000-0000-0004",
+    )
+    ctx.keep(host)
+    ctx.uncertified_host = host
+    site = HostSite.objects.create(
+        host_organization=host,
+        name="部品工場",
+        postal_code="000-0005",
+        address="岐阜県ダミー市サンプル町2-4-6",
+        phone_number="000-0000-1098",
+        industry_code="2699",  # その他の生産用機械・同部分品製造業（第3-1号の 76 の産業）
+        field=industrial,
+    )
+    site.categories.set(_categories("machine_metal_processing"))
+    ctx.keep(site)
+    # 加入はあるが、構成員証明書を添付しない（この場面のため）
+    ctx.keep(
+        HostMembership.objects.create(
+            host_organization=host,
+            field=industrial,
+            joined_on=ctx.days(-30),
+            valid_until=None,
+            member_number="DUMMY-0004",
+        )
+    )
+    support = SupportContract.objects.create(
+        host_organization=host,
+        monthly_fee=30000,
+        concluded_on=ctx.days(-14),
+        starts_on=ctx.days(-7),
+        ends_on=ctx.days(358),
+    )
+    ctx.keep(support)
+    seed_fees(support)
+
+    country = Country.objects.get(code="VN")
+    worker = ForeignWorker.objects.create(
+        name_romaji="NGUYEN VAN AN",
+        name_kanji="",
+        name_native="Nguyễn Văn An",
+        nationality=country,
+        birth_date=ctx.days(-365 * 25),
+        sex=Sex.MALE,
+        support_language=SupportLanguage.objects.get(code="ja"),
+        assigned_staff=next((s for s in ctx.staff if not s.is_support_manager), ctx.staff[0]),
+        status=WorkerStatus.PRE_ENTRY,
+    )
+    ctx.keep(worker)
+    ctx.uncertified_worker = worker
+    _residence(
+        ctx,
+        worker,
+        card_number="",
+        status_of_residence=StatusOfResidence.SSW_1,
+        application_type=ApplicationType.CERTIFICATE_OF_ELIGIBILITY,
+        permitted_on=ctx.days(-10),
+        expires_on=ctx.days(80),
+    )
+    ctx.keep(
+        PassportRecord.objects.create(
+            worker=worker,
+            number=passport.generate_dummy(rng),
+            issuing_country=country,
+            issued_on=ctx.days(-400),
+            expires_on=ctx.days(3250),
+        )
+    )
+    ctx.keep(
+        WorkerAddress.objects.create(
+            worker=worker,
+            postal_code="000-0005",
+            address="岐阜県ダミー市サンプル町2-4-6 サンプル寮131号",
+            effective_from=ctx.days(-10),
+        )
+    )
+    shared, ctx.rng = ctx.rng, rng  # 基本給の乱数も別の種から取る
+    try:
+        values = _version_values(ctx, site, WorkerSpec("VN", None), ctx.days(30))
+    finally:
+        ctx.rng = shared
+    contract = _add_version(
+        ctx,
+        values,
+        contract=None,
+        worker=worker,
+        allowances=[("住宅手当", 10000)],
+        deductions=[("housing", 30000)],
+    ).contract
+    # 支援計画（ほかの人と同じく標準の計画から。第1-17号も加入証明なしで生成不可になる）
+    applies_from = values["starts_on"] - timedelta(days=30)
+    content = support_plans.content_for_worker(worker)
+    content.created_on = applies_from
+    support_plans.create_plan(
+        worker, contract.host_organization, applies_from=applies_from, by=None, content=content
+    )
+
+
 def seed_filings(ctx: SeedContext) -> None:
     """日付の到来で起票するもの（T11 の日次の起票を 1 回実行する）。"""
     filings.create_scheduled(ctx.base)
@@ -939,6 +1056,7 @@ STEPS: tuple[Step, ...] = (
     seed_transfer,
     seed_career_plans,
     support_builders.seed_support,  # 段階2（支援計画・実績・相談・ガイダンス・交付・要配慮添付）
+    seed_uncertified_host,  # 加入証明なしの場面（T39）
     seed_filings,
 )
 
