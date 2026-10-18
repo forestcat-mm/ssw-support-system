@@ -32,6 +32,7 @@ def worker() -> ForeignWorker:
     make_staff(office=office, name="山田 一郎", position="支援責任者", is_support_manager=True)
     staff = make_staff(office=office, name="佐藤 花子", position="支援担当")
     worker = make_worker(assigned_staff=staff)
+    staff.languages.set([worker.support_language])  # 支援言語に対応する担当者
     add_residence(worker, expires_on=today + timedelta(days=400))
     site = site_with_categories()
     make_contract(worker, site=site)
@@ -75,15 +76,13 @@ def test_generate_the_support_plan_and_record_the_copy(
     expect(findings).to_contain_text("「支援の適正性を確保していることの有無」の申告が無い")
     assert page.evaluate("document.documentElement.scrollWidth") <= width
 
-    # 申告すると、その警告は消える。標準の計画の長い実施予定の文は、6pt でも収まらない警告が残る
-    page.locator("#id_propriety").check()
-    page.get_by_role("button", name="検査する").click()
-    findings = page.locator("#generation-findings")
-    expect(findings).not_to_contain_text("申告が無い")
-    expect(findings).to_contain_text("欄に収まりません")
+    # 申告しないまま生成しようとすると、警告を確かめる印が要る
     page.get_by_role("button", name="生成する").click()
     expect(page.locator("#generate-form")).to_contain_text("警告を確かめてから生成してください")
-    page.locator("#id_accept_warnings").check()
+    # 申告すると警告は消える（標準の計画の初期値は、どの欄にも収まる）
+    page.locator("#id_propriety").check()
+    page.get_by_role("button", name="検査する").click()
+    expect(page.locator("#generation-findings")).to_contain_text("不足はありません")
     page.get_by_role("button", name="生成する").click()
 
     expect(page.locator("#document-status")).to_have_text("生成しました。")

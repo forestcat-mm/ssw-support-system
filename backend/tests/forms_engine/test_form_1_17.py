@@ -21,7 +21,13 @@ from django.test import Client
 from pytest_django.fixtures import Settings as SettingsWrapper
 
 from apps.forms_engine.models import FormTemplate, GeneratedDocument, GenerationStatus
-from apps.support.models import DeliveredBy, DeliveryKind, DeliveryMethod, SupportPlanVersion
+from apps.support.models import (
+    DeliveredBy,
+    DeliveryKind,
+    DeliveryMethod,
+    SupportPlan,
+    SupportPlanVersion,
+)
 from apps.workers.models import ForeignWorker
 from services import (
     deliveries,
@@ -340,3 +346,50 @@ def test_generation_screen_when_the_form_is_not_loaded(settings: SettingsWrapper
     response = client.get(url)
     assert response.status_code == 200
     assert "様式が読み込まれていません" in response.content.decode()
+
+
+# --- 標準の計画の初期値（T31 の直し）------------------------------------------------------
+
+
+def test_default_plan_fits_every_field_of_the_form(seeded: list[ForeignWorker]) -> None:
+    """標準の計画の初期値で作った計画は、どの欄にも「収まらない」の警告が出ない。"""
+    assert support_plans.DEFAULT_TIMING["1.main"] == "認定申請前（変更申請前）"
+    for number in (2, 3, 15, 25):
+        worker = seeded[number - 1]
+        target, data = form_samples.sample("1-17", worker, BASE)
+        assert isinstance(target, SupportPlanVersion)
+        result = form_generation.check("1-17", target=target, data=data, basis_on=BASE)
+        assert not [f for f in result.findings if f.code == "text_overflow"], number
+        template = FormTemplate.objects.get(form_id="1-17")
+        assert not [fit for fit in form_generation.fits(template, data) if fit.overflow]
+
+
+def test_standard_plan_with_old_defaults_gets_a_new_version() -> None:
+    """データの移行: 標準の計画の最新の版が古い初期値のままなら、新しい版で直す（上書きしない）。"""
+    import importlib
+
+    from django.apps import apps
+
+    migration = importlib.import_module("apps.support.migrations.0009_fit_default_timing")
+    content = support_plans.default_content()
+    content.activities[
+        "1.main"
+    ].planned_note = "在留資格認定証明書交付申請前（在留資格変更許可申請前）"
+    content.activities["8.a"].planned_note = "非自発的離職時"
+    content.activities["8.e"].planned_note = ""
+    content.activities["8.b"].planned_note = "利用者が変えた文"  # 変えた行はそのまま
+    plan = SupportPlan.objects.create(is_template=True)
+    support_plans.add_version(plan, content, applies_from=BASE, by=None)
+
+    migration.fit_default_timing(apps, None)
+    versions = list(plan.versions.order_by("version"))
+    assert [v.version for v in versions] == [1, 2]
+    old, new = (support_plans.content_of(v) for v in versions)
+    assert old.activities["1.main"].planned_note.startswith("在留資格認定証明書")  # 版 1 はそのまま
+    assert new.activities["1.main"].planned_note == "認定申請前（変更申請前）"
+    assert new.activities["8.a"].planned_note == "非自発的離職時に適宜実施"
+    assert new.activities["8.e"].planned_note == "非自発的離職時に適宜実施"
+    assert new.activities["8.b"].planned_note == "利用者が変えた文"
+    assert {k: v for k, v in new.items.items()} == {k: v for k, v in old.items.items()}
+    migration.fit_default_timing(apps, None)
+    assert plan.versions.count() == 2  # 2 回目は何もしない

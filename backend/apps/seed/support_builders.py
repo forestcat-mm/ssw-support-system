@@ -11,7 +11,6 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from dataclasses import replace
 from datetime import date, time, timedelta
 from typing import Any
 
@@ -107,11 +106,6 @@ def _signed_on(contract: EmploymentContract) -> date:
 # --- 支援計画 --------------------------------------------------------------------------------
 
 
-# ダミーの計画の事前ガイダンスの実施予定（標準の初期値は長く、第1-17号の欄に 6pt でも収まらない
-# 〔T31-D7 の警告〕。ダミーの場面を保つため、欄に収まる書き方にする）
-SEED_PRE_GUIDANCE_TIMING = "認定申請前（変更申請前）"
-
-
 def seed_plans(ctx: SeedContext) -> None:
     for worker in ctx.workers:
         for contract in EmploymentContract.objects.filter(worker=worker).order_by(
@@ -119,10 +113,7 @@ def seed_plans(ctx: SeedContext) -> None:
         ):
             applies_from = _starts_on(contract) - timedelta(days=30)
             content = support_plans.content_for_worker(worker)
-            content.created_on = applies_from
-            content.activities["1.main"] = replace(
-                content.activities["1.main"], planned_note=SEED_PRE_GUIDANCE_TIMING
-            )
+            content.created_on = applies_from  # 第1-17号の作成日（T31）
             support_plans.create_plan(
                 worker,
                 contract.host_organization,
