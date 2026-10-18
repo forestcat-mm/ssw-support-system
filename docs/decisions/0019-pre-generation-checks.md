@@ -114,3 +114,7 @@ T29（ADR-0018）では、マッピング定義の JSON に空の `rules` を置
 - 在留期限の当日に申請する場合（「より後」の当日の扱い）。同じく段階4で確かめる。
 - 加入証明の検査を、どの申請の様式に付けるか。T30 では、読み込み済みの申請の添付書類である第1-17号に付けた。申請の添付のセット（T37・段階4）でも付ける。
 - 自機関の食品産業特定技能協議会の構成員証明書（仕様書 第4章）の検査は、申請の添付のセット（T37）で決める。
+
+## 追記（2026-10-18。T31）
+
+第1-17号の全欄の生成（ADR-0020）で、判定の関数を足した: `support_contract_on_basis`（生成不可）・`plan_not_outsourced`（生成不可）・`contract_not_past_end`・`plan_orientation_other`・`organization_for_plan`・`propriety_declared`・`text_fits`（いずれも警告）。生成の対象に計画の版（`SupportPlanVersion`）を足した。

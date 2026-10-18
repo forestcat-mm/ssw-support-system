@@ -79,7 +79,8 @@ make shell          # Django shell
 make psql           # DB に psql で入る
 make filings        # 日次の届出タスクの起票を手で実行する（DATE=YYYY-MM-DD で基準日を指定）
 make forms          # 様式マスタを読み込む（様式・マッピング定義・規則のファイルを足したり直したりしたとき）
-docker compose exec web python manage.py check_form 1-17 --worker <ID>  # 見本の生成前の検査の結果を見る（生成はしない）
+docker compose exec web python manage.py check_form 1-17 --worker <ID>  # 見本の生成前の検査の結果を見る（生成はしない。1-17 は今の計画の最新の版）
+python3 tools/forms/make_1_17_mapping.py > mappings/1-17/2026-10-17.json  # 第1-17号のマッピングを作り直す（手で直さない。ADR-0020）
 docker compose exec web python manage.py generate_sample_form 1-17 --worker <ID>  # 見本の帳票を生成する（開発者向け。警告があるときは --accept-warnings）
 make lock           # pyproject.toml の変更を uv.lock に反映する（その後 make build）
 ```
