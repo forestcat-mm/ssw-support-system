@@ -241,6 +241,33 @@ def validate_version(
         raise ValidationError(errors)
 
 
+def saved_version_errors(version: EmploymentContractVersion) -> dict[str, list[str]]:
+    """保存済みの版が、今の検査（validate_version と同じ規則）に合っているか。
+
+    期間の重なりは DB の排他制約で保証されるので見ない。第1版は変更理由を求めない。
+    ダミーデータ・移行の確かめに使う。
+    """
+    contract = version.contract
+    site = _site_or_none(version)
+    errors: dict[str, list[str]] = {}
+    checks: list[tuple[str, Any]] = [
+        ("site", lambda: validate_site_belongs_to_host(contract.host_organization, site)),
+        ("categories", lambda: validate_categories_of_site(site, version.categories.all())),
+    ]
+    if version.version > 1:
+        checks.append(
+            ("change_reason", lambda: validate_change(contract, version.change_reason or ""))
+        )
+    for field, check in checks:
+        try:
+            check()
+        except ValidationError as error:
+            errors.setdefault(field, []).extend(error.messages)
+    for field, messages in conditional_errors(version).items():
+        errors.setdefault(field, []).extend(messages)
+    return errors
+
+
 def validate_termination(
     terminated_on: date | None, reason: str, note: str, starts_on: date | None
 ) -> None:

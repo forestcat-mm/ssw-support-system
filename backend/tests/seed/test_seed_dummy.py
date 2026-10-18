@@ -9,7 +9,7 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from pytest_django.fixtures import Settings
 
-from apps.contracts.models import EmploymentContract
+from apps.contracts.models import EmploymentContract, EmploymentContractVersion
 from apps.filings.models import Filing, FilingKind
 from apps.hosts.models import HostOrganization, HostSite
 from apps.seed.context import DUMMY_USERNAME
@@ -20,7 +20,7 @@ from apps.workers.models import (
     PassportRecord,
     ResidenceRecord,
 )
-from services import corporate_number, passport, residence_card
+from services import contracts, corporate_number, passport, residence_card
 from tests.core.factories import make_organization
 from tests.hosts.factories import make_host
 from tests.workers.factories import make_worker
@@ -185,3 +185,19 @@ def test_reset_keeps_non_dummy_data() -> None:
     from apps.core.models import Organization
 
     assert list(Organization.objects.all()) == [organization]  # 既存の自機関は触らない
+
+
+def test_every_contract_version_passes_the_current_checks() -> None:
+    """seed_dummy が作るすべての雇用契約の版が、業務画面の検査に合っている。
+
+    規則は T28b の validate_version と同じ（saved_version_errors）。検査を足したら、ダミーデータも
+    合わせる。
+    """
+    _seed()
+    versions = list(EmploymentContractVersion.objects.select_related("contract", "site"))
+    assert versions
+    errors = {
+        f"{version.contract} v{version.version}": contracts.saved_version_errors(version)
+        for version in versions
+    }
+    assert {key: value for key, value in errors.items() if value} == {}
