@@ -87,6 +87,9 @@ docker compose exec web python ../tools/forms/convert_doc.py <original.doc> <con
 python3 tools/forms/make_interview_mappings.py 5-5 > mappings/5-5/2026-10-18.json  # 定期面談報告書のマッピングを作り直す（5-6 も同じ。ADR-0024）
 python3 tools/forms/make_consultation_template.py templates/forms/5-4/2026-10-18 > mappings/5-4/2026-10-18.json  # 相談記録書の template.docx とマッピングを作り直す（ADR-0024）
 python3 tools/forms/make_own_templates.py career-plan templates/forms/career-plan/2026-10-18 > mappings/career-plan/2026-10-18.json  # 自機関のテンプレート（キャリアアッププラン。experience-certificate も同じ。ADR-0025）
+python3 tools/forms/make_application_templates.py 3-1 templates/forms/3-1/2026-10-18 > mappings/3-1/2026-10-18.json  # 申請の書類の template.docx とマッピング（13-1・13-2・5-10・1-25 も同じ。ADR-0026）
+python3 tools/forms/make_industry_lists.py > backend/services/data/industries.json  # 第3-1号・第13-1号の産業の一覧（ADR-0026）
+python3 tools/forms/make_application_sets.py  # 申請の書類の一覧の定義（application_sets/。入管の提出書類一覧・確認表から。ADR-0026）
 docker compose exec web python manage.py generate_sample_form 1-17 --worker <ID>  # 見本の帳票を生成する（開発者向け。警告があるときは --accept-warnings）
 make lock           # pyproject.toml の変更を uv.lock に反映する（その後 make build）
 ```
@@ -143,6 +146,7 @@ backend/
   e2e/          Playwright の通しのテスト
 templates/forms/ 入管の様式（版ごとのフォルダに original・template・manifest）
 mappings/       様式ごとのマッピング定義（<適用開始日>.json）と生成前の検査の規則（<適用開始日>.rules.json。ADR-0019）
+application_sets/ 申請の書類の一覧の定義（<coe|chg|ext>/<適用開始日>.json）と元の入管の Excel（sources/。ADR-0026）
 tools/          開発用の道具（make checks の run_checks.sh、forms/ のマッピング・template.docx を作るスクリプト）
 docs/           仕様書・タスク・ADR・運用手順・デザイン
 ```
