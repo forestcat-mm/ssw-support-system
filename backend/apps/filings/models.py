@@ -41,7 +41,7 @@ class FilingKind(models.TextChoices):
     REGISTRATION_RENEWAL = "registration_renewal", _("renewal of registration (own organization)")
     MEMBERSHIP_RENEWAL = (
         "membership_renewal",
-        _("renewal of membership certificate or cooperation confirmation"),
+        _("renewal of membership certificate"),
     )
     PASSPORT_CHECK = "passport_check", _("check of passport renewal")
     SUPPORT_CONTRACT_RENEWAL = "support_contract_renewal", _("renewal of support contract")

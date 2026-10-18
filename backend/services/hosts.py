@@ -1,17 +1,22 @@
-"""受入れ機関の業務ロジック（業務区分の検査・加入状況・支援委託契約の数）。"""
+"""受入れ機関の業務ロジック（業務区分の検査・事業所の編集の制限・加入状況・協力確認書の提出状況・
+支援委託契約の数）。保存と期限のタスクの処理は services.host_records。"""
 
 from __future__ import annotations
 
 from collections.abc import Iterable
+from dataclasses import dataclass
 from datetime import date
 
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.utils.translation import gettext as _
 
+from apps.contracts.models import EmploymentContractVersion
 from apps.hosts.models import (
+    HostCooperationConfirmation,
     HostMembership,
     HostOrganization,
+    HostSite,
     OperationCategory,
     SpecifiedSkillField,
     SupportContract,
@@ -29,6 +34,134 @@ def validate_site_categories(
             % {"names": ", ".join(str(c) for c in others)},
             code="category_field",
         )
+
+
+def current_versions_at(site: HostSite) -> list[EmploymentContractVersion]:
+    """その事業所を就業の場所にしている「現在の版」（終了を登録していない契約の最新の版）。
+
+    予定の契約と、期間が過ぎても終了を登録していない契約を含む（安全側）。
+    """
+    if site.pk is None:
+        return []
+    versions = []
+    contracts = {
+        version.contract_id
+        for version in EmploymentContractVersion.objects.filter(
+            site_id=site.pk, contract__terminated_on__isnull=True
+        )
+    }
+    for contract_id in contracts:
+        latest = (
+            EmploymentContractVersion.objects.filter(contract_id=contract_id)
+            .order_by("-version")
+            .first()
+        )
+        if latest is not None and latest.site_id == site.pk:
+            versions.append(latest)
+    return versions
+
+
+def validate_site_change(
+    site: HostSite,
+    *,
+    field: SpecifiedSkillField | None,
+    categories: Iterable[OperationCategory],
+    is_active: bool,
+) -> None:
+    """雇用契約が参照している事業所の編集の制限（T28a の D5）。
+
+    - いずれかの版が参照している事業所は、分野を変えられない（版の業務区分・キャリアアッププランの
+      判定が事業所の分野に依存するため）
+    - 現在の版が使っている業務区分は外せない（次の版の検査 validate_categories_of_site が
+      通らなくなる）
+    - 現在の版が参照している事業所は無効にできない
+    """
+    if site.pk is None:
+        return
+    errors: dict[str, list[ValidationError]] = {}
+    saved = HostSite.objects.get(pk=site.pk)
+    if (
+        field is not None
+        and field.pk != saved.field_id
+        and EmploymentContractVersion.objects.filter(site_id=site.pk).exists()
+    ):
+        errors.setdefault("field", []).append(
+            ValidationError(
+                _(
+                    "The field cannot be changed because employment contracts use this site "
+                    "as the workplace."
+                ),
+                code="site_in_use_field",
+            )
+        )
+    current = current_versions_at(site)
+    selected = {category.pk for category in categories}
+    used = {
+        category
+        for version in current
+        for category in version.categories.all()
+        if category.pk not in selected
+    }
+    if used:
+        errors.setdefault("categories", []).append(
+            ValidationError(
+                _(
+                    "These operation categories are used by the current version of an employment "
+                    "contract: %(names)s"
+                )
+                % {"names": ", ".join(sorted(str(category) for category in used))},
+                code="site_in_use_category",
+            )
+        )
+    if not is_active and current:
+        errors.setdefault("is_active", []).append(
+            ValidationError(
+                _(
+                    "This site cannot be deactivated because the current version of an "
+                    "employment contract uses it as the workplace."
+                ),
+                code="site_in_use_active",
+            )
+        )
+    if errors:
+        raise ValidationError(errors)
+
+
+def validate_cooperation_site(host_id: int | None, site: HostSite | None) -> None:
+    """協力確認書の事業所は、その受入れ機関の事業所であること。"""
+    if host_id is not None and site is not None and site.host_organization_id != host_id:
+        raise ValidationError(
+            {"site": _("Select a site of this host organization.")}, code="site_host"
+        )
+
+
+@dataclass(frozen=True)
+class CooperationStatus:
+    """事業所の協力確認書の提出状況（提出先ごとの最新の提出）。空なら未提出。"""
+
+    site: HostSite
+    latest: list[HostCooperationConfirmation]
+
+
+def cooperation_status(sites: Iterable[HostSite]) -> list[CooperationStatus]:
+    """事業所ごとに、提出先の市区町村ごとの最新の提出（提出日の新しい順で 1 件）を返す。
+
+    提出先と事業所の所在地の一致は見ない（住居地の市区町村への提出も同じ事業所の行で持つ。
+    生成不可・警告の判定は T30）。
+    """
+    site_list = list(sites)
+    rows: dict[int, dict[str, HostCooperationConfirmation]] = {site.pk: {} for site in site_list}
+    for confirmation in HostCooperationConfirmation.objects.filter(site__in=site_list).order_by(
+        "-submitted_on", "-pk"
+    ):
+        rows[confirmation.site_id].setdefault(confirmation.municipality, confirmation)
+    return [
+        CooperationStatus(
+            site=site,
+            latest=sorted(rows[site.pk].values(), key=lambda c: (c.municipality, c.pk)),
+        )
+        for site in site_list
+    ]
 
 
 def membership_on(

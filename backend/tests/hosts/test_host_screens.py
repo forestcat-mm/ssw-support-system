@@ -45,7 +45,7 @@ def attach(
 @pytest.fixture
 def host() -> HostOrganization:
     host = make_host()
-    make_site(host)
+    site = make_site(host)
     make_site(host, name="第二工場", field_code="food_manufacturing", is_active=False)
     HostMembership.objects.create(
         host_organization=host,
@@ -54,10 +54,9 @@ def host() -> HostOrganization:
         valid_until=TODAY + timedelta(days=5),
     )
     confirmation = HostCooperationConfirmation.objects.create(
-        host_organization=host, municipality="千代田区", submitted_on=date(2025, 4, 1)
+        host_organization=host, site=site, municipality="千代田区", submitted_on=date(2025, 4, 1)
     )
-    attach(confirmation, TODAY + timedelta(days=200))
-    attach(confirmation, TODAY + timedelta(days=12))  # 新しい添付の期限を見る
+    attach(confirmation, TODAY + timedelta(days=12))  # 協力確認書の控えの有効期限は見ない
     SupportContract.objects.create(
         host_organization=host,
         concluded_on=date(2025, 3, 1),
@@ -81,8 +80,7 @@ def test_host_rows(host: HostOrganization) -> None:
     assert row.worker_count == 1  # 無効化済みは数えない
     assert row.membership_deadline is not None
     assert deadlines.assess(row.membership_deadline, TODAY).level is deadlines.Level.WITHIN_7
-    assert row.cooperation_deadline is not None
-    assert row.cooperation_deadline.unadjusted_due_on == TODAY + timedelta(days=12)
+    assert row.sites_without_cooperation == 0  # 有効な事業所は提出済み（無効の事業所は数えない）
     assert row.support_contract_deadline is not None
     assert row.support_contract_deadline.unadjusted_due_on == TODAY + timedelta(days=60)
 
@@ -131,9 +129,25 @@ def test_host_detail_shows_sections_and_workers(
     assert entry.context["shown"]["workers"] == [worker.pk]
 
 
-def test_admin_sees_link_to_management_site(admin_client: Client, host: HostOrganization) -> None:
+def test_detail_has_no_admin_link_and_edit_links_for_managers(
+    admin_client: Client, host: HostOrganization
+) -> None:
+    """登録・編集は業務画面で行う（T28a）。管理者にも管理画面へのリンクを出さない。"""
     html = admin_client.get(f"/hosts/{host.pk}/").content.decode()
-    assert f"/admin/hosts/hostorganization/{host.pk}/change/" in html
+    assert "/admin/" not in html.split("<main")[1]
+    assert f'href="/hosts/{host.pk}/edit/"' in html
+    assert f'href="/hosts/{host.pk}/sites/new/"' in html
+
+
+def test_edit_links_need_hosts_manage(host: HostOrganization) -> None:
+    user = make_user("viewer", roles=("support_staff",))
+    user.user_roles.get().role.permissions.filter(action="hosts.manage").delete()
+    client = verified_client(user)
+    html = client.get(f"/hosts/{host.pk}/").content.decode()
+    assert f'href="/hosts/{host.pk}/edit/"' not in html
+    assert "/hosts/new/" not in client.get("/hosts/").content.decode()
+    assert client.get(f"/hosts/{host.pk}/edit/").status_code == 403
+    assert client.get("/hosts/new/").status_code == 403
 
 
 def test_workers_section_needs_workers_view(host: HostOrganization) -> None:

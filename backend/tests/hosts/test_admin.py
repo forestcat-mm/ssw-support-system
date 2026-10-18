@@ -23,7 +23,7 @@ SITE_URL = "/admin/hosts/hostsite/"
 # インラインと、既存の行を送り直すときの編集可能な列（事業所は一覧のみで編集しない）
 INLINES: dict[str, tuple[str, ...]] = {
     "memberships": ("field", "joined_on", "valid_until", "member_number"),
-    "cooperation_confirmations": ("municipality", "submitted_on"),
+    "cooperation_confirmations": ("site", "municipality", "submitted_on"),
     "support_contracts": ("concluded_on", "starts_on", "ends_on", "scope"),
     "sites": (),
 }
@@ -99,7 +99,6 @@ def test_register_two_hosts_with_one_site_each(admin_client: Client) -> None:
         support_contracts=[
             {"concluded_on": "2025-03-15", "starts_on": "2025-04-01", "scope": "full"}
         ],
-        cooperation_confirmations=[{"municipality": "横浜市", "submitted_on": "2025-04-10"}],
     ) | {"name": "テスト食品株式会社", "corporate_number": "7999-9000-00010"}
     for data in (industrial, food):
         response = admin_client.post(f"{HOST_URL}add/", data)
@@ -107,7 +106,7 @@ def test_register_two_hosts_with_one_site_each(admin_client: Client) -> None:
     a, b = HostOrganization.objects.order_by("pk")
     assert b.corporate_number == "7999900000010"  # 正規化して保存
     assert b.memberships.get().field.code == "food_manufacturing"
-    assert b.support_contracts.count() == 1 and b.cooperation_confirmations.count() == 1
+    assert b.support_contracts.count() == 1
 
     for host, field_code, codes in (
         (a, "industrial_products", ["machine_metal_processing", "sewing"]),
@@ -118,6 +117,20 @@ def test_register_two_hosts_with_one_site_each(admin_client: Client) -> None:
     assert HostSite.objects.count() == 2
     assert set(a.sites.get().categories.values_list("name", flat=True)) == {"機械金属加工", "縫製"}
     assert admin_client.get(f"{HOST_URL}{b.pk}/change/").status_code == 200
+
+    # 協力確認書は事業所の行（事業所を先に登録する。ADR-0015）。ほかの受入れ機関の事業所は選べない
+    other_site = a.sites.get()
+    data = _host_form(
+        b,
+        cooperation_confirmations=[
+            {"site": other_site.pk, "municipality": "横浜市", "submitted_on": "2025-04-10"}
+        ],
+    ) | {"name": "テスト食品株式会社", "corporate_number": "7999900000010"}
+    assert admin_client.post(f"{HOST_URL}{b.pk}/change/", data).status_code == 200
+    data["cooperation_confirmations-0-site"] = b.sites.get().pk
+    response = admin_client.post(f"{HOST_URL}{b.pk}/change/", data)
+    assert response.status_code == 302, _errors(response)
+    assert b.cooperation_confirmations.get().site == b.sites.get()
 
 
 def test_invalid_corporate_number_is_rejected(admin_client: Client) -> None:

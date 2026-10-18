@@ -225,6 +225,7 @@ def seed_hosts(ctx: SeedContext) -> None:
         )
         ctx.keep(host)
         ctx.hosts.append(host)
+        host_sites = []
         for site_name, address, industry_code, category_codes in plan["sites"]:
             site = HostSite.objects.create(
                 host_organization=host,
@@ -237,6 +238,7 @@ def seed_hosts(ctx: SeedContext) -> None:
             site.categories.set(_categories(*category_codes))
             ctx.keep(site)
             ctx.sites.append(site)
+            host_sites.append(site)
         membership = HostMembership.objects.create(
             host_organization=host,
             field=plan["field"],
@@ -254,10 +256,14 @@ def seed_hosts(ctx: SeedContext) -> None:
                 valid_until=plan["membership_valid_until"],
             )
         )
+        # 協力確認書は最初の事業所（就業の場所）の行で、所在地と住居地の市区町村へ（ADR-0015）
         for municipality in plan["municipalities"]:
             ctx.keep(
                 HostCooperationConfirmation.objects.create(
-                    host_organization=host, municipality=municipality, submitted_on=ctx.days(-600)
+                    host_organization=host,
+                    site=host_sites[0],
+                    municipality=municipality,
+                    submitted_on=ctx.days(-600),
                 )
             )
         starts_on, ends_on = plan["support_contract"]
@@ -742,11 +748,14 @@ def seed_transfer(ctx: SeedContext) -> None:
             created_by=None,
         )
     )
-    # 協力確認書: 事業所の所在地（ダミー浜市）と、9 番の住居地（サンプル市）
+    # 協力確認書: 事業所の所在地（ダミー浜市）と、9 番の住居地（サンプル市）。どちらも事業所の行
     for municipality in ("ダミー浜市", "サンプル市"):
         ctx.keep(
             HostCooperationConfirmation.objects.create(
-                host_organization=host, municipality=municipality, submitted_on=ctx.days(-120)
+                host_organization=host,
+                site=site,
+                municipality=municipality,
+                submitted_on=ctx.days(-120),
             )
         )
     ctx.keep(

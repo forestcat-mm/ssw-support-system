@@ -91,14 +91,38 @@ class HostMembershipInline(admin.TabularInline[HostMembership, HostOrganization]
     show_change_link = True  # 証明書の添付は加入状況の画面で行う
 
 
+class CooperationConfirmationForm(forms.ModelForm[HostCooperationConfirmation]):
+    class Meta:
+        model = HostCooperationConfirmation
+        fields = ("host_organization", "site", "municipality", "submitted_on")
+
+    def clean(self) -> dict[str, Any]:
+        cleaned = super().clean() or {}
+        host = cleaned.get("host_organization") or getattr(self.instance, "host_organization", None)
+        try:
+            hosts.validate_cooperation_site(getattr(host, "pk", None), cleaned.get("site"))
+        except forms.ValidationError as error:
+            self.add_error(None, error)
+        return cleaned
+
+
 class HostCooperationConfirmationInline(
     admin.TabularInline[HostCooperationConfirmation, HostOrganization]
 ):
     model = HostCooperationConfirmation
+    form = CooperationConfirmationForm
     extra = 0
     can_delete = False
-    fields = ("municipality", "submitted_on")
+    fields = ("site", "municipality", "submitted_on")
     show_change_link = True  # 協力確認書の添付は個別の画面で行う
+
+    def formfield_for_foreignkey(self, db_field: Any, request: HttpRequest, **kwargs: Any) -> Any:
+        # 事業所はこの受入れ機関のものだけ（新規の受入れ機関では選べないので、事業所を先に登録する）
+        if db_field.name == "site":
+            match = request.resolver_match
+            host_id = match.kwargs.get("object_id") if match else None
+            kwargs["queryset"] = HostSite.objects.filter(host_organization_id=host_id)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class SupportContractForm(forms.ModelForm[SupportContract]):
@@ -199,7 +223,8 @@ class CooperationAttachmentInline(AttachmentInline):
 
 @admin.register(HostCooperationConfirmation)
 class HostCooperationConfirmationAdmin(NoDeleteAdmin):
-    list_display = ("host_organization", "municipality", "submitted_on")
+    form = CooperationConfirmationForm
+    list_display = ("host_organization", "site", "municipality", "submitted_on")
     search_fields = ("host_organization__name", "municipality")
     inlines = [CooperationAttachmentInline]
 

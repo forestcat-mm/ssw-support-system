@@ -174,7 +174,11 @@ class HostMembership(TrackedModel):
 
 
 class HostCooperationConfirmation(TrackedModel):
-    """協力確認書（提出先の市区町村ごとに 1 通）。"""
+    """協力確認書の提出（1 行＝事業所×提出先の市区町村への 1 回の提出。ADR-0015）。
+
+    提出先は事業所の所在地の市区町村に限らない（外国人の住居地の市区町村への提出も同じ事業所の行で
+    持つ）。有効期限は無く、記載事項が変わって出し直したら新しい行を足す（最新の行が今の提出）。
+    """
 
     host_organization = models.ForeignKey(
         HostOrganization,
@@ -182,21 +186,20 @@ class HostCooperationConfirmation(TrackedModel):
         on_delete=models.PROTECT,
         related_name="cooperation_confirmations",
     )
-    municipality = models.CharField(_("municipality"), max_length=100)
+    site = models.ForeignKey(
+        "HostSite",
+        verbose_name=_("host site"),
+        on_delete=models.PROTECT,
+        related_name="cooperation_confirmations",
+    )
+    municipality = models.CharField(_("submitted to (municipality)"), max_length=100)
     submitted_on = models.DateField(_("submitted on"))
     attachments = GenericRelation(Attachment)
 
     class Meta:
         verbose_name = _("cooperation confirmation")
         verbose_name_plural = _("cooperation confirmations")
-        ordering = ["host_organization", "municipality"]
-        constraints = [
-            models.UniqueConstraint(
-                fields=["host_organization", "municipality"],
-                name="hosts_cooperation_confirmation_unique",
-                violation_error_message=_("A confirmation for this municipality already exists."),
-            ),
-        ]
+        ordering = ["host_organization", "site", "municipality", "-submitted_on", "-pk"]
 
     def __str__(self) -> str:
         return f"{self.host_organization}: {self.municipality}"

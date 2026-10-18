@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-17 17:48+0900\n"
+"POT-Creation-Date: 2026-10-18 10:53+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -2116,8 +2116,8 @@ msgstr "定期届出（登録支援機関）"
 msgid "renewal of registration (own organization)"
 msgstr "自機関の登録更新"
 
-msgid "renewal of membership certificate or cooperation confirmation"
-msgstr "加入証明・協力確認書の更新"
+msgid "renewal of membership certificate"
+msgstr "加入証明の更新"
 
 msgid "check of passport renewal"
 msgstr "旅券更新の確認"
@@ -2312,6 +2312,216 @@ msgstr "代表者"
 msgid "Contact"
 msgstr "連絡先"
 
+#, python-format
+msgid "Created %(count)d task for the deadline on the dashboard."
+msgid_plural "Created %(count)d tasks for the deadline on the dashboard."
+msgstr[0] "ダッシュボードに期限のタスクを %(count)d 件起票しました。"
+
+#, python-format
+msgid ""
+"Closed %(count)d task of the previous deadline automatically (the reason is "
+"kept in the task)."
+msgid_plural ""
+"Closed %(count)d tasks of the previous deadline automatically (the reason is "
+"kept in the task)."
+msgstr[0] ""
+"前の期限のタスク %(count)d 件を自動で完了・取消にしました（理由はタスクに残っ"
+"ています）。"
+
+#, python-format
+msgid ""
+"%(count)d task of the previous deadline is in progress and was not changed. "
+"Check it on the dashboard."
+msgid_plural ""
+"%(count)d tasks of the previous deadline are in progress and were not "
+"changed. Check them on the dashboard."
+msgstr[0] ""
+"前の期限のタスク %(count)d 件は対応中のため、変えていません。ダッシュボードで"
+"確かめてください。"
+
+msgid "Edit the host organization"
+msgstr "受入れ機関の編集"
+
+msgid "Register a host organization"
+msgstr "受入れ機関を登録"
+
+msgid ""
+"Corporate information used for the support plan and employment documents. "
+"After registering, add sites, memberships, cooperation confirmations and the "
+"support contract on the detail page."
+msgstr ""
+"支援計画書・雇用契約の書類に使う法人の情報です。登録した後、詳細の画面で事業"
+"所・加入状況・協力確認書・支援委託契約を追加します。"
+
+msgid "Edit the site"
+msgstr "事業所の編集"
+
+msgid "Add a site"
+msgstr "事業所の追加"
+
+msgid ""
+"A site is the workplace of employment contracts. If employment contracts use "
+"the site, its field cannot be changed, the categories used by the current "
+"versions cannot be removed, and it cannot be deactivated."
+msgstr ""
+"事業所は雇用契約の就業の場所です。雇用契約が使っている事業所は、分野を変えら"
+"れません。現在の版が使っている業務区分は外せず、事業所を無効にもできません。"
+
+msgid ""
+"The address of the site was changed. The cooperation confirmation must be "
+"submitted again to the municipalities. After submitting, register it as a "
+"new submission."
+msgstr ""
+"事業所の所在地を変えました。協力確認書の記載事項が変わったので、提出先の市区"
+"町村に出し直してください。出し直したら、新しい提出として登録します。"
+
+#, python-format
+msgid "Edit the membership: %(body)s"
+msgstr "加入状況の編集: %(body)s"
+
+msgid "Add a membership"
+msgstr "加入状況の追加"
+
+msgid ""
+"Membership of the registered corporation (industrial products) or the "
+"council (food manufacturing), one per field. To replace the certificate, use "
+"“Replace” in the row on the detail page."
+msgstr ""
+"登録法人（工業製品製造業分野）・協議会（飲食料品製造業分野）への加入です。分"
+"野ごとに 1 つです。証明書を差し替えるときは、詳細の画面の加入状況の行の「差し"
+"替える」を使います。"
+
+#, python-format
+msgid "Replace the certificate: %(body)s"
+msgstr "証明書の差し替え: %(body)s"
+
+msgid ""
+"The previous certificate is kept. When the expiry date is extended, the task "
+"of the previous expiry date is completed automatically."
+msgstr ""
+"前の証明書は残ります。有効期限が延びると、前の期限のタスクは自動で完了になり"
+"ます。"
+
+msgid "Replaced the certificate."
+msgstr "証明書を差し替えました。"
+
+msgid "Edit the cooperation confirmation"
+msgstr "協力確認書の編集"
+
+msgid "Register a cooperation confirmation"
+msgstr "協力確認書の提出を登録"
+
+msgid ""
+"The host organization submits it for each site to the municipalities of the "
+"site and of the worker's residence (one if they are the same). It has no "
+"expiry date. Submit it again when the site's address, the residence or the "
+"contact person changes."
+msgstr ""
+"受入れ機関が事業所ごとに、事業所の所在地と外国人の住居地の市区町村に提出しま"
+"す（同じ市区町村なら 1 通）。有効期限はありません。事業所の所在地・住居地・担"
+"当者の連絡先が変わったら出し直します。"
+
+msgid "Edit the support contract"
+msgstr "支援委託契約の編集"
+
+msgid "Register a support contract"
+msgstr "支援委託契約を登録"
+
+msgid ""
+"Entrustment of the whole support plan (full entrustment). Periods of the "
+"same host organization cannot overlap. When the next contract is registered, "
+"the renewal task of the previous contract is completed automatically."
+msgstr ""
+"支援計画の全部の委託（全部委託）です。同じ受入れ機関の契約は期間を重ねられま"
+"せん。次の契約を登録すると、前の契約の更新のタスクは自動で完了になります。"
+
+msgid "Add a copy of the cooperation confirmation"
+msgstr "協力確認書の控えの追加"
+
+msgid "Add the support entrustment contract"
+msgstr "支援委託契約書の追加"
+
+msgid "Add"
+msgstr "追加"
+
+msgid "Added the attachments."
+msgstr "添付を追加しました。"
+
+msgid "Example: a file of another host was attached."
+msgstr "例: ほかの受入れ機関のファイルを添付した。"
+
+msgid "Voided the attachment."
+msgstr "添付を取り消しました。"
+
+msgid "PDF, PNG or JPEG, up to 10 MB each. You can select more than one."
+msgstr "PDF・PNG・JPEG、1 ファイル 10MB まで。複数選べます。"
+
+msgid "Used for the furigana of the support plan."
+msgstr "支援計画書のふりがなに使います。"
+
+msgid "Head office or principal office."
+msgstr "本店または主たる事務所。"
+
+msgid ""
+"Select the categories of the site's field. More than one can be selected."
+msgstr "事業所の分野の業務区分を選びます。複数選べます。"
+
+msgid ""
+"Japan Standard Industrial Classification. 2 to 4 digits (e.g. 09, 0991, "
+"2194)."
+msgstr "日本標準産業分類。2〜4 桁（例: 09、0991、2194）。"
+
+msgid "membership certificate"
+msgstr "加入証明"
+
+msgid ""
+"Council: certificate of membership. Registered corporation: printout of the "
+"member list showing the organization. PDF, PNG or JPEG, up to 10 MB."
+msgstr ""
+"協議会: 構成員であることの証明書。登録法人: 会員名簿を印刷したもの（この機関"
+"の名称が載っている頁）。PDF・PNG・JPEG、10 MB まで。"
+
+msgid "Leave blank if the certificate has no expiry date."
+msgstr "証明書に有効期限が無ければ空にします。"
+
+msgid ""
+"The expiry date of the new certificate. Leave blank if it has none. The "
+"expiry date of the membership is updated to this date."
+msgstr ""
+"新しい証明書の有効期限。無ければ空にします。加入状況の有効期限もこの日に更新"
+"します。"
+
+msgid "copy of the confirmation"
+msgstr "控え"
+
+msgid ""
+"The site written in the confirmation. Submissions to the municipality of the "
+"worker's residence are also recorded under the site."
+msgstr ""
+"協力確認書に書いた事業所。外国人の住居地の市区町村への提出も、この事業所の行"
+"で登録します。"
+
+msgid ""
+"The municipality of the site or of the worker's residence (e.g. Yokohama "
+"City). When you submit it again, register a new submission. The previous one "
+"is kept."
+msgstr ""
+"事業所の所在地か、外国人の住居地の市区町村（例: 横浜市）。出し直したときは新"
+"しい提出として登録します。前の提出は残ります。"
+
+msgid "The date cannot be in the future."
+msgstr "未来の日付は入力できません。"
+
+msgid "support entrustment contract"
+msgstr "支援委託契約書"
+
+msgid ""
+"One row is one period. When the contract is renewed automatically, register "
+"the renewed period as the next contract. Leave blank if there is no end date."
+msgstr ""
+"1 行が 1 期間です。自動更新で続いたときは、更新後の期間を次の契約として登録し"
+"ます。終了日が無ければ空にします。"
+
 msgid "registered corporation"
 msgstr "登録法人"
 
@@ -2390,7 +2600,7 @@ msgstr "加入状況"
 msgid "memberships"
 msgstr "加入状況"
 
-msgid "municipality"
+msgid "submitted to (municipality)"
 msgstr "提出先の市区町村"
 
 msgid "cooperation confirmation"
@@ -2398,9 +2608,6 @@ msgstr "協力確認書"
 
 msgid "cooperation confirmations"
 msgstr "協力確認書"
-
-msgid "A confirmation for this municipality already exists."
-msgstr "この市区町村の協力確認書はすでに登録されています。"
 
 msgid "Japan Standard Industrial Classification code"
 msgstr "日本標準産業分類コード"
@@ -2430,18 +2637,18 @@ msgid ""
 "This period overlaps another support contract of the same host organization."
 msgstr "同じ受入れ機関のほかの支援委託契約と期間が重なっています。"
 
-#, python-format
-msgid "+%(counter)s older"
-msgid_plural "+%(counter)s older"
-msgstr[0] "ほか古い%(counter)s件"
+msgid "Void an attachment"
+msgstr "添付の取消"
 
-#, python-format
-msgid "%(counter)s voided"
-msgid_plural "%(counter)s voided"
-msgstr[0] "取消 %(counter)s 件"
+msgid ""
+"The file is not deleted. It stays with a strikethrough and is no longer used "
+"as evidence. This cannot be undone."
+msgstr ""
+"ファイルは削除しません。打ち消し線を付けて残し、証跡として扱わなくなります。"
+"元には戻せません。"
 
-msgid "Open in management site"
-msgstr "管理画面で開く"
+msgid "previous file"
+msgstr "前のファイル"
 
 msgid "Basic information"
 msgstr "基本情報"
@@ -2458,14 +2665,63 @@ msgstr "添付"
 msgid "no end date"
 msgstr "期限なし"
 
+msgid "Attach"
+msgstr "添付"
+
+msgid ""
+"Full entrustment. One row is one period: register the renewed period as the "
+"next contract."
+msgstr "全部委託。1 行が 1 期間です。更新後の期間は次の契約として登録します。"
+
 msgid "Sites and operation categories"
 msgstr "事業所と業務区分"
+
+msgid "industry code"
+msgstr "産業分類"
+
+msgid "inactive"
+msgstr "無効"
 
 msgid "Memberships"
 msgstr "加入状況"
 
+msgid "certificate"
+msgstr "証明書"
+
+msgid "no expiry date"
+msgstr "期限なし"
+
 msgid "Cooperation confirmations"
 msgstr "協力確認書"
+
+msgid "Register a submission"
+msgstr "提出を登録"
+
+msgid ""
+"Submitted for each site to the municipalities of the site and of the "
+"worker's residence. No expiry date; submitted again when the written items "
+"change."
+msgstr ""
+"事業所ごとに、事業所の所在地と外国人の住居地の市区町村に提出します。有効期限"
+"は無く、記載事項が変わったら出し直します。"
+
+msgid "submission status (latest for each municipality)"
+msgstr "提出状況（提出先ごとの最新）"
+
+msgid "not submitted"
+msgstr "未提出"
+
+msgid "Register a site first."
+msgstr "先に事業所を登録します。"
+
+msgid "Submissions"
+msgstr "提出の記録"
+
+msgid "submitted to"
+msgstr "提出先"
+
+msgid "copy"
+msgstr "控え"
 
 #, python-format
 msgid "%(counter)s person"
@@ -2485,8 +2741,8 @@ msgstr "外国人"
 msgid "membership valid until"
 msgstr "加入の有効期限"
 
-msgid "cooperation confirmation valid until"
-msgstr "協力確認書の期限"
+msgid "sites without a cooperation confirmation"
+msgstr "協力確認書が未提出の事業所"
 
 msgid "support contract ends on"
 msgstr "支援委託契約の終了日"
@@ -2620,6 +2876,9 @@ msgstr "事業所と同じ"
 
 msgid "prefecture"
 msgstr "都道府県"
+
+msgid "municipality"
+msgstr "提出先の市区町村"
 
 msgid "checked on"
 msgstr "確認日"
@@ -3092,9 +3351,6 @@ msgstr "交付記録"
 msgid "Only when the counterpart is the supervisor. Optional."
 msgstr "相手が上司のときだけ。任意。"
 
-msgid "PDF, PNG or JPEG, up to 10 MB each. You can select more than one."
-msgstr "PDF・PNG・JPEG、1 ファイル 10MB まで。複数選べます。"
-
 msgid "This kind of support uses only this method."
 msgstr "この種類の支援は、この方法だけで記録します。"
 
@@ -3265,14 +3521,8 @@ msgstr "例: 日付を誤って入力した。"
 msgid "Voided the support record."
 msgstr "支援実績を取り消しました。"
 
-msgid "Added the attachments."
-msgstr "添付を追加しました。"
-
 msgid "Example: a document of another person was attached."
 msgstr "例: 別の人の書類を添付した。"
-
-msgid "Voided the attachment."
-msgstr "添付を取り消しました。"
 
 msgid "Saved the periodic interview and completed the task."
 msgstr "定期面談を保存し、タスクを完了にしました。"
@@ -3321,21 +3571,8 @@ msgstr "交付記録を保存しました。"
 msgid "Voided the delivery record."
 msgstr "交付記録を取り消しました。"
 
-msgid "Void an attachment"
-msgstr "添付の取消"
-
-msgid ""
-"The file is not deleted. It stays with a strikethrough and is no longer used "
-"as evidence. This cannot be undone."
-msgstr ""
-"ファイルは削除しません。打ち消し線を付けて残し、証跡として扱わなくなります。"
-"元には戻せません。"
-
 msgid "Attach the signed confirmation"
 msgstr "署名済みの確認書を添付"
-
-msgid "Add"
-msgstr "追加"
 
 msgid "Back to records"
 msgstr "記録の一覧へ"
@@ -4173,9 +4410,6 @@ msgstr "この添付は取り消し済みです。"
 msgid "Enter at least one date and time."
 msgstr "実施日時を 1 行以上入力してください。"
 
-msgid "The date cannot be in the future."
-msgstr "未来の日付は入力できません。"
-
 msgid "Enter an end time later than the start time."
 msgstr "終了の時刻は開始より後にしてください。"
 
@@ -4570,6 +4804,24 @@ msgid "The termination of the employment contract was cancelled."
 msgstr "雇用契約の終了が取り消されました。"
 
 #, python-format
+msgid ""
+"The expiry date was updated by replacing the membership certificate (%(old)s "
+"→ %(new)s)."
+msgstr "証明書の差し替えにより期限を更新（%(old)s → %(new)s。自動）"
+
+#, python-format
+msgid "The expiry date of the membership was changed (%(old)s → %(new)s)."
+msgstr "加入状況の有効期限を変更（%(old)s → %(new)s。自動）"
+
+#, python-format
+msgid "The next support contract (from %(start)s) was registered."
+msgstr "次の支援委託契約（%(start)s から）の登録により更新（自動）"
+
+#, python-format
+msgid "The end date of the support contract was changed (%(old)s → %(new)s)."
+msgstr "支援委託契約の終了日を変更（%(old)s → %(new)s。自動）"
+
+#, python-format
 msgid "The status cannot be changed from %(from)s to %(to)s."
 msgstr "状態を「%(from)s」から「%(to)s」に変更することはできません。"
 
@@ -4594,9 +4846,33 @@ msgstr "対象を 1 つだけ選んでください。"
 msgid "Filing tasks cannot be created for a deactivated foreign worker."
 msgstr "無効化した外国人の届出タスクは起票できません。"
 
+msgid "The field of a membership cannot be changed after registration."
+msgstr "加入状況の分野は、登録した後は変えられません。"
+
 #, python-format
 msgid "These operation categories do not belong to the site's field: %(names)s"
 msgstr "事業所の分野に属さない業務区分です: %(names)s"
+
+msgid ""
+"The field cannot be changed because employment contracts use this site as "
+"the workplace."
+msgstr "雇用契約がこの事業所を就業の場所にしているため、分野を変えられません。"
+
+#, python-format
+msgid ""
+"These operation categories are used by the current version of an employment "
+"contract: %(names)s"
+msgstr ""
+"次の業務区分は雇用契約の現在の版が使っているため、外せません: %(names)s"
+
+msgid ""
+"This site cannot be deactivated because the current version of an employment "
+"contract uses it as the workplace."
+msgstr ""
+"雇用契約の現在の版がこの事業所を就業の場所にしているため、無効にできません。"
+
+msgid "Select a site of this host organization."
+msgstr "この受入れ機関の事業所を選んでください。"
 
 #, python-format
 msgid "The record that raised this report task was voided: %(reason)s"

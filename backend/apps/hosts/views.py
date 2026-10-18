@@ -1,4 +1,4 @@
-"""受入れ機関の業務画面（第5章 F02、T13e）。閲覧のみ（登録・編集は段階2）。"""
+"""受入れ機関の一覧・詳細（第5章 F02、T13e）。登録・編集の画面は edit_views（T28a）。"""
 
 from typing import Any
 
@@ -27,6 +27,7 @@ class HostListView(ActionRequiredMixin, TemplateView):
             "hosts:list", conditions={}, object_ids=[row.host.pk for row in rows]
         )
         context["rows"] = rows
+        context["can_manage"] = authorization.has_action(user, Action.HOSTS_MANAGE)
         return context
 
 
@@ -59,7 +60,6 @@ class HostDetailView(ActionRequiredMixin, TemplateView):
             detail=detail,
             today=today,
             with_workers=with_workers,
-            # 管理画面へのリンクはナビの「管理画面」と同じく管理者だけに出す
-            can_open_admin=authorization.has_action(user, Action.USERS_MANAGE),
+            can_manage=authorization.has_action(user, Action.HOSTS_MANAGE),
         )
         return context

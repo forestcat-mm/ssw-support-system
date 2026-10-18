@@ -27,7 +27,12 @@ from django.utils.translation import gettext_lazy
 from apps.contracts.models import EmploymentContract, EmploymentContractVersion, TerminationReason
 from apps.core.models import Attachment, AuditAction, Organization, Staff, User
 from apps.filings.models import Filing, FilingKind, FilingStatus, Trigger
-from apps.hosts.models import HostMembership, HostOrganization, SupportContract
+from apps.hosts.models import (
+    HostCooperationConfirmation,
+    HostMembership,
+    HostOrganization,
+    SupportContract,
+)
 from apps.support.models import PeriodicInterview
 from apps.workers.models import (
     ForeignWorker,
@@ -455,12 +460,7 @@ def create_scheduled(today: date, *, by: User | None = None) -> ScheduledResult:
     result = ScheduledResult(created=[], existing=0)
 
     def add(kind: FilingKind, target: models.Model, basis_on: date, trigger: Trigger) -> None:
-        deadline = definition(kind).deadline(basis_on)
-        if deadline.opens_on is not None and today < deadline.opens_on:
-            return
-        filing, created = create_if_active(
-            kind, target=target, basis_on=basis_on, trigger=trigger, by=by
-        )
+        filing, created = _create_if_open(kind, target, basis_on, trigger, today=today, by=by)
         if filing is None:
             return
         if created:
@@ -506,7 +506,7 @@ def create_scheduled(today: date, *, by: User | None = None) -> ScheduledResult:
             membership,
             membership.valid_until,
             Trigger.DOCUMENT_EXPIRY,
-        )
+        )  # 業務画面の保存のときは sync_membership（同じ起票。二重にはならない）
     for attachment in _latest_attachments_with_expiry():
         assert attachment.valid_until is not None
         add(
@@ -518,17 +518,13 @@ def create_scheduled(today: date, *, by: User | None = None) -> ScheduledResult:
 
     for support_contract in SupportContract.objects.filter(ends_on__isnull=False):
         assert support_contract.ends_on is not None
-        renewed = SupportContract.objects.filter(
-            host_organization_id=support_contract.host_organization_id,
-            starts_on__gt=support_contract.ends_on,
-        ).exists()
-        if not renewed:
+        if not _support_contract_renewed(support_contract):
             add(
                 FilingKind.SUPPORT_CONTRACT_RENEWAL,
                 support_contract,
                 support_contract.ends_on,
                 Trigger.SUPPORT_CONTRACT_END,
-            )
+            )  # 業務画面の保存のときは sync_support_contracts
 
     for contract in EmploymentContract.objects.filter(
         terminated_on__isnull=True,
@@ -606,12 +602,18 @@ def _latest_attachments_with_expiry() -> list[Attachment]:
     """同じ対象・同じ種別の添付のうち最新のもの（差し替え前の古い証明書は見ない）。
 
     加入状況（HostMembership）の証明書は、加入状況の有効期限で起票するので対象外にする
-    （同じ証明書のタスクを 2 件作らないため）。
+    （同じ証明書のタスクを 2 件作らないため）。協力確認書の控えは期限が無いので対象外。
     """
-    membership_type = ContentType.objects.get_for_model(HostMembership)
+    excluded_types = [
+        ContentType.objects.get_for_model(HostMembership),
+        # 協力確認書には有効期限が無い（運用要領 本体 印刷 80〜81頁。ADR-0015）
+        ContentType.objects.get_for_model(HostCooperationConfirmation),
+    ]
     latest: dict[tuple[int, int, str], Attachment] = {}
     queryset = Attachment.objects.filter(voided_at__isnull=True)  # 取り消した添付は見ない
-    for attachment in queryset.exclude(content_type=membership_type).order_by("created_at", "pk"):
+    for attachment in queryset.exclude(content_type__in=excluded_types).order_by(
+        "created_at", "pk"
+    ):
         latest[(attachment.content_type_id, attachment.object_id, attachment.kind)] = attachment
     return [a for a in latest.values() if a.valid_until is not None]
 
@@ -622,6 +624,219 @@ def _hosts_with_active_support_contract(on: date) -> Iterable[HostOrganization]:
         for host in HostOrganization.objects.filter(support_contracts__isnull=False).distinct()
         if hosts.active_contract(host, on) is not None
     ]
+
+
+def _create_if_open(
+    kind: FilingKind,
+    target: models.Model,
+    basis_on: date,
+    trigger: Trigger,
+    *,
+    today: date,
+    by: User | None,
+) -> tuple[Filing | None, bool]:
+    """受付・着手の日を過ぎていれば起票する（日次の起票と保存のときの起票で共通）。"""
+    deadline = definition(kind).deadline(basis_on)
+    if deadline.opens_on is not None and today < deadline.opens_on:
+        return None, False
+    return create_if_active(kind, target=target, basis_on=basis_on, trigger=trigger, by=by)
+
+
+def _support_contract_renewed(contract: SupportContract) -> bool:
+    """終了日より後に始まる同じ受入れ機関の契約がある（更新後の期間は次の行で持つ。ADR-0015）。"""
+    if contract.ends_on is None:
+        return False
+    return SupportContract.objects.filter(
+        host_organization_id=contract.host_organization_id, starts_on__gt=contract.ends_on
+    ).exists()
+
+
+# --- 業務画面の保存のときの起票と、古い期限のタスクの片付け（T28a）-------------------------------
+
+
+@dataclass(frozen=True)
+class SyncResult:
+    """保存のときの期限のタスクの処理の結果。"""
+
+    created: list[Filing]  # 新しく起票した（受付・着手の日を過ぎている期限だけ）
+    closed: list[Filing]  # 自動で完了・取消にした
+    left_open: list[Filing]  # 対応中のため動かさなかった（画面で知らせる）
+
+
+def _unfinished_of(kind: FilingKind, target: models.Model) -> list[Filing]:
+    return list(
+        Filing.objects.filter(
+            kind=kind,
+            content_type=ContentType.objects.get_for_model(target),
+            object_id=target.pk,
+            status__in=list(OPEN_STATUSES),
+        ).order_by("basis_on", "pk")
+    )
+
+
+def _close_automatically(
+    filing: Filing, to: FilingStatus, *, by: User | None, reason: str, source: models.Model
+) -> None:
+    """自動の完了・取消。理由を残し、監査ログに自動である印と元の記録を入れる（人の操作と区別する）。"""
+    transition(
+        filing,
+        to,
+        by=by,
+        reason=reason,
+        context={
+            "automatic": True,
+            "source": f"{source._meta.label_lower}:{source.pk}",
+            "reason": reason,
+        },
+    )
+
+
+def _close_stale(
+    kind: FilingKind,
+    target: models.Model,
+    current_on: date | None,
+    *,
+    by: User | None,
+    reason: Callable[[date], str],
+    out_closed: list[Filing],
+    out_left: list[Filing],
+) -> None:
+    """今の期限（current_on）と違う日付の未完了のタスクを片付ける。
+
+    - 期限が延びた（今の期限がタスクの日付より後）: 更新が済んだので完了にする
+    - 期限が早まった・無くなった: 未着手なら取消。対応中は動かさない（人が確かめる）
+    """
+    for filing in _unfinished_of(kind, target):
+        if filing.basis_on == current_on:
+            continue
+        if current_on is not None and current_on > filing.basis_on:
+            _close_automatically(
+                filing, FilingStatus.COMPLETED, by=by, reason=reason(filing.basis_on), source=target
+            )
+            out_closed.append(filing)
+        elif filing.status == FilingStatus.NOT_STARTED:
+            _close_automatically(
+                filing, FilingStatus.CANCELLED, by=by, reason=reason(filing.basis_on), source=target
+            )
+            out_closed.append(filing)
+        else:
+            out_left.append(filing)
+
+
+def _dates(old: date, new: date | None, *, none: str) -> dict[str, str]:
+    return {"old": old.isoformat(), "new": new.isoformat() if new else none}
+
+
+@transaction.atomic
+def sync_membership(
+    membership: HostMembership,
+    *,
+    by: User | None,
+    today: date,
+    certificate_replaced: bool = False,
+) -> SyncResult:
+    """加入状況の有効期限に合わせて、更新のタスクを片付けて起票する（日次の起票と同じタスク）。"""
+    closed: list[Filing] = []
+    left: list[Filing] = []
+    new = membership.valid_until
+
+    def reason(old: date) -> str:
+        dates = _dates(old, new, none=_("no expiry date"))
+        if certificate_replaced:
+            return (
+                _(
+                    "The expiry date was updated by replacing the membership certificate "
+                    "(%(old)s → %(new)s)."
+                )
+                % dates
+            )
+        return _("The expiry date of the membership was changed (%(old)s → %(new)s).") % dates
+
+    _close_stale(
+        FilingKind.MEMBERSHIP_RENEWAL,
+        membership,
+        new,
+        by=by,
+        reason=reason,
+        out_closed=closed,
+        out_left=left,
+    )
+    created: list[Filing] = []
+    if new is not None:
+        filing, was_created = _create_if_open(
+            FilingKind.MEMBERSHIP_RENEWAL,
+            membership,
+            new,
+            Trigger.DOCUMENT_EXPIRY,
+            today=today,
+            by=by,
+        )
+        if filing is not None and was_created:
+            created.append(filing)
+    return SyncResult(created=created, closed=closed, left_open=left)
+
+
+@transaction.atomic
+def sync_support_contracts(host: HostOrganization, *, by: User | None, today: date) -> SyncResult:
+    """受入れ機関の支援委託契約の終了日に合わせて、更新のタスクを片付けて起票する。
+
+    次の契約（終了日より後に始まる契約）があれば、その契約の更新のタスクは完了にする。
+    """
+    closed: list[Filing] = []
+    left: list[Filing] = []
+    created: list[Filing] = []
+    for contract in host.support_contracts.order_by("starts_on", "pk"):
+        following = (
+            SupportContract.objects.filter(
+                host_organization_id=contract.host_organization_id,
+                starts_on__gt=contract.ends_on,
+            )
+            .order_by("starts_on")
+            .first()
+            if contract.ends_on is not None
+            else None
+        )
+        if following is not None:
+            for filing in _unfinished_of(FilingKind.SUPPORT_CONTRACT_RENEWAL, contract):
+                _close_automatically(
+                    filing,
+                    FilingStatus.COMPLETED,
+                    by=by,
+                    reason=_("The next support contract (from %(start)s) was registered.")
+                    % {"start": following.starts_on.isoformat()},
+                    source=following,
+                )
+                closed.append(filing)
+            continue
+
+        ends_on = contract.ends_on
+
+        def reason(old: date, ends_on: date | None = ends_on) -> str:
+            return _(
+                "The end date of the support contract was changed (%(old)s → %(new)s)."
+            ) % _dates(old, ends_on, none=_("no end date"))
+
+        _close_stale(
+            FilingKind.SUPPORT_CONTRACT_RENEWAL,
+            contract,
+            ends_on,
+            by=by,
+            reason=reason,
+            out_closed=closed,
+            out_left=left,
+        )
+        if ends_on is not None:
+            raised, was_created = _create_if_open(
+                FilingKind.SUPPORT_CONTRACT_RENEWAL,
+                contract,
+                ends_on,
+                Trigger.SUPPORT_CONTRACT_END,
+                today=today,
+                by=by,
+            )
+            if raised is not None and was_created:
+                created.append(raised)
+    return SyncResult(created=created, closed=closed, left_open=left)
 
 
 # --- 状態の遷移・起算日の訂正 --------------------------------------------------------------
@@ -636,10 +851,12 @@ def transition(
     receipt_number: str = "",
     reason: str = "",
     by_record: bool = False,
+    context: dict[str, Any] | None = None,
 ) -> None:
     """状態を変える。許されない遷移・必須の項目の不足は ValidationError。監査ログに 1 件残す。
 
     by_record は定期面談の記録（とその取消）から呼ぶときだけ True にする。
+    context は監査ログに足す情報（自動の完了・取消の印と元の記録。sync_* が渡す）。
     """
     if to == FilingStatus(filing.status):
         return
@@ -651,7 +868,7 @@ def transition(
         reason=reason,
         by_record=by_record,
     )
-    with audit.event(AuditAction.FILING_TRANSITION, target=filing, actor=by):
+    with audit.event(AuditAction.FILING_TRANSITION, target=filing, actor=by, context=context):
         filing.status = to
         if submitted_on is not None:
             filing.submitted_on = submitted_on

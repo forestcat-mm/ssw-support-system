@@ -371,6 +371,22 @@ a.badge:hover {
   gap: var(--space-8);
 }
 
+/* 表の中の添付（1 ファイル 1 行。名前が長ければ省略し、行の高さを揃える） */
+.attachment-list--compact {
+  gap: var(--space-4);
+}
+
+.attachment-list--compact li {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.attachment-list--compact .attachment-list__name {
+  max-width: 14em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .attachment-list .is-voided .caption {
   color: var(--color-ash);
 }

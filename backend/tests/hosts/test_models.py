@@ -10,7 +10,7 @@ from apps.hosts.models import (
     SupportContract,
 )
 
-from .factories import VALID_NUMBERS, field, make_host
+from .factories import VALID_NUMBERS, field, make_host, make_site
 
 pytestmark = pytest.mark.django_db
 
@@ -42,19 +42,23 @@ def test_membership_is_one_per_field() -> None:
         )
 
 
-def test_cooperation_confirmation_is_one_per_municipality() -> None:
+def test_cooperation_confirmation_is_one_row_per_submission() -> None:
+    """1 行＝事業所×提出先への 1 回の提出（ADR-0015）。
+
+    出し直しは新しい行で、同じ市区町村の 2 つ目の事業所も持てる。
+    """
     host = make_host()
-    HostCooperationConfirmation.objects.create(
-        host_organization=host, municipality="千代田区", submitted_on=date(2025, 4, 1)
-    )
-    HostCooperationConfirmation.objects.create(
-        host_organization=host, municipality="港区", submitted_on=date(2025, 4, 1)
-    )
-    with pytest.raises(IntegrityError), transaction.atomic():
+    head, second = make_site(host), make_site(host, name="第二工場")
+    for site, municipality, day in (
+        (head, "千代田区", date(2025, 4, 1)),
+        (head, "港区", date(2025, 4, 1)),  # 住居地の市区町村
+        (head, "千代田区", date(2026, 4, 1)),  # 記載事項の変更で出し直し
+        (second, "千代田区", date(2025, 4, 1)),
+    ):
         HostCooperationConfirmation.objects.create(
-            host_organization=host, municipality="千代田区", submitted_on=date(2026, 4, 1)
+            host_organization=host, site=site, municipality=municipality, submitted_on=day
         )
-    assert host.cooperation_confirmations.count() == 2
+    assert host.cooperation_confirmations.count() == 4
 
 
 @pytest.mark.parametrize(

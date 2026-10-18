@@ -1,7 +1,7 @@
 """受入れ機関の一覧・詳細の表示用の組み立て（第5章 F02、T13e）。
 
-- 期限: 加入状況は有効期限（document_expiry）、協力確認書は提出先ごとの最新の添付の有効期限
-  （document_expiry）、支援委託契約は終了日（support_contract_end）。
+- 期限: 加入状況は有効期限（document_expiry）、支援委託契約は終了日（support_contract_end）。
+- 協力確認書は期限が無い（ADR-0015）。事業所ごとの提出状況（提出先ごとの最新の提出日）を出す。
 - 所属する外国人: 外国人一覧と同じ判定（現在の雇用契約が有効または予定）。無効化済みは除く。
 """
 
@@ -24,7 +24,7 @@ from apps.hosts.models import (
     SpecifiedSkillField,
     SupportContract,
 )
-from services import authorization, deadlines, worker_list
+from services import authorization, deadlines, hosts, worker_list
 from services.worker_list import WorkerListQuery, WorkerRow
 
 
@@ -42,14 +42,6 @@ def _latest_attachments(model: type[Any], object_ids: Iterable[int]) -> dict[int
     ).order_by("-created_at", "-pk"):
         grouped.setdefault(attachment.object_id, []).append(attachment)
     return grouped
-
-
-def _attachment_deadline(attachments: list[Attachment]) -> deadlines.Deadline | None:
-    """最新の添付の有効期限（差し替え前の古い証明書と、取り消した添付は見ない）。"""
-    latest = next((a for a in attachments if a.voided_at is None), None)
-    if latest is None or latest.valid_until is None:
-        return None
-    return deadlines.document_expiry(latest.valid_until)
 
 
 def support_contract_for(
@@ -83,7 +75,7 @@ class HostRow:
     site_count: int
     worker_count: int
     membership_deadline: deadlines.Deadline | None
-    cooperation_deadline: deadlines.Deadline | None
+    sites_without_cooperation: int  # 協力確認書の提出が 1 件も無い有効な事業所の数
     support_contract: SupportContract | None
     support_contract_deadline: deadlines.Deadline | None
 
@@ -97,17 +89,11 @@ def worker_counts(user: User, today: datetime.date) -> Counter[int]:
 def host_rows(user: User, today: datetime.date) -> list[HostRow]:
     host_list = list(
         authorization.scope(user, HostOrganization.objects.all())
-        .prefetch_related("sites__field", "memberships", "cooperation_confirmations")
+        .prefetch_related("sites__field", "sites__cooperation_confirmations", "memberships")
         .prefetch_related("support_contracts")
         .order_by("name_kana", "name")
     )
     counts = worker_counts(user, today)
-    cooperation_ids = [
-        confirmation.pk
-        for host in host_list
-        for confirmation in host.cooperation_confirmations.all()
-    ]
-    cooperation_attachments = _latest_attachments(HostCooperationConfirmation, cooperation_ids)
     rows = []
     for host in host_list:
         sites = [site for site in host.sites.all() if site.is_active]
@@ -123,9 +109,8 @@ def host_rows(user: User, today: datetime.date) -> list[HostRow]:
                     deadlines.document_expiry(m.valid_until) if m.valid_until else None
                     for m in host.memberships.all()
                 ),
-                cooperation_deadline=_earliest(
-                    _attachment_deadline(cooperation_attachments.get(c.pk, []))
-                    for c in host.cooperation_confirmations.all()
+                sites_without_cooperation=sum(
+                    1 for site in sites if not site.cooperation_confirmations.all()
                 ),
                 support_contract=contract,
                 support_contract_deadline=_contract_deadline(contract),
@@ -139,7 +124,10 @@ def host_rows(user: User, today: datetime.date) -> list[HostRow]:
 
 @dataclass(frozen=True)
 class DatedItem:
-    """期限つきの行（加入状況・協力確認書・支援委託契約）と、その添付。"""
+    """期限つきの行（加入状況・支援委託契約）と、その添付。
+
+    協力確認書は期限が無い（deadline は None）。
+    """
 
     item: Any
     deadline: deadlines.Deadline | None
@@ -152,6 +140,7 @@ class HostDetail:
     sites: list[HostSite]
     memberships: list[DatedItem]
     cooperation_confirmations: list[DatedItem]
+    cooperation_status: list[hosts.CooperationStatus]  # 有効な事業所ごとの提出状況
     support_contracts: list[DatedItem]
     current_support_contract: SupportContract | None
     workers: list[WorkerRow]
@@ -167,7 +156,11 @@ def host_detail(
     )
     memberships = list(host.memberships.select_related("field").order_by("field__sort_order"))
     membership_files = _latest_attachments(HostMembership, [m.pk for m in memberships])
-    confirmations = list(host.cooperation_confirmations.order_by("municipality", "-submitted_on"))
+    confirmations = list(
+        host.cooperation_confirmations.select_related("site").order_by(
+            "site__pk", "municipality", "-submitted_on", "-pk"
+        )
+    )
     confirmation_files = _latest_attachments(
         HostCooperationConfirmation, [c.pk for c in confirmations]
     )
@@ -193,13 +186,9 @@ def host_detail(
             for m in memberships
         ],
         cooperation_confirmations=[
-            DatedItem(
-                c,
-                _attachment_deadline(confirmation_files.get(c.pk, [])),
-                confirmation_files.get(c.pk, []),
-            )
-            for c in confirmations
+            DatedItem(c, None, confirmation_files.get(c.pk, [])) for c in confirmations
         ],
+        cooperation_status=hosts.cooperation_status(site for site in sites if site.is_active),
         support_contracts=[
             DatedItem(
                 c,
