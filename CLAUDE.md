@@ -140,7 +140,7 @@ make env       # .env を作る・足りないキーを補う・鍵を生成す�
 make up        # docker compose up -d
 make migrate   # python manage.py migrate
 make admin     # 管理者ロールのユーザーを作る（superuser は使わない）
-make seed      # python manage.py seed_dummy  （外国人30人・受入れ機関3社。作成済みなら何もしない）
+make seed      # python manage.py seed_dummy  （外国人31人・受入れ機関4社。作成済みなら何もしない）
 make seed-reset  # ダミーデータを消して作り直す（DATE=YYYY-MM-DD で基準日）。ダミーの外国人に手で足した記録も消える
 make test      # pytest
 make lint      # ruff check . && ruff format --check . && mypy .

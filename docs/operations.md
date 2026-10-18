@@ -88,8 +88,9 @@
 2. **新しい版のフォルダを作る**: `templates/forms/<様式>/<適用開始日>/`（日本語以外は `<適用開始日>.<言語>`。例 `2026-10-18.ja-zh`）に、入管のファイル（original）と manifest.json（URL・掲載ページ・取得日・改正日・SHA-256・ADR）を置きます。.doc の様式は `tools/forms/convert_doc.py` で converted.docx を作ります。
 3. **テンプレートとマッピングを道具で作る**: 様式ごとの道具（README の「よく使うコマンド」の `tools/forms/…`）で template.docx とマッピング定義（`mappings/<様式>/<適用開始日>.json`）を作り、生成前の検査の規則（`.rules.json`）を前の版から写して直します。道具の出力は手で直しません（直したら道具を直す）。新しい版で欄や文が変わったときは、道具の定義（SPEC など）を版ごとに分けます。
 4. **確かめる**: `make test`（道具の出力の再現・空の様式との頁数と文言・差込の位置）を通し、`make forms` で読み込みます。生成物を公式の様式（記載例）と並べて見比べます（段階3の A の③と同じ）。
-5. **申請の書類の一覧が改定されたとき**: `application_sets/sources/` の Excel を差し替え、`tools/forms/make_application_sets.py` の `VALID_FROM` を改定日にして、新しい定義（`application_sets/<種類>/<改定日>.json`）を足します。旧い定義は残します。
-6. 版を足したことを ADR（または既存の ADR の追記）と `docs/tasks-phase*.md` に書きます。
+5. **中国語の版を確かめる**: 掲載ページの「英語及び９か国語による様式について」の中国語の版（今は 10 の様式をまとめた Word 1 つ。2025-04-01）が新しくなっていないか、第1-6号・第1-17号の中国語の版が個別に出ていないかを確かめます。新しい版が出ていれば、日本語の現行の版と文を比べ（`tests/forms_engine/test_form_languages.py` の比べ方）、同じなら日中併記の版を足します（ADR-0027）。第1-6号・第1-17号は、新しい版が出るまで、実データで使うときに人が訳を用意します。
+6. **申請の書類の一覧が改定されたとき**: `application_sets/sources/` の Excel を差し替え、`tools/forms/make_application_sets.py` の `VALID_FROM` を改定日にして、新しい定義（`application_sets/<種類>/<改定日>.json`）を足します。旧い定義は残します。
+7. 版を足したことを ADR（または既存の ADR の追記）と `docs/tasks-phase*.md` に書きます。
 
 ## 支援計画書（第1-17号）を作る（段階3。T31）
 
