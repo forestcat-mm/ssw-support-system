@@ -413,6 +413,11 @@ def create_version(
             _("There is no change from the previous version. Change at least one item."),
             code="no_change",
         )
+    if previous is not None:
+        # 報酬の説明（第1-4号）は前の版のものを写す（差分・届出には関わらない。T34-D2）
+        from services import wage_explanations
+
+        wage_explanations.copy_to(previous, version, by=by)
     filing = complete_version(version, by=by)
     return VersionSaved(
         version=version, filing=filing, conversion_warning=conversion_warning(version)
@@ -480,6 +485,15 @@ def initial_from(previous: EmploymentContractVersion) -> dict[str, Any]:
         values[field.name] = field.value_from_object(previous)
     values["site"] = previous.site_id
     values["categories"] = list(previous.categories.all())
+    # 窓口（Ⅸ４・５）を 1 つの文で入れていた版（T34 より前）は、部署名の欄に写す（T34-D4）
+    for prefix, legacy in (
+        ("treatment", "treatment_explanation_contact"),
+        ("consultation", "consultation_contact"),
+    ):
+        split = [f"{prefix}_contact_{name}" for name in ("department", "person", "phone")]
+        if values.get(legacy) and not any(values.get(name) for name in split):
+            values[split[0]] = " ".join(str(values[legacy]).split())
+        values.pop(legacy, None)
     return values
 
 

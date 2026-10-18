@@ -1,0 +1,13 @@
+{
+  "form_id": "1-4",
+  "valid_from": "2026-10-18",
+  "note": "T34 の規則（ADR-0023）。報酬の説明が無い・書く欄が空（報酬根拠未入力）と作成責任者が空は生成不可。日本人の報酬を下回るのは強い警告（基準省令 第1条第1項第3号）。",
+  "rules": [
+    {"id": "wage_basis", "type": "check", "name": "wage_explanation_complete", "severity": "block"},
+    {"id": "author_required", "type": "required", "key": "w.author", "label": "作成責任者 役職・氏名", "severity": "block"},
+    {"id": "equal_or_higher", "type": "check", "name": "wage_equal_or_higher", "severity": "warn", "requires": "wage_basis"},
+    {"id": "version_in_force", "type": "check", "name": "contract_version_in_force", "severity": "warn"},
+    {"id": "wage_equivalent", "type": "check", "name": "contract_wage_equivalent", "severity": "warn"},
+    {"id": "monthly_hours_average", "type": "check", "name": "contract_monthly_hours_average", "severity": "warn"}
+  ]
+}

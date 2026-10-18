@@ -134,6 +134,7 @@ def test_changes_requiring_filing(changes: dict[str, Any], code: str) -> None:
         {"payment_method": "bank_transfer"},
         {"has_retirement_allowance": True, "retirement_allowance_note": "勤続3年以上"},  # 新設
         {"treatment_explanation_contact": "総務部"},  # 雇用条件に影響しない項目
+        {"consultation_contact_department": "人事部", "consultation_contact_phone": "03"},  # T34
     ],
 )
 def test_changes_not_requiring_filing(changes: dict[str, Any]) -> None:

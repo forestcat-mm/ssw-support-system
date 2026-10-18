@@ -13,28 +13,41 @@ from typing import Any
 from django import forms
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.http import HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import gettext as _
-from django.utils.translation import ngettext
+from django.utils.translation import gettext_lazy, ngettext
 
 from apps.contracts.forms import (
     AllowanceFormSet,
+    ContractGenerateForm,
     DeductionFormSet,
     ShiftFormSet,
     TerminationForm,
     VersionAttachmentForm,
     VersionForm,
+    WageExplanationForm,
     rows_of,
 )
-from apps.contracts.models import EmploymentContract, EmploymentContractVersion
+from apps.contracts.models import EmploymentContract, EmploymentContractVersion, WageUnit
 from apps.core.models import Action, Attachment, User
 from apps.core.web_forms import consume_once_token
+from apps.forms_engine.forms import NOT_LOADED
 from apps.support.record_forms import ReasonForm
 from apps.workers.models import ForeignWorker
 from apps.workers.views import WorkerFormView
-from services import attachments, authorization, contracts
+from services import (
+    attachments,
+    authorization,
+    contracts,
+    form_checks,
+    form_data_contract,
+    form_generation,
+    form_templates,
+    wage_explanations,
+)
 
 
 def _actor(request: HttpRequest) -> User:
@@ -431,3 +444,177 @@ class ReopenView(ContractFormView):
 
 def can_reopen(user: Any) -> bool:
     return authorization.has_action(user, Action.CONTRACTS_REOPEN)
+
+
+# --- 報酬の説明（第1-4号の元データ。T34-D2）---------------------------------------------
+
+
+class WageExplanationView(ContractFormView):
+    """報酬の説明の入力・直し（版と 1 対 1。版と違って直せる。作成・更新は監査ログに残る）。"""
+
+    template_name = "contracts/wage_explanation_form.html"
+
+    def target(self, request: HttpRequest, pk: int, contract_id: int, number: int) -> Any:
+        worker = self.worker(request, pk)
+        contract = self.contract(worker, contract_id)
+        version = get_object_or_404(contract.versions, version=number)
+        return worker, contract, version
+
+    def page(
+        self, request: HttpRequest, worker: Any, contract: Any, version: Any, form: Any
+    ) -> HttpResponse:
+        return self.render(
+            request,
+            worker=worker,
+            contract=contract,
+            version=version,
+            form=form,
+            applicant_monthly=wage_explanations.applicant_wage(version, WageUnit.MONTHLY),
+            applicant_hourly=wage_explanations.applicant_wage(version, WageUnit.HOURLY),
+            back=tab_url(worker, contract) + f"&version={version.version}",
+        )
+
+    def get(self, request: HttpRequest, pk: int, contract_id: int, number: int) -> HttpResponse:
+        worker, contract, version = self.target(request, pk, contract_id, number)
+        explanation = wage_explanations.explanation_of(version)
+        form = (
+            WageExplanationForm(instance=explanation)
+            if explanation is not None
+            else WageExplanationForm(initial=wage_explanations.initial_values(version))
+        )
+        return self.page(request, worker, contract, version, form)
+
+    def post(self, request: HttpRequest, pk: int, contract_id: int, number: int) -> HttpResponse:
+        worker, contract, version = self.target(request, pk, contract_id, number)
+        if not consume_once_token(request):
+            return self.already_submitted(request, tab_url(worker, contract))
+        form = WageExplanationForm(request.POST, instance=wage_explanations.explanation_of(version))
+        if form.is_valid():
+            try:
+                wage_explanations.save(version, form.cleaned_data, by=_actor(request))
+            except ValidationError as error:
+                apply_errors(form, error)
+            else:
+                messages.success(request, _("Saved the wage explanation."))
+                return redirect(tab_url(worker, contract) + f"&version={version.version}")
+        return self.page(request, worker, contract, version, form)
+
+
+# --- 雇用契約の書類の生成（第1-4号・第1-5号・第1-6号。T34、ADR-0023）------------------------
+
+CONTRACT_FORMS = {
+    "1-6": gettext_lazy("employment conditions (form 1-6)"),
+    "1-5": gettext_lazy("employment contract (form 1-5)"),
+    "1-4": gettext_lazy("explanation of wages (form 1-4)"),
+}
+
+
+class ContractGenerateView(WorkerFormView):
+    """契約タブの版から生成する（対象は版、基準日は画面で入れる。T34-D9）。
+
+    第1-4号は作成責任者を入れる（初期値は受入れ機関の代表者。変えた値はスナップショットに残る）。
+    """
+
+    required_action = Action.FORMS_GENERATE
+    template_name = "contracts/generate.html"
+
+    def target(
+        self, request: HttpRequest, pk: int, contract_id: int, number: int, form_id: str
+    ) -> tuple[ForeignWorker, EmploymentContractVersion]:
+        if form_id not in CONTRACT_FORMS:
+            raise Http404
+        worker = self.worker(request, pk)
+        contract = get_object_or_404(worker.employment_contracts, pk=contract_id)
+        return worker, get_object_or_404(contract.versions, version=number)
+
+    def data(
+        self, version: EmploymentContractVersion, form_id: str, form: ContractGenerateForm
+    ) -> dict[str, Any]:
+        if form_id == "1-6":
+            return form_data_contract.build_1_6(version)
+        if form_id == "1-5":
+            return form_data_contract.build_1_5(version)
+        return form_data_contract.build_1_4(
+            version, form.cleaned_data["basis_on"], author=form.cleaned_data.get("author", "")
+        )
+
+    def page(
+        self,
+        request: HttpRequest,
+        worker: ForeignWorker,
+        version: EmploymentContractVersion,
+        form_id: str,
+        form: ContractGenerateForm,
+        result: form_checks.CheckResult | None,
+    ) -> HttpResponse:
+        back = tab_url(worker, version.contract) + f"&version={version.version}"
+        return self.render(
+            request,
+            worker=worker,
+            version=version,
+            form_id=form_id,
+            form_name=CONTRACT_FORMS[form_id],
+            form=form,
+            result=result,
+            back_url=back,
+        )
+
+    def check(
+        self, version: EmploymentContractVersion, form_id: str, form: ContractGenerateForm
+    ) -> form_checks.CheckResult | None:
+        try:
+            return form_generation.check(
+                form_id,
+                target=version,
+                data=self.data(version, form_id, form),
+                basis_on=form.cleaned_data["basis_on"],
+            )
+        except form_templates.FormTemplateError:
+            form.add_error(None, NOT_LOADED)
+            return None
+
+    def get(
+        self, request: HttpRequest, pk: int, contract_id: int, number: int, form_id: str
+    ) -> HttpResponse:
+        worker, version = self.target(request, pk, contract_id, number, form_id)
+        initial = {
+            "basis_on": timezone.localdate().isoformat(),
+            "author": form_data_contract.default_author(version),
+        }
+        form = ContractGenerateForm(initial, with_author=form_id == "1-4")
+        result = self.check(version, form_id, form) if form.is_valid() else None
+        form = ContractGenerateForm(initial=initial, with_author=form_id == "1-4")
+        return self.page(request, worker, version, form_id, form, result)
+
+    def post(
+        self, request: HttpRequest, pk: int, contract_id: int, number: int, form_id: str
+    ) -> HttpResponse:
+        worker, version = self.target(request, pk, contract_id, number, form_id)
+        form = ContractGenerateForm(request.POST, with_author=form_id == "1-4")
+        if not form.is_valid():
+            return self.page(request, worker, version, form_id, form, None)
+        if request.POST.get("action") != "generate":
+            result = self.check(version, form_id, form)
+            return self.page(request, worker, version, form_id, form, result)
+        back = tab_url(worker, version.contract)
+        if not consume_once_token(request):
+            return self.already_submitted(request, back)
+        try:
+            document = form_generation.request(
+                form_id,
+                target=version,
+                data=self.data(version, form_id, form),
+                basis_on=form.cleaned_data["basis_on"],
+                by=_actor(request),
+                accept_warnings=bool(form.cleaned_data.get("accept_warnings")),
+            )
+        except form_generation.GenerationBlocked as blocked:
+            return self.page(request, worker, version, form_id, form, blocked.result)
+        except form_templates.FormTemplateError:
+            form.add_error(None, NOT_LOADED)
+            return self.page(request, worker, version, form_id, form, None)
+        except form_generation.WarningsNotAccepted as pending:
+            form.add_error("accept_warnings", _("Check the warnings before generating."))
+            return self.page(request, worker, version, form_id, form, pending.result)
+        messages.success(request, _("Requested the generation of the form."))
+        return redirect("forms:document", pk=document.pk)

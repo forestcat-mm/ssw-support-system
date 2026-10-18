@@ -121,6 +121,8 @@ def _load_one(manifest_path: Path, *, by: User | None, report: LoadReport) -> No
         if data.get("template")
         else ""
     )
+    if data.get("converted"):  # 配布が .doc の様式を変換した docx（T34-D1。template の元）
+        _checked_sha(folder, data["converted"], source.get("converted_sha256"), "converted")
     mapping_path = mappings_root() / data["form_id"] / f"{data['valid_from']}.json"
     if not mapping_path.is_file():
         raise FormTemplateError(f"{mapping_path}: not found")

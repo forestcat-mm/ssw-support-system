@@ -20,6 +20,7 @@ import datetime
 import hashlib
 import json
 import tempfile
+import unicodedata
 from collections.abc import Mapping
 from dataclasses import dataclass
 from decimal import Decimal
@@ -32,6 +33,7 @@ from django.db import models, transaction
 from django.utils import timezone
 from pypdf import PdfReader
 
+from apps.contracts.models import EmploymentContractVersion
 from apps.core.models import Action, AuditAction, User
 from apps.forms_engine.models import FormMethod, FormTemplate, GeneratedDocument, GenerationStatus
 from apps.support.models import Briefing, SupportPlanVersion
@@ -48,6 +50,8 @@ from services import (
 )
 from services.authorization import AnyUser
 
+SP = "\u3000"
+FULL_WIDTH = str.maketrans("0123456789,.-%", "０１２３４５６７８９，．－％")
 CHECKED = "■"  # 置き換え先のフォント（IPAP明朝）にある記号（T31-D6）
 UNCHECKED = "□"
 DEFAULT_FIT_MIN_SIZE = 6.0  # 長い値の字を小さくするときの下限（pt。T31-D7）
@@ -109,7 +113,33 @@ def format_value(value: Any, fmt: str) -> object | None:
     if fmt == "date":
         day = value if isinstance(value, datetime.date) else datetime.date.fromisoformat(value)
         return f"{day.year}年{day.month}月{day.day}日"
+    # 全角の数字（Word の様式。T34-D6。記載例と同じ）
+    if fmt == "zen":
+        return str(_number(value)).translate(FULL_WIDTH)
+    if fmt == "zen_2":
+        return f"{int(value):02d}".translate(FULL_WIDTH)
+    if fmt == "zen_yen":
+        return f"{int(value):,}".translate(FULL_WIDTH)
+    if fmt == "zen_text":
+        return str(value).translate(FULL_WIDTH)
     raise MappingError(f"unknown format: {fmt}")
+
+
+def text_width(text: str) -> float:
+    """全角を 1、半角を 0.5 として数えた幅（欄の幅にそろえるとき）。"""
+    return sum(0.5 if unicodedata.east_asian_width(char) in ("Na", "H") else 1 for char in text)
+
+
+def padded(value: str, width: float, align: str) -> str:
+    """欄の幅（全角の字数）に全角空白でそろえる（数字は右、文字は左に寄せる。T34-D6）。
+
+    値が欄より長ければそのまま。半端な幅（0.5）は半角空白で埋める。
+    """
+    missing = width - text_width(value)
+    if missing <= 0:
+        return value
+    fill = SP * int(missing) + (" " if missing - int(missing) >= 0.5 else "")
+    return fill + value if align == "right" else value + fill
 
 
 def _template_value(item: Mapping[str, Any], data: Mapping[str, Any]) -> str | None:
@@ -142,7 +172,10 @@ def field_keys(item: Mapping[str, Any]) -> list[str]:
 def field_value(item: Mapping[str, Any], data: Mapping[str, Any]) -> object | None:
     if item.get("format") == "template":
         return _template_value(item, data)
-    return format_value(data.get(item["key"]), item.get("format", "text"))
+    value = format_value(data.get(item["key"]), item.get("format", "text"))
+    if value is not None and "pad" in item:
+        value = padded(str(value), float(item["pad"]), item.get("align", "left"))
+    return value
 
 
 def field_values(definition: Mapping[str, Any], data: Mapping[str, Any]) -> dict[str, object]:
@@ -187,6 +220,8 @@ def fits(template: FormTemplate, data: Mapping[str, Any]) -> list[Fit]:
 def _jsonable(value: Any) -> Any:
     if isinstance(value, (datetime.date, datetime.datetime)):
         return value.isoformat()
+    if isinstance(value, Decimal):  # 割増率・日数・時間など（書式 zen は文字のまま受ける）
+        return str(value)
     return value
 
 
@@ -198,13 +233,15 @@ def _sha256(path: Path) -> str:
 
 
 def worker_of(target: models.Model) -> ForeignWorker | None:
-    """生成の対象の外国人（対象が外国人そのもの、またはガイダンスの記録）。"""
+    """生成の対象の外国人（外国人そのもの・ガイダンスの記録・計画の版・雇用契約の版）。"""
     if isinstance(target, ForeignWorker):
         return target
     if isinstance(target, Briefing):
         return target.worker
     if isinstance(target, SupportPlanVersion):
         return target.plan.worker
+    if isinstance(target, EmploymentContractVersion):
+        return target.contract.worker
     return None
 
 

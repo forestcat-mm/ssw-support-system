@@ -17,6 +17,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views import View
 
+from apps.contracts.models import EmploymentContractVersion
 from apps.core.models import Action, Attachment, AuditAction, User
 from apps.core.permissions import ActionRequiredMixin
 from apps.core.web_forms import consume_once_token
@@ -58,12 +59,18 @@ class GeneratedDocumentView(ActionRequiredMixin, View):
             )
         elif isinstance(target, Briefing):
             back_url = reverse("workers:support_briefing", args=[target.worker_id, target.pk])
+        elif isinstance(target, EmploymentContractVersion) and document.worker is not None:
+            back_url = (
+                reverse("workers:contracts", args=[document.worker.pk])
+                + f"?contract={target.contract_id}&version={target.version}"
+            )
         elif document.worker is not None:
             back_url = reverse("workers:detail", args=[document.worker.pk])
         context: dict[str, Any] = {
             "document": document,
             "worker": document.worker,
             "plan_version": version,
+            "contract_version": target if isinstance(target, EmploymentContractVersion) else None,
             "back_url": back_url,
             "can_download": form_generation.can_download_pdf(request.user, document),
             "can_deliver": can_deliver,

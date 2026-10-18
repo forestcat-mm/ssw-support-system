@@ -81,6 +81,24 @@
     </section>
   </div>
 
+  <section class="card" id="contract-documents">
+    <div class="card__header">
+      <h2 class="card__title">{% blocktranslate with number=version.version %}Documents of version {{ number }}{% endblocktranslate %}</h2>
+      {% if can_manage_contracts %}<a class="button button--neutral button--small" href="{% url 'workers:contract_wage_explanation' worker.pk contract.pk version.version %}" id="wage-explanation-edit">{% if wage_explanation %}{% translate "Edit the wage explanation" %}{% else %}{% translate "Enter the wage explanation" %}{% endif %}</a>{% endif %}
+    </div>
+    <dl class="fields fields--long-labels">
+      <dt>{% translate "wage explanation (form 1-4)" %}</dt>
+      <dd id="wage-explanation">{% if wage_explanation and wage_explanation.comparison %}{{ wage_explanation.get_comparison_display }}{% if wage_explanation.japanese_wage is not None %} · {{ wage_explanation.get_wage_unit_display }} ¥{{ wage_explanation.japanese_wage|yen }}{% endif %}{% else %}{% translate "Not entered." %}{% endif %}</dd>
+    </dl>
+    {% if can_generate_forms %}
+    <div class="cluster" id="contract-generate">
+      <a class="button button--neutral button--small" href="{% url 'workers:contract_generate' worker.pk contract.pk version.version '1-6' %}">{% translate "Generate form 1-6" %}</a>
+      <a class="button button--neutral button--small" href="{% url 'workers:contract_generate' worker.pk contract.pk version.version '1-5' %}">{% translate "Generate form 1-5" %}</a>
+      <a class="button button--neutral button--small" href="{% url 'workers:contract_generate' worker.pk contract.pk version.version '1-4' %}">{% translate "Generate form 1-4" %}</a>
+    </div>
+    {% endif %}
+  </section>
+
   <section class="card" id="versions">
     <div class="card__header"><h2 class="card__title">{% translate "Versions" %}</h2></div>
     <div class="table-scroll">

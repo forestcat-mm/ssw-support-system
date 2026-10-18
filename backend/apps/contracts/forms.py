@@ -12,6 +12,7 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 from apps.contracts.models import (
+    ContractWageExplanation,
     EmploymentContract,
     EmploymentContractAllowance,
     EmploymentContractDeduction,
@@ -124,8 +125,12 @@ SECTIONS: tuple[tuple[Any, tuple[str, ...]], ...] = (
             "hiring_health_check_on",
             "first_periodic_health_check_on",
             "periodic_health_check_interval",
-            "treatment_explanation_contact",
-            "consultation_contact",
+            "treatment_contact_department",
+            "treatment_contact_person",
+            "treatment_contact_phone",
+            "consultation_contact_department",
+            "consultation_contact_person",
+            "consultation_contact_phone",
             "work_rules_location",
         ),
     ),
@@ -198,8 +203,6 @@ class VersionForm(StyledFormMixin, forms.ModelForm[EmploymentContractVersion]):
             "duties": forms.Textarea(attrs={"rows": 2}),
             "duty_change_scope": forms.Textarea(attrs={"rows": 2}),
             "temporary_return_leave_note": forms.Textarea(attrs={"rows": 2}),
-            "treatment_explanation_contact": forms.Textarea(attrs={"rows": 2}),
-            "consultation_contact": forms.Textarea(attrs={"rows": 2}),
             "comparable_japanese_note": forms.Textarea(attrs={"rows": 2}),
         }
 
@@ -333,4 +336,79 @@ class VersionAttachmentForm(StyledFormMixin, forms.Form):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
+        self.style_fields()
+
+
+class YesNoSelect(forms.NullBooleanSelect):
+    """有・無・未入力（未入力は「---------」）。"""
+
+    def __init__(self, attrs: dict[str, Any] | None = None) -> None:
+        super().__init__(attrs)
+        self.choices = [
+            ("unknown", "---------"),
+            ("true", _("exists")),
+            ("false", _("does not exist")),
+        ]
+
+
+class WageExplanationForm(StyledFormMixin, forms.ModelForm[ContractWageExplanation]):
+    """報酬の説明（参考様式第1-4号の元データ。T34-D2）。版と違って直せる（監査ログに残る）。"""
+
+    class Meta:
+        model = ContractWageExplanation
+        fields = (
+            "comparison",
+            "wage_unit",
+            "applicant_duties",
+            "applicant_experience_years",
+            "applicant_other",
+            "japanese_duties",
+            "japanese_age",
+            "japanese_sex",
+            "japanese_experience_years",
+            "japanese_wage",
+            "has_wage_rules",
+            "rules_wage",
+            "reason",
+            "other",
+        )
+        widgets = {
+            name: forms.Textarea(attrs={"rows": 3})
+            for name in (
+                "applicant_duties",
+                "applicant_other",
+                "japanese_duties",
+                "reason",
+                "other",
+            )
+        } | {"has_wage_rules": YesNoSelect}
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.style_fields()
+        self.enable_when("rules_wage", has_wage_rules="true")
+
+
+class ContractGenerateForm(StyledFormMixin, forms.Form):
+    """雇用契約の書類（第1-4号・第1-5号・第1-6号）の生成: 基準日・作成責任者（第1-4号）・警告。"""
+
+    basis_on = forms.DateField(
+        label=_("basis date (planned application date)"),
+        widget=forms.DateInput,
+        help_text=_("Used to choose the form version and for the checks."),
+    )
+    author = forms.CharField(
+        label=_("person responsible for preparing the document (title and name)"),
+        max_length=100,
+        required=False,
+        help_text=_("Printed at the bottom of form 1-4. The default is the representative."),
+    )
+    accept_warnings = forms.BooleanField(
+        label=_("I have checked the warnings and will generate the form anyway."), required=False
+    )
+
+    def __init__(self, *args: Any, with_author: bool = False, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        if not with_author:
+            del self.fields["author"]
         self.style_fields()

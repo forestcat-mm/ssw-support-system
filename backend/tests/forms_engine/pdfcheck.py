@@ -57,3 +57,42 @@ def fixed_characters_match(
     left = count(pdf_text(generated)) + count(printed)
     right = count(pdf_text(blank)) + count(written)
     return left == right
+
+
+def blank_from_template(template: Path) -> Path:
+    """Word の様式の template.docx に何も入れずに差し込み、同じ方法で PDF にする（T34-D3）。
+
+    タグは値が無いと元の文字に戻るので、本文は original と同じ（第1-6号は別紙２ を除く）。
+    """
+    from services import form_docx
+
+    workdir = Path(tempfile.mkdtemp(prefix="blank-"))
+    filled = workdir / "blank.docx"
+    form_docx.render(template, filled, {})
+    return form_convert.convert(filled)
+
+
+def doc_to_pdf(original: Path) -> Path:
+    """配布の .doc を PDF にする（テストだけ。生成の convert は docx と xlsx だけを受ける）。"""
+    import subprocess
+
+    workdir = Path(tempfile.mkdtemp(prefix="doc-"))
+    copy = workdir / f"original{original.suffix}"
+    shutil.copyfile(original, copy)
+    subprocess.run(
+        [
+            "soffice",
+            "--headless",
+            "--norestore",
+            f"-env:UserInstallation=file://{workdir / 'profile'}",
+            "--convert-to",
+            "pdf",
+            "--outdir",
+            str(workdir),
+            str(copy),
+        ],
+        capture_output=True,
+        timeout=120,
+        check=True,
+    )
+    return copy.with_suffix(".pdf")

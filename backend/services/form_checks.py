@@ -21,6 +21,7 @@ import datetime
 import unicodedata
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
+from fractions import Fraction
 from functools import cached_property
 from typing import Any
 
@@ -28,7 +29,12 @@ from django.db import models
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
 
-from apps.contracts.models import EmploymentContract, EmploymentContractVersion
+from apps.contracts.models import (
+    ConversionChange,
+    EmploymentContract,
+    EmploymentContractVersion,
+    WageType,
+)
 from apps.core.models import AttachmentKind, Organization, Staff
 from apps.hosts.models import HostOrganization, HostSite
 from apps.support.models import Briefing, DeliveryKind, DepositContract, SupportPlanVersion
@@ -120,10 +126,16 @@ class CheckContext:
 
     @cached_property
     def contract(self) -> EmploymentContract | None:
+        """基準日の契約（雇用契約の書類は、生成の対象の版の契約。T34）。"""
+        if isinstance(self.target, EmploymentContractVersion):
+            return self.target.contract
         return contracts.contract_on(self.worker, self.basis_on)
 
     @cached_property
     def version(self) -> EmploymentContractVersion | None:
+        """基準日に有効な版（雇用契約の書類は、生成の対象の版。T34）。"""
+        if isinstance(self.target, EmploymentContractVersion):
+            return self.target
         return contracts.version_on(self.contract, self.basis_on) if self.contract else None
 
     @cached_property
@@ -160,6 +172,15 @@ def _object_kwargs(context: CheckContext, name: str) -> dict[str, int] | None:
         return {"pk": context.staff.pk} if context.staff else None
     if name == "organization":
         return {}
+    if name == "contract_version":
+        version = context.version
+        if version is None:
+            return None
+        return {
+            "pk": context.worker.pk,
+            "contract_id": version.contract_id,
+            "number": version.version,
+        }
     raise RulesError(f"unknown fix object: {name}")
 
 
@@ -169,6 +190,7 @@ FIX_OBJECT_KWARGS: dict[str, dict[str, int]] = {
     "host": {"pk": 1},
     "staff": {"pk": 1},
     "organization": {},
+    "contract_version": {"pk": 1, "contract_id": 1, "number": 1},
 }
 
 
@@ -618,6 +640,232 @@ def _delivery_warnings(context: CheckContext, params: Mapping[str, Any]) -> list
             for warning in deliveries.warnings(delivery)
         )
     return result
+
+
+# --- 雇用契約の書類（第1-4号・第1-5号・第1-6号。T34、ADR-0023）--------------------------------
+
+
+def _version_destination(context: CheckContext, url_name: str) -> Destination | None:
+    version = context.version
+    if version is None:
+        return None
+    kwargs = {
+        "pk": context.worker.pk,
+        "contract_id": version.contract_id,
+        "number": version.version,
+    }
+    return Destination(url_name, kwargs)
+
+
+@check("contract_version_in_force")
+def _contract_version_in_force(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """生成の対象の版が、基準日に適用される版でない（T34-D10）。"""
+    version = context.version
+    if version is None:
+        return []
+    in_force = contracts.version_on(version.contract, context.basis_on)
+    if in_force is None or in_force.pk == version.pk:
+        return []
+    return [
+        Issue(
+            "version_not_in_force",
+            _(
+                "The version applied on %(day)s is version %(applied)d, not version %(number)d "
+                "shown in the form."
+            )
+            % {
+                "day": context.basis_on.isoformat(),
+                "applied": in_force.version,
+                "number": version.version,
+            },
+            Destination("workers:contracts", {"pk": context.worker.pk}),
+        )
+    ]
+
+
+@check("contract_rows_fit")
+def _contract_rows_fit(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """手当・控除・交代制が様式の行を超える（超えた行は書かない。合計は全部の行。T34-D7）。"""
+    from services import form_data_contract  # 循環を避ける
+
+    version = context.version
+    if version is None:
+        return []
+    return [
+        Issue(
+            "rows_overflow",
+            _(
+                '"%(label)s" has %(count)d rows, but the form has %(limit)d. The rows after that '
+                "are not printed (the totals include all rows); list them in a separate document."
+            )
+            % {"label": label, "count": count, "limit": limit},
+            Destination("workers:contracts", {"pk": context.worker.pk}),
+        )
+        for label, count, limit in form_data_contract.overflowing_rows(version)
+    ]
+
+
+def _exact_hourly(version: EmploymentContractVersion) -> tuple[Fraction, str] | None:
+    """1 時間当たりの金額（労働基準法施行規則 第19条第1項第4号・第2号。T34-D10、ADR-0023）。
+
+    月給は月の所定労働時間数（版の値。月ごとに違えば 1 年間の 1 か月平均）で、日給は 1 日の
+    所定労働時間数で割る。時間数が無ければ None。
+    """
+    if version.wage_type == WageType.MONTHLY and version.monthly_working_minutes:
+        return Fraction(version.base_wage * 60, version.monthly_working_minutes), "monthly"
+    if version.wage_type == WageType.DAILY and version.daily_working_minutes:
+        return Fraction(version.base_wage * 60, version.daily_working_minutes), "daily"
+    return None
+
+
+@check("contract_wage_equivalent")
+def _contract_wage_equivalent(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """月給・日給の「１時間当たりの金額」が、月給（日給）÷所定労働時間数と 1 円を超えて違う。"""
+    version = context.version
+    if version is None or version.wage_type == WageType.HOURLY:
+        return []
+    destination = Destination("workers:contracts", {"pk": context.worker.pk})
+    exact = _exact_hourly(version)
+    if exact is None:
+        return [
+            Issue(
+                "working_hours_missing",
+                _("The monthly working hours are empty, so the hourly amount cannot be checked."),
+                destination,
+            )
+        ]
+    amount, _basis = exact
+    if version.hourly_equivalent is None:
+        return [
+            Issue(
+                "hourly_equivalent_missing",
+                _("The hourly amount (annex 1) is empty. It is %(amount)s yen by calculation.")
+                % {"amount": f"{round(amount):,}"},
+                destination,
+            )
+        ]
+    if abs(version.hourly_equivalent - amount) <= 1:
+        return []
+    return [
+        Issue(
+            "hourly_equivalent_differs",
+            _(
+                "The hourly amount (%(entered)s yen) differs from the base wage divided by the "
+                "scheduled working hours (%(amount)s yen; Ordinance for Enforcement of the Labor "
+                "Standards Act, Article 19)."
+            )
+            % {"entered": f"{version.hourly_equivalent:,}", "amount": f"{round(amount):,}"},
+            destination,
+        )
+    ]
+
+
+@check("contract_monthly_hours_average")
+def _contract_monthly_hours_average(
+    context: CheckContext, params: Mapping[str, Any]
+) -> list[Issue]:
+    """月の所定労働時間数が、年の所定労働時間数の 1 か月平均（年÷12）と違う（第19条第1項第4号）。"""
+    version = context.version
+    if version is None or not (version.monthly_working_minutes and version.annual_working_minutes):
+        return []
+    average = Fraction(version.annual_working_minutes, 12)
+    if abs(version.monthly_working_minutes - average) < 1:
+        return []
+    return [
+        Issue(
+            "monthly_hours_not_average",
+            _(
+                "The monthly working hours (%(monthly)s) differ from the annual working hours "
+                "divided by 12 (%(average)s). When the hours differ by month, use the monthly "
+                "average over a year."
+            )
+            % {
+                "monthly": _hours(version.monthly_working_minutes),
+                "average": _hours(round(average)),
+            },
+            Destination("workers:contracts", {"pk": context.worker.pk}),
+        )
+    ]
+
+
+def _hours(minutes: int) -> str:
+    hours, rest = divmod(minutes, 60)
+    return _("%(hours)d h %(minutes)02d min") % {"hours": hours, "minutes": rest}
+
+
+@check("contract_contacts_split")
+def _contract_contacts_split(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """窓口（Ⅸ４・５）が T34 より前の 1 つの文だけ（部署名の欄に全文を書く。T34-D4）。"""
+    from services import form_data_contract  # 循環を避ける
+
+    version = context.version
+    if version is None or not form_data_contract.legacy_contacts(version):
+        return []
+    return [
+        Issue(
+            "contacts_not_split",
+            _(
+                "The contact points (IX 4 and 5) are entered as one text, so the whole text is "
+                "printed in the department field. Enter the department, the person and the "
+                "contact details separately in a new version."
+            ),
+            Destination("workers:contracts", {"pk": context.worker.pk}),
+        )
+    ]
+
+
+@check("contract_conversion_annex")
+def _contract_conversion_annex(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """無期転換後の条件が「変更あり」（別紙２ は生成しない。版に添付した別紙２ を使う。T34-D3）。"""
+    version = context.version
+    if version is None or version.conversion_conditions_change != ConversionChange.CHANGED:
+        return []
+    destination = Destination("workers:contracts", {"pk": context.worker.pk})
+    if contracts.conversion_terms_missing(version):
+        message = _(
+            "The working conditions change after conversion, but annex 2 is not attached to the "
+            "version. Annex 2 is not generated; attach it and use it with this form."
+        )
+    else:
+        message = _(
+            "Annex 2 (conditions after conversion) is not generated. Use the annex 2 attached "
+            "to the version with this form."
+        )
+    return [Issue("conversion_annex", message, destination)]
+
+
+@check("wage_explanation_complete")
+def _wage_explanation_complete(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """報酬の説明（第1-4号）の比較の型と、その型で書く欄（「報酬根拠未入力」。T34-D10）。"""
+    from services import wage_explanations  # 循環を避ける
+
+    version = context.version
+    if version is None:
+        return []
+    destination = _version_destination(context, "workers:contract_wage_explanation")
+    return [
+        Issue(missing.code, missing.message, destination)
+        for missing in wage_explanations.missing_items(
+            version, wage_explanations.explanation_of(version)
+        )
+    ]
+
+
+@check("wage_equal_or_higher")
+def _wage_equal_or_higher(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """日本人の報酬が申請人の報酬を上回る（基準省令 第1条第1項第3号。強い警告。T34-D10）。"""
+    from services import wage_explanations  # 循環を避ける
+
+    version = context.version
+    if version is None:
+        return []
+    destination = _version_destination(context, "workers:contract_wage_explanation")
+    return [
+        Issue(missing.code, missing.message, destination, strong=True)
+        for missing in wage_explanations.lower_than_japanese(
+            version, wage_explanations.explanation_of(version)
+        )
+    ]
 
 
 # --- データの規則 ---------------------------------------------------------------------

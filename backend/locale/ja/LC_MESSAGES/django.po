@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-18 18:49+0900\n"
+"POT-Creation-Date: 2026-10-18 21:17+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -214,6 +214,24 @@ msgid_plural ""
 msgstr[0] ""
 "対応中の届出タスク %(count)d 件は取り消さずに残しました。確かめてください。"
 
+msgid "Saved the wage explanation."
+msgstr "報酬の説明を保存しました。"
+
+msgid "employment conditions (form 1-6)"
+msgstr "雇用条件書（第1-6号）"
+
+msgid "employment contract (form 1-5)"
+msgstr "雇用契約書（第1-5号）"
+
+msgid "explanation of wages (form 1-4)"
+msgstr "報酬に関する説明書（第1-4号）"
+
+msgid "Check the warnings before generating."
+msgstr "警告を確かめてから生成してください。"
+
+msgid "Requested the generation of the form."
+msgstr "帳票の生成を依頼しました。"
+
 msgid "operation categories"
 msgstr "業務区分"
 
@@ -242,6 +260,27 @@ msgstr "ファイル"
 
 msgid "PDF, PNG or JPEG, up to 10 MB each. You can select more than one."
 msgstr "PDF・PNG・JPEG、1 ファイル 10MB まで。複数選べます。"
+
+msgid "exists"
+msgstr "有"
+
+msgid "does not exist"
+msgstr "無"
+
+msgid "basis date (planned application date)"
+msgstr "基準日（申請予定日）"
+
+msgid "Used to choose the form version and for the checks."
+msgstr "様式の版の選び方と、生成前の検査に使います。"
+
+msgid "person responsible for preparing the document (title and name)"
+msgstr "作成責任者（役職・氏名）"
+
+msgid "Printed at the bottom of form 1-4. The default is the representative."
+msgstr "第1-4号の末尾に出ます。初期値は受入れ機関の代表者です。"
+
+msgid "I have checked the warnings and will generate the form anyway."
+msgstr "警告を確かめたうえで生成します。"
 
 msgid "expiry of contract period"
 msgstr "契約満了"
@@ -639,14 +678,32 @@ msgstr "定期健康診断の間隔"
 msgid "e.g. every year"
 msgstr "例: 1年ごと"
 
-msgid "contact for explanation of treatment differences"
-msgstr "待遇の相違の説明を求める窓口"
+msgid "contact for explanation of treatment differences (until T34)"
+msgstr "待遇の相違の説明の窓口（T34 までの 1 つの文）"
 
 msgid "Department, title and name of the person in charge, contact."
 msgstr "部署名、担当者職氏名、連絡先。"
 
-msgid "contact for employment management consultation"
-msgstr "雇用管理の改善等に関する相談窓口"
+msgid "contact for employment management consultation (until T34)"
+msgstr "雇用管理の相談窓口（T34 までの 1 つの文）"
+
+msgid "treatment differences contact: department"
+msgstr "待遇の相違の説明の窓口: 部署名"
+
+msgid "treatment differences contact: title and name of the person in charge"
+msgstr "待遇の相違の説明の窓口: 担当者職氏名"
+
+msgid "treatment differences contact: contact details"
+msgstr "待遇の相違の説明の窓口: 連絡先"
+
+msgid "consultation contact: department"
+msgstr "雇用管理の相談窓口: 部署名"
+
+msgid "consultation contact: title and name of the person in charge"
+msgstr "雇用管理の相談窓口: 担当者職氏名"
+
+msgid "consultation contact: contact details"
+msgstr "雇用管理の相談窓口: 連絡先"
 
 msgid "where the work rules can be checked"
 msgstr "就業規則を確認できる場所・方法"
@@ -717,6 +774,82 @@ msgstr "金額（月額の概算・円）"
 msgid "deduction"
 msgstr "控除"
 
+msgid "there is a comparable Japanese worker (section 2)"
+msgstr "比較対象となる日本人労働者がいる（様式の２）"
+
+msgid ""
+"no comparable Japanese worker; compare with the closest duties (section 3)"
+msgstr ""
+"比較対象となる日本人労働者がいない（最も近い職務の日本人と比べる。様式の３）"
+
+msgid "there is no Japanese worker to compare with"
+msgstr "比べる日本人労働者がいない"
+
+msgid "comparison"
+msgstr "比較の型"
+
+msgid "unit of the wages on the form"
+msgstr "様式に書く報酬の単位"
+
+msgid "Write all wages on the form in the same unit (note 3)."
+msgstr "様式の報酬はすべて同じ単位で書きます（注意３）。"
+
+msgid "applicant: position, duties and degree of responsibility"
+msgstr "申請人の役職、職務内容、責任の程度"
+
+msgid "applicant: years of experience in the duties"
+msgstr "申請人の経験年数（従事させる業務）"
+
+msgid "applicant: other (allowances and other special notes)"
+msgstr "申請人のその他（諸手当など特記すべき事項）"
+
+msgid "Japanese worker: position, duties and degree of responsibility"
+msgstr "日本人労働者の役職、職務内容、責任の程度"
+
+msgid ""
+"For the worker with the closest duties, also write in detail how they differ "
+"from the applicant."
+msgstr ""
+"最も近い職務の日本人と比べる場合は、申請人とどのような差異があるかも詳しく書"
+"きます。"
+
+msgid "Japanese worker: age"
+msgstr "日本人労働者の年齢"
+
+msgid "Japanese worker: sex"
+msgstr "日本人労働者の性別"
+
+msgid "Japanese worker: years of experience"
+msgstr "日本人労働者の経験年数"
+
+msgid "Japanese worker: wage (yen, in the unit above)"
+msgstr "日本人労働者の報酬（円。上の単位）"
+
+msgid "there are wage rules"
+msgstr "賃金規程の有無"
+
+msgid "wage under the wage rules (yen, in the unit above)"
+msgstr "賃金規程に基づく報酬（円。上の単位）"
+
+msgid ""
+"The wage to be paid under the wage rules to a Japanese worker with the same "
+"position, duties and responsibility. Attach the wage rules."
+msgstr ""
+"賃金規程に基づき、申請人と役職、職務内容、責任の程度が同等の日本人労働者に支"
+"払われるべき報酬。賃金規程を添付します。"
+
+msgid "reason the wage is equal to or higher than that of a Japanese worker"
+msgstr "日本人と同等以上であると考える理由"
+
+msgid "other (special notes)"
+msgstr "その他（特記すべき事項）"
+
+msgid "wage explanation"
+msgstr "報酬の説明"
+
+msgid "wage explanations"
+msgstr "報酬の説明"
+
 msgid "Void an attachment"
 msgstr "添付の取消"
 
@@ -741,6 +874,20 @@ msgstr "取り消す"
 
 msgid "Cancel"
 msgstr "キャンセル"
+
+#, python-format
+msgid "Generate the %(name)s"
+msgstr "%(name)sを作る"
+
+#, python-format
+msgid "%(host)s · version %(number)s (changed on %(day)s)"
+msgstr "%(host)s · 第%(number)s版（変更日 %(day)s）"
+
+msgid "Check again"
+msgstr "検査する"
+
+msgid "Generate"
+msgstr "生成する"
 
 msgid "Register an employment contract"
 msgstr "雇用契約を登録"
@@ -797,6 +944,36 @@ msgstr ""
 
 msgid "Save"
 msgstr "保存する"
+
+msgid "Wage explanation (form 1-4)"
+msgstr "報酬の説明（第1-4号）"
+
+#, python-format
+msgid "%(host)s · version %(number)s"
+msgstr "%(host)s · 第%(number)s版"
+
+msgid ""
+"The explanation can be corrected later (changes are recorded in the audit "
+"log). It is copied to the next version of the contract and does not affect "
+"the version history or filings."
+msgstr ""
+"報酬の説明は後から直せます（直した内容は監査ログに残ります）。契約の次の版に"
+"写され、版の差分や届出には関わりません。"
+
+msgid "1. Wage of the applicant"
+msgstr "１　申請人に対する報酬"
+
+msgid "name, age and sex"
+msgstr "氏名・年齢・性別"
+
+msgid "Printed from the register of the foreign worker."
+msgstr "外国人の台帳から出します。"
+
+msgid "wage (from the contract version)"
+msgstr "報酬（契約の版から）"
+
+msgid "2 or 3. Japanese worker to compare with"
+msgstr "２・３　比べる日本人労働者"
 
 msgid "Personal info"
 msgstr "個人情報"
@@ -2593,15 +2770,6 @@ msgstr ""
 "様式が読み込まれていません。管理者に様式の読み込み（make forms）を依頼してく"
 "ださい。"
 
-msgid "I have checked the warnings and will generate the form anyway."
-msgstr "警告を確かめたうえで生成します。"
-
-msgid "basis date (planned application date)"
-msgstr "基準日（申請予定日）"
-
-msgid "Used to choose the form version and for the checks."
-msgstr "様式の版の選び方と、生成前の検査に使います。"
-
 msgid ""
 "We declare that the support is ensured to be proper (section III-7: the "
 "support manager is not a relative or close associate of the host's officers, "
@@ -2809,6 +2977,10 @@ msgstr "様式の版"
 
 msgid "support plan version"
 msgstr "支援計画の版"
+
+#, python-format
+msgid "Version %(number)s (changed on %(day)s)"
+msgstr "第%(number)s版（変更日 %(day)s）"
 
 msgid "requested by"
 msgstr "依頼した人"
@@ -3818,9 +3990,6 @@ msgstr "相談の経過"
 msgid "none"
 msgstr "無"
 
-msgid "exists"
-msgstr "有"
-
 msgid "not paid"
 msgstr "支払っていない"
 
@@ -4201,12 +4370,6 @@ msgstr "交付記録を保存しました。"
 msgid "Voided the delivery record."
 msgstr "交付記録を取り消しました。"
 
-msgid "Check the warnings before generating."
-msgstr "警告を確かめてから生成してください。"
-
-msgid "Requested the generation of the form."
-msgstr "帳票の生成を依頼しました。"
-
 msgid "Attach the signed confirmation"
 msgstr "署名済みの確認書を添付"
 
@@ -4321,9 +4484,6 @@ msgid ""
 msgstr ""
 "確認書の欄は、実施日時・所属機関（又は登録支援機関）の名称・説明者の氏名だけ"
 "です。署名と署名日は本人が手で書きます。"
-
-msgid "Generate"
-msgstr "生成する"
 
 msgid "Void a support record"
 msgstr "支援実績の取消"
@@ -4543,9 +4703,6 @@ msgstr "支援計画書を作る（第1-17号）"
 #, python-format
 msgid "%(host)s · version %(number)s (applies from %(day)s)"
 msgstr "%(host)s・第 %(number)s 版（%(day)s から適用）"
-
-msgid "Check again"
-msgstr "検査する"
 
 msgid ""
 "This row is the reception of a consultation. Its progress and status are on "
@@ -5011,6 +5168,31 @@ msgstr "申込みができる（%(day)s から転換）"
 
 msgid "Allowances and deductions"
 msgstr "手当・控除"
+
+#, python-format
+msgid "Documents of version %(number)s"
+msgstr "第%(number)s版の書類"
+
+msgid "Edit the wage explanation"
+msgstr "報酬の説明を直す"
+
+msgid "Enter the wage explanation"
+msgstr "報酬の説明を入れる"
+
+msgid "wage explanation (form 1-4)"
+msgstr "報酬の説明（第1-4号）"
+
+msgid "Not entered."
+msgstr "入力していません。"
+
+msgid "Generate form 1-6"
+msgstr "第1-6号を作る"
+
+msgid "Generate form 1-5"
+msgstr "第1-5号を作る"
+
+msgid "Generate form 1-4"
+msgstr "第1-4号を作る"
 
 msgid "No filing tasks for this foreign worker."
 msgstr "この外国人の届出タスクはありません。"
@@ -5780,6 +5962,79 @@ msgid "\"%(label)s\" does not fit in its field even at %(size)s pt."
 msgstr "「%(label)s」は %(size)s pt でも欄に収まりません。"
 
 #, python-format
+msgid ""
+"The version applied on %(day)s is version %(applied)d, not version "
+"%(number)d shown in the form."
+msgstr ""
+"%(day)s に適用される版は第%(applied)d版で、様式に出す第%(number)d版ではありま"
+"せん。"
+
+#, python-format
+msgid ""
+"\"%(label)s\" has %(count)d rows, but the form has %(limit)d. The rows after "
+"that are not printed (the totals include all rows); list them in a separate "
+"document."
+msgstr ""
+"「%(label)s」は %(count)d 行ありますが、様式の行は %(limit)d 行です。超えた行"
+"は出ません（合計はすべての行で計算します）。任意の様式の別紙に書いてくださ"
+"い。"
+
+msgid ""
+"The monthly working hours are empty, so the hourly amount cannot be checked."
+msgstr "月の所定労働時間数が空のため、１時間当たりの金額を確かめられません。"
+
+#, python-format
+msgid ""
+"The hourly amount (annex 1) is empty. It is %(amount)s yen by calculation."
+msgstr "１時間当たりの金額（別紙１）が空です。計算では %(amount)s 円です。"
+
+#, python-format
+msgid ""
+"The hourly amount (%(entered)s yen) differs from the base wage divided by "
+"the scheduled working hours (%(amount)s yen; Ordinance for Enforcement of "
+"the Labor Standards Act, Article 19)."
+msgstr ""
+"１時間当たりの金額（%(entered)s 円）が、基本賃金を所定労働時間数で割った額"
+"（%(amount)s 円。労働基準法施行規則 第19条）と違います。"
+
+#, python-format
+msgid ""
+"The monthly working hours (%(monthly)s) differ from the annual working hours "
+"divided by 12 (%(average)s). When the hours differ by month, use the monthly "
+"average over a year."
+msgstr ""
+"月の所定労働時間数（%(monthly)s）が、年の所定労働時間数を 12 で割った値"
+"（%(average)s）と違います。月によって時間数が違う場合は、1 年間の 1 か月平均"
+"を使います。"
+
+#, python-format
+msgid "%(hours)d h %(minutes)02d min"
+msgstr "%(hours)d 時間 %(minutes)02d 分"
+
+msgid ""
+"The contact points (IX 4 and 5) are entered as one text, so the whole text "
+"is printed in the department field. Enter the department, the person and the "
+"contact details separately in a new version."
+msgstr ""
+"窓口（Ⅸ４・５）が 1 つの文で入っているため、部署名の欄に全文を出します。新し"
+"い版で、部署名・担当者職氏名・連絡先に分けて入れてください。"
+
+msgid ""
+"The working conditions change after conversion, but annex 2 is not attached "
+"to the version. Annex 2 is not generated; attach it and use it with this "
+"form."
+msgstr ""
+"無期転換後の労働条件が変わりますが、版に別紙２ が添付されていません。別紙２ "
+"は生成しません。版に添付し、この書類と一緒に使ってください。"
+
+msgid ""
+"Annex 2 (conditions after conversion) is not generated. Use the annex 2 "
+"attached to the version with this form."
+msgstr ""
+"別紙２（無期転換後の条件）は生成しません。版に添付した別紙２ を、この書類と一"
+"緒に使ってください。"
+
+#, python-format
 msgid "\"%(label)s\" is empty."
 msgstr "「%(label)s」が空です。"
 
@@ -6127,6 +6382,48 @@ msgstr "相談は案件ごとに取り消してください。"
 
 msgid "Void it on the page of the guidance or orientation."
 msgstr "事前ガイダンス・生活オリエンテーションの画面で取り消してください。"
+
+msgid "The wage explanation (form 1-4) is not entered."
+msgstr "報酬の説明（第1-4号）が入っていません。"
+
+msgid ""
+"There is no Japanese worker to compare with, so form 1-4 cannot be used. "
+"Explain in a document of any format how the wage is equal to or higher than "
+"that of a Japanese worker."
+msgstr ""
+"比べる日本人労働者がいないため、第1-4号は使えません。日本人と同等以上の報酬で"
+"あることを、任意の様式の説明書で説明してください。"
+
+msgid "Japanese worker: wage"
+msgstr "日本人労働者の報酬"
+
+msgid "wage under the wage rules"
+msgstr "賃金規程に基づく報酬"
+
+#, python-format
+msgid ""
+"The applicant's wage cannot be written as a %(unit)s: enter the equivalent "
+"amount in the contract version."
+msgstr ""
+"申請人の報酬を「%(unit)s」で書けません。契約の版に換算額を入れてください。"
+
+#, python-format
+msgid ""
+"The applicant's wage (%(applicant)s yen, %(unit)s) is lower than that of the "
+"Japanese worker (%(japanese)s yen). The wage must be equal to or higher than "
+"that of a Japanese worker; explain the difference in position or experience."
+msgstr ""
+"申請人の報酬（%(applicant)s 円。%(unit)s）が、日本人労働者の報酬"
+"（%(japanese)s 円）を下回っています。報酬は日本人と同等以上でなければなりませ"
+"ん。役職や経験の違いを説明してください。"
+
+#, python-format
+msgid ""
+"The applicant's wage (%(applicant)s yen, %(unit)s) is lower than the wage "
+"under the wage rules (%(rules)s yen)."
+msgstr ""
+"申請人の報酬（%(applicant)s 円。%(unit)s）が、賃金規程に基づく報酬"
+"（%(rules)s 円）を下回っています。"
 
 msgid "residence"
 msgstr "在留情報"

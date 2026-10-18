@@ -1,0 +1,258 @@
+{
+ "form_id": "1-4",
+ "valid_from": "2026-10-18",
+ "note": "T34 の全欄（ADR-0023）。比較の型で ２ と ３ のどちらかだけを書く。値は services/form_data_contract.py が作る。",
+ "fields": [
+  {
+   "key": "w.applicant_name",
+   "target": "applicant_name",
+   "format": "text",
+   "label": "１① 申請人の氏名"
+  },
+  {
+   "key": "w.applicant_duties",
+   "target": "applicant_duties",
+   "format": "text",
+   "label": "１② 申請人の役職、職務内容、責任の程度"
+  },
+  {
+   "key": "w.applicant_other",
+   "target": "applicant_other",
+   "format": "text",
+   "label": "１⑤ その他"
+  },
+  {
+   "key": "w.comparable_duties",
+   "target": "comparable_duties",
+   "format": "text",
+   "label": "２① 比較対象となる日本人労働者の役職、職務内容、責任の程度"
+  },
+  {
+   "key": "w.comparable_reason",
+   "target": "comparable_reason",
+   "format": "text",
+   "label": "２⑤ 同等以上であると考える理由"
+  },
+  {
+   "key": "w.comparable_other",
+   "target": "comparable_other",
+   "format": "text",
+   "label": "２⑥ その他"
+  },
+  {
+   "key": "w.closest_duties",
+   "target": "closest_duties",
+   "format": "text",
+   "label": "３① 最も近い職務を担う日本人労働者の職務内容や責任の程度"
+  },
+  {
+   "key": "w.closest_reason",
+   "target": "closest_reason",
+   "format": "text",
+   "label": "３⑤ 同等以上であると考える理由"
+  },
+  {
+   "key": "w.closest_other",
+   "target": "closest_other",
+   "format": "text",
+   "label": "３⑥ その他"
+  },
+  {
+   "key": "w.applicant_age",
+   "target": "applicant_age",
+   "format": "zen",
+   "label": "１③ 申請人の年齢",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "w.applicant_sex",
+   "target": "applicant_sex",
+   "format": "text",
+   "label": "１③ 申請人の性別"
+  },
+  {
+   "key": "w.applicant_experience",
+   "target": "applicant_experience",
+   "format": "zen",
+   "label": "１③ 申請人の経験年数",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "w.applicant_monthly",
+   "target": "applicant_monthly",
+   "format": "zen_yen",
+   "label": "１④ 申請人に対する報酬（monthly）",
+   "pad": 9,
+   "align": "right"
+  },
+  {
+   "key": "w.applicant_hourly",
+   "target": "applicant_hourly",
+   "format": "zen_yen",
+   "label": "１④ 申請人に対する報酬（hourly）",
+   "pad": 8,
+   "align": "right"
+  },
+  {
+   "key": "w.comparable_age",
+   "target": "comparable_age",
+   "format": "zen",
+   "label": "２② 比較対象の年齢",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "w.comparable_sex",
+   "target": "comparable_sex",
+   "format": "text",
+   "label": "２② 比較対象の性別"
+  },
+  {
+   "key": "w.comparable_experience",
+   "target": "comparable_experience",
+   "format": "zen",
+   "label": "２② 比較対象の経験年数",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "w.comparable_monthly",
+   "target": "comparable_monthly",
+   "format": "zen_yen",
+   "label": "２③ 比較対象となる日本人労働者の報酬（monthly）",
+   "pad": 9,
+   "align": "right"
+  },
+  {
+   "key": "w.comparable_hourly",
+   "target": "comparable_hourly",
+   "format": "zen_yen",
+   "label": "２③ 比較対象となる日本人労働者の報酬（hourly）",
+   "pad": 8,
+   "align": "right"
+  },
+  {
+   "key": "w.comparable_has_rules",
+   "target": "comparable_has_rules",
+   "format": "text",
+   "label": "２④ 賃金規程の有無"
+  },
+  {
+   "key": "w.comparable_rules_monthly",
+   "target": "comparable_rules_monthly",
+   "format": "zen_yen",
+   "label": "２④ 賃金規程に基づく報酬（monthly）",
+   "pad": 9,
+   "align": "right"
+  },
+  {
+   "key": "w.comparable_rules_hourly",
+   "target": "comparable_rules_hourly",
+   "format": "zen_yen",
+   "label": "２④ 賃金規程に基づく報酬（hourly）",
+   "pad": 8,
+   "align": "right"
+  },
+  {
+   "key": "w.closest_age",
+   "target": "closest_age",
+   "format": "zen",
+   "label": "３② 最も近い職務を担う日本人労働者の年齢",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "w.closest_sex",
+   "target": "closest_sex",
+   "format": "text",
+   "label": "３② 最も近い職務を担う日本人労働者の性別"
+  },
+  {
+   "key": "w.closest_experience",
+   "target": "closest_experience",
+   "format": "zen",
+   "label": "３② 最も近い職務を担う日本人労働者の経験年数",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "w.closest_monthly",
+   "target": "closest_monthly",
+   "format": "zen_yen",
+   "label": "３③ 最も近い職務を担う日本人労働者の報酬（monthly）",
+   "pad": 9,
+   "align": "right"
+  },
+  {
+   "key": "w.closest_hourly",
+   "target": "closest_hourly",
+   "format": "zen_yen",
+   "label": "３③ 最も近い職務を担う日本人労働者の報酬（hourly）",
+   "pad": 8,
+   "align": "right"
+  },
+  {
+   "key": "w.closest_has_rules",
+   "target": "closest_has_rules",
+   "format": "text",
+   "label": "３④ 賃金規程の有無"
+  },
+  {
+   "key": "w.closest_rules_monthly",
+   "target": "closest_rules_monthly",
+   "format": "zen_yen",
+   "label": "３④ 賃金規程に基づく報酬（monthly）",
+   "pad": 9,
+   "align": "right"
+  },
+  {
+   "key": "w.closest_rules_hourly",
+   "target": "closest_rules_hourly",
+   "format": "zen_yen",
+   "label": "３④ 賃金規程に基づく報酬（hourly）",
+   "pad": 8,
+   "align": "right"
+  },
+  {
+   "key": "w.made_y",
+   "target": "made_y",
+   "format": "zen",
+   "label": "作成日（年）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "w.made_m",
+   "target": "made_m",
+   "format": "zen",
+   "label": "作成日（月）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "w.made_d",
+   "target": "made_d",
+   "format": "zen",
+   "label": "作成日（日）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "w.host_name",
+   "target": "host_name",
+   "format": "text",
+   "label": "特定技能所属機関の氏名又は名称"
+  },
+  {
+   "key": "w.author",
+   "target": "author",
+   "format": "text",
+   "label": "作成責任者 役職・氏名",
+   "pad": 13,
+   "align": "left"
+  }
+ ],
+ "rules": []
+}

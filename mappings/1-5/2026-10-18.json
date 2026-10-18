@@ -1,0 +1,54 @@
+{
+ "form_id": "1-5",
+ "valid_from": "2026-10-18",
+ "note": "T34 の全欄（ADR-0023）。乙の署名は手で書く。",
+ "fields": [
+  {
+   "key": "c.host_name",
+   "target": "host_name",
+   "format": "text",
+   "label": "特定技能所属機関（甲）"
+  },
+  {
+   "key": "c.worker_name",
+   "target": "worker_name",
+   "format": "text",
+   "label": "特定技能外国人（乙）",
+   "pad": 15,
+   "align": "left"
+  },
+  {
+   "key": "c.signed_y",
+   "target": "signed_y",
+   "format": "zen",
+   "label": "締結日（年）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "c.signed_m",
+   "target": "signed_m",
+   "format": "zen",
+   "label": "締結日（月）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "c.signed_d",
+   "target": "signed_d",
+   "format": "zen",
+   "label": "締結日（日）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "c.host_signature",
+   "target": "host_signature",
+   "format": "text",
+   "label": "甲（特定技能所属機関名・代表者役職名・氏名）",
+   "pad": 18,
+   "align": "left"
+  }
+ ],
+ "rules": []
+}

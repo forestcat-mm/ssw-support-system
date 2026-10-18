@@ -1,0 +1,9 @@
+{
+  "form_id": "1-5",
+  "valid_from": "2026-10-18",
+  "note": "T34 の規則（ADR-0023）。締結日が空なら空欄にして警告（T34-D5）。",
+  "rules": [
+    {"id": "version_in_force", "type": "check", "name": "contract_version_in_force", "severity": "warn"},
+    {"id": "signed_on_required", "type": "required", "key": "c.signed_y", "label": "締結日（契約の版の締結日）", "severity": "warn", "fix": {"object": "worker", "url": "workers:contracts"}}
+  ]
+}

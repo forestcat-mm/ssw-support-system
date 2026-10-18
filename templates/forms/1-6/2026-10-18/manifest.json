@@ -1,0 +1,21 @@
+{
+  "form_id": "1-6",
+  "name": "雇用条件書（参考様式第1-6号）",
+  "valid_from": "2026-10-18",
+  "language": "ja",
+  "owner": "common",
+  "method": "docx-tags",
+  "requires_signed_copy": true,
+  "original": "original.docx",
+  "template": "template.docx",
+  "source": {
+    "url": "https://www.moj.go.jp/isa/content/001472154.docx",
+    "page": "https://www.moj.go.jp/isa/applications/ssw/10_00020.html",
+    "retrieved_on": "2026-10-18",
+    "revision_date": null,
+    "revision_date_unknown": true,
+    "original_sha256": "0706326a557648bacc7fd4ae8d05985849d3060af770a568c69a533897c6096c",
+    "template_sha256": "2e77a04bd2dabc6bfec86492214aee60fe962a287314112d8cbdc44a5a90ead7",
+    "adr": "ADR-0016（取得日 2026-10-18。Last-Modified 2026-10-07。改正日の記載なし）、ADR-0018、ADR-0023"
+  }
+}

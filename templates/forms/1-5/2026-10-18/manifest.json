@@ -1,0 +1,21 @@
+{
+  "form_id": "1-5",
+  "name": "特定技能雇用契約書（参考様式第1-5号）",
+  "valid_from": "2026-10-18",
+  "language": "ja",
+  "owner": "common",
+  "method": "docx-tags",
+  "requires_signed_copy": true,
+  "original": "original.docx",
+  "template": "template.docx",
+  "source": {
+    "url": "https://www.moj.go.jp/isa/content/001338975.docx",
+    "page": "https://www.moj.go.jp/isa/applications/ssw/10_00020.html",
+    "retrieved_on": "2026-10-18",
+    "revision_date": null,
+    "revision_date_unknown": true,
+    "original_sha256": "5aaf4779f0b64926b9ae73af7cb36e4aa213911a544cc4dacbe75cef6e0e592c",
+    "template_sha256": "a9be457925d6cda2d5edf2f984e2dbc048388ce4359771d9dda2307c2d6a4f81",
+    "adr": "ADR-0023（取得日 2026-10-18。Last-Modified 2025-04-01。改正日の記載なし）、ADR-0018"
+  }
+}

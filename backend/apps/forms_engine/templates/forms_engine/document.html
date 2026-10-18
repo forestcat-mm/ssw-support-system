@@ -26,6 +26,7 @@
     <dl class="fields fields--long-labels" id="document-fields">
       <dt>{% translate "form version" %}</dt><dd>{{ document.template.form_id }} · {{ document.template.valid_from|date:"Y-m-d" }}{% if document.revision_unknown %}（{% translate "revision date unknown" %}）{% endif %}</dd>
       {% if plan_version %}<dt>{% translate "support plan version" %}</dt><dd>{% blocktranslate with number=plan_version.version day=plan_version.applies_from|date:"Y-m-d" %}Version {{ number }} (applies from {{ day }}){% endblocktranslate %}</dd>{% endif %}
+      {% if contract_version %}<dt>{% translate "employment contract version" %}</dt><dd>{% blocktranslate with number=contract_version.version day=contract_version.changed_on|date:"Y-m-d" %}Version {{ number }} (changed on {{ day }}){% endblocktranslate %}</dd>{% endif %}
       <dt>{% translate "basis date" %}</dt><dd class="mono">{{ document.basis_on|date:"Y-m-d" }}</dd>
       <dt>{% translate "requested by" %}</dt><dd>{{ document.created_by.get_username|default:"—" }} · {{ document.created_at|date:"Y-m-d H:i" }}</dd>
       <dt>{% translate "generated at" %}</dt><dd>{{ document.generated_at|date:"Y-m-d H:i"|default:"—" }}</dd>

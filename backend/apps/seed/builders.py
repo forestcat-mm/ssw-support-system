@@ -12,6 +12,7 @@ import random
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date, time, timedelta
+from decimal import Decimal
 from typing import Any
 
 from django.conf import settings
@@ -20,12 +21,15 @@ from django.core.files.base import ContentFile
 from django.db import models, transaction
 
 from apps.contracts.models import (
+    ContractWageExplanation,
     EmploymentContract,
     EmploymentContractAllowance,
     EmploymentContractDeduction,
     EmploymentContractShift,
     EmploymentContractVersion,
     TerminationReason,
+    WageComparison,
+    WageUnit,
 )
 from apps.core.models import (
     Attachment,
@@ -552,6 +556,7 @@ def _version_values(
     ctx: SeedContext, site: HostSite, spec: WorkerSpec, starts_on: date
 ) -> dict[str, Any]:
     hourly = spec.wage == "hourly"
+    base_wage = 1300 if hourly else 220000 + ctx.rng.randint(0, 6) * 5000
     ends_on = ctx.days(20) if spec.contract == "expiring" else starts_on + timedelta(days=365 * 3)
     return {
         "changed_on": starts_on,
@@ -567,7 +572,8 @@ def _version_values(
         "daily_working_minutes": 480,
         "break_minutes": 60,
         "weekly_working_minutes": 2400,
-        "monthly_working_minutes": 10400,
+        # 月の所定労働時間数は年間の 1 か月平均（117600 ÷ 12。労基則 第19条第1項第4号。ADR-0023）
+        "monthly_working_minutes": 9800,
         "annual_working_minutes": 117600,
         "weekly_working_days": 5,
         "annual_working_days": 245,
@@ -575,9 +581,10 @@ def _version_values(
         "annual_holidays": 120,
         "paid_leave_days": 10,
         "wage_type": "hourly" if hourly else "monthly",
-        "base_wage": 1300 if hourly else 220000 + ctx.rng.randint(0, 6) * 5000,
-        "monthly_equivalent": 225000 if hourly else None,
-        "hourly_equivalent": None if hourly else 1300,
+        "base_wage": base_wage,
+        # 換算額は第19条の計算（月給 ÷ 月の所定労働時間数。時間給 × 月の所定労働時間数）
+        "monthly_equivalent": round(base_wage * 9800 / 60) if hourly else None,
+        "hourly_equivalent": None if hourly else round(base_wage * 60 / 9800),
         "overtime_rate_within_60h": 25,
         "overtime_rate_over_60h": 50,
         "holiday_rate_statutory": 35,
@@ -599,10 +606,44 @@ def _version_values(
         "work_rules_articles_resignation": "第40条～第42条（ダミー）",
         "insurances": ["employees_pension", "health", "employment", "workers_compensation"],
         "periodic_health_check_interval": "1年ごと",
-        "consultation_contact": "総務部（ダミー）",
+        # 窓口（Ⅸ４・５）は部署名・担当者職氏名・連絡先の 3 つの欄（T34-D4）
+        "treatment_contact_department": "総務部（ダミー）",
+        "treatment_contact_person": "総務課長 窓口 一郎（ダミー）",
+        "treatment_contact_phone": "000-0000-0100",
+        "consultation_contact_department": "総務部（ダミー）",
+        "consultation_contact_person": "総務課長 窓口 一郎（ダミー）",
+        "consultation_contact_phone": "000-0000-0100",
         "comparable_japanese_note": "同職位の日本人従業員（入社3年目、ダミー）",
         "comparable_japanese_wage": 215000,
     }
+
+
+def _wage(values: dict[str, Any], base_wage: int) -> dict[str, Any]:
+    """基本賃金を変えた版の値（換算額も第19条の計算で作り直す。ADR-0023）。"""
+    minutes = values["monthly_working_minutes"]
+    if values["wage_type"] == "hourly":
+        return {"base_wage": base_wage, "monthly_equivalent": round(base_wage * minutes / 60)}
+    return {"base_wage": base_wage, "hourly_equivalent": round(base_wage * 60 / minutes)}
+
+
+def _wage_explanation(version: EmploymentContractVersion) -> ContractWageExplanation:
+    """報酬の説明（第1-4号の元データ。比較対象の日本人あり。日本人の報酬は申請人を下回る）。"""
+    hourly = version.wage_type == "hourly"
+    return ContractWageExplanation.objects.create(
+        version=version,
+        comparison=WageComparison.COMPARABLE,
+        wage_unit=WageUnit.HOURLY if hourly else WageUnit.MONTHLY,
+        applicant_duties="製造ラインの作業員（班長の指示の下で作業。ダミー）",
+        applicant_experience_years=Decimal("2"),
+        japanese_duties="製造ラインの作業員（入社3年目。班長の指示の下で作業。ダミー）",
+        japanese_age=24,
+        japanese_sex="male",
+        japanese_experience_years=Decimal("3"),
+        japanese_wage=1200 if hourly else 205000,
+        has_wage_rules=True,
+        rules_wage=1150 if hourly else 200000,
+        reason="賃金規程の同じ等級の日本人と同じ基準で決めている（ダミー）",
+    )
 
 
 def _add_version(
@@ -631,6 +672,7 @@ def _add_version(
         ctx.keep(
             EmploymentContractDeduction.objects.create(version=version, kind=kind, amount=amount)
         )
+    ctx.keep(_wage_explanation(version))
     if values["wage_type"] == "hourly":
         ctx.keep(
             EmploymentContractShift.objects.create(
@@ -664,8 +706,8 @@ def seed_contracts(ctx: SeedContext) -> None:
             _add_version(
                 ctx,
                 values
+                | _wage(values, values["base_wage"] + 10000)
                 | {
-                    "base_wage": values["base_wage"] + 10000,
                     "changed_on": ctx.days(-30),
                     "change_reason": "昇給（ダミー）",
                 },
@@ -677,8 +719,8 @@ def seed_contracts(ctx: SeedContext) -> None:
             _add_version(
                 ctx,
                 values
+                | _wage(values, values["base_wage"] - 10000)
                 | {
-                    "base_wage": values["base_wage"] - 10000,
                     "changed_on": ctx.days(-3),
                     "change_reason": "減給（ダミー）",
                 },
@@ -880,6 +922,10 @@ def reset() -> int:
     deleted = Filing.objects.filter(filings_query).delete()[0]
     for attachment in Attachment.objects.filter(pk__in=by_model.get(Attachment, [])):
         attachment.file.delete(save=False)
+    # 報酬の説明は版ごとに 1 つ（画面で入れ直したものも、ダミーの版のものなら消す）
+    deleted += ContractWageExplanation.objects.filter(
+        version_id__in=by_model.get(EmploymentContractVersion, [])
+    ).delete()[0]
     for model in DELETE_ORDER:
         ids = by_model.get(model, [])
         if ids:

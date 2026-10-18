@@ -35,6 +35,16 @@ urlpatterns = [
         name="contract_attachment_void",
     ),
     path(
+        "<int:pk>/contracts/<int:contract_id>/versions/<int:number>/wage-explanation/",
+        contract_views.WageExplanationView.as_view(),
+        name="contract_wage_explanation",
+    ),
+    path(
+        "<int:pk>/contracts/<int:contract_id>/versions/<int:number>/generate/<str:form_id>/",
+        contract_views.ContractGenerateView.as_view(),
+        name="contract_generate",
+    ),
+    path(
         "<int:pk>/contracts/<int:contract_id>/terminate/",
         contract_views.TerminateView.as_view(),
         name="contract_terminate",

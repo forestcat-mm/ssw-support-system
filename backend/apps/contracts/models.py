@@ -18,7 +18,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.core.fields import ChoiceArrayField
 from apps.core.models import Attachment, TrackedModel
 from apps.hosts.models import DateRange, HostOrganization, HostSite, OperationCategory
-from apps.workers.models import ForeignWorker
+from apps.workers.models import ForeignWorker, Sex
 
 
 class ImmutableRowError(Exception):
@@ -393,15 +393,39 @@ class EmploymentContractVersion(TrackedModel):
         blank=True,
         help_text=_("e.g. every year"),
     )
+    # 窓口（Ⅸ４・５）。T34 までは 1 つの文で持っていた（下の 2 つ。古い版の値として残す）。
+    # T34 からは様式の欄（部署名・担当者職氏名・連絡先）ごとに持つ（T34-D4、ADR-0023）。
     treatment_explanation_contact = models.TextField(
-        _("contact for explanation of treatment differences"),
+        _("contact for explanation of treatment differences (until T34)"),
         blank=True,
         help_text=_("Department, title and name of the person in charge, contact."),
     )
     consultation_contact = models.TextField(
-        _("contact for employment management consultation"),
+        _("contact for employment management consultation (until T34)"),
         blank=True,
         help_text=_("Department, title and name of the person in charge, contact."),
+    )
+    treatment_contact_department = models.CharField(
+        _("treatment differences contact: department"), max_length=100, blank=True
+    )
+    treatment_contact_person = models.CharField(
+        _("treatment differences contact: title and name of the person in charge"),
+        max_length=100,
+        blank=True,
+    )
+    treatment_contact_phone = models.CharField(
+        _("treatment differences contact: contact details"), max_length=50, blank=True
+    )
+    consultation_contact_department = models.CharField(
+        _("consultation contact: department"), max_length=100, blank=True
+    )
+    consultation_contact_person = models.CharField(
+        _("consultation contact: title and name of the person in charge"),
+        max_length=100,
+        blank=True,
+    )
+    consultation_contact_phone = models.CharField(
+        _("consultation contact: contact details"), max_length=50, blank=True
     )
     work_rules_location = models.CharField(
         _("where the work rules can be checked"), max_length=200, blank=True
@@ -541,3 +565,108 @@ class EmploymentContractDeduction(VersionDetail):
 
     def __str__(self) -> str:
         return f"{self.name or self.get_kind_display()}: {self.amount}"
+
+
+class WageComparison(models.TextChoices):
+    """報酬に関する説明書（参考様式第1-4号）の 2 と 3 のどちらで説明するか。"""
+
+    COMPARABLE = "comparable", _("there is a comparable Japanese worker (section 2)")
+    CLOSEST = (
+        "closest",
+        _("no comparable Japanese worker; compare with the closest duties (section 3)"),
+    )
+    NONE = "none", _("there is no Japanese worker to compare with")
+
+
+class WageUnit(models.TextChoices):
+    """第1-4号の報酬は、月給か時間給のどちらかにそろえて書く（注意３）。"""
+
+    MONTHLY = "monthly", _("monthly salary")
+    HOURLY = "hourly", _("hourly wage")
+
+
+class ContractWageExplanation(TrackedModel):
+    """報酬の説明（参考様式第1-4号「特定技能外国人の報酬に関する説明書」の元データ。T34-D2、ADR-0023）。
+
+    雇用契約の版と 1 対 1 の別の表。版と違って編集できる（更新は監査ログに残す）。生成のときは
+    スナップショットに残る。新しい版を作るときは前の版の説明を写す。契約の版の差分・届出の判定・
+    「差分の無い版は保存しない」には関わらない。
+    申請人の氏名・年齢・性別は外国人の台帳から、報酬は版の基本賃金（換算額）から作る。
+    """
+
+    version = models.OneToOneField(
+        EmploymentContractVersion,
+        verbose_name=_("employment contract version"),
+        on_delete=models.PROTECT,
+        related_name="wage_explanation",
+    )
+    comparison = models.CharField(
+        _("comparison"), max_length=16, choices=WageComparison.choices, blank=True
+    )
+    wage_unit = models.CharField(
+        _("unit of the wages on the form"),
+        max_length=16,
+        choices=WageUnit.choices,
+        blank=True,
+        help_text=_("Write all wages on the form in the same unit (note 3)."),
+    )
+    # 1　申請人に対する報酬
+    applicant_duties = models.TextField(
+        _("applicant: position, duties and degree of responsibility"), blank=True
+    )
+    applicant_experience_years = models.DecimalField(
+        _("applicant: years of experience in the duties"),
+        max_digits=4,
+        decimal_places=1,
+        null=True,
+        blank=True,
+    )
+    applicant_other = models.TextField(
+        _("applicant: other (allowances and other special notes)"), blank=True
+    )
+    # 2　比較対象となる日本人労働者がいる場合 ／ 3　いない場合（最も近い職務を担う日本人労働者）
+    japanese_duties = models.TextField(
+        _("Japanese worker: position, duties and degree of responsibility"),
+        blank=True,
+        help_text=_(
+            "For the worker with the closest duties, also write in detail how they differ "
+            "from the applicant."
+        ),
+    )
+    japanese_age = models.PositiveSmallIntegerField(
+        _("Japanese worker: age"), null=True, blank=True
+    )
+    japanese_sex = models.CharField(
+        _("Japanese worker: sex"), max_length=8, choices=Sex.choices, blank=True
+    )
+    japanese_experience_years = models.DecimalField(
+        _("Japanese worker: years of experience"),
+        max_digits=4,
+        decimal_places=1,
+        null=True,
+        blank=True,
+    )
+    japanese_wage = models.PositiveIntegerField(
+        _("Japanese worker: wage (yen, in the unit above)"), null=True, blank=True
+    )
+    has_wage_rules = models.BooleanField(_("there are wage rules"), null=True, blank=True)
+    rules_wage = models.PositiveIntegerField(
+        _("wage under the wage rules (yen, in the unit above)"),
+        null=True,
+        blank=True,
+        help_text=_(
+            "The wage to be paid under the wage rules to a Japanese worker with the same "
+            "position, duties and responsibility. Attach the wage rules."
+        ),
+    )
+    reason = models.TextField(
+        _("reason the wage is equal to or higher than that of a Japanese worker"), blank=True
+    )
+    other = models.TextField(_("other (special notes)"), blank=True)
+
+    class Meta:
+        verbose_name = _("wage explanation")
+        verbose_name_plural = _("wage explanations")
+
+    def __str__(self) -> str:
+        return f"{self.version}"

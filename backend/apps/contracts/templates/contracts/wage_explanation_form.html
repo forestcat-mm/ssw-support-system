@@ -1,0 +1,44 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Wage explanation (form 1-4)" %} | {{ worker }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{{ back }}">← {{ worker }}</a></p>
+  <h1>{% translate "Wage explanation (form 1-4)" %}</h1>
+  <p class="caption">{% blocktranslate with host=contract.host_organization.name number=version.version %}{{ host }} · version {{ number }}{% endblocktranslate %}</p>
+{% endblock %}
+{% block content %}
+<form class="form" method="post" novalidate id="wage-explanation-form">
+  {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+  {% include "ui/components/form_errors.html" %}
+  <section class="card stack">
+    <p class="caption">{% translate "The explanation can be corrected later (changes are recorded in the audit log). It is copied to the next version of the contract and does not affect the version history or filings." %}</p>
+    {% form_field form.comparison %}
+    {% form_field form.wage_unit %}
+  </section>
+  <section class="card stack">
+    <h2 class="card__title">{% translate "1. Wage of the applicant" %}</h2>
+    <dl class="fields">
+      <dt>{% translate "name, age and sex" %}</dt><dd>{% translate "Printed from the register of the foreign worker." %}</dd>
+      <dt>{% translate "wage (from the contract version)" %}</dt><dd class="mono">{% translate "monthly salary" %} {% if applicant_monthly is not None %}¥{{ applicant_monthly|yen }}{% else %}—{% endif %} / {% translate "hourly wage" %} {% if applicant_hourly is not None %}¥{{ applicant_hourly|yen }}{% else %}—{% endif %}</dd>
+    </dl>
+    {% form_field form.applicant_duties %}
+    {% form_field form.applicant_experience_years %}
+    {% form_field form.applicant_other %}
+  </section>
+  <section class="card stack">
+    <h2 class="card__title">{% translate "2 or 3. Japanese worker to compare with" %}</h2>
+    {% form_field form.japanese_duties %}
+    {% form_field form.japanese_age %}
+    {% form_field form.japanese_sex %}
+    {% form_field form.japanese_experience_years %}
+    {% form_field form.japanese_wage %}
+    {% form_field form.has_wage_rules %}
+    {% form_field form.rules_wage %}
+    {% form_field form.reason %}
+    {% form_field form.other %}
+  </section>
+  <div class="form-actions">
+    <button class="button button--primary" type="submit">{% translate "Save" %}</button>
+    <a class="button button--neutral" href="{{ back }}">{% translate "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

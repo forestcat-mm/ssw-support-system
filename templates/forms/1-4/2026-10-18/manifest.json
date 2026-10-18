@@ -1,0 +1,24 @@
+{
+  "form_id": "1-4",
+  "name": "特定技能外国人の報酬に関する説明書（参考様式第1-4号）",
+  "valid_from": "2026-10-18",
+  "language": "ja",
+  "owner": "common",
+  "method": "docx-tags",
+  "requires_signed_copy": false,
+  "original": "original.doc",
+  "converted": "converted.docx",
+  "converter": "LibreOffice 7.4.7.2 40(Build:2)（tools/forms/convert_doc.py）",
+  "template": "template.docx",
+  "source": {
+    "url": "https://www.moj.go.jp/isa/content/001338974.doc",
+    "page": "https://www.moj.go.jp/isa/applications/ssw/10_00020.html",
+    "retrieved_on": "2026-10-18",
+    "revision_date": null,
+    "revision_date_unknown": true,
+    "original_sha256": "ea416210f9bbffd63599456ee662924f211fcdf50fe3aa64da8dc647fc2e0434",
+    "converted_sha256": "cd7a895976183d73710b54e43f1cc6024fb65cf0543ba4f405a77c945a2c6980",
+    "template_sha256": "6544481ff9a967fe82d4a51dc1dea7a0206243746a1e6c3d50bf2ba4f4b97c29",
+    "adr": "ADR-0023（取得日 2026-10-18。Last-Modified 2024-03-03。改正日の記載なし。配布が .doc のため converted.docx を元にする。T34-D1）、ADR-0018"
+  }
+}

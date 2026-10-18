@@ -40,6 +40,7 @@ from services import (
     authorization,
     contracts,
     deadlines,
+    wage_explanations,
     worker_detail,
     worker_documents,
     worker_list,
@@ -200,6 +201,10 @@ class WorkerContractsView(WorkerDetailView):
             conversion_warning=contracts.conversion_warning(view.version) if view else "",
             conversion_terms_missing=(
                 contracts.conversion_terms_missing(view.version) if view else False
+            ),
+            can_generate_forms=active and authorization.has_action(user, Action.FORMS_GENERATE),
+            wage_explanation=(
+                wage_explanations.explanation_of(view.version) if view is not None else None
             ),
         )
         if view is None:
