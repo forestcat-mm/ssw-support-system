@@ -86,6 +86,7 @@ python3 tools/forms/make_contract_templates.py 1-6 templates/forms/1-6/2026-10-1
 docker compose exec web python ../tools/forms/convert_doc.py <original.doc> <converted.docx>  # 配布が .doc の様式を docx に変換する（web のコンテナで。ADR-0023）
 python3 tools/forms/make_interview_mappings.py 5-5 > mappings/5-5/2026-10-18.json  # 定期面談報告書のマッピングを作り直す（5-6 も同じ。ADR-0024）
 python3 tools/forms/make_consultation_template.py templates/forms/5-4/2026-10-18 > mappings/5-4/2026-10-18.json  # 相談記録書の template.docx とマッピングを作り直す（ADR-0024）
+python3 tools/forms/make_own_templates.py career-plan templates/forms/career-plan/2026-10-18 > mappings/career-plan/2026-10-18.json  # 自機関のテンプレート（キャリアアッププラン。experience-certificate も同じ。ADR-0025）
 docker compose exec web python manage.py generate_sample_form 1-17 --worker <ID>  # 見本の帳票を生成する（開発者向け。警告があるときは --accept-warnings）
 make lock           # pyproject.toml の変更を uv.lock に反映する（その後 make build）
 ```
