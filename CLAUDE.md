@@ -11,8 +11,9 @@
 ## 技術スタック（確定）
 - Backend: Python 3.12 / Django 5 / PostgreSQL 16
 - Frontend: Django テンプレート + 最小限の JS（React は本人ポータル追加時に検討）
-- Excel 生成: openpyxl（入管配布テンプレートを開いて値だけ書く）
-- Word→PDF: docxtpl + LibreOffice headless（Docker で同居。`convert(docx) -> pdf` の 1 関数に閉じる）
+- Excel 生成: 入管配布のブックの中のシートの XML の、指定したセルの値だけを書き換える（openpyxl で開いて保存すると図形などが落ちるため。openpyxl は読み戻しの確かめだけに使う。ADR-0018）
+- Word 生成: docxtpl（original の写しに差込タグだけを置いた template.docx に差し込む）
+- PDF 変換: LibreOffice headless（Docker で同居。`convert(path) -> pdf` の 1 関数に閉じ、docx と xlsx を受ける。フォントの置き換えは `backend/config/fonts/`。ADR-0018）
 - ファイル保存: django-storages（手元はローカル、本番は S3 互換）
 - ジョブ: Django-Q（Redis）
 - 開発用メール: Mailpit
@@ -136,4 +137,5 @@ make e2e       # 通しのテスト（Playwright。gate2・design-shots は飛�
 make gate2     # 段階2の受け入れ確認（DATE=YYYY-MM-DD で基準日。画面の「今日」も変わる）
 make messages  # UI 文言の抽出とコンパイル（.po と .mo の両方をコミット）
 make filings   # 日次の届出タスクの起票を手で実行（DATE=YYYY-MM-DD で基準日を指定）
+make forms     # 様式マスタ（templates/forms・mappings）を読み込む
 ```

@@ -26,6 +26,7 @@
 make env        # .env を作る（鍵を生成する。既存の .env の値は変えない）
 make up         # コンテナを起動する（web / qcluster / db / redis / mailpit）
 make migrate    # DB を作る
+make forms      # 様式マスタ（templates/forms・mappings）を読み込む（帳票の生成に要る）
 make admin      # 最初の管理者を対話で作る（superuser は使わない）
 ```
 
@@ -34,7 +35,10 @@ make admin      # 最初の管理者を対話で作る（superuser は使わな�
 - 開発用のメール（招待メールなど）: http://localhost:8025/ （Mailpit）
 - 管理画面: http://localhost:8000/admin/ （開発者とマスタ用。受入れ機関は業務画面の「受入れ機関」、雇用契約は外国人詳細の「契約」タブ、日常の設定は「設定」）
 
-止めるときは `make down`（DB のデータは残る）。依存を変えたときは `make build`。
+止めるときは `make down`（DB のデータは残る）。依存を変えたときは `make build` と、e2e のイメージの作り直し（`docker compose --profile e2e build e2e`。e2e は別のイメージで動き、作り直さないと新しい依存が入らない）。
+
+- イメージには帳票の PDF 変換のための LibreOffice（GUI なし）と日本語・中国語のフォントが入る（ADR-0018）。初回の `make build` は時間がかかる。
+- 新しいアプリ・ジョブの関数を足したら `qcluster` を再起動する（`docker compose restart qcluster`）。qcluster はコードの変更を自動では読み直さない。
 
 ## ダミーデータを入れる
 
@@ -71,6 +75,8 @@ make logs           # ログを追う
 make shell          # Django shell
 make psql           # DB に psql で入る
 make filings        # 日次の届出タスクの起票を手で実行する（DATE=YYYY-MM-DD で基準日を指定）
+make forms          # 様式マスタを読み込む（様式やマッピング定義を足したとき）
+docker compose exec web python manage.py generate_sample_form 1-17 --worker <ID>  # 見本の帳票を生成する（開発者向け）
 make lock           # pyproject.toml の変更を uv.lock に反映する（その後 make build）
 ```
 
@@ -119,9 +125,12 @@ make lock           # pyproject.toml の変更を uv.lock に反映する（そ�
 ```
 backend/
   config/       settings・urls（環境変数は django-environ）、管理画面のテンプレートの上書き
-  apps/         core（自機関・ユーザー・監査・添付）/ workers / hosts / contracts / filings / support（支援計画・支援の記録・交付）/ seed
+  apps/         core（自機関・ユーザー・監査・添付）/ workers / hosts / contracts / filings / support（支援計画・支援の記録・交付）/ forms_engine（様式マスタ・生成履歴）/ seed
+  config/fonts/ 帳票の PDF 変換のフォントの置き換え（fontconfig）
   services/     業務ロジック（期限計算・届出の起票・検査・監査など。画面から切り離す）
   tests/        pytest（単体・画面）
   e2e/          Playwright の通しのテスト
+templates/forms/ 入管の様式（版ごとのフォルダに original・template・manifest）
+mappings/       様式ごとのマッピング定義（JSON）
 docs/           仕様書・タスク・ADR・運用手順・デザイン
 ```
