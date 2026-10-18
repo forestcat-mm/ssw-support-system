@@ -98,6 +98,20 @@ def test_corporate_number_is_checked_and_duplicates_are_rejected(
         support_staff_client, "/hosts/new/", HOST_DATA | {"corporate_number": "", "name": "法人"}
     )
     assert response.status_code == 200
+    # 個人事業主は法人番号を入力できない（入力欄は法人のときだけ有効。送られても弾く）
+    response = submit(
+        support_staff_client,
+        "/hosts/new/",
+        HOST_DATA
+        | {
+            "entity_type": "sole_proprietor",
+            "corporate_number": VALID_NUMBERS[1],
+            "name": "個人2",
+        },
+    )
+    assert "corporate_number" in response.context["form"].errors
+    html = support_staff_client.get("/hosts/new/").content.decode()
+    assert 'data-enabled-when="entity_type=corporation"' in html
 
 
 def test_add_and_edit_sites_with_categories(support_staff_client: Client) -> None:

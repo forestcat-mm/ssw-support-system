@@ -175,8 +175,9 @@ class SiteEditView(HostFormView):
             title=_("Edit the site") if site else _("Add a site"),
             lead=_(
                 "A site is the workplace of employment contracts. If employment contracts use "
-                "the site, its field cannot be changed, the categories used by the current "
-                "versions cannot be removed, and it cannot be deactivated."
+                "the site, its field cannot be changed. The categories used by the versions in "
+                "effect today or to be applied later cannot be removed, and the site cannot be "
+                "deactivated while those versions use it."
             ),
             back=detail_url(host, "sites"),
             submit=_("Save"),
@@ -197,7 +198,10 @@ class SiteEditView(HostFormView):
             record.host_organization = host
             try:
                 saved = host_records.save_site(
-                    record, form.cleaned_data["categories"], by=_actor(request)
+                    record,
+                    form.cleaned_data["categories"],
+                    by=_actor(request),
+                    today=timezone.localdate(),
                 )
             except ValidationError as error:
                 apply_errors(form, error)

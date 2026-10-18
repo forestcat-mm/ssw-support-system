@@ -11,12 +11,19 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 
+from apps.contracts.models import EmploymentContract, EmploymentContractVersion
 from apps.core.models import Attachment, AttachmentKind, AuditAction, AuditLog
 from apps.filings.models import Filing, FilingKind, FilingStatus, Trigger
-from apps.hosts.models import HostCooperationConfirmation, HostMembership, SupportContract
+from apps.hosts.models import (
+    EntityType,
+    HostCooperationConfirmation,
+    HostMembership,
+    HostSite,
+    SupportContract,
+)
 from services import contracts, filings, host_records, hosts
 from tests.conftest import PDF_BYTES
-from tests.contracts.factories import make_contract
+from tests.contracts.factories import make_contract, version_values
 from tests.core.factories import make_user
 from tests.hosts.factories import category, field, make_host, make_site
 
@@ -67,6 +74,7 @@ def test_site_in_use_keeps_its_field_categories_and_activity(site_in_use: object
             field=field("food_manufacturing"),
             categories=[category("sewing")],
             is_active=False,
+            today=TODAY,
         )
     assert set(error.value.error_dict) == {"field", "categories", "is_active"}
     assert "機械金属加工" in str(error.value.error_dict["categories"])
@@ -76,6 +84,7 @@ def test_site_in_use_keeps_its_field_categories_and_activity(site_in_use: object
         field=field("industrial_products"),
         categories=[category("machine_metal_processing")],
         is_active=True,
+        today=TODAY,
     )
 
 
@@ -90,6 +99,7 @@ def test_terminated_contract_allows_deactivation_but_not_a_field_change(
         field=field("industrial_products"),
         categories=[],
         is_active=False,
+        today=TODAY,
     )
     with pytest.raises(ValidationError) as error:
         hosts.validate_site_change(
@@ -97,22 +107,104 @@ def test_terminated_contract_allows_deactivation_but_not_a_field_change(
             field=field("food_manufacturing"),
             categories=[],
             is_active=False,
+            today=TODAY,
         )
     assert set(error.value.error_dict) == {"field"}
+
+
+def add_version_at(
+    contract: EmploymentContract, site: HostSite, changed_on: date, codes: list[str]
+) -> EmploymentContractVersion:
+    version = EmploymentContractVersion(
+        **version_values(site, change_reason="変更", changed_on=changed_on)
+    )
+    contracts.add_version(version, contract=contract, by=None)
+    version.categories.set([category(code) for code in codes])
+    return version
+
+
+def site_errors(site: HostSite, codes: list[str], *, is_active: bool = True) -> set[str]:
+    """業務区分を codes にする・有効を is_active にする変更で、止められる欄（分野は変えない）。"""
+    site.refresh_from_db()
+    try:
+        hosts.validate_site_change(
+            site,
+            field=site.field,
+            categories=[category(code) for code in codes],
+            is_active=is_active,
+            today=TODAY,
+        )
+    except ValidationError as error:
+        return set(error.error_dict)
+    return set()
+
+
+def test_versions_in_effect_today_and_later_are_both_checked() -> None:
+    """今日有効な版が最新の版でない契約（将来の版がある）。今日の版と将来の版の両方を見る。"""
+    site = make_site(make_host())
+    site.categories.set([category("machine_metal_processing"), category("sewing")])
+    contract = make_contract(site=site)  # 第1版（2026-04-01〜）: 機械金属加工
+    add_version_at(contract, site, date(2026, 12, 1), ["sewing"])  # 将来の第2版: 縫製
+
+    # 今日有効な第1版の区分も、将来の第2版の区分も外せない
+    assert site_errors(site, ["sewing"]) == {"categories"}
+    assert site_errors(site, ["machine_metal_processing"]) == {"categories"}
+    assert site_errors(site, ["machine_metal_processing", "sewing"], is_active=False) == {
+        "is_active"
+    }
+
+
+def test_site_used_only_today_or_only_later_is_kept_active() -> None:
+    """今日は事業所 A、将来の版から事業所 B。A も B も無効にできない。
+
+    過去の版だけが使っている事業所（旧工場）は無効にできる。
+    """
+    host = make_host()
+    old_site = make_site(host, name="旧工場")
+    site_a, site_b = make_site(host, name="A 工場"), make_site(host, name="B 工場")
+    for site in (old_site, site_a, site_b):
+        site.categories.set([category("machine_metal_processing")])
+    contract = make_contract(site=old_site)  # 第1版（2026-04-01〜）: 旧工場
+    add_version_at(contract, site_a, date(2026, 8, 1), ["machine_metal_processing"])  # 今日の版
+    add_version_at(contract, site_b, date(2027, 1, 1), ["machine_metal_processing"])  # 将来の版
+
+    keep = ["machine_metal_processing"]
+    assert site_errors(site_a, keep, is_active=False) == {"is_active"}
+    assert site_errors(site_b, keep, is_active=False) == {"is_active"}
+    assert site_errors(old_site, keep, is_active=False) == set()  # 今日は使っていない
+
+
+def test_contract_terminated_later_is_still_checked() -> None:
+    """終了日が今日より後の契約は対象。今日より前に終わった契約は対象外。"""
+    site = make_site(make_host())
+    site.categories.set([category("machine_metal_processing")])
+    contract = make_contract(site=site)
+    contracts.terminate(contract, on=TODAY + timedelta(days=30), reason="expiry", by=None)
+    assert site_errors(site, ["machine_metal_processing"], is_active=False) == {"is_active"}
+    contract.terminated_on = TODAY  # 今日終わる契約もまだ対象
+    contract.save()
+    assert site_errors(site, ["machine_metal_processing"], is_active=False) == {"is_active"}
+    contract.terminated_on = TODAY - timedelta(days=1)
+    contract.save()
+    assert site_errors(site, [], is_active=False) == set()
 
 
 def test_save_site_reports_resubmission_when_the_address_changes() -> None:
     host = make_host()
     site = make_site(host)
-    saved = host_records.save_site(site, [category("sewing")], by=None)
+    saved = host_records.save_site(site, [category("sewing")], by=None, today=TODAY)
     assert not saved.resubmission_needed
     HostCooperationConfirmation.objects.create(
         host_organization=host, site=site, municipality="千代田区", submitted_on=TODAY
     )
     site.name = "本社"
-    assert not host_records.save_site(site, [category("sewing")], by=None).resubmission_needed
+    assert not host_records.save_site(
+        site, [category("sewing")], by=None, today=TODAY
+    ).resubmission_needed
     site.address = "東京都港区芝公園1-1"
-    assert host_records.save_site(site, [category("sewing")], by=None).resubmission_needed
+    assert host_records.save_site(
+        site, [category("sewing")], by=None, today=TODAY
+    ).resubmission_needed
 
 
 # --- 協力確認書（D1）-------------------------------------------------------------------
@@ -396,3 +488,19 @@ def test_attachments_use_the_kind_of_the_target_and_are_checked() -> None:
     with pytest.raises(ValidationError):
         host_records.add_attachments(contract, [], by=None)
     assert list(host_records.attachments_of_host(host)) == [attachment]
+
+
+# --- 法人番号 -----------------------------------------------------------------------
+
+
+def test_sole_proprietor_cannot_have_a_corporate_number() -> None:
+    host = make_host(entity_type=EntityType.SOLE_PROPRIETOR, corporate_number="")
+    host.corporate_number = "7000012050002"
+    with pytest.raises(ValidationError) as error:
+        host_records.save_host(host, by=None)
+    assert "corporate_number" in error.value.error_dict
+    host.entity_type = EntityType.CORPORATION
+    host_records.save_host(host, by=None)
+    host.corporate_number = ""
+    with pytest.raises(ValidationError):
+        host_records.save_host(host, by=None)

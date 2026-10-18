@@ -82,6 +82,18 @@ class HostOrganizationForm(forms.ModelForm[HostOrganization]):
         corporate_number.validate(value)
         return value
 
+    def clean(self) -> dict[str, Any]:
+        cleaned = super().clean() or {}
+        if "corporate_number" in cleaned and cleaned.get("entity_type"):
+            try:
+                hosts.validate_corporate_number_for(
+                    cleaned["entity_type"], cleaned["corporate_number"]
+                )
+            except forms.ValidationError as error:
+                for field_name, messages in error.message_dict.items():
+                    self.add_error(field_name, messages)
+        return cleaned
+
 
 class HostMembershipInline(admin.TabularInline[HostMembership, HostOrganization]):
     model = HostMembership

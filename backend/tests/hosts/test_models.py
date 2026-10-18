@@ -23,6 +23,13 @@ def test_corporate_number_is_unique_but_blank_is_allowed_for_sole_proprietors() 
     make_host(name="個人B", entity_type=EntityType.SOLE_PROPRIETOR, corporate_number="")
 
 
+def test_sole_proprietor_cannot_have_a_corporate_number_in_the_db() -> None:
+    with pytest.raises(IntegrityError), transaction.atomic():
+        make_host(
+            name="個人C", entity_type=EntityType.SOLE_PROPRIETOR, corporate_number=VALID_NUMBERS[0]
+        )
+
+
 def test_corporation_requires_corporate_number() -> None:
     with pytest.raises(IntegrityError), transaction.atomic():
         make_host(corporate_number="")

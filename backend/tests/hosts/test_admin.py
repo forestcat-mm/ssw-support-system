@@ -154,6 +154,12 @@ def test_sole_proprietor_without_number_and_corporation_without_number(
         "name": "山田製作所",
     }
     assert admin_client.post(f"{HOST_URL}add/", data).status_code == 302
+    # 個人事業主に法人番号は入れられない
+    response = admin_client.post(
+        f"{HOST_URL}add/", data | {"name": "鈴木商店", "corporate_number": VALID_NUMBERS[1]}
+    )
+    assert response.status_code == 200
+    assert HostOrganization.objects.filter(name="鈴木商店").count() == 0
 
 
 def test_site_category_from_another_field_is_rejected(admin_client: Client) -> None:

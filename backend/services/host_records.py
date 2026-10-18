@@ -59,6 +59,7 @@ def host_of(target: models.Model) -> HostOrganization:
 def save_host(host: HostOrganization, *, by: User | None) -> HostOrganization:
     host.corporate_number = corporate_number.normalize(host.corporate_number)
     corporate_number.validate(host.corporate_number)
+    hosts.validate_corporate_number_for(host.entity_type, host.corporate_number)
     _stamp(host, by)
     host.save()
     return host
@@ -76,12 +77,16 @@ class SiteSaved:
 
 @transaction.atomic
 def save_site(
-    site: HostSite, categories: Iterable[OperationCategory], *, by: User | None
+    site: HostSite,
+    categories: Iterable[OperationCategory],
+    *,
+    by: User | None,
+    today: datetime.date,
 ) -> SiteSaved:
     categories = list(categories)
     hosts.validate_site_categories(site.field, categories)
     hosts.validate_site_change(
-        site, field=site.field, categories=categories, is_active=site.is_active
+        site, field=site.field, categories=categories, is_active=site.is_active, today=today
     )
     moved = False
     if site.pk is not None:

@@ -101,7 +101,7 @@ class HostOrganization(TrackedModel):
         max_length=13,
         blank=True,
         validators=[corporate_number.validate],
-        help_text=_("13 digits. Leave blank for a sole proprietor."),
+        help_text=_("13 digits. A sole proprietor has none (leave it blank)."),
     )
     representative_title = models.CharField(_("representative title"), max_length=50, blank=True)
     representative_name = models.CharField(_("representative name"), max_length=100)
@@ -132,6 +132,14 @@ class HostOrganization(TrackedModel):
                 condition=Q(entity_type=EntityType.SOLE_PROPRIETOR) | ~Q(corporate_number=""),
                 name="hosts_hostorganization_corporation_has_number",
                 violation_error_message=_("Enter the corporate number of a corporation."),
+            ),
+            # 個人事業主は法人番号を持たない（T28a の確認の後の修正）
+            models.CheckConstraint(
+                condition=~Q(entity_type=EntityType.SOLE_PROPRIETOR) | Q(corporate_number=""),
+                name="hosts_hostorganization_sole_proprietor_has_no_number",
+                violation_error_message=_(
+                    "A sole proprietor has no corporate number. Leave it blank."
+                ),
             ),
         ]
 

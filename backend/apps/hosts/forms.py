@@ -59,11 +59,24 @@ class HostOrganizationForm(StyledFormMixin, forms.ModelForm[HostOrganization]):
         self.fields["name_kana"].help_text = _("Used for the furigana of the support plan.")
         self.fields["address"].help_text = _("Head office or principal office.")
         self.style_fields()
+        # 個人事業主を選ぶと入力できなくする（JS が無いときは保存時の検査で弾く）
+        self.enable_when("corporate_number", entity_type="corporation")
 
     def clean_corporate_number(self) -> str:
         value = corporate_number.normalize(self.cleaned_data.get("corporate_number") or "")
         corporate_number.validate(value)
         return value
+
+    def clean(self) -> dict[str, Any]:
+        cleaned = super().clean() or {}
+        if "corporate_number" in cleaned and cleaned.get("entity_type"):
+            try:
+                hosts.validate_corporate_number_for(
+                    cleaned["entity_type"], cleaned["corporate_number"]
+                )
+            except ValidationError as error:
+                apply_errors(self, error)
+        return cleaned
 
 
 def _category_label(category: OperationCategory) -> str:
