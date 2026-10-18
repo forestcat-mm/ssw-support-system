@@ -1,0 +1,10 @@
+{
+  "form_id": "1-25",
+  "valid_from": "2026-10-18",
+  "note": "T37 の規則（ADR-0026）。基準日に支援委託契約が無ければ生成不可。全部委託でない（非該当）・終了日が空・登録番号の形が違うは警告。",
+  "rules": [
+    {"id": "support_contract", "type": "check", "name": "support_contract_on_basis", "severity": "block"},
+    {"id": "support_terms", "type": "check", "name": "support_contract_terms", "params": {"form": "1-25"}, "severity": "warn", "requires": "support_contract"},
+    {"id": "author_required", "type": "required", "key": "a.author", "label": "作成責任者", "severity": "block"}
+  ]
+}

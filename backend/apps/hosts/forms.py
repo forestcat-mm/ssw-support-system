@@ -14,6 +14,7 @@ from apps.core.forms import allow_formatted_number_input
 from apps.core.models import AttachmentKind
 from apps.core.web_forms import StyledFormMixin
 from apps.hosts.models import (
+    FeeTiming,
     HostCooperationConfirmation,
     HostMembership,
     HostOrganization,
@@ -363,3 +364,18 @@ class SupportTerminationForm(StyledFormMixin, forms.Form):
         super().__init__(*args, **kwargs)
         self.style_fields()
         self.enable_when("termination_note", termination_reason="other")
+
+
+class SupportFeeForm(StyledFormMixin, forms.Form):
+    """委託料の内訳の 1 行（第5-10号 別紙。T37-D9）。"""
+
+    name = forms.CharField(label=_("item"), max_length=100)
+    amount = forms.IntegerField(label=_("amount (yen)"), min_value=0)
+    timing = forms.ChoiceField(label=_("when collected"), choices=FeeTiming.choices)
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.style_fields()
+
+
+SupportFeeFormSet = forms.formset_factory(SupportFeeForm, extra=0, can_delete=True)

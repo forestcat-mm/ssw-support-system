@@ -49,6 +49,7 @@ from apps.hosts.models import (
     CareerPlan,
     CareerPlanLevel,
     CareerPlanVersion,
+    FeeTiming,
     HostCooperationConfirmation,
     HostMembership,
     HostOrganization,
@@ -84,6 +85,7 @@ from services import (
     corporate_number,
     deadlines,
     filings,
+    host_records,
     passport,
     residence_card,
 )
@@ -124,6 +126,10 @@ def seed_organization(ctx: SeedContext) -> None:
         postal_code="000-0001",
         address="東京都サンプル区ダミー町1-1-1",
         food_council_joined_on=ctx.days(-700),
+        # 第13-2号の作成責任者・第5-10号の乙の記名と第8条の管轄裁判所（T37）
+        representative_title="代表理事",
+        representative_name=f"代表 花子{DUMMY_MARK}",
+        court_name="東京",
     )
     ctx.keep(organization)
     ctx.keep(
@@ -286,15 +292,31 @@ def seed_hosts(ctx: SeedContext) -> None:
                 )
             )
         starts_on, ends_on = plan["support_contract"]
-        ctx.keep(
-            SupportContract.objects.create(
-                host_organization=host,
-                monthly_fee=30000,  # 委託料（1 名あたり月額。ADR-0017）
-                concluded_on=starts_on - timedelta(days=14),
-                starts_on=starts_on,
-                ends_on=ends_on,
-            )
+        support = SupportContract.objects.create(
+            host_organization=host,
+            monthly_fee=30000,  # 委託料（1 名あたり月額。ADR-0017）
+            concluded_on=starts_on - timedelta(days=14),
+            starts_on=starts_on,
+            ends_on=ends_on,
         )
+        ctx.keep(support)
+        seed_fees(support)
+
+
+def seed_fees(support: SupportContract) -> None:
+    """委託料の内訳（第5-10号の別紙。合計は月額 30,000 円。T37-D9）。内訳は契約とともに消える。"""
+    host_records.save_fees(
+        support,
+        [
+            host_records.FeeInput(
+                name="義務的支援の委託料", amount=25000, timing=FeeTiming.REGULAR
+            ),
+            host_records.FeeInput(
+                name="任意的支援（通訳）の委託料", amount=5000, timing=FeeTiming.REGULAR
+            ),
+        ],
+        by=None,
+    )
 
 
 # --- 外国人 ----------------------------------------------------------------------
@@ -822,15 +844,15 @@ def seed_transfer(ctx: SeedContext) -> None:
                 submitted_on=ctx.days(-120),
             )
         )
-    ctx.keep(
-        SupportContract.objects.create(
-            host_organization=host,
-            monthly_fee=30000,
-            concluded_on=ctx.days(-380),
-            starts_on=ctx.days(-365),
-            ends_on=None,
-        )
+    support = SupportContract.objects.create(
+        host_organization=host,
+        monthly_fee=30000,
+        concluded_on=ctx.days(-380),
+        starts_on=ctx.days(-365),
+        ends_on=None,
     )
+    ctx.keep(support)
+    seed_fees(support)
 
     worker = ctx.worker(TRANSFER_NUMBER)
     spec = WORKER_SPECS[TRANSFER_NUMBER - 1]

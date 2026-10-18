@@ -78,3 +78,23 @@ class ConsultationRecordForm(StyledFormMixin, forms.Form):
         if starts_on and ends_on and starts_on > ends_on:
             self.add_error("ends_on", _("The end of the period must be on or after the start."))
         return data
+
+
+class ApplicationSetForm(StyledFormMixin, forms.Form):
+    """申請の書類の一覧の条件（申請の種類・基準日。T37-D3）。"""
+
+    set_id = forms.ChoiceField(
+        label=_("application"),
+        choices=[
+            ("coe", _("Certificate of Eligibility")),
+            ("chg", _("Change of status of residence")),
+            ("ext", _("Extension of period of stay")),
+        ],
+    )
+    basis_on = forms.DateField(
+        label=_("basis date (planned application date)"), widget=forms.DateInput
+    )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.style_fields()

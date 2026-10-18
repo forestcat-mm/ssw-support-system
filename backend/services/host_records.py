@@ -12,7 +12,7 @@
 from __future__ import annotations
 
 import datetime
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -31,6 +31,7 @@ from apps.hosts.models import (
     HostSite,
     OperationCategory,
     SupportContract,
+    SupportContractFee,
 )
 from services import attachments, audit, corporate_number, filings, hosts, support_filings
 
@@ -387,3 +388,53 @@ def attachments_of_host(host: HostOrganization) -> models.QuerySet[Attachment]:
             kind=ATTACHMENT_KINDS[model],
         )
     return Attachment.objects.filter(query).select_related("content_type")
+
+
+# --- 委託料の内訳（第5-10号 別紙。T37-D9、ADR-0026）------------------------------------------
+
+
+@dataclass(frozen=True)
+class FeeInput:
+    name: str
+    amount: int
+    timing: str
+
+
+FORM_FEE_ROWS = 10  # 第5-10号 別紙の行の数
+
+
+@transaction.atomic
+def save_fees(contract: SupportContract, rows: Sequence[FeeInput], *, by: User | None) -> None:
+    """内訳を置き換える（行ごとの作成・削除は監査ログに残る）。合計は月額と一致すること。
+
+    内訳だけの変更は届出の判定に関わらない（第3-3-1号の判定は月額で行う。T28c）。
+    """
+    errors: list[str] = []
+    if contract.monthly_fee is None:
+        errors.append(_("Enter the monthly fee of the contract first."))
+    if not rows:
+        errors.append(_("Enter at least one item."))
+    if len(rows) > FORM_FEE_ROWS:
+        errors.append(
+            _("The form has %(limit)d rows. Combine the items.") % {"limit": FORM_FEE_ROWS}
+        )
+    total = sum(row.amount for row in rows)
+    if contract.monthly_fee is not None and rows and total != contract.monthly_fee:
+        errors.append(
+            _("The total of the items (%(total)s yen) differs from the monthly fee (%(fee)s yen).")
+            % {"total": f"{total:,}", "fee": f"{contract.monthly_fee:,}"}
+        )
+    if errors:
+        raise ValidationError({"fees": errors})
+    for fee in contract.fees.all():
+        fee.delete()
+    for order, row in enumerate(rows, start=1):
+        SupportContractFee.objects.create(
+            contract=contract,
+            order=order,
+            name=row.name.strip(),
+            amount=row.amount,
+            timing=row.timing,
+            created_by=by,
+            updated_by=by,
+        )

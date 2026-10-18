@@ -39,6 +39,7 @@
     </section>
     <section class="card" id="filing-documents">
       <div class="card__header"><h2 class="card__title">{% translate "Generated forms" %}</h2></div>
+      {% if filing.kind == "residence_renewal" and filing.worker_id and perms.forms_engine.view_generateddocument %}<p><a class="button button--neutral button--small" href="{% url 'workers:application_set' filing.worker_id %}?set_id=ext" id="filing-application-set">{% translate "Documents for the application" %}</a></p>{% endif %}
       {% if linked_documents %}<ul class="attachment-list">{% for document in linked_documents %}
         <li><a href="{% url 'forms:document' document.pk %}">{{ document.template.form_id }} {{ document.template.name }}</a> <span class="caption">{{ document.generated_at|date:"Y-m-d" }}</span>
           {% if can_manage %}<form method="post" class="cluster" style="display:inline">{% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}"><input type="hidden" name="form" value="unlink"><input type="hidden" name="document" value="{{ document.pk }}"><button class="button button--neutral button--small" type="submit">{% translate "Unlink" %}</button></form>{% endif %}

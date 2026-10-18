@@ -36,7 +36,7 @@ from apps.contracts.models import (
     WageType,
 )
 from apps.core.models import AttachmentKind, Organization, Staff
-from apps.hosts.models import HostOrganization, HostSite
+from apps.hosts.models import HostOrganization, HostSite, SupportScope
 from apps.support.models import (
     Briefing,
     DeliveryKind,
@@ -1044,6 +1044,190 @@ def _experience_period_started(context: CheckContext, params: Mapping[str, Any])
             Destination("workers:contracts", {"pk": context.worker.pk}),
         )
     ]
+
+
+# --- 受入れ機関・分野の書類（第3-1号・第13-1号・第13-2号・第5-10号・第1-25号。T37、ADR-0026）
+# 誓約書の固定の文が述べる事実と記録が食い違えば生成不可、固定の文が述べない事実は警告（ADR-0021 の
+# 考え方。T37-D5）。
+
+
+@check("contract_field_is", params=("field",))
+def _contract_field_is(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """契約の事業所の分野が、誓約書の分野（誓約事項の業務）である。"""
+    site = context.site
+    if site is None or site.field.code == params["field"]:
+        return []
+    return [
+        Issue(
+            "field_differs",
+            _("The site of the contract is in another field (%(field)s).")
+            % {"field": site.field.name},
+            Destination("workers:contracts", {"pk": context.worker.pk}),
+        )
+    ]
+
+
+@check("categories_in_field")
+def _categories_in_field(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """契約の業務区分が、事業所の分野の業務区分で、基準日に有効（誓約事項の業務）。"""
+    version, site = context.version, context.site
+    if version is None or site is None:
+        return []
+    on = context.basis_on
+    bad = [
+        category.name
+        for category in version.categories.all()
+        if category.field_id != site.field_id
+        or (category.valid_from is not None and category.valid_from > on)
+        or (category.valid_until is not None and category.valid_until < on)
+    ]
+    if not bad:
+        return []
+    return [
+        Issue(
+            "category_not_pledged",
+            _("These operation categories are not the duties pledged in the form: %(names)s")
+            % {"names": "、".join(bad)},
+            Destination("workers:contracts", {"pk": context.worker.pk}),
+        )
+    ]
+
+
+@check("industry_listed", params=("list", "mode"))
+def _industry_listed(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """事業所の日本標準産業分類が誓約書の産業の一覧にある。
+
+    mode="none" は不一致を、"limited" は限定つきの項目・粗いコードを出す。
+    """
+    from services import industries  # 循環を避ける
+
+    site, host = context.site, context.host
+    if site is None or host is None:
+        return []
+    found = industries.match(params["list"], site.industry_code)
+    destination = Destination("hosts:detail", {"pk": host.pk})
+    names = {"site": site.name, "code": site.industry_code}
+    if params.get("mode") == "none" and found.result == "none":
+        return [
+            Issue(
+                "industry_not_listed",
+                _(
+                    "The industry code of %(site)s (%(code)s) is not in the industries pledged "
+                    "in the form."
+                )
+                % names,
+                destination,
+            )
+        ]
+    if params.get("mode") == "limited" and found.result in ("limited", "coarse") and found.item:
+        if found.result == "limited":
+            message = _(
+                "The industry of %(site)s (%(code)s) is pledged only with a limitation: "
+                "%(item)s. Check that the site meets it."
+            ) % (names | {"item": found.item["name"]})
+        else:
+            message = _(
+                "The industry code of %(site)s (%(code)s) is too coarse to compare with "
+                "%(item)s. Enter the detailed code."
+            ) % (names | {"item": found.item["name"]})
+        return [Issue("industry_limited", message, destination)]
+    return []
+
+
+def _own_council_certificate_missing() -> bool:
+    organization = Organization.objects.first()
+    if organization is None or organization.food_council_joined_on is None:
+        return True
+    return not organization.attachments.filter(
+        kind=AttachmentKind.FOOD_COUNCIL_CERTIFICATE, voided_at__isnull=True
+    ).exists()
+
+
+@check("own_council_certificate", params=("only_full_support",))
+def _own_council_certificate(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """自機関（登録支援機関）の協議会の加入と構成員証明書（T37-D5）。"""
+    if params.get("only_full_support"):
+        host = context.host
+        support = hosts.active_contract(host, context.basis_on) if host else None
+        if support is None or support.scope != SupportScope.FULL:
+            return []
+    if not _own_council_certificate_missing():
+        return []
+    return [
+        Issue(
+            "own_certificate_missing",
+            _(
+                "Our membership of the Food Industry SSW Council (date joined and certificate) "
+                "is not registered."
+            ),
+            Destination("settings:organization_edit"),
+        )
+    ]
+
+
+@check("support_contract_terms", params=("form",))
+def _support_contract_terms(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """支援委託契約の書類の注意（全部委託でない・終了日が空・内訳が無い・管轄裁判所が空。T37-D12）。"""
+    host = context.host
+    support = hosts.active_contract(host, context.basis_on) if host else None
+    if host is None or support is None:
+        return []
+    destination = Destination("hosts:detail", {"pk": host.pk})
+    issues = []
+    if support.scope != SupportScope.FULL:
+        issues.append(
+            Issue(
+                "not_full_support",
+                _("The support contract is not a full entrustment."),
+                destination,
+            )
+        )
+    if params.get("form") in ("5-10", "1-25") and support.ends_on is None:
+        issues.append(
+            Issue(
+                "support_contract_no_end",
+                _("The support contract has no end date, so the end of the period is left blank."),
+                destination,
+            )
+        )
+    if params.get("form") == "5-10":
+        if not support.fees.exists():
+            issues.append(
+                Issue(
+                    "fee_breakdown_missing",
+                    _("The breakdown of the fee (annex) is not entered, so it is left blank."),
+                    Destination(
+                        "hosts:support_contract_fees", {"pk": host.pk, "contract_id": support.pk}
+                    ),
+                )
+            )
+        organization = Organization.objects.first()
+        if organization is None or not organization.court_name.strip():
+            issues.append(
+                Issue(
+                    "court_missing",
+                    _("The district court of Article 8 is not set, so it is left blank."),
+                    Destination("settings:organization_edit"),
+                )
+            )
+    if params.get("form") == "1-25":
+        from services import form_data_application  # 循環を避ける
+
+        organization = Organization.objects.first()
+        number = organization.registration_number if organization else ""
+        if not form_data_application.REGISTRATION.match(number):
+            issues.append(
+                Issue(
+                    "registration_number_format",
+                    _(
+                        "Our registration number (%(number)s) is not in the form "
+                        '"00登-000000", so it is written as it is.'
+                    )
+                    % {"number": number or "—"},
+                    Destination("settings:organization_edit"),
+                )
+            )
+    return issues
 
 
 # --- データの規則 ---------------------------------------------------------------------

@@ -23,13 +23,19 @@ from apps.contracts.models import EmploymentContract, EmploymentContractVersion
 from apps.core.models import Action, Attachment, AuditAction, User
 from apps.core.permissions import ActionRequiredMixin
 from apps.core.web_forms import consume_once_token, once_context
-from apps.forms_engine.forms import NOT_LOADED, ConsultationRecordForm, SignatureForm
+from apps.forms_engine.forms import (
+    NOT_LOADED,
+    ApplicationSetForm,
+    ConsultationRecordForm,
+    SignatureForm,
+)
 from apps.forms_engine.models import GeneratedDocument, GenerationStatus
 from apps.hosts.models import HostOrganization
 from apps.support.models import Briefing, DeliveryKind, PeriodicInterview, SupportPlanVersion
 from apps.support.record_forms import ReasonForm
 from apps.workers.views import WorkerDetailView, WorkerFormView
 from services import (
+    application_sets,
     attachments,
     audit,
     authorization,
@@ -159,6 +165,40 @@ class WorkerDocumentsView(WorkerDetailView):
             stale_minutes=settings.FORM_STALE_AFTER // 60,
         )
         return {"shown": {"generated_documents": [row.document.pk for row in rows]}}
+
+
+class ApplicationSetView(WorkerDetailView):
+    """「帳票」タブの申請の書類の一覧（認定・変更・更新。T37、ADR-0026）。
+
+    入管の提出書類一覧・確認表の全部の行を、当てはまる行と当てはまらない行に分けて出す。生成する様式は
+    生成の有無と署名の状態、添付は有無（健康診断の書類は有無と日付だけ）、ほかはシステムの外。
+    """
+
+    tab = "documents"
+    template_name = "forms_engine/application_set.html"
+
+    def tab_context(self, context: dict[str, Any]) -> dict[str, Any]:
+        today = timezone.localdate()
+        params = self.request.GET
+        form = ApplicationSetForm(
+            {
+                "set_id": params.get("set_id") or application_sets.default_set(self.worker),
+                "basis_on": params.get("basis_on") or today.isoformat(),
+            }
+        )
+        if form.is_valid():
+            set_id, on = form.cleaned_data["set_id"], form.cleaned_data["basis_on"]
+        else:
+            set_id, on = application_sets.default_set(self.worker), today
+        found = application_sets.overview(self.worker, set_id, on)
+        context.update(selector=form, overview=found, set_id=set_id, basis_on=on)
+        return {
+            "shown": {
+                "application_set": set_id,
+                "basis_on": on.isoformat(),
+                "generated_documents": found.shown_documents,
+            }
+        }
 
 
 def apply_errors(form: SignatureForm, error: ValidationError) -> None:

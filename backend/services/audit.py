@@ -59,6 +59,7 @@ AUDITED_MODELS: frozenset[str] = frozenset(
         "hosts.hostcooperationconfirmation",
         "hosts.hostsite",
         "hosts.supportcontract",
+        "hosts.supportcontractfee",
         "hosts.careerplan",
         "hosts.careerplanversion",
         "hosts.careerplanlevel",

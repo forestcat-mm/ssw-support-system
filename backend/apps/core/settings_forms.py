@@ -72,12 +72,14 @@ class OrganizationForm(StyledFormMixin, forms.ModelForm[Organization]):
             "registered_on",
             "support_start_planned_on",
             "registration_expires_on",
+            "representative_title",
             "representative_name",
             "representative_name_kana",
             "postal_code",
             "address",
             "phone_number",
             "food_council_joined_on",
+            "court_name",
             "signed_copy_due_days",
         )
         widgets = {

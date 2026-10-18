@@ -1,0 +1,152 @@
+{
+ "form_id": "1-25",
+ "valid_from": "2026-10-18",
+ "note": "T37 の全欄（ADR-0026）。値は services/form_data_application.py が作る。",
+ "fields": [
+  {
+   "key": "a.worker_name",
+   "target": "worker_name",
+   "format": "text",
+   "label": "特定技能外国人の氏名"
+  },
+  {
+   "key": "a.organization_name",
+   "target": "organization_name",
+   "format": "text",
+   "label": "登録支援機関の氏名又は名称"
+  },
+  {
+   "key": "a.monthly_fee_text",
+   "target": "monthly_fee_text",
+   "format": "zen_text",
+   "label": "委託料（１名当たりの月額）"
+  },
+  {
+   "key": "a.registration_year",
+   "target": "registration_year",
+   "format": "zen",
+   "label": "登録番号（年）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "a.registration_serial",
+   "target": "registration_serial",
+   "format": "zen_text",
+   "label": "登録番号（番号）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "a.concluded_y",
+   "target": "concluded_y",
+   "format": "zen",
+   "label": "締結日（契約年月日）（年）"
+  },
+  {
+   "key": "a.concluded_m",
+   "target": "concluded_m",
+   "format": "zen",
+   "label": "締結日（契約年月日）（月）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "a.concluded_d",
+   "target": "concluded_d",
+   "format": "zen",
+   "label": "締結日（契約年月日）（日）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "a.full_support",
+   "target": "full_support",
+   "format": "text",
+   "label": "委託する支援業務（全部であること）"
+  },
+  {
+   "key": "a.starts_y",
+   "target": "starts_y",
+   "format": "zen",
+   "label": "契約期間（始期）（年）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "a.starts_m",
+   "target": "starts_m",
+   "format": "zen",
+   "label": "契約期間（始期）（月）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "a.starts_d",
+   "target": "starts_d",
+   "format": "zen",
+   "label": "契約期間（始期）（日）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "a.ends_y",
+   "target": "ends_y",
+   "format": "zen",
+   "label": "契約期間（終期）（年）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "a.ends_m",
+   "target": "ends_m",
+   "format": "zen",
+   "label": "契約期間（終期）（月）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "a.ends_d",
+   "target": "ends_d",
+   "format": "zen",
+   "label": "契約期間（終期）（日）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "a.made_y",
+   "target": "made_y",
+   "format": "zen",
+   "label": "作成年月日（年）"
+  },
+  {
+   "key": "a.made_m",
+   "target": "made_m",
+   "format": "zen",
+   "label": "作成年月日（月）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "a.made_d",
+   "target": "made_d",
+   "format": "zen",
+   "label": "作成年月日（日）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "a.host_name",
+   "target": "host_name",
+   "format": "text",
+   "label": "特定技能所属機関の氏名又は名称"
+  },
+  {
+   "key": "a.author",
+   "target": "author",
+   "format": "text",
+   "label": "作成責任者"
+  }
+ ],
+ "rules": []
+}

@@ -1,0 +1,21 @@
+{
+  "form_id": "5-10",
+  "name": "支援委託契約書（参考様式第5-10号）",
+  "valid_from": "2026-10-18",
+  "language": "ja",
+  "owner": "common",
+  "method": "docx-tags",
+  "requires_signed_copy": false,
+  "original": "original.docx",
+  "template": "template.docx",
+  "source": {
+    "url": "https://www.moj.go.jp/isa/content/001341757.docx",
+    "page": "https://www.moj.go.jp/isa/applications/ssw/10_00020.html",
+    "retrieved_on": "2026-10-18",
+    "revision_date": null,
+    "revision_date_unknown": true,
+    "original_sha256": "1176f16a80a6d0e3fb50aaae09f864b2dddb9b59b064ed5435bc35168977232f",
+    "template_sha256": "833f8e4612e871d790f2ec45811c2a4909f8e457ad113b8e3287206b7a9acbc8",
+    "adr": "ADR-0026（取得日 2026-10-18（Last-Modified 2025-02-26。改正日の記載なし））、ADR-0018"
+  }
+}

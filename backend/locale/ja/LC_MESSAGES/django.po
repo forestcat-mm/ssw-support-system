@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-18 22:35+0900\n"
+"POT-Creation-Date: 2026-10-18 23:17+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -237,6 +237,24 @@ msgstr "キャリアアッププラン"
 
 msgid "certificate of work experience"
 msgstr "実務経験証明書"
+
+msgid "pledge of the industrial products manufacturing field (form 3-1)"
+msgstr "工業製品製造業分野の誓約書（第3-1号）"
+
+msgid "pledge of the food manufacturing field by the host (form 13-1)"
+msgstr "飲食料品製造業分野の誓約書（特定技能所属機関。第13-1号）"
+
+msgid "pledge of the food manufacturing field by us (form 13-2)"
+msgstr "飲食料品製造業分野の誓約書（登録支援機関。第13-2号）"
+
+msgid "support entrustment contract (form 5-10)"
+msgstr "支援委託契約書（第5-10号）"
+
+msgid "explanation of the support entrustment contract (form 1-25)"
+msgstr "支援委託契約に関する説明書（第1-25号）"
+
+msgid "Printed in the form. The default is the representative."
+msgstr "様式に印字します。初期値は代表者です。"
 
 msgid "operation categories"
 msgstr "業務区分"
@@ -1215,6 +1233,9 @@ msgstr "登録年月日"
 msgid "planned start date of support work"
 msgstr "支援業務を開始する予定年月日"
 
+msgid "representative's title"
+msgstr "代表者の役職"
+
 msgid "representative's name"
 msgstr "代表者の氏名"
 
@@ -1232,6 +1253,13 @@ msgstr "所在地"
 
 msgid "Food Industry SSW Council joined on"
 msgstr "食品産業特定技能協議会 加入日"
+
+msgid "district court with exclusive jurisdiction (place name)"
+msgstr "専属的合意管轄の地方裁判所（地名）"
+
+msgid ""
+"Article 8 of the support entrustment contract (form 5-10). Example: Tokyo."
+msgstr "支援委託契約書（第5-10号）第8条。例: 東京"
 
 msgid "days until the signed copy is collected"
 msgstr "署名済み書類の回収のタスクを起票するまでの日数（生成から）"
@@ -2731,6 +2759,9 @@ msgstr "届出が必要な変更"
 msgid "Generated forms"
 msgstr "生成した帳票"
 
+msgid "Documents for the application"
+msgstr "申請の書類の一覧"
+
 msgid "Unlink"
 msgstr "紐づけを外す"
 
@@ -2822,6 +2853,18 @@ msgstr "期間（終了）"
 
 msgid "The end of the period must be on or after the start."
 msgstr "期間の終了は開始以後の日にしてください。"
+
+msgid "application"
+msgstr "申請"
+
+msgid "Certificate of Eligibility"
+msgstr "在留資格認定証明書交付"
+
+msgid "Change of status of residence"
+msgstr "在留資格変更"
+
+msgid "Extension of period of stay"
+msgstr "在留期間更新"
 
 msgid "common"
 msgstr "共通"
@@ -2955,6 +2998,83 @@ msgstr "帳票の署名"
 msgid "signatures of generated documents"
 msgstr "帳票の署名"
 
+msgid "Show"
+msgstr "表示"
+
+#, python-format
+msgid ""
+"%(name)s: the list of documents to submit (revised on %(day)s). Rows marked "
+"○ are required; △ only when they apply."
+msgstr ""
+"%(name)s: 提出書類一覧・確認表（%(day)s 改定）。○ は必須、△ は該当する場合だ"
+"け。"
+
+msgid ""
+"There is no employment contract on the basis date, so rows that depend on "
+"the host organization cannot be judged."
+msgstr "基準日の雇用契約が無いため、受入れ機関による行は判断できません。"
+
+#, python-format
+msgid "%(counter)s required document is not ready."
+msgid_plural "%(counter)s required documents are not ready."
+msgstr[0] "必須の書類のうち %(counter)s 件がそろっていません。"
+
+msgid "table"
+msgstr "表"
+
+msgid "document"
+msgstr "書類"
+
+msgid "form"
+msgstr "様式"
+
+msgid "points to note"
+msgstr "留意事項"
+
+msgid "generated"
+msgstr "生成済み"
+
+msgid "generated for another contract or version"
+msgstr "ほかの契約・版で生成済み"
+
+msgid "not generated"
+msgstr "未生成"
+
+msgid "attached"
+msgstr "あり"
+
+msgid "not attached"
+msgstr "なし"
+
+msgid "for organizations with a track record (not judged in the system)"
+msgstr "実績のある機関の書類（システムでは判断しない）"
+
+msgid "cannot be judged"
+msgstr "判断できない"
+
+msgid "prepared outside the system"
+msgstr "システムの外で用意"
+
+msgid "Check whether it applies."
+msgstr "該当するかを確かめてください。"
+
+msgid "awaiting signature"
+msgstr "署名待ち"
+
+msgid "signed"
+msgstr "署名済み"
+
+msgid "Open"
+msgstr "開く"
+
+msgid "Go to the record"
+msgstr "記録へ"
+
+#, python-format
+msgid "%(counter)s row does not apply"
+msgid_plural "%(counter)s rows do not apply"
+msgstr[0] "当てはまらない行（%(counter)s 行）"
+
 msgid "Cannot generate"
 msgstr "生成できません"
 
@@ -3045,20 +3165,11 @@ msgstr "依頼した人"
 msgid "signature"
 msgstr "署名"
 
-msgid "signed"
-msgstr "署名済み"
-
-msgid "awaiting signature"
-msgstr "署名待ち"
-
 msgid "no signature needed"
 msgstr "署名は不要"
 
 msgid "Warnings at generation"
 msgstr "生成のときの警告"
-
-msgid "form"
-msgstr "様式"
 
 msgid "taking too long"
 msgstr "時間がかかっています"
@@ -3071,9 +3182,6 @@ msgstr "生成した帳票はありません。"
 
 msgid "Signed documents without a generation record"
 msgstr "生成履歴の無い署名済みの書類"
-
-msgid "document"
-msgstr "書類"
 
 msgid "date"
 msgstr "日付"
@@ -3303,6 +3411,9 @@ msgstr "支援委託契約書の追加"
 msgid "Example: a file of another host was attached."
 msgstr "例: ほかの受入れ機関のファイルを添付した。"
 
+msgid "Saved the breakdown of the fee."
+msgstr "委託料の内訳を保存しました。"
+
 msgid "Used for the furigana of the support plan."
 msgstr "支援計画書のふりがなに使います。"
 
@@ -3415,6 +3526,12 @@ msgstr "終了の事由（その他の内容）"
 
 msgid "Up to 20 characters (written on form 3-3-2)."
 msgstr "全角 20 文字以内（第3-3-2号に書きます）。"
+
+msgid "amount (yen)"
+msgstr "金額（円）"
+
+msgid "when collected"
+msgstr "徴収の時期"
 
 msgid "registered corporation"
 msgstr "登録法人"
@@ -3573,6 +3690,18 @@ msgstr "キャリアアッププランのレベル"
 msgid "career-up plan levels"
 msgstr "キャリアアッププランのレベル"
 
+msgid "occasionally"
+msgstr "随時"
+
+msgid "regularly"
+msgstr "定期"
+
+msgid "entrustment fee item"
+msgstr "委託料の内訳"
+
+msgid "entrustment fee items"
+msgstr "委託料の内訳"
+
 msgid "Career-up plan"
 msgstr "キャリアアッププラン"
 
@@ -3625,6 +3754,9 @@ msgstr "予定の終了日"
 
 msgid "no end date"
 msgstr "期限なし"
+
+msgid "Fee breakdown"
+msgstr "委託料の内訳"
 
 msgid "Attach"
 msgstr "添付"
@@ -3728,6 +3860,27 @@ msgstr "支援委託契約の終了日"
 
 msgid "No host organizations are registered."
 msgstr "受入れ機関は登録されていません。"
+
+msgid "Breakdown of the entrustment fee"
+msgstr "委託料の内訳"
+
+#, python-format
+msgid "Contract from %(starts)s · monthly fee %(fee)s yen per person"
+msgstr "%(starts)s からの契約 · 1 名あたり月額 %(fee)s 円"
+
+msgid ""
+"The annex of the support entrustment contract (form 5-10). The total must "
+"equal the monthly fee. Changing only the breakdown does not create a "
+"notification task."
+msgstr ""
+"支援委託契約書（第5-10号）の別紙です。合計は月額と同じにします。内訳だけの変"
+"更では届出のタスクを作りません。"
+
+msgid "Items"
+msgstr "項目"
+
+msgid "Add an item"
+msgstr "項目を足す"
 
 msgid "Dummy data (development)"
 msgstr "ダミーデータ（開発用）"
@@ -5062,20 +5215,11 @@ msgstr "署名済みの控え"
 msgid "void"
 msgstr "取り消す"
 
-msgid "attached"
-msgstr "あり"
-
-msgid "not attached"
-msgstr "なし"
-
 msgid "No documents have been recorded as given yet."
 msgstr "まだ交付の記録はありません。"
 
 msgid "current"
 msgstr "現在"
-
-msgid "Show"
-msgstr "表示"
 
 msgid "Create a support plan"
 msgstr "支援計画を作成"
@@ -5253,15 +5397,6 @@ msgstr "留学"
 
 msgid "Other"
 msgstr "その他"
-
-msgid "Certificate of Eligibility"
-msgstr "在留資格認定証明書交付"
-
-msgid "Change of status of residence"
-msgstr "在留資格変更"
-
-msgid "Extension of period of stay"
-msgstr "在留期間更新"
 
 msgid "Residence card reissue (lost, damaged, etc.)"
 msgstr "在留カード再交付（紛失・汚損等）"
@@ -5495,6 +5630,21 @@ msgstr "キャリアアッププランを作る"
 
 msgid "Generate the certificate of work experience"
 msgstr "実務経験証明書を作る"
+
+msgid "Generate form 3-1"
+msgstr "第3-1号を作る"
+
+msgid "Generate form 13-1"
+msgstr "第13-1号を作る"
+
+msgid "Generate form 13-2"
+msgstr "第13-2号を作る"
+
+msgid "Generate form 5-10"
+msgstr "第5-10号を作る"
+
+msgid "Generate form 1-25"
+msgstr "第1-25号を作る"
 
 msgid "No filing tasks for this foreign worker."
 msgstr "この外国人の届出タスクはありません。"
@@ -6423,6 +6573,65 @@ msgstr ""
 "%(day)s の時点で契約が始まっていないため、証明する実務経験がありません。"
 
 #, python-format
+msgid "The site of the contract is in another field (%(field)s)."
+msgstr "契約の事業所はほかの分野（%(field)s）です。"
+
+#, python-format
+msgid ""
+"These operation categories are not the duties pledged in the form: %(names)s"
+msgstr "次の業務区分は、誓約書の業務ではありません: %(names)s"
+
+#, python-format
+msgid ""
+"The industry code of %(site)s (%(code)s) is not in the industries pledged in "
+"the form."
+msgstr "%(site)s の産業分類（%(code)s）は、誓約書の産業にありません。"
+
+#, python-format
+msgid ""
+"The industry of %(site)s (%(code)s) is pledged only with a limitation: "
+"%(item)s. Check that the site meets it."
+msgstr ""
+"%(site)s の産業（%(code)s）は限定つきの産業です: %(item)s。事業所が当てはまる"
+"かを確かめてください。"
+
+#, python-format
+msgid ""
+"The industry code of %(site)s (%(code)s) is too coarse to compare with "
+"%(item)s. Enter the detailed code."
+msgstr ""
+"%(site)s の産業分類（%(code)s）が粗く、%(item)s と照らせません。細かいコード"
+"を入れてください。"
+
+msgid ""
+"Our membership of the Food Industry SSW Council (date joined and "
+"certificate) is not registered."
+msgstr ""
+"自機関の食品産業特定技能協議会の加入（加入日と構成員証明書）が登録されていま"
+"せん。"
+
+msgid "The support contract is not a full entrustment."
+msgstr "支援委託契約が全部の委託ではありません。"
+
+msgid ""
+"The support contract has no end date, so the end of the period is left blank."
+msgstr "支援委託契約に終了日が無いため、期間の終わりは空欄になります。"
+
+msgid "The breakdown of the fee (annex) is not entered, so it is left blank."
+msgstr "委託料の内訳（別紙）が入っていないため、空欄になります。"
+
+msgid "The district court of Article 8 is not set, so it is left blank."
+msgstr "第8条の管轄裁判所が設定されていないため、空欄になります。"
+
+#, python-format
+msgid ""
+"Our registration number (%(number)s) is not in the form \"00登-000000\", so "
+"it is written as it is."
+msgstr ""
+"自機関の登録番号（%(number)s）が「00登-000000」の形でないため、そのまま書きま"
+"す。"
+
+#, python-format
 msgid "\"%(label)s\" is empty."
 msgstr "「%(label)s」が空です。"
 
@@ -6490,6 +6699,22 @@ msgstr "終了は登録されていません。"
 #, python-format
 msgid "The termination of the support contract was cancelled: %(reason)s"
 msgstr "支援委託契約の終了が取り消されました: %(reason)s"
+
+msgid "Enter the monthly fee of the contract first."
+msgstr "先に契約の月額を入れてください。"
+
+msgid "Enter at least one item."
+msgstr "項目を 1 つ以上入れてください。"
+
+#, python-format
+msgid "The form has %(limit)d rows. Combine the items."
+msgstr "様式の行は %(limit)d 行です。項目をまとめてください。"
+
+#, python-format
+msgid ""
+"The total of the items (%(total)s yen) differs from the monthly fee (%(fee)s "
+"yen)."
+msgstr "内訳の合計（%(total)s 円）が月額（%(fee)s 円）と違います。"
 
 #, python-format
 msgid "These operation categories do not belong to the site's field: %(names)s"

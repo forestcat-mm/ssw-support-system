@@ -267,6 +267,7 @@ class Organization(TrackedModel):
     support_start_planned_on = models.DateField(
         _("planned start date of support work"), null=True, blank=True
     )
+    representative_title = models.CharField(_("representative's title"), max_length=50, blank=True)
     representative_name = models.CharField(_("representative's name"), max_length=100, blank=True)
     representative_name_kana = models.CharField(
         _("representative's name (kana)"), max_length=100, blank=True
@@ -276,6 +277,13 @@ class Organization(TrackedModel):
     address = models.CharField(_("address"), max_length=255)
     food_council_joined_on = models.DateField(
         _("Food Industry SSW Council joined on"), null=True, blank=True
+    )
+    # 支援委託契約書（第5-10号）第8条の専属的合意管轄の地方裁判所（地名。T37-D8、ADR-0026）
+    court_name = models.CharField(
+        _("district court with exclusive jurisdiction (place name)"),
+        max_length=50,
+        blank=True,
+        help_text=_("Article 8 of the support entrustment contract (form 5-10). Example: Tokyo."),
     )
     # 署名済み書類の回収のタスクを、生成から何日たったら起票するか（T33、ADR-0022）
     signed_copy_due_days = models.PositiveSmallIntegerField(

@@ -33,6 +33,7 @@ from apps.hosts.forms import (
     HostSiteForm,
     MembershipForm,
     SupportContractForm,
+    SupportFeeFormSet,
     SupportTerminationForm,
     apply_errors,
 )
@@ -758,3 +759,64 @@ class AttachmentVoidView(HostFormView):
                 messages.success(request, _("Voided the attachment."))
                 return redirect(back)
         return self.page(request, host, attachment, form)
+
+
+class SupportFeesView(HostFormView):
+    """委託料の内訳（第5-10号 別紙）。合計は月額と一致させる。内訳だけの変更は届出を起票しない。"""
+
+    template_name = "hosts/support_fees_form.html"
+
+    def target(self, request: HttpRequest, pk: int, contract_id: int) -> Any:
+        host = self.host(request, pk)
+        return host, get_object_or_404(host.support_contracts, pk=contract_id)
+
+    def page(
+        self,
+        request: HttpRequest,
+        host: Any,
+        contract: Any,
+        formset: Any,
+        errors: list[str] | None = None,
+    ) -> HttpResponse:
+        return self.render(
+            request,
+            host=host,
+            contract=contract,
+            formset=formset,
+            fee_errors=errors or [],
+            back=detail_url(host, "support-contracts"),
+        )
+
+    def get(self, request: HttpRequest, pk: int, contract_id: int) -> HttpResponse:
+        host, contract = self.target(request, pk, contract_id)
+        rows = [
+            {"name": fee.name, "amount": fee.amount, "timing": fee.timing}
+            for fee in contract.fees.all()
+        ] or [{}]
+        return self.page(request, host, contract, SupportFeeFormSet(prefix="fees", initial=rows))
+
+    def post(self, request: HttpRequest, pk: int, contract_id: int) -> HttpResponse:
+        host, contract = self.target(request, pk, contract_id)
+        if not consume_once_token(request):
+            return self.already_submitted(request, detail_url(host, "support-contracts"))
+        formset = SupportFeeFormSet(request.POST, prefix="fees")
+        if formset.is_valid():
+            rows = [
+                host_records.FeeInput(
+                    name=form.cleaned_data["name"],
+                    amount=form.cleaned_data["amount"],
+                    timing=form.cleaned_data["timing"],
+                )
+                for form in formset.forms
+                if form.cleaned_data and not form.cleaned_data.get("DELETE")
+            ]
+            try:
+                host_records.save_fees(contract, rows, by=_actor(request))
+            except ValidationError as error:
+                return self.page(
+                    request, host, contract, formset, error.message_dict.get("fees", [])
+                )
+            else:
+                messages.success(request, _("Saved the breakdown of the fee."))
+                return redirect(detail_url(host, "support-contracts"))
+        return self.page(request, host, contract, formset)

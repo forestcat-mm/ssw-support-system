@@ -1,0 +1,76 @@
+{
+ "form_id": "13-1",
+ "valid_from": "2026-10-18",
+ "note": "T37 の全欄（ADR-0026）。値は services/form_data_application.py が作る。",
+ "fields": [
+  {
+   "key": "a.host_name",
+   "target": "host_name",
+   "format": "text",
+   "label": "特定技能所属機関の氏名又は名称"
+  },
+  {
+   "key": "a.host_address",
+   "target": "host_address",
+   "format": "text",
+   "label": "特定技能所属機関の住所"
+  },
+  {
+   "key": "a.worker_name",
+   "target": "worker_name",
+   "format": "text",
+   "label": "特定技能外国人の氏名"
+  },
+  {
+   "key": "a.worker_sex",
+   "target": "worker_sex",
+   "format": "text",
+   "label": "特定技能外国人の性別"
+  },
+  {
+   "key": "a.worker_nationality",
+   "target": "worker_nationality",
+   "format": "text",
+   "label": "特定技能外国人の国籍・地域"
+  },
+  {
+   "key": "a.worker_birth_date",
+   "target": "worker_birth_date",
+   "format": "text",
+   "label": "特定技能外国人の生年月日"
+  },
+  {
+   "key": "a.made_y",
+   "target": "made_y",
+   "format": "zen",
+   "label": "作成年月日（年）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "a.made_m",
+   "target": "made_m",
+   "format": "zen",
+   "label": "作成年月日（月）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "a.made_d",
+   "target": "made_d",
+   "format": "zen",
+   "label": "作成年月日（日）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "a.author",
+   "target": "author",
+   "format": "text",
+   "label": "作成責任者",
+   "pad": 16,
+   "align": "left"
+  }
+ ],
+ "rules": []
+}

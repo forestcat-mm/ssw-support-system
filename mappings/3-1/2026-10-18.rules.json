@@ -1,0 +1,13 @@
+{
+  "form_id": "3-1",
+  "valid_from": "2026-10-18",
+  "note": "T37 の規則（ADR-0026）。誓約書の固定の文が述べる事実（工業製品製造業分野の業務・76 の産業・登録法人の構成員）と記録が食い違えば生成不可。限定つきの産業・粗いコードは警告（T37-D4）。",
+  "rules": [
+    {"id": "field", "type": "check", "name": "contract_field_is", "params": {"field": "industrial_products"}, "severity": "block"},
+    {"id": "categories", "type": "check", "name": "categories_in_field", "severity": "block", "requires": "field"},
+    {"id": "industry", "type": "check", "name": "industry_listed", "params": {"list": "3-1", "mode": "none"}, "severity": "block", "requires": "field"},
+    {"id": "industry_limited", "type": "check", "name": "industry_listed", "params": {"list": "3-1", "mode": "limited"}, "severity": "warn", "requires": "industry"},
+    {"id": "membership", "type": "check", "name": "membership_certificate", "severity": "block", "requires": "field"},
+    {"id": "author_required", "type": "required", "key": "a.author", "label": "作成責任者", "severity": "block"}
+  ]
+}

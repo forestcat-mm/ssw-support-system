@@ -8,7 +8,7 @@ docxtpl の差込タグを置くだけで、ほかの zip の中身はそのま�
 
 欄の書き方（下の SPEC）: 段落の文字を、「＿」を全角空白として書き、差し込む欄を [名前:元の文字] で囲む。
 元の文字が数字だけなら、その数の全角空白。段落の文字と一致しなければ止まる（様式が変わった）。
-先頭が「…」なら、段落の終わりの部分だけを書いている。
+先頭が「…」なら段落の終わりの部分だけ、終わりが「…」なら段落の初めの部分だけを書いている。
 
 - タグは {{ 名前 or "元の文字" }}。値が無いときは元の文字（空白や □）に戻る。値を何も入れずに
   差し込むと、本文は original と同じ（別紙２ を除く）。
@@ -64,17 +64,26 @@ def width(text: str) -> float:
     return sum(0.5 if ord(char) < 0x2000 else 1 for char in text)
 
 
-def apply(document: docx_tags.Document, spec: list[str], stop: int | None = None) -> list[dict]:
+def apply(
+    document: docx_tags.Document, spec: list[str], stop: int | None = None, start: int = 0
+) -> list[dict]:
     """SPEC の段落を前から順に探してタグを置き、欄の一覧（名前・元の文字）を返す。"""
     found: list[dict] = []
-    start = 0
     for markup in spec:
         suffix = markup.startswith("…")
-        plain, slots = parse(markup[1:] if suffix else markup)
+        prefix = markup.endswith("…") and not suffix
+        body = markup[1:] if suffix else markup[:-1] if prefix else markup
+        plain, slots = parse(body)
         index = None
         for i in range(start, stop if stop is not None else len(document.paragraphs())):
             text = document.text(i)
-            if (text.endswith(plain) if suffix else text == plain):
+            if suffix:
+                matched = text.endswith(plain)
+            elif prefix:
+                matched = text.startswith(plain)
+            else:
+                matched = text == plain
+            if matched:
                 index = i
                 break
         if index is None:

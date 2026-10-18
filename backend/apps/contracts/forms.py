@@ -390,7 +390,7 @@ class WageExplanationForm(StyledFormMixin, forms.ModelForm[ContractWageExplanati
 
 
 class ContractGenerateForm(StyledFormMixin, forms.Form):
-    """雇用契約の書類（第1-4号・第1-5号・第1-6号）の生成: 基準日・作成責任者（第1-4号）・警告。"""
+    """契約の書類の生成: 基準日・作成責任者（第1-4号・申請の書類）・警告。"""
 
     basis_on = forms.DateField(
         label=_("basis date (planned application date)"),
@@ -407,8 +407,12 @@ class ContractGenerateForm(StyledFormMixin, forms.Form):
         label=_("I have checked the warnings and will generate the form anyway."), required=False
     )
 
-    def __init__(self, *args: Any, with_author: bool = False, **kwargs: Any) -> None:
+    def __init__(
+        self, *args: Any, with_author: bool = False, author_help: Any = None, **kwargs: Any
+    ) -> None:
         super().__init__(*args, **kwargs)
         if not with_author:
             del self.fields["author"]
+        elif author_help is not None:
+            self.fields["author"].help_text = author_help
         self.style_fields()

@@ -534,3 +534,37 @@ class CareerPlanLevel(_CareerPlanRow):
 
     def __str__(self) -> str:
         return f"{self.version}: {self.name}"
+
+
+class FeeTiming(models.TextChoices):
+    """委託料の内訳の徴収時期（第5-10号 別紙）。"""
+
+    OCCASIONAL = "occasional", _("occasionally")
+    REGULAR = "regular", _("regularly")
+
+
+class SupportContractFee(TrackedModel):
+    """支援委託契約の委託料の内訳（第5-10号 別紙。1 名あたりの月額。T37-D9、ADR-0026）。
+
+    合計は契約の月額と一致する（保存のときに確かめる）。内訳だけの変更は届出の判定に関わらない
+    （第3-3-1号の判定は月額で行う。T28c）。根拠は支援 別冊 7頁「費用の額及び内訳を明示」。
+    """
+
+    contract = models.ForeignKey(
+        SupportContract,
+        verbose_name=_("support contract"),
+        on_delete=models.CASCADE,
+        related_name="fees",
+    )
+    order = models.PositiveSmallIntegerField(_("order"))
+    name = models.CharField(_("item"), max_length=100)
+    amount = models.PositiveIntegerField(_("amount (yen)"))
+    timing = models.CharField(_("when collected"), max_length=16, choices=FeeTiming.choices)
+
+    class Meta:
+        verbose_name = _("entrustment fee item")
+        verbose_name_plural = _("entrustment fee items")
+        ordering = ["contract", "order", "pk"]
+
+    def __str__(self) -> str:
+        return f"{self.contract}: {self.name} {self.amount}"

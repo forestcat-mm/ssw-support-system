@@ -1,0 +1,21 @@
+{
+  "form_id": "3-1",
+  "name": "工業製品製造業分野における特定技能外国人の受入れに関する誓約書（分野参考様式第3-1号）",
+  "valid_from": "2026-10-18",
+  "language": "ja",
+  "owner": "common",
+  "method": "docx-tags",
+  "requires_signed_copy": false,
+  "original": "original.docx",
+  "template": "template.docx",
+  "source": {
+    "url": "https://www.moj.go.jp/isa/content/001465352.docx",
+    "page": "https://www.moj.go.jp/isa/applications/ssw/nyuukokukanri07_00201.html",
+    "retrieved_on": "2026-10-18",
+    "revision_date": null,
+    "revision_date_unknown": true,
+    "original_sha256": "2fffe3fe889c24344d3b313abfffdd72e9041b1cf253fb2ff7d5bef3ed28cb4b",
+    "template_sha256": "a87da1ad996fe4273057f88f442ec1715325c5454bf2e9ca5776c5b9c398ec08",
+    "adr": "ADR-0026（取得日 2026-10-18（Last-Modified 2026-06-25。改正日の記載なし））、ADR-0018"
+  }
+}

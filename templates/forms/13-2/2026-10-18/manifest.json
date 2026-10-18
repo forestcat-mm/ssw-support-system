@@ -1,0 +1,21 @@
+{
+  "form_id": "13-2",
+  "name": "飲食料品製造業分野における特定技能外国人の受入れに関する誓約書（登録支援機関。分野参考様式第13-2号）",
+  "valid_from": "2026-10-18",
+  "language": "ja",
+  "owner": "common",
+  "method": "docx-tags",
+  "requires_signed_copy": false,
+  "original": "original.docx",
+  "template": "template.docx",
+  "source": {
+    "url": "https://www.moj.go.jp/isa/content/001469510.docx",
+    "page": "https://www.moj.go.jp/isa/applications/ssw/nyuukokukanri07_00201.html",
+    "retrieved_on": "2026-10-18",
+    "revision_date": "2026-08-28",
+    "revision_date_unknown": false,
+    "original_sha256": "ddf3796d0106840881adb2761e01124ff62a603318db057ab1ea2a54db208019",
+    "template_sha256": "663d253fa26460fe351493697d4e81c162ad3ad2e622b1f113ae58aaf9d2d0dd",
+    "adr": "ADR-0026（取得日 2026-10-18（2026-08-28 改定））、ADR-0018"
+  }
+}

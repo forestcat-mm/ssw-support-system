@@ -1,0 +1,15 @@
+{
+  "form_id": "13-1",
+  "valid_from": "2026-10-18",
+  "note": "T37 の規則（ADR-0026）。誓約書の固定の文が述べる事実（飲食料品製造業の業務・10 の産業・協議会の構成員・全部委託なら自機関も構成員）と記録が食い違えば生成不可。キャリアアッププランの交付は警告（T37-D5）。",
+  "rules": [
+    {"id": "field", "type": "check", "name": "contract_field_is", "params": {"field": "food_manufacturing"}, "severity": "block"},
+    {"id": "categories", "type": "check", "name": "categories_in_field", "severity": "block", "requires": "field"},
+    {"id": "industry", "type": "check", "name": "industry_listed", "params": {"list": "13-1", "mode": "none"}, "severity": "block", "requires": "field"},
+    {"id": "industry_limited", "type": "check", "name": "industry_listed", "params": {"list": "13-1", "mode": "limited"}, "severity": "warn", "requires": "industry"},
+    {"id": "membership", "type": "check", "name": "membership_certificate", "severity": "block", "requires": "field"},
+    {"id": "own_membership", "type": "check", "name": "own_council_certificate", "params": {"only_full_support": true}, "severity": "block", "requires": "field"},
+    {"id": "career_plan", "type": "check", "name": "career_plan_delivered", "severity": "warn", "requires": "field"},
+    {"id": "author_required", "type": "required", "key": "a.author", "label": "作成責任者", "severity": "block"}
+  ]
+}

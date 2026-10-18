@@ -98,6 +98,13 @@
       <a class="button button--neutral button--small" href="{% url 'workers:contract_own_document' worker.pk contract.pk 'career-plan' %}">{% translate "Generate the career-up plan" %}</a>
       <a class="button button--neutral button--small" href="{% url 'workers:contract_own_document' worker.pk contract.pk 'experience-certificate' %}">{% translate "Generate the certificate of work experience" %}</a>
     </div>
+    <div class="cluster" id="contract-application-generate">
+      {% if version.site.field.code == "industrial_products" %}<a class="button button--neutral button--small" href="{% url 'workers:contract_own_document' worker.pk contract.pk '3-1' %}">{% translate "Generate form 3-1" %}</a>{% endif %}
+      {% if version.site.field.code == "food_manufacturing" %}<a class="button button--neutral button--small" href="{% url 'workers:contract_own_document' worker.pk contract.pk '13-1' %}">{% translate "Generate form 13-1" %}</a>
+      <a class="button button--neutral button--small" href="{% url 'workers:contract_own_document' worker.pk contract.pk '13-2' %}">{% translate "Generate form 13-2" %}</a>{% endif %}
+      <a class="button button--neutral button--small" href="{% url 'workers:contract_own_document' worker.pk contract.pk '5-10' %}">{% translate "Generate form 5-10" %}</a>
+      <a class="button button--neutral button--small" href="{% url 'workers:contract_own_document' worker.pk contract.pk '1-25' %}">{% translate "Generate form 1-25" %}</a>
+    </div>
     {% endif %}
   </section>
 

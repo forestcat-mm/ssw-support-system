@@ -43,6 +43,7 @@ from services import (
     authorization,
     contracts,
     form_checks,
+    form_data_application,
     form_data_career,
     form_data_contract,
     form_generation,
@@ -621,16 +622,28 @@ class ContractGenerateView(WorkerFormView):
         return redirect("forms:document", pk=document.pk)
 
 
-# --- 自機関の書類（キャリアアッププラン・実務経験証明書。T36、ADR-0025）-----------------------
+# --- 契約を対象にする書類（自機関の書類〔T36、ADR-0025〕と申請の書類〔T37、ADR-0026〕）---------
 
 OWN_FORMS = {
     "career-plan": gettext_lazy("career-up plan"),
     "experience-certificate": gettext_lazy("certificate of work experience"),
+    "3-1": gettext_lazy("pledge of the industrial products manufacturing field (form 3-1)"),
+    "13-1": gettext_lazy("pledge of the food manufacturing field by the host (form 13-1)"),
+    "13-2": gettext_lazy("pledge of the food manufacturing field by us (form 13-2)"),
+    "5-10": gettext_lazy("support entrustment contract (form 5-10)"),
+    "1-25": gettext_lazy("explanation of the support entrustment contract (form 1-25)"),
 }
+# 作成責任者を画面で入れる様式（初期値は form_data_application.default_author。T37-D10）
+AUTHOR_FORMS = frozenset({"3-1", "13-1", "13-2", "1-25"})
+APPLICATION_FORMS = frozenset({"3-1", "13-1", "13-2", "5-10", "1-25"})
 
 
 class OwnDocumentGenerateView(WorkerFormView):
-    """契約タブから、契約を対象に自機関の書類を生成する（基準日は画面で入れる。T36-D2）。"""
+    """契約を対象に書類を生成する（基準日は画面で入れる。T36-D2）。
+
+    申請の書類（第3-1号・第13-1号・第13-2号・第1-25号）は作成責任者も入れる。初期値は受入れ機関の
+    代表者（第13-2号は自機関の代表者）で、変えた値はデータとしてスナップショットに残る（T37-D10）。
+    """
 
     required_action = Action.FORMS_GENERATE
     template_name = "contracts/generate.html"
@@ -643,7 +656,13 @@ class OwnDocumentGenerateView(WorkerFormView):
         worker = self.worker(request, pk)
         return worker, get_object_or_404(worker.employment_contracts, pk=contract_id)
 
-    def data(self, contract: EmploymentContract, form_id: str, on: Any) -> dict[str, Any]:
+    def data(
+        self, contract: EmploymentContract, form_id: str, form: ContractGenerateForm
+    ) -> dict[str, Any]:
+        on = form.cleaned_data["basis_on"]
+        if form_id in APPLICATION_FORMS:
+            author = form.cleaned_data.get("author", "") or ""
+            return form_data_application.build(form_id, contract, on, author=author.strip())
         if form_id == "career-plan":
             return form_data_career.build_career_plan(contract, on)
         return form_data_career.build_experience_certificate(contract, on)
@@ -674,23 +693,35 @@ class OwnDocumentGenerateView(WorkerFormView):
         on = form.cleaned_data["basis_on"]
         try:
             return form_generation.check(
-                form_id, target=contract, data=self.data(contract, form_id, on), basis_on=on
+                form_id, target=contract, data=self.data(contract, form_id, form), basis_on=on
             )
         except form_templates.FormTemplateError:
             form.add_error(None, NOT_LOADED)
             return None
 
+    def form_class(self, form_id: str, *args: Any, **kwargs: Any) -> ContractGenerateForm:
+        if form_id not in AUTHOR_FORMS:
+            return ContractGenerateForm(*args, **kwargs)
+        return ContractGenerateForm(
+            *args,
+            with_author=True,
+            author_help=_("Printed in the form. The default is the representative."),
+            **kwargs,
+        )
+
     def get(self, request: HttpRequest, pk: int, contract_id: int, form_id: str) -> HttpResponse:
         worker, contract = self.target(request, pk, contract_id, form_id)
         initial = {"basis_on": timezone.localdate().isoformat()}
-        form = ContractGenerateForm(initial)
+        if form_id in AUTHOR_FORMS:
+            initial["author"] = form_data_application.default_author(form_id, contract)
+        form = self.form_class(form_id, initial)
         result = self.check(contract, form_id, form) if form.is_valid() else None
-        form = ContractGenerateForm(initial=initial)
+        form = self.form_class(form_id, initial=initial)
         return self.page(request, worker, contract, form_id, form, result)
 
     def post(self, request: HttpRequest, pk: int, contract_id: int, form_id: str) -> HttpResponse:
         worker, contract = self.target(request, pk, contract_id, form_id)
-        form = ContractGenerateForm(request.POST)
+        form = self.form_class(form_id, request.POST)
         if not form.is_valid():
             return self.page(request, worker, contract, form_id, form, None)
         if request.POST.get("action") != "generate":
@@ -703,7 +734,7 @@ class OwnDocumentGenerateView(WorkerFormView):
             document = form_generation.request(
                 form_id,
                 target=contract,
-                data=self.data(contract, form_id, on),
+                data=self.data(contract, form_id, form),
                 basis_on=on,
                 by=_actor(request),
                 accept_warnings=bool(form.cleaned_data.get("accept_warnings")),

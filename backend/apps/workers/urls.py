@@ -62,6 +62,11 @@ urlpatterns = [
     path("<int:pk>/filings/", views.WorkerFilingsView.as_view(), name="filings"),
     path("<int:pk>/documents/", forms_views.WorkerDocumentsView.as_view(), name="documents"),
     path(
+        "<int:pk>/documents/application/",
+        forms_views.ApplicationSetView.as_view(),
+        name="application_set",
+    ),
+    path(
         "<int:pk>/documents/<int:document_id>/signature/",
         forms_views.SignatureAddView.as_view(),
         name="document_signature",

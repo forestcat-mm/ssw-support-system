@@ -1,0 +1,12 @@
+{
+  "form_id": "13-2",
+  "valid_from": "2026-10-18",
+  "note": "T37 の規則（ADR-0026）。自機関の協議会の構成員証明書が無ければ生成不可（誓約事項 1）。支援委託契約が無い・全部委託でないは警告。",
+  "rules": [
+    {"id": "field", "type": "check", "name": "contract_field_is", "params": {"field": "food_manufacturing"}, "severity": "block"},
+    {"id": "own_membership", "type": "check", "name": "own_council_certificate", "severity": "block"},
+    {"id": "support_contract", "type": "check", "name": "support_contract_on_basis", "severity": "warn"},
+    {"id": "support_terms", "type": "check", "name": "support_contract_terms", "params": {"form": "13-2"}, "severity": "warn", "requires": "support_contract"},
+    {"id": "author_required", "type": "required", "key": "a.author", "label": "作成責任者", "severity": "block"}
+  ]
+}

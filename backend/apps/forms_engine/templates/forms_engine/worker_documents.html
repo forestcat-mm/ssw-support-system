@@ -2,7 +2,7 @@
 {% block tab_content %}
 <div class="stack" style="margin-top: var(--space-16)">
   <section class="card" id="generated-documents">
-    <div class="card__header"><h2 class="card__title">{% translate "Generated forms" %}</h2></div>
+    <div class="card__header"><h2 class="card__title">{% translate "Generated forms" %}</h2><a class="button button--neutral button--small" href="{% url 'workers:application_set' worker.pk %}" id="application-set-link">{% translate "Documents for the application" %}</a></div>
     {% if document_rows %}
     <div class="table-scroll"><table class="table table--list">
       <thead><tr><th>{% translate "form" %}</th><th>{% translate "generated at" %}</th><th>{% translate "status" %}</th><th>{% translate "date of signature" %}</th><th>{% translate "files" %}</th></tr></thead>

@@ -1,0 +1,51 @@
+{% extends "workers/detail_base.html" %}{% load i18n ui %}
+{% block tab_content %}
+<div class="stack" style="margin-top: var(--space-16)">
+  <p class="caption"><a href="{% url 'workers:documents' worker.pk %}">← {% translate "Generated forms" %}</a></p>
+  <section class="card stack" id="application-set">
+    <div class="card__header"><h2 class="card__title">{% translate "Documents for the application" %}</h2></div>
+    <form class="filter-bar" method="get" id="application-set-form">
+      {% form_field selector.set_id %}
+      {% form_field selector.basis_on %}
+      <div class="form-actions"><button class="button button--neutral" type="submit">{% translate "Show" %}</button></div>
+    </form>
+    <p class="caption" id="application-set-source">{% blocktranslate with name=overview.definition.name day=overview.definition.valid_from|date:"Y-m-d" %}{{ name }}: the list of documents to submit (revised on {{ day }}). Rows marked ○ are required; △ only when they apply.{% endblocktranslate %}</p>
+    {% if not overview.facts.contract %}<p class="message message--warning" id="application-set-no-contract">{% translate "There is no employment contract on the basis date, so rows that depend on the host organization cannot be judged." %}</p>{% endif %}
+    <p id="application-set-open">{% blocktranslate count counter=overview.open_count %}{{ counter }} required document is not ready.{% plural %}{{ counter }} required documents are not ready.{% endblocktranslate %}</p>
+    <div class="table-scroll"><table class="table table--list" id="application-set-rows">
+      <thead><tr><th>{% translate "table" %}</th><th>{% translate "document" %}</th><th>{% translate "form" %}</th><th>{% translate "required" %}</th><th>{% translate "status" %}</th></tr></thead>
+      <tbody>{% for state in overview.rows %}{% with row=state.row %}
+        <tr data-row="{{ row.id }}" data-status="{{ state.status }}">
+          <td>{{ row.table }} {{ row.number }}</td>
+          <td>{% if row.group or row.condition %}<span class="caption">{{ row.group }}{% if row.group and row.condition %} · {% endif %}{{ row.condition }}</span><br>{% endif %}{{ row.document|linebreaksbr }}{% if row.note %}<details class="caption"><summary>{% translate "points to note" %}</summary>{{ row.note|linebreaksbr }}</details>{% endif %}</td>
+          <td>{{ row.form|default:"—" }}</td>
+          <td>{{ row.need }}</td>
+          <td>
+            {% if state.status == "generated" %}<span class="badge badge--not-yet">{% translate "generated" %}</span>
+            {% elif state.status == "other_target" %}<span class="badge badge--within-7">{% translate "generated for another contract or version" %}</span>
+            {% elif state.status == "not_generated" %}<span class="badge badge--overdue">{% translate "not generated" %}</span>
+            {% elif state.status == "attached" %}<span class="badge badge--not-yet">{% translate "attached" %}</span>
+            {% elif state.status == "expired" %}<span class="badge badge--overdue">{% translate "expired" %}</span>
+            {% elif state.status == "missing" %}<span class="badge badge--overdue">{% translate "not attached" %}</span>
+            {% elif state.status == "alternative" %}<span class="muted">{% translate "for organizations with a track record (not judged in the system)" %}</span>
+            {% elif state.status == "unknown" %}<span class="muted">{% translate "cannot be judged" %}</span>
+            {% else %}<span class="muted">{% translate "prepared outside the system" %}</span>{% endif %}
+            {% if state.applicable is None and state.status != "alternative" %}<br><span class="caption">{% translate "Check whether it applies." %}</span>{% endif %}
+            {% if state.detail %}<br><span class="caption mono">{{ state.detail }}</span>{% endif %}
+            {% if state.signature == "awaiting" %}<br><span class="caption">{% translate "awaiting signature" %}</span>{% elif state.signature == "signed" %}<br><span class="caption">{% translate "signed" %}</span>{% endif %}
+            <div class="cluster">
+              {% if state.document %}<a class="button button--neutral button--small" href="{% url 'forms:document' state.document.pk %}">{% translate "Open" %}</a>{% endif %}
+              {% if state.action_url %}<a class="button button--neutral button--small" href="{{ state.action_url }}">{% if row.how.generate %}{% translate "Generate" %}{% else %}{% translate "Go to the record" %}{% endif %}</a>{% endif %}
+            </div>
+          </td>
+        </tr>{% endwith %}{% endfor %}</tbody>
+    </table></div>
+    {% if overview.not_applicable %}
+    <details id="application-set-not-applicable">
+      <summary>{% blocktranslate count counter=overview.not_applicable|length %}{{ counter }} row does not apply{% plural %}{{ counter }} rows do not apply{% endblocktranslate %}</summary>
+      <ul>{% for state in overview.not_applicable %}<li data-row="{{ state.row.id }}">{{ state.row.table }} {{ state.row.number }}: {{ state.row.document|truncatechars:60 }}</li>{% endfor %}</ul>
+    </details>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,410 @@
+{
+ "form_id": "5-10",
+ "valid_from": "2026-10-18",
+ "note": "T37 の全欄（ADR-0026）。値は services/form_data_application.py が作る。",
+ "fields": [
+  {
+   "key": "a.host_name",
+   "target": "host_name",
+   "format": "text",
+   "label": "特定技能所属機関の氏名又は名称",
+   "pad": 22,
+   "align": "left"
+  },
+  {
+   "key": "a.organization_name",
+   "target": "organization_name",
+   "format": "text",
+   "label": "登録支援機関の氏名又は名称",
+   "pad": 19,
+   "align": "left"
+  },
+  {
+   "key": "a.worker_name",
+   "target": "worker_name",
+   "format": "text",
+   "label": "特定技能外国人の氏名",
+   "pad": 20,
+   "align": "left"
+  },
+  {
+   "key": "a.field",
+   "target": "field",
+   "format": "text",
+   "label": "分野（第1条の 11）"
+  },
+  {
+   "key": "a.monthly_fee",
+   "target": "monthly_fee",
+   "format": "zen_yen",
+   "label": "委託料（月額）",
+   "pad": 12,
+   "align": "right"
+  },
+  {
+   "key": "a.starts_y",
+   "target": "starts_y",
+   "format": "zen",
+   "label": "契約期間（始期）（年）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "a.starts_m",
+   "target": "starts_m",
+   "format": "zen",
+   "label": "契約期間（始期）（月）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "a.starts_d",
+   "target": "starts_d",
+   "format": "zen",
+   "label": "契約期間（始期）（日）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "a.ends_y",
+   "target": "ends_y",
+   "format": "zen",
+   "label": "契約期間（終期）（年）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "a.ends_m",
+   "target": "ends_m",
+   "format": "zen",
+   "label": "契約期間（終期）（月）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "a.ends_d",
+   "target": "ends_d",
+   "format": "zen",
+   "label": "契約期間（終期）（日）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "a.court",
+   "target": "court",
+   "format": "text",
+   "label": "専属的合意管轄裁判所",
+   "pad": 3,
+   "align": "left"
+  },
+  {
+   "key": "a.concluded_y",
+   "target": "concluded_y",
+   "format": "zen",
+   "label": "締結日（契約年月日）（年）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "a.concluded_m",
+   "target": "concluded_m",
+   "format": "zen",
+   "label": "締結日（契約年月日）（月）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "a.concluded_d",
+   "target": "concluded_d",
+   "format": "zen",
+   "label": "締結日（契約年月日）（日）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "a.host_signature",
+   "target": "host_signature",
+   "format": "text",
+   "label": "甲（特定技能所属機関）",
+   "pad": 18,
+   "align": "left"
+  },
+  {
+   "key": "a.organization_signature",
+   "target": "organization_signature",
+   "format": "text",
+   "label": "乙（登録支援機関）",
+   "pad": 18,
+   "align": "left"
+  },
+  {
+   "key": "a.fee1_name",
+   "target": "fee1_name",
+   "format": "text",
+   "label": "別紙 1 行目 名目"
+  },
+  {
+   "key": "a.fee1_amount",
+   "target": "fee1_amount",
+   "format": "zen_yen",
+   "label": "別紙 1 行目 金額",
+   "pad": 13,
+   "align": "right"
+  },
+  {
+   "key": "a.fee1_occasional",
+   "target": "fee1_occasional",
+   "format": "check",
+   "label": "別紙 1 行目 随時"
+  },
+  {
+   "key": "a.fee1_regular",
+   "target": "fee1_regular",
+   "format": "check",
+   "label": "別紙 1 行目 定期"
+  },
+  {
+   "key": "a.fee2_name",
+   "target": "fee2_name",
+   "format": "text",
+   "label": "別紙 2 行目 名目"
+  },
+  {
+   "key": "a.fee2_amount",
+   "target": "fee2_amount",
+   "format": "zen_yen",
+   "label": "別紙 2 行目 金額",
+   "pad": 13,
+   "align": "right"
+  },
+  {
+   "key": "a.fee2_occasional",
+   "target": "fee2_occasional",
+   "format": "check",
+   "label": "別紙 2 行目 随時"
+  },
+  {
+   "key": "a.fee2_regular",
+   "target": "fee2_regular",
+   "format": "check",
+   "label": "別紙 2 行目 定期"
+  },
+  {
+   "key": "a.fee3_name",
+   "target": "fee3_name",
+   "format": "text",
+   "label": "別紙 3 行目 名目"
+  },
+  {
+   "key": "a.fee3_amount",
+   "target": "fee3_amount",
+   "format": "zen_yen",
+   "label": "別紙 3 行目 金額",
+   "pad": 13,
+   "align": "right"
+  },
+  {
+   "key": "a.fee3_occasional",
+   "target": "fee3_occasional",
+   "format": "check",
+   "label": "別紙 3 行目 随時"
+  },
+  {
+   "key": "a.fee3_regular",
+   "target": "fee3_regular",
+   "format": "check",
+   "label": "別紙 3 行目 定期"
+  },
+  {
+   "key": "a.fee4_name",
+   "target": "fee4_name",
+   "format": "text",
+   "label": "別紙 4 行目 名目"
+  },
+  {
+   "key": "a.fee4_amount",
+   "target": "fee4_amount",
+   "format": "zen_yen",
+   "label": "別紙 4 行目 金額",
+   "pad": 13,
+   "align": "right"
+  },
+  {
+   "key": "a.fee4_occasional",
+   "target": "fee4_occasional",
+   "format": "check",
+   "label": "別紙 4 行目 随時"
+  },
+  {
+   "key": "a.fee4_regular",
+   "target": "fee4_regular",
+   "format": "check",
+   "label": "別紙 4 行目 定期"
+  },
+  {
+   "key": "a.fee5_name",
+   "target": "fee5_name",
+   "format": "text",
+   "label": "別紙 5 行目 名目"
+  },
+  {
+   "key": "a.fee5_amount",
+   "target": "fee5_amount",
+   "format": "zen_yen",
+   "label": "別紙 5 行目 金額",
+   "pad": 13,
+   "align": "right"
+  },
+  {
+   "key": "a.fee5_occasional",
+   "target": "fee5_occasional",
+   "format": "check",
+   "label": "別紙 5 行目 随時"
+  },
+  {
+   "key": "a.fee5_regular",
+   "target": "fee5_regular",
+   "format": "check",
+   "label": "別紙 5 行目 定期"
+  },
+  {
+   "key": "a.fee6_name",
+   "target": "fee6_name",
+   "format": "text",
+   "label": "別紙 6 行目 名目"
+  },
+  {
+   "key": "a.fee6_amount",
+   "target": "fee6_amount",
+   "format": "zen_yen",
+   "label": "別紙 6 行目 金額",
+   "pad": 13,
+   "align": "right"
+  },
+  {
+   "key": "a.fee6_occasional",
+   "target": "fee6_occasional",
+   "format": "check",
+   "label": "別紙 6 行目 随時"
+  },
+  {
+   "key": "a.fee6_regular",
+   "target": "fee6_regular",
+   "format": "check",
+   "label": "別紙 6 行目 定期"
+  },
+  {
+   "key": "a.fee7_name",
+   "target": "fee7_name",
+   "format": "text",
+   "label": "別紙 7 行目 名目"
+  },
+  {
+   "key": "a.fee7_amount",
+   "target": "fee7_amount",
+   "format": "zen_yen",
+   "label": "別紙 7 行目 金額",
+   "pad": 13,
+   "align": "right"
+  },
+  {
+   "key": "a.fee7_occasional",
+   "target": "fee7_occasional",
+   "format": "check",
+   "label": "別紙 7 行目 随時"
+  },
+  {
+   "key": "a.fee7_regular",
+   "target": "fee7_regular",
+   "format": "check",
+   "label": "別紙 7 行目 定期"
+  },
+  {
+   "key": "a.fee8_name",
+   "target": "fee8_name",
+   "format": "text",
+   "label": "別紙 8 行目 名目"
+  },
+  {
+   "key": "a.fee8_amount",
+   "target": "fee8_amount",
+   "format": "zen_yen",
+   "label": "別紙 8 行目 金額",
+   "pad": 13,
+   "align": "right"
+  },
+  {
+   "key": "a.fee8_occasional",
+   "target": "fee8_occasional",
+   "format": "check",
+   "label": "別紙 8 行目 随時"
+  },
+  {
+   "key": "a.fee8_regular",
+   "target": "fee8_regular",
+   "format": "check",
+   "label": "別紙 8 行目 定期"
+  },
+  {
+   "key": "a.fee9_name",
+   "target": "fee9_name",
+   "format": "text",
+   "label": "別紙 9 行目 名目"
+  },
+  {
+   "key": "a.fee9_amount",
+   "target": "fee9_amount",
+   "format": "zen_yen",
+   "label": "別紙 9 行目 金額",
+   "pad": 13,
+   "align": "right"
+  },
+  {
+   "key": "a.fee9_occasional",
+   "target": "fee9_occasional",
+   "format": "check",
+   "label": "別紙 9 行目 随時"
+  },
+  {
+   "key": "a.fee9_regular",
+   "target": "fee9_regular",
+   "format": "check",
+   "label": "別紙 9 行目 定期"
+  },
+  {
+   "key": "a.fee10_name",
+   "target": "fee10_name",
+   "format": "text",
+   "label": "別紙 10 行目 名目"
+  },
+  {
+   "key": "a.fee10_amount",
+   "target": "fee10_amount",
+   "format": "zen_yen",
+   "label": "別紙 10 行目 金額",
+   "pad": 13,
+   "align": "right"
+  },
+  {
+   "key": "a.fee10_occasional",
+   "target": "fee10_occasional",
+   "format": "check",
+   "label": "別紙 10 行目 随時"
+  },
+  {
+   "key": "a.fee10_regular",
+   "target": "fee10_regular",
+   "format": "check",
+   "label": "別紙 10 行目 定期"
+  },
+  {
+   "key": "a.fee_total",
+   "target": "fee_total",
+   "format": "zen_yen",
+   "label": "別紙 合計",
+   "pad": 10,
+   "align": "right"
+  }
+ ],
+ "rules": []
+}

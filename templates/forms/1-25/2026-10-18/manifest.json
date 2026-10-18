@@ -1,0 +1,24 @@
+{
+  "form_id": "1-25",
+  "name": "登録支援機関との支援委託契約に関する説明書（参考様式第1-25号）",
+  "valid_from": "2026-10-18",
+  "language": "ja",
+  "owner": "common",
+  "method": "docx-tags",
+  "requires_signed_copy": false,
+  "original": "original.doc",
+  "converted": "converted.docx",
+  "converter": "LibreOffice 7.4.7.2 40(Build:2)（tools/forms/convert_doc.py）",
+  "template": "template.docx",
+  "source": {
+    "url": "https://www.moj.go.jp/isa/content/001338997.doc",
+    "page": "https://www.moj.go.jp/isa/applications/ssw/10_00020.html",
+    "retrieved_on": "2026-10-18",
+    "revision_date": null,
+    "revision_date_unknown": true,
+    "original_sha256": "190e87d7fa1dc172121222733c9cdc9879857d0c0271d84bf76a8ab165177bda",
+    "converted_sha256": "807aa7040883a47d3e75a07509d594aea59b70a6add491452ad992eec8d45205",
+    "template_sha256": "c6925edb469dfb5f5351b2c2dec3da0648c23c73e22a647ef266c6a33a916392",
+    "adr": "ADR-0026（取得日 2026-10-18（Last-Modified 2024-03-03。改正日の記載なし））、ADR-0018"
+  }
+}
