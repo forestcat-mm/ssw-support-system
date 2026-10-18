@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-18 12:02+0900\n"
+"POT-Creation-Date: 2026-10-18 12:18+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -196,14 +196,23 @@ msgid "Cancel the termination"
 msgstr "終了を取り消す"
 
 msgid ""
-"Only for correcting a mistake. Unsubmitted termination notification tasks "
-"are cancelled with this reason."
+"Only for correcting a mistake. Notification tasks not yet started are "
+"cancelled with this reason. Tasks in progress are kept and marked; submitted "
+"or closed tasks get a note."
 msgstr ""
-"入力の誤りを直すときだけ使います。提出前の終了届出のタスクは、この理由で取消"
-"になります。"
+"入力の誤りを直すときだけ使います。未着手の届出タスクは、この理由で取消になり"
+"ます。対応中のタスクは残して印を付け、提出済み・完了などのタスクにはメモを付"
+"けます。"
 
 msgid "Cancelled the termination."
 msgstr "終了を取り消しました。"
+
+#, python-format
+msgid "%(count)d notification task is in progress and was kept. Check it."
+msgid_plural ""
+"%(count)d notification tasks are in progress and were kept. Check them."
+msgstr[0] ""
+"対応中の届出タスク %(count)d 件は取り消さずに残しました。確かめてください。"
 
 msgid "operation categories"
 msgstr "業務区分"
@@ -2571,17 +2580,6 @@ msgid "Created %(count)d notification task for: %(names)s."
 msgid_plural "Created %(count)d notification tasks for: %(names)s."
 msgstr[0] "届出タスクを %(count)d 件起票しました（対象: %(names)s）。"
 
-#, python-format
-msgid ""
-"%(count)d notification task was already started or closed and was not "
-"cancelled. Check it."
-msgid_plural ""
-"%(count)d notification tasks were already started or closed and were not "
-"cancelled. Check them."
-msgstr[0] ""
-"届出タスク %(count)d 件は対応中・完了などのため取り消していません。確かめてく"
-"ださい。"
-
 msgid "Edit the host organization"
 msgstr "受入れ機関の編集"
 
@@ -2698,13 +2696,6 @@ msgstr "終了を登録しました。"
 
 msgid "Cancel the termination of the support contract"
 msgstr "支援委託契約の終了の取消"
-
-msgid ""
-"Only for correcting a mistake. Notification tasks not yet started are "
-"cancelled with this reason. Tasks in progress or closed are kept; check them."
-msgstr ""
-"入力の誤りを直すときだけ使います。未着手の届出タスクは、この理由で取消になり"
-"ます。対応中・完了などのタスクは残すので、確かめてください。"
 
 msgid "Add a copy of the cooperation confirmation"
 msgstr "協力確認書の控えの追加"
@@ -5196,6 +5187,12 @@ msgstr ""
 "起算日を契約の終了日にしています。受入れ困難の事由（解雇の予告など）がそれよ"
 "り前に生じた場合は、起算日を訂正してください。"
 
+msgid "the termination of the employment contract"
+msgstr "雇用契約の終了"
+
+msgid "the termination of the support contract"
+msgstr "支援委託契約の終了"
+
 #, python-format
 msgid "The termination of the employment contract was cancelled: %(reason)s"
 msgstr "雇用契約の終了が取り消されました: %(reason)s"
@@ -5227,6 +5224,11 @@ msgstr "支援委託契約の終了日を変更（%(old)s → %(new)s。自動�
 
 msgid "The end date has passed: register the next period or the termination."
 msgstr "終了日を過ぎています：次の期間か終了を登録"
+
+#, python-format
+msgid "The original event (%(event)s) was cancelled. Check this task."
+msgstr ""
+"元の事由（%(event)s）が取り消されました。このタスクを確かめてください。"
 
 msgid ""
 "A support contract was in effect: fill in column c (termination of the "

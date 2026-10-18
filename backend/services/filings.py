@@ -380,30 +380,65 @@ def on_contract_terminated(contract: EmploymentContract, *, by: User | None) -> 
     return created
 
 
+# --- 元の事由の取消（共通の規則。ADR-0017 の決定 6）-------------------------------------
+
+# 元の事由の種類 → タスクに出す文言（task_notes）
+SOURCE_CANCELLED_LABELS = {
+    "contract_termination": gettext_lazy("the termination of the employment contract"),
+    "support_contract_termination": gettext_lazy("the termination of the support contract"),
+}
+
+
+class Reverted(enum.StrEnum):
+    CANCELLED = "cancelled"  # 未着手だったので取消にした
+    LEFT_OPEN = "left_open"  # 対応中なので残した（印を付け、画面で件数を知らせる）
+    NOTED = "noted"  # 提出済み・完了などなのでメモを付けて残した
+
+
+def revert_raised_task(filing: Filing, *, source: str, reason: str, by: User | None) -> Reverted:
+    """元の事由（終了の登録など）を取り消したときの、起票済みのタスクの扱い（T28a〜T28c で共通）。
+
+    - 未着手: 理由つきで取消
+    - 対応中: 残す。trigger_details に元の事由の取消の印を付け、タスクに表示する（task_notes）
+    - 提出済み・受理済・完了・不要: 残してメモを付ける
+    """
+    status = FilingStatus(filing.status)
+    if status is FilingStatus.NOT_STARTED:
+        transition(filing, FilingStatus.CANCELLED, by=by, reason=reason)
+        return Reverted.CANCELLED
+    with audit.event(AuditAction.FILING_TRANSITION, target=filing, actor=by):
+        if status is FilingStatus.IN_PROGRESS:
+            filing.trigger_details = dict(filing.trigger_details or {}) | {
+                "source_cancelled": {"source": source, "reason": reason}
+            }
+        filing.note = f"{filing.note}\n{reason}".strip()
+        filing.updated_by = by
+        filing.save(update_fields=["trigger_details", "note", "updated_by", "updated_at"])
+    return Reverted.LEFT_OPEN if status is FilingStatus.IN_PROGRESS else Reverted.NOTED
+
+
 def on_termination_cancelled(
     contract: EmploymentContract, *, terminated_on: date, by: User | None, reason: str = ""
-) -> None:
-    """終了の取り消し → 起票済みの終了届出・受入れ困難届出を取消にする。
+) -> list[Filing]:
+    """終了の取り消し → 起票済みの終了届出・受入れ困難届出を共通の規則で戻す。
 
-    提出済み以降のものは取消にせず、メモに残す。取り消した理由（人が入れたもの）を添える。
+    対応中として残したタスクを返す（画面で件数を知らせる）。
     """
-    reason = (
+    note = (
         _("The termination of the employment contract was cancelled: %(reason)s")
         % {"reason": reason}
         if reason
         else _("The termination of the employment contract was cancelled.")
     )
+    left: list[Filing] = []
     for kind in (FilingKind.CONTRACT_TERMINATION, FilingKind.ACCEPTANCE_DIFFICULTY):
         filing = find_open(kind, contract, terminated_on)
         if filing is None:
             continue
-        if FilingStatus.CANCELLED in TRANSITIONS[FilingStatus(filing.status)]:
-            transition(filing, FilingStatus.CANCELLED, by=by, reason=reason)
-        else:
-            with audit.event(AuditAction.FILING_TRANSITION, target=filing, actor=by):
-                filing.note = f"{filing.note}\n{reason}".strip()
-                filing.updated_by = by
-                filing.save(update_fields=["note", "updated_by", "updated_at"])
+        outcome = revert_raised_task(filing, source="contract_termination", reason=note, by=by)
+        if outcome is Reverted.LEFT_OPEN:
+            left.append(filing)
+    return left
 
 
 def on_version_added(version: EmploymentContractVersion, *, by: User | None) -> Filing | None:
@@ -885,6 +920,12 @@ def task_notes(filing: Filing, today: date) -> list[str]:
     open_ = FilingStatus(filing.status) in OPEN_STATUSES
     if kind is FilingKind.SUPPORT_CONTRACT_RENEWAL and open_ and filing.basis_on < today:
         notes.append(_("The end date has passed: register the next period or the termination."))
+    cancelled = (filing.trigger_details or {}).get("source_cancelled")
+    if cancelled and open_:
+        label = SOURCE_CANCELLED_LABELS.get(cancelled.get("source", ""), "")
+        notes.append(
+            _("The original event (%(event)s) was cancelled. Check this task.") % {"event": label}
+        )
     notes.extend(_support_contract_notes(filing))
     if kind is FilingKind.CONTRACT_TERMINATION and (filing.trigger_details or {}).get(
         "support_contract"

@@ -111,10 +111,8 @@ def raised_messages(request: HttpRequest, raised: support_filings.Raised) -> Non
         messages.warning(
             request,
             ngettext(
-                "%(count)d notification task was already started or closed and was not "
-                "cancelled. Check it.",
-                "%(count)d notification tasks were already started or closed and were not "
-                "cancelled. Check them.",
+                "%(count)d notification task is in progress and was kept. Check it.",
+                "%(count)d notification tasks are in progress and were kept. Check them.",
                 len(raised.left_open),
             )
             % {"count": len(raised.left_open)},
@@ -608,7 +606,8 @@ class SupportReopenView(HostFormView):
             title=_("Cancel the termination of the support contract"),
             lead=_(
                 "Only for correcting a mistake. Notification tasks not yet started are cancelled "
-                "with this reason. Tasks in progress or closed are kept; check them."
+                "with this reason. Tasks in progress are kept and marked; submitted or closed "
+                "tasks get a note."
             ),
             back=detail_url(host, "support-contracts"),
             submit=_("Cancel the termination"),

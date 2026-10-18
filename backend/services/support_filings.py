@@ -9,7 +9,8 @@ services.hosts.support_targets（事由の日に雇用契約が有効な特定�
 - 変更（同じ行の委託料・期間を「契約の変更」として直したとき）: 第3-3-1号。起算日は変更日。
   誤りの訂正として直したときは起票しない。
 - 終了の登録: 第3-3-2号（A 契約の終了）と第3-2号（別表Ⅲ⑦）。起算日は実際の終了日。
-- 終了の取消: 起票したタスクを、未着手なら理由つきで取消、対応中・完了は残す（画面で知らせる）。
+- 終了の取消: 起票したタスクを共通の規則（services.filings.revert_raised_task）で戻す。未着手は
+  理由つきで取消、対応中は印を付けて残し（画面で知らせる）、提出済み・完了などはメモを付けて残す。
 - 外国人の退職で終わる場合は第3-1-2号の c 欄で兼ねる（services.filings.on_contract_terminated）。
 """
 
@@ -168,7 +169,7 @@ def on_terminated(contract: SupportContract, *, by: User | None) -> Raised:
 def on_termination_cancelled(
     contract: SupportContract, *, terminated_on: date, reason: str, by: User | None
 ) -> Raised:
-    """終了の取消: 起票したタスクのうち未着手は理由つきで取消、対応中・完了などは残す。"""
+    """終了の取消: 起票したタスクを共通の規則で戻す（対応中で残したものを left_open に返す）。"""
     out = Raised()
     note = _("The termination of the support contract was cancelled: %(reason)s") % {
         "reason": reason
@@ -180,9 +181,10 @@ def on_termination_cancelled(
         trigger_details__support_contract=contract.pk,
     ).exclude(status=FilingStatus.CANCELLED)
     for filing in tasks.order_by("pk"):
-        if filing.status == FilingStatus.NOT_STARTED:
-            filings.transition(filing, FilingStatus.CANCELLED, by=by, reason=note)
-        else:
+        outcome = filings.revert_raised_task(
+            filing, source="support_contract_termination", reason=note, by=by
+        )
+        if outcome is filings.Reverted.LEFT_OPEN:
             out.left_open.append(filing)
     return out
 

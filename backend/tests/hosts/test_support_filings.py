@@ -335,6 +335,9 @@ def test_cancelling_the_termination_cancels_untouched_tasks_and_keeps_started_on
         assert "別の受入れ機関に登録した" in task.status_reason
     started.refresh_from_db()
     assert started.status == FilingStatus.IN_PROGRESS
+    assert (
+        "元の事由（支援委託契約の終了）が取り消されました" in filings.task_notes(started, TODAY)[0]
+    )
     renewal.refresh_from_db()
     assert renewal.status == FilingStatus.NOT_STARTED  # 終了で完了にした更新のタスクを戻す
     contract.refresh_from_db()

@@ -84,6 +84,24 @@ def test_cancelling_termination_cancels_filings_with_reason() -> None:
     assert Filing.objects.count() == 3
 
 
+def test_in_progress_filing_is_kept_and_marked() -> None:
+    """共通の規則（ADR-0017 の決定 6）: 対応中は残して印を付け、件数を返す。"""
+    contract = make_contract()
+    contracts.terminate(contract, on=date(2026, 9, 30), reason=TerminationReason.COMPANY, by=None)
+    started = Filing.objects.get(kind=FilingKind.CONTRACT_TERMINATION)
+    filings.transition(started, FilingStatus.IN_PROGRESS, by=None)
+    left = contracts.cancel_termination(contract, by=None, reason="入力の誤り")
+    assert left == [started]
+    started.refresh_from_db()
+    assert started.status == FilingStatus.IN_PROGRESS
+    assert started.trigger_details["source_cancelled"]["source"] == "contract_termination"
+    assert filings.task_notes(started, date(2026, 10, 1)) == [
+        "元の事由（雇用契約の終了）が取り消されました。このタスクを確かめてください。"
+    ]
+    other = Filing.objects.get(kind=FilingKind.ACCEPTANCE_DIFFICULTY)
+    assert other.status == FilingStatus.CANCELLED  # 未着手は取消
+
+
 def test_submitted_filing_is_not_cancelled_but_noted() -> None:
     contract = make_contract()
     contracts.terminate(contract, on=date(2026, 9, 30), reason=TerminationReason.EXPIRY, by=None)
@@ -93,6 +111,7 @@ def test_submitted_filing_is_not_cancelled_but_noted() -> None:
     filing.refresh_from_db()
     assert filing.status == FilingStatus.SUBMITTED
     assert "取り消されました" in filing.note
+    assert filings.task_notes(filing, date(2026, 10, 6)) == []  # 閉じたタスクはメモだけ
 
 
 # --- 版の追加・新たな契約 ---------------------------------------------------------------

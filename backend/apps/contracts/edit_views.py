@@ -17,6 +17,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
 
 from apps.contracts.forms import (
     AllowanceFormSet,
@@ -385,8 +386,9 @@ class ReopenView(ContractFormView):
             form=form,
             title=_("Cancel the termination"),
             lead=_(
-                "Only for correcting a mistake. Unsubmitted termination notification tasks are "
-                "cancelled with this reason."
+                "Only for correcting a mistake. Notification tasks not yet started are cancelled "
+                "with this reason. Tasks in progress are kept and marked; submitted or closed "
+                "tasks get a note."
             ),
             back=tab_url(worker, contract),
             submit=_("Cancel the termination"),
@@ -405,13 +407,24 @@ class ReopenView(ContractFormView):
         form = self.form(request.POST)
         if form.is_valid():
             try:
-                contracts.cancel_termination(
+                left = contracts.cancel_termination(
                     contract, by=_actor(request), reason=form.cleaned_data["reason"]
                 )
             except ValidationError as error:
                 apply_errors(form, error)
             else:
                 messages.success(request, _("Cancelled the termination."))
+                if left:
+                    messages.warning(
+                        request,
+                        ngettext(
+                            "%(count)d notification task is in progress and was kept. Check it.",
+                            "%(count)d notification tasks are in progress and were kept. "
+                            "Check them.",
+                            len(left),
+                        )
+                        % {"count": len(left)},
+                    )
                 return redirect(tab_url(worker, contract))
         return self.page(request, worker, contract, form)
 

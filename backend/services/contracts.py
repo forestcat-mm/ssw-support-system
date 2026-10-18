@@ -552,10 +552,11 @@ def terminate(
 
 
 @transaction.atomic
-def cancel_termination(contract: EmploymentContract, *, by: User | None, reason: str) -> None:
+def cancel_termination(contract: EmploymentContract, *, by: User | None, reason: str) -> list[Any]:
     """終了の登録を取り消す（入力ミスの訂正。管理者のみ。理由は必須。期間の重なりを確かめる）。
 
-    理由は監査ログ（見出しの更新の context）と、取り消した終了届出のタスクの理由に残す。
+    理由は監査ログ（見出しの更新の context）と、戻した終了届出のタスクに残す。起票済みのタスクは
+    共通の規則（services.filings.revert_raised_task）で戻し、対応中として残したタスクを返す。
     """
     if not reason.strip():
         raise ValidationError({"reason": _("Enter the reason.")}, code="reason")
@@ -585,10 +586,11 @@ def cancel_termination(contract: EmploymentContract, *, by: User | None, reason:
                 "updated_at",
             ]
         )
-    if terminated_on is not None:
-        filings.on_termination_cancelled(
-            contract, terminated_on=terminated_on, by=by, reason=reason
-        )
+    if terminated_on is None:
+        return []
+    return filings.on_termination_cancelled(
+        contract, terminated_on=terminated_on, by=by, reason=reason
+    )
 
 
 def complete_version(version: EmploymentContractVersion, *, by: User | None) -> Any:
