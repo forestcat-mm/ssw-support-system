@@ -338,6 +338,15 @@ def support_targets(host: HostOrganization, on: date) -> list[ForeignWorker]:
     return sorted(workers.values(), key=lambda worker: worker.pk)
 
 
+def supported_worker_ids(on: date) -> set[int]:
+    """その日に支援委託契約が有効な受入れ機関の、支援の対象の外国人（第1-17号Ⅲ欄７の人数の元）。"""
+    ids: set[int] = set()
+    contracts = SupportContract.objects.filter(_active_on_q(on)).select_related("host_organization")
+    for contract in contracts:
+        ids.update(worker.pk for worker in support_targets(contract.host_organization, on))
+    return ids
+
+
 def active_contract(host: HostOrganization, on: date) -> SupportContract | None:
     return host.support_contracts.filter(_active_on_q(on)).first()
 

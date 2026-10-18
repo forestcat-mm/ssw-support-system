@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-18 16:57+0900\n"
+"POT-Creation-Date: 2026-10-18 18:06+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -1014,6 +1014,9 @@ msgstr "添付ファイル"
 msgid "attachments"
 msgstr "添付ファイル"
 
+msgid "name (kana)"
+msgstr "名称（カナ）"
+
 msgid "registration number"
 msgstr "登録支援機関登録番号"
 
@@ -1022,6 +1025,9 @@ msgstr "登録期限"
 
 msgid "registration date"
 msgstr "登録年月日"
+
+msgid "planned start date of support work"
+msgstr "支援業務を開始する予定年月日"
 
 msgid "representative's name"
 msgstr "代表者の氏名"
@@ -1061,6 +1067,9 @@ msgstr "コード"
 
 msgid "display name"
 msgstr "表示名"
+
+msgid "name on forms"
+msgstr "様式での名前"
 
 msgid "sort order"
 msgstr "並び順"
@@ -2545,6 +2554,25 @@ msgstr "届出タスクを起票しました。"
 msgid "Forms"
 msgstr "帳票"
 
+msgid "basis date (planned application date)"
+msgstr "基準日（申請予定日）"
+
+msgid "Used to choose the form version and for the checks."
+msgstr "様式の版の選び方と、生成前の検査に使います。"
+
+msgid ""
+"We declare that the support is ensured to be proper (section III-7: the "
+"support manager is not a relative or close associate of the host's officers, "
+"and neither the manager nor the staff fall under the grounds for refusing "
+"registration)."
+msgstr ""
+"支援の適正性を確保していることを申告します（Ⅲ欄７: 支援責任者が特定技能所属機"
+"関の役員の配偶者・親族・密接な関係にある者などでないこと、支援責任者・支援担"
+"当者が登録拒否事由に該当しないこと）。"
+
+msgid "I have checked the warnings and will generate the form anyway."
+msgstr "警告を確かめたうえで生成します。"
+
 msgid "common"
 msgstr "共通"
 
@@ -2673,6 +2701,57 @@ msgstr "生成履歴"
 
 msgid "generated documents"
 msgstr "生成履歴"
+
+msgid "Cannot generate"
+msgstr "生成できません"
+
+msgid "Can generate with warnings"
+msgstr "警告付きで生成できます"
+
+msgid "cannot generate"
+msgstr "生成不可"
+
+msgid "warning"
+msgstr "警告"
+
+msgid "Fix"
+msgstr "直す"
+
+msgid "No problems were found."
+msgstr "不足はありません。"
+
+msgid "The form is being generated. Reload this page in a moment."
+msgstr "生成しています。しばらくしてから、この画面を再読み込みしてください。"
+
+msgid "Reload"
+msgstr "再読み込み"
+
+msgid "Generation failed."
+msgstr "生成に失敗しました。"
+
+msgid "Generated."
+msgstr "生成しました。"
+
+msgid "Generation record"
+msgstr "生成履歴"
+
+msgid "Download the PDF"
+msgstr "PDF をダウンロード"
+
+msgid "Record the delivery of a copy"
+msgstr "写しの交付を記録する"
+
+msgid "form version"
+msgstr "様式の版"
+
+msgid "support plan version"
+msgstr "支援計画の版"
+
+msgid "requested by"
+msgstr "依頼した人"
+
+msgid "Warnings at generation"
+msgstr "生成のときの警告"
 
 msgid "Support contracts entered on this page overlap each other."
 msgstr "この画面で入力した支援委託契約どうしの期間が重なっています。"
@@ -2989,9 +3068,6 @@ msgstr "個人事業主"
 
 msgid "entity type"
 msgstr "法人・個人の区別"
-
-msgid "name (kana)"
-msgstr "名称（カナ）"
 
 msgid "corporate number"
 msgstr "法人番号"
@@ -3373,9 +3449,6 @@ msgstr "オンライン"
 
 msgid "in person"
 msgstr "対面"
-
-msgid "support plan version"
-msgstr "支援計画の版"
 
 msgid "support plan versions"
 msgstr "支援計画の版"
@@ -3947,6 +4020,9 @@ msgstr "任意。例: 書類の版や表題"
 msgid "Give it before the employment contract is concluded."
 msgstr "雇用契約を締結する前に交付する。"
 
+msgid "The generated document was not found."
+msgstr "生成物が見つかりません。"
+
 #, python-format
 msgid "Linked this record to the report task (form 4-3) due on %(due)s."
 msgstr ""
@@ -4269,6 +4345,15 @@ msgstr "交付の一覧へ"
 msgid "Signed copy or receipt"
 msgstr "署名済みの控え・受領の記録"
 
+#, python-format
+msgid ""
+"Made from the generated form %(form_id)s (#%(number)s, support plan version "
+"%(version)s). The plan version of this record is the version of the "
+"generated document."
+msgstr ""
+"生成した第%(form_id)s号（#%(number)s、支援計画の第 %(version)s 版）から作りま"
+"す。この交付記録の計画の版は、生成物の版になります。"
+
 msgid "Void a delivery record"
 msgstr "交付記録の取消"
 
@@ -4337,6 +4422,19 @@ msgid ""
 msgstr ""
 "エラーか注意のある区分を開いています。注意（時期や担当者が空）があっても保存"
 "できます。"
+
+msgid "Generate the support plan (form 1-17)"
+msgstr "支援計画書を作る（第1-17号）"
+
+#, python-format
+msgid "%(host)s · version %(number)s (applies from %(day)s)"
+msgstr "%(host)s・第 %(number)s 版（%(day)s から適用）"
+
+msgid "Check again"
+msgstr "検査する"
+
+msgid "Generate"
+msgstr "生成する"
 
 msgid ""
 "This row is the reception of a consultation. Its progress and status are on "
@@ -4415,6 +4513,10 @@ msgstr "表示"
 msgid "Create a support plan"
 msgstr "支援計画を作成"
 
+#, python-format
+msgid "Generate the support plan (version %(number)s)"
+msgstr "支援計画書を作る（第 %(number)s 版）"
+
 msgid "No support plan is registered."
 msgstr "支援計画は登録されていません。"
 
@@ -4474,6 +4576,18 @@ msgstr "支援計画の新版を追加"
 #, python-format
 msgid "Added version %(number)s."
 msgstr "第%(number)s版を追加しました。"
+
+msgid ""
+"The form is not loaded. Ask an administrator to load the forms (make forms)."
+msgstr ""
+"様式が読み込まれていません。管理者に様式の読み込み（make forms）を依頼してく"
+"ださい。"
+
+msgid "Check the warnings before generating."
+msgstr "警告を確かめてから生成してください。"
+
+msgid "Requested the generation of the form."
+msgstr "帳票の生成を依頼しました。"
 
 msgid "Enter the reason for voiding."
 msgstr "取り消しの理由を入力してください。"
@@ -5130,6 +5244,10 @@ msgstr ""
 "交付日に適用されている支援計画が無いため、写しの対象が特定できません。支援計"
 "画を作るか、交付日を確かめてください。"
 
+msgid ""
+"Only a completed support plan (form 1-17) of this foreign worker can be used."
+msgstr "この外国人の、生成が完了した支援計画書（第1-17号）だけを元にできます。"
+
 msgid "This record is already voided."
 msgstr "この記録は取り消し済みです。"
 
@@ -5141,6 +5259,13 @@ msgstr "雇用契約の締結日が未入力のため、契約前の交付か確
 #, python-format
 msgid "Given after the employment contract was concluded (%(day)s)."
 msgstr "雇用契約の締結（%(day)s）より後に交付されています。"
+
+#, python-format
+msgid ""
+"This is a copy of version %(version)s, but the version in effect on the "
+"delivery date is %(applied)s."
+msgstr ""
+"第 %(version)s 版の写しですが、交付日に適用されている版は %(applied)s です。"
 
 msgid "There is no record of explaining it."
 msgstr "内容を説明した記録がありません。"
@@ -5463,6 +5588,68 @@ msgstr ""
 #, python-format
 msgid "There is no record of the %(kind)s."
 msgstr "%(kind)sの記録がありません。"
+
+#, python-format
+msgid ""
+"The employment contract period ended on %(day)s. Register a new version for "
+"the renewal or the termination."
+msgstr ""
+"雇用契約の期間の終了日（%(day)s）を過ぎています。更新の新しい版か終了を登録し"
+"てください。"
+
+#, python-format
+msgid "%(host)s has no support contract in effect on %(day)s."
+msgstr "%(host)sとの支援委託契約が、基準日（%(day)s）に有効ではありません。"
+
+#, python-format
+msgid ""
+"Rows %(codes)s are marked as outsourced. When all support is entrusted to a "
+"registered support organization, every row must be \"not outsourced\"."
+msgstr ""
+"行 %(codes)s の「委託の有無」が「有」です。登録支援機関に支援の全部を委託する"
+"場合は、すべて「無」です（第1-17号 注意５）。"
+
+msgid ""
+"The form has no \"other\" box for the method of the life orientation, so it "
+"will not be printed."
+msgstr ""
+"様式のⅣ欄４（生活オリエンテーション）の実施方法に「その他」の欄が無いため、"
+"「その他」は様式に出ません。"
+
+msgid "The reading (kana) of our name is empty."
+msgstr "自機関の名称のふりがなが空です。"
+
+msgid ""
+"The planned start date of support work (in the register of registered "
+"support organizations) is empty."
+msgstr "支援業務を開始する予定年月日（登録支援機関登録簿の値）が空です。"
+
+msgid ""
+"The assigned staff member has no office, so the support office is empty."
+msgstr ""
+"担当者の事務所が決まっていないため、支援を行う事務所（Ⅲ欄６）が空になります。"
+
+msgid "There is no support manager for the support office."
+msgstr "支援を行う事務所に支援責任者がいません。"
+
+#, python-format
+msgid ""
+"There are %(count)d support managers. Only one is printed; list all of their "
+"names and positions in a separate document of any format."
+msgstr ""
+"支援責任者が %(count)d 人います。様式には 1 人だけを書きます。任意の様式で、"
+"全員の氏名と役職を記載してください。"
+
+msgid ""
+"The declaration that the support is ensured to be proper (section III-7) is "
+"not made, so it is left blank."
+msgstr ""
+"Ⅲ欄７「支援の適正性を確保していることの有無」の申告が無いため、空のままにしま"
+"す。"
+
+#, python-format
+msgid "\"%(label)s\" does not fit in its field even at %(size)s pt."
+msgstr "「%(label)s」は %(size)s pt でも欄に収まりません。"
 
 #, python-format
 msgid "\"%(label)s\" is empty."

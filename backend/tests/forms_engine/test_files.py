@@ -126,20 +126,40 @@ def test_word_template_only_adds_tags_to_the_original(tmp_path: Path) -> None:
 
 
 def test_1_17_has_no_formula_referencing_the_written_cells() -> None:
-    """第1-17号の計算式は DA670 の 1 つだけで、書くセルを参照しない（ADR-0018）。"""
+    """第1-17号の計算式は DA670 の 1 つだけ（ADR-0018）。
+
+    DA670 は壊れた式（キャッシュは #REF!）で印刷範囲の外にあり、参照の検査から外す（T31-D8）。
+    外さないと、範囲 BC667:DA673 にある「□ オンライン」（BC667）に書けない。
+    """
     with zipfile.ZipFile(ORIGINAL_1_17) as archive:
         sources = {source for source, *_ in form_xlsx.formula_areas(archive)}
-    assert sources == {f"{SHEET}!DA670"}
+        ignored = form_xlsx.ignorable_formula_cells(archive)
+        print_area = form_xlsx.print_areas(archive)[SHEET]
+    assert sources == {f"{SHEET}!DA670"} == ignored
+    assert print_area == (1, 1, 68, 777)  # A1:BP777
     definition = json.loads(
         (Path(settings.FORM_MAPPINGS_ROOT) / "1-17" / "2026-10-17.json").read_text("utf-8")
     )
     targets = [item["target"] for item in definition["fields"]]
+    assert f"{SHEET}!BC667" in targets
     assert form_xlsx.targets_referenced_by_formulas(ORIGINAL_1_17, targets) == []
-    # DA670 の参照先（AO6・BC667:DA673 など）は見つかる
-    found = form_xlsx.targets_referenced_by_formulas(
-        ORIGINAL_1_17, [f"{SHEET}!AO6", f"{SHEET}!BC670", f"{SHEET}!AO7"]
-    )
-    assert found == [f"{SHEET}!AO6 <- {SHEET}!DA670", f"{SHEET}!BC670 <- {SHEET}!DA670"]
+
+
+@pytest.mark.parametrize(
+    ("cell", "referenced"),
+    [
+        ('<c r="Z1" t="e"><f>A1+1</f><v>#REF!</v></c>', True),  # 印刷範囲の中のエラー
+        ('<c r="Z1"><f>A1+1</f><v>2</v></c>', True),
+        ('<c r="AZ1" t="e"><f>A1+1</f><v>#REF!</v></c>', False),  # 印刷範囲の外のエラー
+        ('<c r="AZ1"><f>A1+1</f><v>2</v></c>', True),  # 印刷範囲の外でもエラーでなければ見る
+    ],
+)
+def test_broken_formulas_outside_the_print_area_are_ignored(
+    tmp_path: Path, cell: str, referenced: bool
+) -> None:
+    names = '<definedName name="_xlnm.Print_Area" localSheetId="0">表!$A$1:$Z$99</definedName>'
+    path = workbook_with(tmp_path, f'<row r="1"><c r="A1"/>{cell}</row>', names)
+    assert bool(form_xlsx.targets_referenced_by_formulas(path, ["表!A1"])) is referenced
 
 
 def workbook_with(tmp_path: Path, sheet1_cells: str, defined_names: str = "") -> Path:

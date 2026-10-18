@@ -12,6 +12,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.contracts.models import EmploymentContract
 from apps.core.models import Staff, SupportLanguage
 from apps.core.web_forms import StyledFormMixin
+from apps.forms_engine.models import GeneratedDocument
 from apps.support.forms import StaffChoiceField, active_staff
 from apps.support.models import (
     OPEN_CONSULTATION_STATUSES,
@@ -1024,10 +1025,12 @@ class DeliveryForm(StyledFormMixin, forms.Form):
         required=False,
         help_text=_("PDF, PNG or JPEG, up to 10 MB each. You can also attach it later."),
     )
+    generated = forms.IntegerField(required=False, widget=forms.HiddenInput)
 
     def __init__(self, *args: Any, worker: ForeignWorker, kind: str, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.kind = kind
+        self.worker = worker
         contract = self.fields["contract"]
         assert isinstance(contract, ContractChoiceField)
         contract.queryset = (
@@ -1090,6 +1093,25 @@ class DeliveryForm(StyledFormMixin, forms.Form):
             requested_on=data.get("requested_on"),
             languages=list(data.get("languages") or []),
             note=data.get("note") or "",
+            generated_document=self.generated_document(),
+        )
+
+    def clean(self) -> dict[str, Any]:
+        data = super().clean() or {}
+        pk = data.get("generated")
+        if pk and self.generated_document() is None:
+            self.add_error(None, _("The generated document was not found."))
+        return data
+
+    def generated_document(self) -> GeneratedDocument | None:
+        """元の生成物（この外国人の生成物だけを引く。中身の検査は deliveries.validate）。"""
+        pk = self.cleaned_data.get("generated")
+        if not pk:
+            return None
+        return (
+            GeneratedDocument.objects.select_related("template")
+            .filter(pk=pk, worker=self.worker)
+            .first()
         )
 
     def apply_errors(self, error: ValidationError) -> None:

@@ -36,13 +36,14 @@ class Command(BaseCommand):
         worker = ForeignWorker.objects.filter(pk=options["worker"]).first()
         if worker is None:
             raise CommandError("foreign worker not found")
-        target, data = form_samples.sample(options["form_id"], worker)
+        basis_on = options["basis"] or timezone.localdate()
+        target, data = form_samples.sample(options["form_id"], worker, basis_on)
         try:
             document = form_generation.request(
                 options["form_id"],
                 target=target,
                 data=data,
-                basis_on=options["basis"] or timezone.localdate(),
+                basis_on=basis_on,
                 by=None,
                 accept_warnings=options["accept_warnings"],
             )

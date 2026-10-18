@@ -935,6 +935,16 @@ class DocumentDelivery(TrackedModel):
         blank=True,
         editable=False,
     )
+    # 生成履歴から作った交付記録の元の生成物（作成のときだけ入れる。T31-D16、ADR-0010 の改訂）
+    generated_document = models.ForeignKey(
+        "forms_engine.GeneratedDocument",
+        verbose_name=_("generated document"),
+        on_delete=models.PROTECT,
+        related_name="deliveries",
+        null=True,
+        blank=True,
+        editable=False,
+    )
     languages = models.ManyToManyField(
         SupportLanguage, verbose_name=_("languages of the document"), related_name="+", blank=True
     )

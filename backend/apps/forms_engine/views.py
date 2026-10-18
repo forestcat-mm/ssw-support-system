@@ -1,16 +1,55 @@
-"""生成物の PDF の認可つきのダウンロード（T29、ADR-0018）。ファイルの中身を渡す唯一の経路。
+"""生成物の画面と、PDF の認可つきのダウンロード（T29・T31、ADR-0018）。
 
-記入済みの docx・xlsx は画面から取り出さない（段階4 の F13 で決める）。
+PDF のダウンロードはファイルの中身を渡す唯一の経路。記入済みの docx・xlsx は画面から取り出さない
+（段階4 の F13 で決める）。
 """
+
+from typing import Any
 
 from django.core.exceptions import PermissionDenied
 from django.http import FileResponse, HttpRequest
 from django.shortcuts import get_object_or_404
+from django.template.response import TemplateResponse
 from django.views import View
 
-from apps.core.models import AuditAction
-from apps.forms_engine.models import GeneratedDocument
-from services import audit, form_generation
+from apps.core.models import Action, AuditAction
+from apps.core.permissions import ActionRequiredMixin
+from apps.forms_engine.models import GeneratedDocument, GenerationStatus
+from apps.support.models import DeliveryKind, SupportPlanVersion
+from services import audit, authorization, form_generation, workers
+
+
+class GeneratedDocumentView(ActionRequiredMixin, View):
+    """生成物 1 件（状態・様式の版・基準日・生成のときの警告・PDF・交付記録を作る）。"""
+
+    required_action = Action.FORMS_GENERATE
+
+    def get(self, request: HttpRequest, pk: int) -> TemplateResponse:
+        document = get_object_or_404(
+            GeneratedDocument.objects.select_related("template", "worker", "created_by"), pk=pk
+        )
+        if not form_generation.can_view(request.user, document):
+            raise PermissionDenied
+        target = document.target
+        version = target if isinstance(target, SupportPlanVersion) else None
+        can_deliver = (
+            version is not None
+            and document.status == GenerationStatus.COMPLETED
+            and document.worker is not None
+            and workers.is_active(document.worker)
+            and authorization.has_action(request.user, Action.SUPPORT_MANAGE)
+        )
+        if document.worker is not None:
+            audit.record_view(document.worker, context={"generated_document": document.pk})
+        context: dict[str, Any] = {
+            "document": document,
+            "worker": document.worker,
+            "plan_version": version,
+            "can_download": form_generation.can_download_pdf(request.user, document),
+            "can_deliver": can_deliver,
+            "delivery_kind": DeliveryKind.SUPPORT_PLAN_COPY,
+        }
+        return TemplateResponse(request, "forms_engine/document.html", context)
 
 
 class GeneratedPdfDownloadView(View):

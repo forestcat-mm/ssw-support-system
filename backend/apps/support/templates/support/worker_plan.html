@@ -19,6 +19,7 @@
     </div>
     <div class="page-header__actions">
       {% if can_create_plan %}<a class="button button--neutral" href="{% url 'workers:support_plan_create' worker.pk %}">{% translate "Create a support plan" %}</a>{% endif %}
+      {% if can_generate_forms %}<a class="button button--neutral" id="plan-generate" href="{% url 'workers:support_plan_generate' worker.pk plan.pk version.version %}">{% blocktranslate with number=version.version %}Generate the support plan (version {{ number }}){% endblocktranslate %}</a>{% endif %}
       {% if can_manage_support %}<a class="button button--primary" href="{% url 'workers:support_version_create' worker.pk plan.pk %}">{% translate "Add a new version" %}</a>{% endif %}
     </div>
   </div>

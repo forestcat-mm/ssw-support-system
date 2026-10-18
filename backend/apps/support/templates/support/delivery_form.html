@@ -8,8 +8,10 @@
 <form class="form" method="post" enctype="multipart/form-data" novalidate id="delivery-form" data-keepalive="{% url 'accounts:keepalive' %}">
   {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
   {% include "ui/components/form_errors.html" %}
+  {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+  {% if generated %}<p class="message" id="delivery-generated">{% blocktranslate with form_id=generated.template.form_id number=generated.pk version=generated.target.version %}Made from the generated form {{ form_id }} (#{{ number }}, support plan version {{ version }}). The plan version of this record is the version of the generated document.{% endblocktranslate %}</p>{% endif %}
   <section class="card stack">
-    {% for field in form %}{% form_field field %}{% endfor %}
+    {% for field in form.visible_fields %}{% form_field field %}{% endfor %}
   </section>
   <div class="form-actions">
     <button class="button button--primary" type="submit">{% translate "Save" %}</button>

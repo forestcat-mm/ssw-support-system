@@ -8,6 +8,7 @@
 読み込み（load_form_templates）は何度実行しても同じ結果になる。新しい版は足すだけで旧版を消さない。
 - original の SHA-256 は manifest と一致し、読み込み済みの版から変わってはならない（止める）。
 - template とマッピング定義は、その版で生成履歴がまだ無いときだけ置き換える（開発中の調整のため）。
+  DEBUG が有効で、生成履歴がすべて見本のコマンド（生成者なし）のものなら置き換えてよい（T31-D1）。
   生成履歴がある版を変えるときは、新しい版（適用開始日）として足す。
 - 規則のファイルは、生成履歴があっても置き換えてよい（出力を変えないため）。SHA-256 を記録し、
   変わったら FormMapping の更新として監査ログに残る。生成履歴には、検査に使った規則の SHA-256 を
@@ -216,7 +217,7 @@ def _load_one(manifest_path: Path, *, by: User | None, report: LoadReport) -> No
         mapping.updated_by = by
         mapping.save()
         return
-    if template.generated_documents.exists() and changed:
+    if changed and not _replaceable(template):
         raise FormTemplateError(
             _(
                 "%(key)s: documents were generated with this version. Add the changed template "
@@ -235,6 +236,18 @@ def _load_one(manifest_path: Path, *, by: User | None, report: LoadReport) -> No
     report.updated.append(key)
 
 
+def _replaceable(template: FormTemplate) -> bool:
+    """欄の対応・テンプレートを置き換えてよいか（T29、T31-D1）。
+
+    生成履歴が無い版は置き換えてよい。DEBUG が有効なとき（開発の DB）に限り、生成履歴がすべて
+    開発者の見本のコマンド（生成者なし）で作ったものなら置き換えてよい。本番（DEBUG 無効）は断る。
+    """
+    documents = template.generated_documents.all()
+    if not documents.exists():
+        return True
+    return bool(settings.DEBUG) and not documents.filter(created_by__isnull=False).exists()
+
+
 def _read_rules(
     path: Path, manifest: dict[str, Any], definition: dict[str, Any]
 ) -> tuple[list[dict[str, Any]], str]:
@@ -250,7 +263,15 @@ def _read_rules(
     for name in ("form_id", "valid_from"):
         if data.get(name) != manifest[name]:
             raise FormTemplateError(f"{path}: {name} does not match the manifest")
-    keys = {item["key"] for item in definition.get("fields", [])}
+    keys = {
+        key
+        for item in definition.get("fields", [])
+        for key in (
+            [spec["key"] for spec in item["keys"].values()]
+            if item.get("format") == "template"
+            else [item["key"]]
+        )
+    }
     try:
         form_checks.validate_rules(data.get("rules"), keys)
     except form_checks.RulesError as error:

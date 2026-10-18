@@ -1,0 +1,17 @@
+{% load i18n %}{# 生成前の検査の不足の一覧（生成不可・警告。不足ごとに直す画面へのリンク。T31、ADR-0019） #}
+{% if result.findings %}
+<section class="card stack" id="generation-findings" aria-labelledby="generation-findings-title">
+  <div class="card__header"><h2 class="card__title" id="generation-findings-title">{% if result.blocking %}{% translate "Cannot generate" %}{% else %}{% translate "Can generate with warnings" %}{% endif %}</h2></div>
+  <ul class="stack" style="list-style: none; padding: 0; margin: 0">
+    {% for finding in result.findings %}
+    <li class="message {% if finding.severity == 'block' %}message--error{% elif finding.strong %}message--strong{% else %}message--warning{% endif %}" data-rule="{{ finding.rule }}" data-code="{{ finding.code }}">
+      <span class="badge {% if finding.severity == 'block' %}badge--overdue{% else %}badge--within-7{% endif %}">{% if finding.severity == 'block' %}{% translate "cannot generate" %}{% else %}{% translate "warning" %}{% endif %}</span>
+      {{ finding.message }}
+      {% if finding.destination %}<a href="{{ finding.destination.url }}">{% translate "Fix" %}</a>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% else %}
+<p class="message message--success" id="generation-findings">{% translate "No problems were found." %}</p>
+{% endif %}

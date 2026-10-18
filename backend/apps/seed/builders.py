@@ -100,7 +100,10 @@ def seed_organization(ctx: SeedContext) -> None:
         return
     organization = Organization.objects.create(
         name=f"{DUMMY_MARK}サンプル登録支援機関",
+        name_kana="さんぷるとうろくしえんきかん",
         registration_number="99登-999999",
+        # 第1-17号Ⅲ欄２に書く「支援業務を開始する予定年月日」（T31）
+        support_start_planned_on=ctx.days(-1500),
         # 5 か月後に満了 → 登録更新の受付（6 か月前の月の初日）がすでに始まっている
         registration_expires_on=deadlines.add_months(ctx.base, 5),
         postal_code="000-0001",

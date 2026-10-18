@@ -24,6 +24,7 @@ from django.utils.translation import gettext as _
 
 from apps.contracts.models import EmploymentContract
 from apps.core.models import Attachment, AttachmentKind, SupportLanguage, User
+from apps.forms_engine.models import GeneratedDocument, GenerationStatus
 from apps.support.models import (
     DeliveredBy,
     DeliveryKind,
@@ -33,6 +34,8 @@ from apps.support.models import (
 )
 from apps.workers.models import ForeignWorker
 from services import attachments, support_records, workers
+
+PLAN_FORM_ID = "1-17"  # 支援計画書の写しの元にできる様式
 
 FOOD_FIELD = "food_manufacturing"  # 飲食料品製造業分野（2027-04-01 以降の水産加工業の区分も含む）
 RECEIPT_KIND = AttachmentKind.DELIVERED_DOCUMENT
@@ -71,6 +74,8 @@ class DeliveryInput:
     requested_on: datetime.date | None = None
     languages: Sequence[SupportLanguage] = ()
     note: str = ""
+    # 生成履歴から作るときの元の生成物（同じ外国人の第1-17号。T31-D16）
+    generated_document: GeneratedDocument | None = None
 
 
 class _Errors:
@@ -126,7 +131,9 @@ def validate(
                 "requested_after",
             )
     plan_version = None
-    if data.kind == DeliveryKind.SUPPORT_PLAN_COPY and "delivered_on" not in errors.items:
+    if data.generated_document is not None:
+        plan_version = _generated_plan_version(errors, worker, data)
+    elif data.kind == DeliveryKind.SUPPORT_PLAN_COPY and "delivered_on" not in errors.items:
         plan_version = support_records.plan_version_for(worker, data.delivered_on)
         if plan_version is None:
             errors.add(
@@ -139,6 +146,32 @@ def validate(
             )
     errors.raise_if_any()
     return plan_version
+
+
+def _generated_plan_version(
+    errors: _Errors, worker: ForeignWorker, data: DeliveryInput
+) -> SupportPlanVersion | None:
+    """生成物から作る写しの計画の版（生成物の版。交付日に適用される版と違ってもよい。T31-D16）。
+
+    元にできるのは、同じ外国人の第1-17号の、完了した生成物だけ。
+    """
+    document = data.generated_document
+    assert document is not None
+    target = document.target
+    if (
+        data.kind != DeliveryKind.SUPPORT_PLAN_COPY
+        or document.worker_id != worker.pk
+        or document.template.form_id != PLAN_FORM_ID
+        or document.status != GenerationStatus.COMPLETED
+        or not isinstance(target, SupportPlanVersion)
+    ):
+        errors.add(
+            "__all__",
+            _("Only a completed support plan (form 1-17) of this foreign worker can be used."),
+            "generated_document",
+        )
+        return None
+    return target
 
 
 def validate_files(files: Iterable[File[Any]]) -> list[File[Any]]:
@@ -177,6 +210,7 @@ def create_delivery(
             contract=data.contract,
             requested_on=data.requested_on,
             plan_version=plan_version,
+            generated_document=data.generated_document,
             note=data.note.strip(),
             created_by=by,
             updated_by=by,
@@ -306,6 +340,22 @@ def warnings(
         timing = _timing_warning(delivery.delivered_on, delivery.contract)
         if timing is not None:
             result.append(timing)
+    if delivery.generated_document_id is not None and delivery.plan_version is not None:
+        applied = support_records.plan_version_for(delivery.worker, delivery.delivered_on)
+        if applied is None or applied.pk != delivery.plan_version_id:
+            result.append(
+                DeliveryWarning(
+                    "version_differs",
+                    _(
+                        "This is a copy of version %(version)s, but the version in effect on the "
+                        "delivery date is %(applied)s."
+                    )
+                    % {
+                        "version": delivery.plan_version.version,
+                        "applied": applied.version if applied else _("none"),
+                    },
+                )
+            )
     if kind in EXPLANATION_KINDS and not delivery.explained:
         result.append(DeliveryWarning("not_explained", _("There is no record of explaining it.")))
     if kind in RECEIPT_KINDS and not has_receipt(delivery, delivery_attachments):

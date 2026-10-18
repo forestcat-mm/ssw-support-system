@@ -13,10 +13,13 @@ openpyxl で開いて保存すると、第1-17号では図形（drawing）・プ
 
 from __future__ import annotations
 
+import math
 import posixpath
 import re
+import unicodedata
 import zipfile
 from collections.abc import Mapping
+from dataclasses import dataclass
 from pathlib import Path
 from xml.sax.saxutils import escape
 
@@ -26,6 +29,26 @@ NS_REL = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
 
 class XlsxWriteError(Exception):
     """書き込めないセル（計算式・結合セルの左上以外・存在しないシート）。"""
+
+
+@dataclass(frozen=True)
+class SizedText:
+    """字の大きさを指定して書く文字（インライン文字列のリッチテキスト。セルの書式は変えない）。"""
+
+    text: str
+    size: float
+    font: str
+    charset: str | None = None
+
+
+@dataclass(frozen=True)
+class CellFont:
+    """セルの書式のフォントと、書き込み先（結合範囲）の幅。"""
+
+    name: str
+    size: float
+    charset: str | None
+    width_pt: float
 
 
 def column_index(letters: str) -> int:
@@ -154,6 +177,51 @@ def _areas(formula: str, own_sheet: str) -> list[tuple[str, int, int, int, int]]
     return areas
 
 
+def print_areas(archive: zipfile.ZipFile) -> dict[str, tuple[int, int, int, int]]:
+    """シート名 → 印刷範囲（列の始め・行の始め・列の終わり・行の終わり）。"""
+    workbook = archive.read("xl/workbook.xml").decode("utf-8")
+    names = [
+        _unescape(re.search(r'name="([^"]+)"', tag).group(1))  # type: ignore[union-attr]
+        for tag in re.findall(r"<sheet [^>]*/>", workbook)
+    ]
+    result = {}
+    for match in re.finditer(r"<definedName\b([^>]*)>([^<]*)</definedName>", workbook):
+        attrs = match.group(1)
+        if 'name="_xlnm.Print_Area"' not in attrs:
+            continue
+        local = re.search(r'localSheetId="(\d+)"', attrs)
+        if local is None or int(local.group(1)) >= len(names):
+            continue
+        areas = _areas(_unescape(match.group(2)), names[int(local.group(1))])
+        if areas:
+            _sheet, c1, r1, c2, r2 = areas[0]
+            result[names[int(local.group(1))]] = (c1, r1, c2, r2)
+    return result
+
+
+def ignorable_formula_cells(archive: zipfile.ZipFile) -> set[str]:
+    """参照の検査から外す計算式のセル（ADR-0018）。
+
+    キャッシュの値がエラー（t="e"）で、印刷範囲の外にある計算式。結果が PDF に出ず、書いた値で
+    変わることもない（第1-17号の DA670 の壊れた式 `+#REF!:…`）。
+    """
+    areas = print_areas(archive)
+    result = set()
+    for sheet, path in sheet_paths(archive).items():
+        xml = archive.read(path).decode("utf-8")
+        area = areas.get(sheet)
+        for match in re.finditer(r'<c r="([A-Z]+)(\d+)"([^>]*?)(?:/>|>(.*?)</c>)', xml, re.S):
+            if 't="e"' not in match.group(3) or "<f" not in (match.group(4) or ""):
+                continue
+            column, row = column_index(match.group(1)), int(match.group(2))
+            inside = area is not None and (
+                area[0] <= column <= area[2] and area[1] <= row <= area[3]
+            )
+            if not inside:
+                result.add(f"{sheet}!{match.group(1)}{match.group(2)}")
+    return result
+
+
 def formula_areas(archive: zipfile.ZipFile) -> list[tuple[str, str, int, int, int, int]]:
     """ブックのすべての計算式が参照する範囲（計算式のあるセル・シート名・範囲）。
 
@@ -186,9 +254,13 @@ def formula_areas(archive: zipfile.ZipFile) -> list[tuple[str, str, int, int, in
 
 
 def targets_referenced_by_formulas(path: Path, targets: list[str]) -> list[str]:
-    """書き込み先のうち、ブックの計算式（または名前の定義）が参照しているもの。"""
+    """書き込み先のうち、ブックの計算式（または名前の定義）が参照しているもの。
+
+    キャッシュの値がエラーで印刷範囲の外にある計算式は見ない（ignorable_formula_cells）。
+    """
     with zipfile.ZipFile(path) as archive:
-        areas = formula_areas(archive)
+        ignored = ignorable_formula_cells(archive)
+        areas = [area for area in formula_areas(archive) if area[0] not in ignored]
     found = []
     for target in targets:
         sheet, ref = split_target(target)
@@ -212,6 +284,14 @@ def _cell_xml(ref: str, value: object, style: str | None) -> str:
         raise XlsxWriteError(f"{ref}: booleans are not supported; format them as text")
     if isinstance(value, (int, float)):
         return f'<c r="{ref}"{style_attr}><v>{value}</v></c>'
+    if isinstance(value, SizedText):
+        text = escape(value.text)
+        charset = f'<charset val="{value.charset}"/>' if value.charset else ""
+        run = (
+            f'<r><rPr><sz val="{value.size:g}"/><rFont val="{escape(value.font)}"/>{charset}'
+            f'</rPr><t xml:space="preserve">{text}</t></r>'
+        )
+        return f'<c r="{ref}"{style_attr} t="inlineStr"><is>{run}</is></c>'
     text = escape(str(value))
     preserve = ' xml:space="preserve"' if text != text.strip() or "\n" in text else ""
     return f'<c r="{ref}"{style_attr} t="inlineStr"><is><t{preserve}>{text}</t></is></c>'
@@ -275,3 +355,105 @@ def write_cells(source: Path, destination: Path, values: Mapping[str, object]) -
             for item in archive.infolist():
                 data = edited.get(item.filename, archive.read(item.filename))
                 output.writestr(item, data)
+
+
+# --- 字の大きさ（長い値を欄に収める。T31、ADR-0020）---------------------------------------
+
+MAX_DIGIT_WIDTH_PX = 7  # 既定のフォント（ＭＳ Ｐゴシック 11pt）の数字の幅の近似
+PADDING_PT = 3.0  # セルの左右の余白の近似
+
+
+def _column_widths(sheet_xml: str) -> tuple[dict[int, float], float]:
+    default = re.search(r'defaultColWidth="([\d.]+)"', sheet_xml)
+    widths: dict[int, float] = {}
+    for match in re.finditer(r"<col\b([^>]*)/>", sheet_xml):
+        attrs = match.group(1)
+        low = int(re.search(r'min="(\d+)"', attrs).group(1))  # type: ignore[union-attr]
+        high = int(re.search(r'max="(\d+)"', attrs).group(1))  # type: ignore[union-attr]
+        width = float(re.search(r'width="([\d.]+)"', attrs).group(1))  # type: ignore[union-attr]
+        for column in range(low, min(high, 1000) + 1):
+            widths[column] = width
+    return widths, float(default.group(1)) if default else 8.43
+
+
+def _width_pt(width_chars: float) -> float:
+    pixels = math.trunc(
+        ((256 * width_chars + math.trunc(128 / MAX_DIGIT_WIDTH_PX)) / 256) * MAX_DIGIT_WIDTH_PX
+    )
+    return pixels * 0.75
+
+
+def _fonts(styles_xml: str) -> tuple[list[tuple[str, float, str | None]], list[int]]:
+    fonts_xml = re.search(r"<fonts[^>]*>(.*?)</fonts>", styles_xml, re.S)
+    fonts = []
+    for font in re.findall(
+        r"<font\b[^>]*?(?:/>|>.*?</font>)", fonts_xml.group(1) if fonts_xml else "", re.S
+    ):
+        name = re.search(r'<name val="([^"]+)"', font)
+        size = re.search(r'<sz val="([\d.]+)"', font)
+        charset = re.search(r'<charset val="(\d+)"', font)
+        fonts.append(
+            (
+                _unescape(name.group(1)) if name else "",
+                float(size.group(1)) if size else 11.0,
+                charset.group(1) if charset else None,
+            )
+        )
+    xfs_xml = re.search(r"<cellXfs[^>]*>(.*?)</cellXfs>", styles_xml, re.S)
+    xf_fonts = [
+        int(match.group(1)) if match else 0
+        for match in (
+            re.search(r'fontId="(\d+)"', xf)
+            for xf in re.findall(
+                r"<xf\b[^>]*?(?:/>|>.*?</xf>)", xfs_xml.group(1) if xfs_xml else "", re.S
+            )
+        )
+    ]
+    return fonts, xf_fonts
+
+
+def cell_fonts(path: Path, targets: list[str]) -> dict[str, CellFont]:
+    """書き込み先ごとのフォント（セルの書式）と幅（結合範囲の列の幅の合計。pt の近似）。"""
+    result: dict[str, CellFont] = {}
+    with zipfile.ZipFile(path) as archive:
+        sheets = sheet_paths(archive)
+        fonts, xf_fonts = _fonts(archive.read("xl/styles.xml").decode("utf-8"))
+        cache: dict[str, str] = {}
+        for target in targets:
+            sheet, ref = split_target(target)
+            xml = cache.setdefault(sheet, archive.read(sheets[sheet]).decode("utf-8"))
+            letters, row = split_ref(ref)
+            column = column_index(letters)
+            right = column
+            for left, top, end, _bottom in merged_ranges(xml):
+                if (left, top) == (column, row):
+                    right = end
+            widths, default = _column_widths(xml)
+            width = sum(_width_pt(widths.get(c, default)) for c in range(column, right + 1))
+            element = _find_cell(xml, ref)
+            style = (
+                re.search(r'\ss="(\d+)"', element.group(0).split(">", 1)[0]) if element else None
+            )
+            font_id = xf_fonts[int(style.group(1))] if style else 0
+            name, size, charset = fonts[font_id] if font_id < len(fonts) else ("", 11.0, None)
+            result[target] = CellFont(name, size, charset, width)
+    return result
+
+
+def text_em(text: str) -> float:
+    """文字の幅（全角を 1、半角を 0.55 とした近似）。"""
+    return sum(
+        1.0 if unicodedata.east_asian_width(char) in ("F", "W", "A") else 0.55 for char in text
+    )
+
+
+def fitted_size(text: str, font: CellFont, min_size: float) -> tuple[float, bool]:
+    """1 行で欄に収まる字の大きさ（0.5pt 刻み。元より大きくしない）と、下限でも収まらないか。"""
+    em = text_em(text)
+    room = max(font.width_pt - PADDING_PT, 1.0)
+    if em == 0 or em * font.size <= room:
+        return font.size, False
+    size = math.floor(room / em * 2) / 2
+    if size < min_size:
+        return min_size, True
+    return size, False

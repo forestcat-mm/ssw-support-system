@@ -23,6 +23,7 @@ from apps.core.models import Action, Attachment, User
 from apps.core.permissions import ActionRequiredMixin
 from apps.core.web_forms import consume_once_token
 from apps.filings.models import Filing
+from apps.forms_engine.models import GeneratedDocument
 from apps.support.models import (
     Briefing,
     Consultation,
@@ -975,10 +976,19 @@ class DeliveryCreateView(RecordFormView):
         return value
 
     def page(self, request: HttpRequest, worker: ForeignWorker, form: DeliveryForm) -> HttpResponse:
+        pk = form["generated"].value()
+        generated = (
+            GeneratedDocument.objects.select_related("template")
+            .filter(pk=pk, worker=worker)
+            .first()
+            if str(pk or "").isdigit()
+            else None
+        )
         return self.render(
             request,
             worker=worker,
             form=form,
+            generated=generated,
             title=_("Record a delivery: %(kind)s") % {"kind": DeliveryKind(form.kind).label},
             back_url=deliveries_url(worker),
         )
@@ -986,6 +996,9 @@ class DeliveryCreateView(RecordFormView):
     def get(self, request: HttpRequest, pk: int, kind: str) -> HttpResponse:
         worker = self.worker(request, pk)
         initial = DeliveryForm.initial_for(worker, timezone.localdate())
+        generated = request.GET.get("generated", "")
+        if generated.isdigit():
+            initial["generated"] = int(generated)  # 生成履歴から作る（T31-D16）
         form = DeliveryForm(worker=worker, kind=self.kind(kind), initial=initial)
         return self.page(request, worker, form)
 

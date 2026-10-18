@@ -21,6 +21,8 @@ import hashlib
 import json
 import tempfile
 from collections.abc import Mapping
+from dataclasses import dataclass
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
@@ -32,7 +34,7 @@ from pypdf import PdfReader
 
 from apps.core.models import Action, AuditAction, User
 from apps.forms_engine.models import FormMethod, FormTemplate, GeneratedDocument, GenerationStatus
-from apps.support.models import Briefing
+from apps.support.models import Briefing, SupportPlanVersion
 from apps.workers.models import ForeignWorker
 from services import (
     audit,
@@ -46,8 +48,9 @@ from services import (
 )
 from services.authorization import AnyUser
 
-CHECKED = "☑"
+CHECKED = "■"  # 置き換え先のフォント（IPAP明朝）にある記号（T31-D6）
 UNCHECKED = "□"
+DEFAULT_FIT_MIN_SIZE = 6.0  # 長い値の字を小さくするときの下限（pt。T31-D7）
 
 
 class MappingError(Exception):
@@ -73,14 +76,31 @@ class WarningsNotAccepted(Exception):
 # --- 値の書式 ---------------------------------------------------------------------
 
 
-def format_value(value: Any, fmt: str) -> object:
-    """データの値を様式の欄の値にする（書式はマッピング定義の format）。"""
-    if value is None or value == "":
-        return ""
+def _empty(value: Any) -> bool:
+    return value is None or (isinstance(value, str) and value == "")
+
+
+def _number(value: Any) -> object:
+    number = Decimal(str(value))
+    if number == number.to_integral_value():
+        return int(number)
+    return f"{number.normalize():f}"
+
+
+def format_value(value: Any, fmt: str) -> object | None:
+    """データの値を様式の欄の値にする（書式はマッピング定義の format）。
+
+    空の値（None・""）は None を返し、その欄には書かない（印刷済みの文字や □ を残す。T31-D4）。
+    check は True を ■、False を □ にする。
+    """
+    if fmt == "check":
+        return None if value is None else (CHECKED if value else UNCHECKED)
+    if _empty(value):
+        return None
     if fmt == "text":
         return str(value)
     if fmt == "number":
-        return int(value)
+        return _number(value)
     if fmt == "yen":
         return f"{int(value):,}"
     if fmt in ("year", "month", "day"):
@@ -89,17 +109,79 @@ def format_value(value: Any, fmt: str) -> object:
     if fmt == "date":
         day = value if isinstance(value, datetime.date) else datetime.date.fromisoformat(value)
         return f"{day.year}年{day.month}月{day.day}日"
-    if fmt == "check":
-        return CHECKED if value else UNCHECKED
     raise MappingError(f"unknown format: {fmt}")
 
 
+def _template_value(item: Mapping[str, Any], data: Mapping[str, Any]) -> str | None:
+    """template の書式: 印刷済みの文に値を差し込んだ文（T31-D5）。
+
+    keys の値がすべて空なら書かない。空の値は、その key の empty（無ければ ""）にする。
+    値があれば、key の pattern（例 "　{}　"）があればそれで包む。
+    """
+    parts: dict[str, object] = {}
+    filled = False
+    for name, spec in item["keys"].items():
+        value = format_value(data.get(spec["key"]), spec.get("format", "text"))
+        if value is None:
+            parts[name] = spec.get("empty", "")
+        else:
+            parts[name] = spec["pattern"].format(value) if "pattern" in spec else value
+            filled = True
+    if not filled:
+        return None
+    return str(item["template"]).format(**parts)
+
+
+def field_keys(item: Mapping[str, Any]) -> list[str]:
+    """欄が使うデータの key（template は keys のすべて）。"""
+    if item.get("format") == "template":
+        return [spec["key"] for spec in item["keys"].values()]
+    return [item["key"]]
+
+
+def field_value(item: Mapping[str, Any], data: Mapping[str, Any]) -> object | None:
+    if item.get("format") == "template":
+        return _template_value(item, data)
+    return format_value(data.get(item["key"]), item.get("format", "text"))
+
+
 def field_values(definition: Mapping[str, Any], data: Mapping[str, Any]) -> dict[str, object]:
-    """マッピング定義の欄ごとの値（キーは Excel ならセル、Word ならタグの名前）。"""
+    """マッピング定義の欄ごとの値（キーは Excel ならセル、Word ならタグの名前）。空の欄は除く。"""
     values: dict[str, object] = {}
     for item in definition.get("fields", []):
-        values[item["target"]] = format_value(data.get(item["key"]), item.get("format", "text"))
+        value = field_value(item, data)
+        if value is not None:
+            values[item["target"]] = value
     return values
+
+
+@dataclass(frozen=True)
+class Fit:
+    """長い値の字の大きさ（スナップショットに残す）。"""
+
+    target: str
+    size: float
+    overflow: bool  # 下限の大きさでも収まらない
+
+
+def fits(template: FormTemplate, data: Mapping[str, Any]) -> list[Fit]:
+    """fit を指定した Excel の欄で、値が 1 行に収まる字の大きさ（T31-D7）。"""
+    definition = template.mapping.definition
+    if template.method != FormMethod.XLSX_CELLS:
+        return []
+    items = [item for item in definition.get("fields", []) if item.get("fit")]
+    values = {item["target"]: field_value(item, data) for item in items}
+    targets = [target for target, value in values.items() if value is not None]
+    if not targets:
+        return []
+    fonts = form_xlsx.cell_fonts(form_templates.template_file(template), targets)
+    minimum = float(definition.get("fit_min_size", DEFAULT_FIT_MIN_SIZE))
+    result = []
+    for target in targets:
+        size, overflow = form_xlsx.fitted_size(str(values[target]), fonts[target], minimum)
+        if size < fonts[target].size or overflow:
+            result.append(Fit(target, size, overflow))
+    return result
 
 
 def _jsonable(value: Any) -> Any:
@@ -121,6 +203,8 @@ def worker_of(target: models.Model) -> ForeignWorker | None:
         return target
     if isinstance(target, Briefing):
         return target.worker
+    if isinstance(target, SupportPlanVersion):
+        return target.plan.worker
     return None
 
 
@@ -143,7 +227,9 @@ def _check(
     worker = worker_of(target)
     if worker is None:
         raise ValueError("the target has no foreign worker")
-    context = form_checks.CheckContext(worker=worker, target=target, basis_on=basis_on, data=data)
+    context = form_checks.CheckContext(
+        worker=worker, target=target, basis_on=basis_on, data=data, template=template
+    )
     return form_checks.evaluate(template.mapping.rules, context)
 
 
@@ -172,6 +258,10 @@ def request(
         "basis_on": basis_on.isoformat(),
         "before_first_version": selection.before_first_version,
         "data": {key: _jsonable(value) for key, value in data.items()},
+        # 長い値の字の大きさ（pt）と、下限でも収まらなかったか（T31-D7）
+        "fitted": {
+            fit.target: {"size": fit.size, "overflow": fit.overflow} for fit in fits(template, data)
+        },
     }
     with transaction.atomic():
         document = GeneratedDocument.objects.create(
@@ -208,17 +298,30 @@ def run(document_id: int) -> None:
     snapshot = json.loads(document.snapshot)
     try:
         with tempfile.TemporaryDirectory(prefix="form-") as workdir:
-            filled, pdf = _render(document.template, snapshot["data"], Path(workdir))
+            filled, pdf = _render(
+                document.template, snapshot["data"], Path(workdir), snapshot.get("fitted", {})
+            )
             _complete(document, filled, pdf)
     except Exception as error:  # noqa: BLE001  失敗は理由を残して閉じる（出力は残さない）
         _fail(document, error)
 
 
-def _render(template: FormTemplate, data: Mapping[str, Any], workdir: Path) -> tuple[Path, Path]:
+def _render(
+    template: FormTemplate,
+    data: Mapping[str, Any],
+    workdir: Path,
+    fitted: Mapping[str, Mapping[str, Any]] | None = None,
+) -> tuple[Path, Path]:
     source = form_templates.template_file(template)
     values = field_values(template.mapping.definition, data)
     if template.method == FormMethod.XLSX_CELLS:
         filled = workdir / f"{template.form_id}.xlsx"
+        if fitted:
+            fonts = form_xlsx.cell_fonts(source, [t for t in fitted if t in values])
+            for target, font in fonts.items():
+                values[target] = form_xlsx.SizedText(
+                    str(values[target]), float(fitted[target]["size"]), font.name, font.charset
+                )
         form_xlsx.write_cells(source, filled, values)
     else:
         filled = workdir / f"{template.form_id}.docx"
@@ -283,18 +386,22 @@ def _fail(document: GeneratedDocument, error: Exception) -> None:
 # --- ダウンロード -------------------------------------------------------------------
 
 
+def can_view(user: AnyUser, document: GeneratedDocument) -> bool:
+    """生成物の画面を見られるか（forms.generate と、対象の外国人を見る権限）。"""
+    if not authorization.has_action(user, Action.FORMS_GENERATE):
+        return False
+    if document.worker_id is None:
+        return True
+    if not authorization.has_action(user, Action.WORKERS_VIEW):
+        return False
+    return authorization.scope(user, ForeignWorker.objects.filter(pk=document.worker_id)).exists()
+
+
 def can_download_pdf(user: AnyUser, document: GeneratedDocument) -> bool:
     """生成物の PDF をダウンロードできるか（forms.generate と、対象の外国人を見る権限）。
 
     記入済みの docx・xlsx は画面から取り出せない（保存だけ。段階4 の F13 で決める）。
     """
-    if not authorization.has_action(user, Action.FORMS_GENERATE):
-        return False
     if document.status != GenerationStatus.COMPLETED or not document.pdf_file:
         return False
-    if document.worker_id is not None:
-        if not authorization.has_action(user, Action.WORKERS_VIEW):
-            return False
-        visible = authorization.scope(user, ForeignWorker.objects.filter(pk=document.worker_id))
-        return visible.exists()
-    return True
+    return can_view(user, document)

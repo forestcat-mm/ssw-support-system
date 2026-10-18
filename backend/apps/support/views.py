@@ -12,17 +12,28 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 
 from apps.contracts.models import EmploymentContract
 from apps.core.models import Action, User
 from apps.core.web_forms import consume_once_token
+from apps.forms_engine.forms import PlanGenerateForm
 from apps.hosts.models import HostOrganization
 from apps.support.display import plan_view
 from apps.support.forms import PlanEditor
-from apps.support.models import SupportPlan
+from apps.support.models import SupportPlan, SupportPlanVersion
 from apps.workers.models import ForeignWorker
 from apps.workers.views import WorkerDetailView, WorkerFormView
-from services import authorization, support_plans, worker_detail, workers
+from services import (
+    authorization,
+    form_checks,
+    form_data_1_17,
+    form_generation,
+    form_templates,
+    support_plans,
+    worker_detail,
+    workers,
+)
 
 
 def current_host(worker: ForeignWorker) -> HostOrganization | None:
@@ -83,6 +94,8 @@ class SupportPlanTabView(WorkerDetailView):
         previous = next((v for v in versions if v.version < version.version), None)
         content = support_plans.content_of(version)
         context.update(
+            can_generate_forms=workers.is_active(worker)
+            and authorization.has_action(user, Action.FORMS_GENERATE),
             versions=versions,
             version=version,
             previous=previous,
@@ -223,3 +236,106 @@ class VersionCreateView(PlanEditView):
                 )
                 return redirect(f"{self.tab_url(worker, plan)}&version={version.version}")
         return self.page(request, editor, **self.context(worker, plan))
+
+
+NOT_LOADED = gettext_lazy(
+    "The form is not loaded. Ask an administrator to load the forms (make forms)."
+)
+
+
+class PlanGenerateView(WorkerFormView):
+    """支援計画書（第1-17号）の生成（計画の版ごと。T31、ADR-0020）。
+
+    基準日（申請予定日）と申告を入れて検査し、生成不可が無ければ生成する。警告があるときは
+    「警告を確かめた」の印が要る。生成は依頼（ジョブ）で、結果は生成物の画面で見る。
+    """
+
+    required_action = Action.FORMS_GENERATE
+    template_name = "support/plan_generate.html"
+    form_id = "1-17"
+
+    def target(
+        self, request: HttpRequest, pk: int, plan_id: int, number: int
+    ) -> tuple[ForeignWorker, SupportPlanVersion]:
+        worker = self.worker(request, pk)
+        plan = get_object_or_404(SupportPlan, pk=plan_id, worker=worker)
+        return worker, get_object_or_404(SupportPlanVersion, plan=plan, version=number)
+
+    def data(self, version: SupportPlanVersion, form: PlanGenerateForm) -> dict[str, Any]:
+        basis_on = form.cleaned_data["basis_on"]
+        propriety = bool(form.cleaned_data.get("propriety"))
+        return form_data_1_17.build(version, basis_on) | form_data_1_17.declaration_values(
+            propriety
+        )
+
+    def page(
+        self,
+        request: HttpRequest,
+        worker: ForeignWorker,
+        version: SupportPlanVersion,
+        form: PlanGenerateForm,
+        result: form_checks.CheckResult | None,
+    ) -> HttpResponse:
+        back = reverse("workers:support", args=[worker.pk])
+        return self.render(
+            request,
+            worker=worker,
+            version=version,
+            form=form,
+            result=result,
+            back_url=f"{back}?plan={version.plan_id}&version={version.version}",
+        )
+
+    def check(
+        self, version: SupportPlanVersion, form: PlanGenerateForm
+    ) -> form_checks.CheckResult | None:
+        """検査する（様式が読み込まれていなければ、フォームのエラーにして None）。"""
+        try:
+            return form_generation.check(
+                self.form_id,
+                target=version,
+                data=self.data(version, form),
+                basis_on=form.cleaned_data["basis_on"],
+            )
+        except form_templates.FormTemplateError:
+            form.add_error(None, NOT_LOADED)
+            return None
+
+    def get(self, request: HttpRequest, pk: int, plan_id: int, number: int) -> HttpResponse:
+        worker, version = self.target(request, pk, plan_id, number)
+        form = PlanGenerateForm({"basis_on": timezone.localdate().isoformat()})
+        result = self.check(version, form) if form.is_valid() else None
+        if result is None:
+            return self.page(request, worker, version, form, None)
+        form = PlanGenerateForm(initial={"basis_on": timezone.localdate()})
+        return self.page(request, worker, version, form, result)
+
+    def post(self, request: HttpRequest, pk: int, plan_id: int, number: int) -> HttpResponse:
+        worker, version = self.target(request, pk, plan_id, number)
+        form = PlanGenerateForm(request.POST)
+        if not form.is_valid():
+            return self.page(request, worker, version, form, None)
+        if request.POST.get("action") != "generate":
+            return self.page(request, worker, version, form, self.check(version, form))
+        if not consume_once_token(request):
+            return self.already_submitted(request, reverse("workers:support", args=[worker.pk]))
+        assert isinstance(request.user, User)
+        try:
+            document = form_generation.request(
+                self.form_id,
+                target=version,
+                data=self.data(version, form),
+                basis_on=form.cleaned_data["basis_on"],
+                by=request.user,
+                accept_warnings=bool(form.cleaned_data.get("accept_warnings")),
+            )
+        except form_generation.GenerationBlocked as blocked:
+            return self.page(request, worker, version, form, blocked.result)
+        except form_templates.FormTemplateError:
+            form.add_error(None, NOT_LOADED)
+            return self.page(request, worker, version, form, None)
+        except form_generation.WarningsNotAccepted as pending:
+            form.add_error("accept_warnings", _("Check the warnings before generating."))
+            return self.page(request, worker, version, form, pending.result)
+        messages.success(request, _("Requested the generation of the form."))
+        return redirect("forms:document", pk=document.pk)

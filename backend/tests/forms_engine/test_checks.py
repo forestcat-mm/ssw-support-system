@@ -8,19 +8,15 @@
 import datetime
 import json
 from collections.abc import Callable
-from io import StringIO
 from pathlib import Path
 from typing import Any
 
 import pytest
-from django.core.management import call_command
 from django.urls import resolve
-from pytest_django.fixtures import Settings as SettingsWrapper
 
 from apps.core.models import AttachmentKind, AuditAction, AuditLog
 from apps.forms_engine.models import FormMapping, GeneratedDocument
 from apps.hosts.models import HostMembership
-from apps.seed.models import SeedObject
 from apps.support.models import DeliveryKind
 from apps.workers.models import ForeignWorker
 from services import (
@@ -52,17 +48,8 @@ EXPECTED_5_9 = {
 BLOCKING_CODES = {"residence_expired", "contract_missing", "briefing_missing"}
 
 
-@pytest.fixture
-def seeded(settings: SettingsWrapper, loaded: None) -> list[ForeignWorker]:
-    settings.DEBUG = True
-    settings.ALLOW_DUMMY_DATA = True
-    call_command("seed_dummy", "--date", BASE.isoformat(), stdout=StringIO())
-    ids = SeedObject.objects.filter(content_type__model="foreignworker").values("object_id")
-    return list(ForeignWorker.objects.filter(pk__in=ids).order_by("pk"))
-
-
 def check(form_id: str, worker: ForeignWorker, on: datetime.date = BASE) -> form_checks.CheckResult:
-    target, data = form_samples.sample(form_id, worker)
+    target, data = form_samples.sample(form_id, worker, on)
     return form_generation.check(form_id, target=target, data=data, basis_on=on)
 
 
@@ -238,13 +225,13 @@ def test_generated_document_keeps_the_rules_sha_and_the_accepted_warnings(
     monkeypatch.setattr(form_generation, "run", lambda document_id: None)  # 変換はしない
     monkeypatch.setattr("services.jobs.enqueue", lambda *args, **kwargs: None)
     worker_1, worker_15 = seeded[0], seeded[14]
-    target, data = form_samples.sample("1-17", worker_1)
+    target, data = form_samples.sample("1-17", worker_1, BASE)
     with pytest.raises(form_generation.GenerationBlocked) as blocked:
         form_generation.request("1-17", target=target, data=data, basis_on=BASE, by=None)
     assert [f.code for f in blocked.value.result.blocking] == ["residence_expired"]
     assert not GeneratedDocument.objects.exists()  # 生成不可なら履歴を作らない
 
-    target, data = form_samples.sample("1-17", worker_15)
+    target, data = form_samples.sample("1-17", worker_15, BASE)
     with pytest.raises(form_generation.WarningsNotAccepted):
         form_generation.request("1-17", target=target, data=data, basis_on=BASE, by=None)
     assert not GeneratedDocument.objects.exists()

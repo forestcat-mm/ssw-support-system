@@ -251,10 +251,17 @@ class Organization(TrackedModel):
     singleton = models.BooleanField(default=True, editable=False, unique=True)
 
     name = models.CharField(_("name"), max_length=200)
+    # 支援計画書（参考様式第1-17号）Ⅲ欄３のふりがな（T31）
+    name_kana = models.CharField(_("name (kana)"), max_length=200, blank=True)
     registration_number = models.CharField(_("registration number"), max_length=50)
     registration_expires_on = models.DateField(_("registration expiry date"))
     # 支援計画書（参考様式第1-17号）のⅢ欄などで使う（T17）
     registered_on = models.DateField(_("registration date"), null=True, blank=True)
+    # 登録支援機関登録簿の「支援業務を開始する予定年月日」。第1-17号Ⅲ欄２の登録年月日の欄に書く
+    # （記載例〔全部委託〕2 頁の吹き出し。T31-D12、ADR-0020）
+    support_start_planned_on = models.DateField(
+        _("planned start date of support work"), null=True, blank=True
+    )
     representative_name = models.CharField(_("representative's name"), max_length=100, blank=True)
     representative_name_kana = models.CharField(
         _("representative's name (kana)"), max_length=100, blank=True
@@ -307,6 +314,8 @@ class SupportLanguage(TrackedModel):
 
     code = models.CharField(_("code"), max_length=16, unique=True)
     name = models.CharField(_("display name"), max_length=50)
+    # 様式で「〇〇語」の前に書く短い名前（例: 中国。第1-17号。T31-D11）
+    form_name = models.CharField(_("name on forms"), max_length=20, blank=True)
     sort_order = models.PositiveSmallIntegerField(_("sort order"), default=0)
     is_active = models.BooleanField(_("active"), default=True)
 

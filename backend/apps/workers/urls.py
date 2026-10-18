@@ -58,6 +58,11 @@ urlpatterns = [
         name="support_version_create",
     ),
     path(
+        "<int:pk>/support/plans/<int:plan_id>/versions/<int:number>/generate/",
+        support_views.PlanGenerateView.as_view(),
+        name="support_plan_generate",
+    ),
+    path(
         "<int:pk>/support/records/",
         record_views.RecordListView.as_view(),
         name="support_records",

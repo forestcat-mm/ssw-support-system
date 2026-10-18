@@ -2,20 +2,22 @@
 
 全欄の元データは T31・T32 で作る。
 
-- 第1-17号: 対象は外国人。Ⅰ 支援対象者の氏名・生年月日・国籍（ほかの欄は空）
+- 第1-17号: 対象は今の受入れ機関の計画の最新の版（T31 の全欄。form_data_1_17。申告あり）
 - 第5-9号: 対象は最新の事前ガイダンスの記録（無ければ外国人。生成前の検査で「記録がありません」に
   なる）。所属機関（自機関）の名称・説明者（担当者）・最初の実施日時
 """
 
 from __future__ import annotations
 
+import datetime
 from typing import Any
 
 from django.db import models
+from django.utils import timezone
 
-from apps.support.models import Briefing, BriefingSession
+from apps.support.models import Briefing, BriefingSession, SupportPlan, SupportPlanVersion
 from apps.workers.models import ForeignWorker
-from services import organization
+from services import contracts, form_data_1_17, organization
 from services.support_catalog import SupportItem
 
 
@@ -29,14 +31,27 @@ def latest_briefing(worker: ForeignWorker, kind: SupportItem) -> Briefing | None
     )
 
 
-def sample(form_id: str, worker: ForeignWorker) -> tuple[models.Model, dict[str, Any]]:
+def latest_plan_version(worker: ForeignWorker) -> SupportPlanVersion | None:
+    """今の受入れ機関の計画（無ければ最新の計画）の、最新の版。"""
+    plans = SupportPlan.objects.filter(worker=worker).order_by("-created_at")
+    contract = contracts.contract_on(worker, timezone.localdate())
+    if contract is not None:
+        plans = plans.filter(host_organization=contract.host_organization) or plans
+    plan = plans.first()
+    return plan.versions.order_by("-version").first() if plan else None
+
+
+def sample(
+    form_id: str, worker: ForeignWorker, basis_on: datetime.date | None = None
+) -> tuple[models.Model, dict[str, Any]]:
     """見本の生成の対象とデータ。"""
     if form_id == "1-17":
-        return worker, {
-            "worker.name_romaji": worker.name_romaji,
-            "worker.birth_date": worker.birth_date,
-            "worker.nationality": worker.nationality.name,
-        }
+        version = latest_plan_version(worker)
+        if version is None:
+            return worker, {}
+        return version, form_data_1_17.build(version, basis_on or timezone.localdate()) | (
+            form_data_1_17.declaration_values(True)
+        )
     if form_id == "5-9":
         data: dict[str, Any] = {
             "organization.name": organization.organization_display_name(),

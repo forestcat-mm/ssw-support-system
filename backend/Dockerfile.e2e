@@ -12,9 +12,16 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     DJANGO_ALLOW_ASYNC_UNSAFE=true \
     PATH="/opt/venv/bin:$PATH"
 
+# 帳票の生成を e2e で通すため、web と同じ LibreOffice（GUI なし）とフォントを入れる（T31、ADR-0018）
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends gettext \
+    && apt-get install -y --no-install-recommends \
+        gettext \
+        libreoffice-writer-nogui libreoffice-calc-nogui \
+        fontconfig fonts-ipafont-mincho fonts-ipafont-gothic fonts-noto-cjk \
+        fonts-crosextra-carlito \
     && rm -rf /var/lib/apt/lists/*
+COPY backend/config/fonts/99-form-fonts.conf /etc/fonts/conf.d/99-form-fonts.conf
+RUN fc-cache -f
 
 WORKDIR /app/backend
 COPY backend/pyproject.toml backend/uv.lock ./

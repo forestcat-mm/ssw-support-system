@@ -29,12 +29,12 @@ from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
 
 from apps.contracts.models import EmploymentContract, EmploymentContractVersion
-from apps.core.models import AttachmentKind, Staff
+from apps.core.models import AttachmentKind, Organization, Staff
 from apps.hosts.models import HostOrganization, HostSite
-from apps.support.models import Briefing, DeliveryKind
+from apps.support.models import Briefing, DeliveryKind, SupportPlanVersion
 from apps.workers.models import ApplicationType, ForeignWorker, LatestResidenceRecord
-from services import briefings, contracts, deliveries
-from services.support_catalog import SupportItem
+from services import briefings, contracts, deliveries, hosts
+from services.support_catalog import Method, SupportItem
 
 BLOCK = "block"
 WARN = "warn"
@@ -116,6 +116,7 @@ class CheckContext:
     target: models.Model
     basis_on: datetime.date
     data: Mapping[str, Any]
+    template: Any = None  # FormTemplate（欄の大きさを見る判定が使う）
 
     @cached_property
     def contract(self) -> EmploymentContract | None:
@@ -132,6 +133,10 @@ class CheckContext:
     @cached_property
     def host(self) -> HostOrganization | None:
         return self.contract.host_organization if self.contract else None
+
+    @property
+    def plan_version(self) -> SupportPlanVersion | None:
+        return self.target if isinstance(self.target, SupportPlanVersion) else None
 
     @property
     def briefing(self) -> Briefing | None:
@@ -323,6 +328,190 @@ def _briefing_warnings(context: CheckContext, params: Mapping[str, Any]) -> list
         Issue(warning.code, warning.message, destination, warning.strong)
         for warning in briefings.warnings(briefing)
         if warning.code not in excluded
+    ]
+
+
+@check("contract_not_past_end")
+def _contract_not_past_end(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """基準日の契約が、期間の終了日を過ぎて終了を登録していないもの（T30 から。T31）。"""
+    contract = context.contract
+    if contract is None or contract.terminated_on is not None or contract.current_ends_on is None:
+        return []
+    if contract.current_ends_on >= context.basis_on:
+        return []
+    return [
+        Issue(
+            "contract_past_end",
+            _(
+                "The employment contract period ended on %(day)s. Register a new version for "
+                "the renewal or the termination."
+            )
+            % {"day": contract.current_ends_on.isoformat()},
+            Destination("workers:contracts", {"pk": context.worker.pk}),
+        )
+    ]
+
+
+@check("support_contract_on_basis")
+def _support_contract_on_basis(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """計画の受入れ機関（無ければ基準日の契約の受入れ機関）と、基準日に支援委託契約がある。"""
+    version = context.plan_version
+    host = version.plan.host_organization if version is not None else context.host
+    if host is None or hosts.active_contract(host, context.basis_on) is not None:
+        return []
+    return [
+        Issue(
+            "support_contract_missing",
+            _("%(host)s has no support contract in effect on %(day)s.")
+            % {"host": host.name, "day": context.basis_on.isoformat()},
+            Destination("hosts:detail", {"pk": host.pk}),
+        )
+    ]
+
+
+@check("plan_not_outsourced")
+def _plan_not_outsourced(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """計画の行の「委託の有無」が「無」（全部委託では「無」。第1-17号 注意５）。"""
+    version = context.plan_version
+    if version is None:
+        return []
+    codes = list(
+        version.activities.filter(outsourced=True).order_by("code").values_list("code", flat=True)
+    )
+    if not codes:
+        return []
+    return [
+        Issue(
+            "plan_outsourced",
+            _(
+                "Rows %(codes)s are marked as outsourced. When all support is entrusted to a "
+                'registered support organization, every row must be "not outsourced".'
+            )
+            % {"codes": "、".join(codes)},
+            Destination("workers:support", {"pk": context.worker.pk}),
+        )
+    ]
+
+
+@check("plan_orientation_other")
+def _plan_orientation_other(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """Ⅳ欄４（生活オリエンテーション）の「その他」は、様式に欄が無く出ない（T31-D10）。"""
+    version = context.plan_version
+    if version is None:
+        return []
+    row = version.activities.filter(code="4.main").first()
+    if row is None or Method.OTHER not in row.methods:
+        return []
+    return [
+        Issue(
+            "orientation_other",
+            _(
+                'The form has no "other" box for the method of the life orientation, so it '
+                "will not be printed."
+            ),
+            Destination("workers:support", {"pk": context.worker.pk}),
+        )
+    ]
+
+
+@check("organization_for_plan")
+def _organization_for_plan(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """第1-17号Ⅲ欄（自機関・事務所・支援責任者）に要る値（T31-D12・D13）。"""
+    from services import form_data_1_17  # 循環を避ける
+
+    issues = []
+    settings_page = Destination("settings:organization_edit")
+    organization = Organization.objects.first()
+    if organization is None or not organization.name_kana:
+        issues.append(
+            Issue("organization_kana", _("The reading (kana) of our name is empty."), settings_page)
+        )
+    if organization is None or organization.support_start_planned_on is None:
+        issues.append(
+            Issue(
+                "support_start_missing",
+                _(
+                    "The planned start date of support work (in the register of registered "
+                    "support organizations) is empty."
+                ),
+                settings_page,
+            )
+        )
+    office, managers = form_data_1_17.office_and_managers(context.worker)
+    staff = context.staff
+    if office is None:
+        destination = (
+            Destination("settings:staff_edit", {"pk": staff.pk})
+            if staff is not None
+            else Destination("workers:edit", {"pk": context.worker.pk})
+        )
+        issues.append(
+            Issue(
+                "office_missing",
+                _("The assigned staff member has no office, so the support office is empty."),
+                destination,
+            )
+        )
+    if not managers:
+        issues.append(
+            Issue(
+                "manager_missing",
+                _("There is no support manager for the support office."),
+                Destination("settings:staff"),
+            )
+        )
+    elif len(managers) > 1:
+        issues.append(
+            Issue(
+                "managers_several",
+                _(
+                    "There are %(count)d support managers. Only one is printed; list all of "
+                    "their names and positions in a separate document of any format."
+                )
+                % {"count": len(managers)},
+                Destination("settings:staff"),
+            )
+        )
+    return issues
+
+
+@check("propriety_declared")
+def _propriety_declared(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """Ⅲ欄７「支援の適正性を確保していることの有無」の申告（生成の画面。T31-D15）。"""
+    if context.data.get("declaration.propriety"):
+        return []
+    return [
+        Issue(
+            "propriety_not_declared",
+            _(
+                "The declaration that the support is ensured to be proper (section III-7) is "
+                "not made, so it is left blank."
+            ),
+            None,
+        )
+    ]
+
+
+@check("text_fits")
+def _text_fits(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """長い値が、字を下限まで小さくしても欄に収まらない（T31-D7）。"""
+    from services import form_generation  # 循環を避ける
+
+    if context.template is None:
+        return []
+    labels = {
+        item["target"]: item.get("label", item["target"])
+        for item in context.template.mapping.definition.get("fields", [])
+    }
+    return [
+        Issue(
+            "text_overflow",
+            _('"%(label)s" does not fit in its field even at %(size)s pt.')
+            % {"label": labels[fit.target], "size": f"{fit.size:g}"},
+            None,
+        )
+        for fit in form_generation.fits(context.template, context.data)
+        if fit.overflow
     ]
 
 

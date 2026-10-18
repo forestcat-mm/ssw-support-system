@@ -2,6 +2,8 @@
 
 import datetime
 import json
+import re
+import zipfile
 from pathlib import Path
 
 import pytest
@@ -97,11 +99,24 @@ def test_mapping_that_writes_a_cell_referenced_by_a_formula_stops_loading(
     repo_copy: tuple[Path, Path],
 ) -> None:
     """書くセルを参照する計算式があれば止める（PDF に古い計算結果が出るため。ADR-0018）。"""
-    _templates, mappings = repo_copy
-    path = mappings / "1-17" / "2026-10-17.json"
-    definition = json.loads(path.read_text(encoding="utf-8"))
-    definition["fields"][0]["target"] = "参考様式第１－１７号!DA673"  # DA670 の式が参照する
-    path.write_text(json.dumps(definition, ensure_ascii=False), encoding="utf-8")
+    templates, _mappings = repo_copy
+    folder = templates / "1-17" / "2026-10-17"
+    original = folder / "original.xlsx"
+    with zipfile.ZipFile(original) as source:
+        entries = {item.filename: source.read(item.filename) for item in source.infolist()}
+    sheet = entries["xl/worksheets/sheet1.xml"].decode("utf-8")
+    row = re.search(r'<row r="1"[^>]*>.*?</row>', sheet, re.S)
+    assert row is not None
+    formula = '<c r="BY1"><f>O18&amp;""</f><v></v></c>'  # 印刷範囲の外でも、エラーでない式は見る
+    sheet = sheet.replace(row.group(0), row.group(0)[:-6] + formula + "</row>", 1)
+    entries["xl/worksheets/sheet1.xml"] = sheet.encode("utf-8")
+    with zipfile.ZipFile(original, "w") as output:
+        for name, data in entries.items():
+            output.writestr(name, data)
+    manifest_path = folder / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["source"]["original_sha256"] = form_templates.sha256_of(original)
+    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False), encoding="utf-8")
     with pytest.raises(form_templates.FormTemplateError, match="referenced by formulas"):
         form_templates.load_all()
     assert not FormTemplate.objects.filter(form_id="1-17").exists()

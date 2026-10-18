@@ -1,17 +1,24 @@
 {
   "form_id": "1-17",
   "valid_from": "2026-10-17",
-  "note": "T30 の見本の規則（ADR-0019）。このファイルは生成履歴があっても置き換えてよい（make forms で SHA-256 を記録し、監査ログに残る）。すべての欄の規則は T31 で足す。",
+  "note": "T30 の見本の規則に T31 の規則を足した（ADR-0019・0020）。このファイルは生成履歴があっても置き換えてよい（make forms で SHA-256 を記録し、監査ログに残る）。",
   "rules": [
     {"id": "contract", "type": "check", "name": "employment_contract_on_basis", "severity": "block"},
     {"id": "residence", "type": "check", "name": "residence_valid_on_basis", "severity": "block"},
     {"id": "membership", "type": "check", "name": "membership_certificate", "severity": "block"},
+    {"id": "support_contract", "type": "check", "name": "support_contract_on_basis", "severity": "block"},
+    {"id": "not_outsourced", "type": "check", "name": "plan_not_outsourced", "severity": "block"},
     {"id": "name_required", "type": "required", "key": "worker.name_romaji", "label": "Ⅰ 支援対象者 １ 氏名", "severity": "block", "fix": {"object": "worker", "url": "workers:edit"}},
     {"id": "name_half_width", "type": "width", "width": "half", "key": "worker.name_romaji", "label": "Ⅰ 支援対象者 １ 氏名", "severity": "warn", "fix": {"object": "worker", "url": "workers:edit"}},
     {"id": "birth_date_required", "type": "required", "key": "worker.birth_date", "label": "Ⅰ 支援対象者 ３ 生年月日", "severity": "block", "fix": {"object": "worker", "url": "workers:edit"}},
     {"id": "birth_date_format", "type": "date", "key": "worker.birth_date", "label": "Ⅰ 支援対象者 ３ 生年月日", "severity": "block", "fix": {"object": "worker", "url": "workers:edit"}},
     {"id": "nationality_required", "type": "required", "key": "worker.nationality", "label": "Ⅰ 支援対象者 ４ 国籍・地域", "severity": "block", "fix": {"object": "worker", "url": "workers:edit"}},
     {"id": "career_plan", "type": "check", "name": "career_plan_delivered", "severity": "warn"},
-    {"id": "support_language_staff", "type": "check", "name": "support_language_staff", "severity": "warn"}
+    {"id": "support_language_staff", "type": "check", "name": "support_language_staff", "severity": "warn"},
+    {"id": "contract_past_end", "type": "check", "name": "contract_not_past_end", "severity": "warn"},
+    {"id": "orientation_other", "type": "check", "name": "plan_orientation_other", "severity": "warn"},
+    {"id": "organization", "type": "check", "name": "organization_for_plan", "severity": "warn"},
+    {"id": "propriety", "type": "check", "name": "propriety_declared", "severity": "warn"},
+    {"id": "text_fits", "type": "check", "name": "text_fits", "severity": "warn"}
   ]
 }

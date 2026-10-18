@@ -6,6 +6,7 @@
   {% if delivery.contract %}<dt>{% translate "employment contract" %}</dt><dd>{{ delivery.contract.host_organization }}（{{ delivery.contract.current_starts_on|date:"Y-m-d" }}〜）</dd>{% endif %}
   {% if delivery.requested_on %}<dt>{% translate "requested on" %}</dt><dd class="mono">{{ delivery.requested_on|date:"Y-m-d" }}</dd>{% endif %}
   {% if delivery.kind == "support_plan_copy" %}<dt>{% translate "support plan" %}</dt><dd>{% if delivery.plan_version %}{% blocktranslate with number=delivery.plan_version.version day=delivery.plan_version.applies_from|date:"Y-m-d" %}Version {{ number }} (applies from {{ day }}){% endblocktranslate %}{% else %}<span class="muted">{% translate "no plan" %}</span>{% endif %}</dd>{% endif %}
+  {% if delivery.generated_document_id %}<dt>{% translate "generated document" %}</dt><dd><a href="{% url 'forms:document' delivery.generated_document_id %}">{{ delivery.generated_document.template.form_id }} #{{ delivery.generated_document_id }}</a></dd>{% endif %}
   <dt>{% translate "explained the content" %}</dt><dd>{% if delivery.explained %}{% translate "yes" %}{% else %}{% translate "no" %}{% endif %}</dd>
   <dt>{% translate "languages of the document" %}</dt><dd>{% for language in delivery.languages.all %}{{ language }}{% if not forloop.last %}、{% endif %}{% empty %}<span class="muted">—</span>{% endfor %}</dd>
 </dl>

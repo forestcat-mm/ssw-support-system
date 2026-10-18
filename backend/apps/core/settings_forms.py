@@ -67,8 +67,10 @@ class OrganizationForm(StyledFormMixin, forms.ModelForm[Organization]):
         model = Organization
         fields = (
             "name",
+            "name_kana",
             "registration_number",
             "registered_on",
+            "support_start_planned_on",
             "registration_expires_on",
             "representative_name",
             "representative_name_kana",
@@ -79,6 +81,7 @@ class OrganizationForm(StyledFormMixin, forms.ModelForm[Organization]):
         )
         widgets = {
             "registered_on": forms.DateInput,
+            "support_start_planned_on": forms.DateInput,
             "registration_expires_on": forms.DateInput,
             "food_council_joined_on": forms.DateInput,
         }

@@ -9,6 +9,7 @@ from __future__ import annotations
 import re
 import shutil
 import tempfile
+from collections import Counter
 from collections.abc import Iterable
 from pathlib import Path
 
@@ -38,3 +39,21 @@ def fixed_text_matches(generated: Path, blank: Path, inserted: Iterable[object])
     for value in sorted({str(v) for v in inserted if str(v)}, key=len, reverse=True):
         generated_text = generated_text.replace(_squash(value), "", 1)
     return generated_text == _squash("".join(pdf_text(blank)))
+
+
+def fixed_characters_match(
+    generated: Path, blank: Path, written: Iterable[object], printed: Iterable[object]
+) -> bool:
+    """選択肢の文字を置き換える様式（第1-17号）の固定の文言の比べ方（T31）。
+
+    生成した PDF の文字に、書き込み先の印刷済みの文字を足したものと、空の様式の PDF の文字に
+    書いた値を足したものが、文字ごとの数で同じ（空白は除く）。並びの順は見ない（PDF の文字の
+    取り出し順が、値の長さで変わるため）。頁数は別に比べる。
+    """
+
+    def count(texts: Iterable[object]) -> Counter[str]:
+        return Counter(_squash("".join(str(text) for text in texts if text is not None)))
+
+    left = count(pdf_text(generated)) + count(printed)
+    right = count(pdf_text(blank)) + count(written)
+    return left == right
