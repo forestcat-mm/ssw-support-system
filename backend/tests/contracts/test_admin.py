@@ -232,9 +232,17 @@ def test_terminate_contract_and_cancel_only_by_admin(
     staff = verified_client(make_user("tanto", roles=("support_staff",)))
     response = staff.post(url, _termination(contract))
     assert any("終了の取り消しは管理者だけ" in e for e in _errors(response))
-    assert admin_client.post(url, _termination(contract)).status_code == 302
+    # 終了の取消は理由が必須（T28b の D5）。理由は監査ログに残る
+    assert admin_client.post(url, _termination(contract)).status_code == 200
+    response = admin_client.post(url, _termination(contract, cancel_reason="別の契約に登録した"))
+    assert response.status_code == 302, _errors(response)
     contract.refresh_from_db()
     assert contract.terminated_on is None
+    log = AuditLog.objects.filter(
+        action=AuditAction.UPDATE,
+        content_type=ContentType.objects.get_for_model(EmploymentContract),
+    ).latest("pk")
+    assert log.context["cancel_termination"] == "別の契約に登録した"
 
 
 def test_existing_version_is_read_only_but_evidence_can_be_attached(admin_client: Client) -> None:

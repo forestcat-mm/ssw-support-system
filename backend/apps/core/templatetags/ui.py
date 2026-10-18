@@ -1,6 +1,6 @@
 """業務画面の表示部品（警告レベルのバッジ・分野のタグ・外国人の状態）。"""
 
-from datetime import date
+from datetime import date, timedelta
 from typing import Any
 
 from django import template
@@ -64,6 +64,12 @@ def due_date(
         "date_only": not badge or level is deadlines.Level.NOT_YET,
         "show_date": not badge or level is not deadlines.Level.NOT_YET,
     }
+
+
+@register.filter
+def add_days(value: date | None, days: int) -> date | None:
+    """日付に日数を足す（例: 無期転換の日＝契約の終了日の翌日）。"""
+    return None if value is None else value + timedelta(days=int(days))
 
 
 @register.filter

@@ -1,11 +1,11 @@
 {% extends "workers/detail_base.html" %}{% load i18n ui %}
 {% block tab_content %}
 {% if not view %}
-<div class="card"><div class="empty">{% translate "No employment contracts are registered." %}</div></div>
+<div class="card"><div class="empty">{% translate "No employment contracts are registered." %}{% if can_manage_contracts %} <a class="button button--primary button--small" href="{% url 'workers:contract_create' worker.pk %}">{% translate "Register an employment contract" %}</a>{% endif %}</div></div>
 {% else %}
 <div class="stack">
   <section class="card">
-    <div class="card__header"><h2 class="card__title">{% translate "Employment contracts" %}</h2></div>
+    <div class="card__header"><h2 class="card__title">{% translate "Employment contracts" %}</h2>{% if can_manage_contracts %}<a class="button button--neutral button--small" href="{% url 'workers:contract_create' worker.pk %}">{% translate "Register an employment contract" %}</a>{% endif %}</div>
     <div class="table-scroll">
       <table class="table table--list">
         <thead><tr><th>{% translate "host organization" %}</th><th>{% translate "starts on" %}</th><th>{% translate "ends on" %}</th><th>{% translate "status" %}</th></tr></thead>
@@ -24,6 +24,22 @@
   </section>
 
   {% with version=view.version contract=view.contract %}
+  {% if can_manage_contracts or can_reopen %}
+  <div class="cluster" id="contract-actions">
+    {% if can_manage_contracts and not contract.terminated_on %}
+      <a class="button button--primary" href="{% url 'workers:contract_version_create' worker.pk contract.pk %}">{% translate "Add a new version" %}</a>
+      <a class="button button--neutral" href="{% url 'workers:contract_terminate' worker.pk contract.pk %}">{% translate "Register the termination" %}</a>
+    {% endif %}
+    {% if can_manage_contracts %}<a class="button button--neutral" href="{% url 'workers:contract_attach' worker.pk contract.pk version.version %}">{% translate "Attach documents" %}</a>{% endif %}
+    {% if can_reopen and contract.terminated_on %}<a class="button button--neutral" href="{% url 'workers:contract_reopen' worker.pk contract.pk %}">{% translate "Cancel the termination" %}</a>{% endif %}
+  </div>
+  {% endif %}
+  {% if conversion_warning or conversion_terms_missing %}
+  <ul class="messages" id="contract-warnings">
+    {% if conversion_warning %}<li class="message message--warning">{{ conversion_warning }}</li>{% endif %}
+    {% if conversion_terms_missing %}<li class="message message--warning">{% translate "The working conditions change after conversion. Attach annex 2 of the employment conditions (form 1-6)." %}</li>{% endif %}
+  </ul>
+  {% endif %}
   <div class="grid-2">
     <section class="card" id="contract-main">
       <div class="card__header">
@@ -40,6 +56,7 @@
         <dt>{% translate "approximate monthly payment" %}</dt><dd class="mono">{% if view.monthly_total is not None %}¥{{ view.monthly_total|yen }}{% else %}—{% endif %}</dd>
         <dt>{% translate "approximate take-home pay" %}</dt><dd class="mono">{% if view.take_home is not None %}¥{{ view.take_home|yen }}{% else %}—{% endif %}</dd>
         <dt>{% translate "operation categories" %}</dt><dd>{% for category in version.categories.all %}{{ category.name }}{% if not forloop.last %}、{% endif %}{% empty %}—{% endfor %}</dd>
+        {% if version.indefinite_conversion %}<dt>{% translate "conversion to an indefinite contract" %}</dt><dd>{% blocktranslate with day=version.ends_on|add_days:1|date:"Y-m-d" %}Can apply (from {{ day }}){% endblocktranslate %} · {{ version.get_conversion_conditions_change_display }}</dd>{% endif %}
         <dt>{% translate "changed on" %}</dt><dd class="mono">{{ version.changed_on|date:"Y-m-d" }}</dd>
         {% if version.change_reason %}<dt>{% translate "change reason" %}</dt><dd>{{ version.change_reason }}</dd>{% endif %}
       </dl>
@@ -59,7 +76,7 @@
       </div>
       {% if view.attachments %}
       <h3>{% translate "Attachments" %}</h3>
-      <ul class="attachment-list">{% for attachment in view.attachments %}<li{% if attachment.voided_at %} class="is-voided"{% endif %}><a class="attachment-list__name" href="{% url 'attachment_download' attachment.pk %}">{{ attachment.original_filename }}</a> <span class="caption">{{ attachment.get_kind_display }}{% if attachment.voided_at %} · {% translate "voided" %} {{ attachment.voided_at|date:"Y-m-d" }}: {{ attachment.void_reason }}{% endif %}</span></li>{% endfor %}</ul>
+      <ul class="attachment-list" id="version-attachments">{% for attachment in view.attachments %}<li{% if attachment.voided_at %} class="is-voided"{% endif %}><a class="attachment-list__name" href="{% url 'attachment_download' attachment.pk %}">{{ attachment.original_filename }}</a> <span class="caption">{{ attachment.get_kind_display }}{% if attachment.voided_at %} · {% translate "voided" %} {{ attachment.voided_at|date:"Y-m-d" }}: {{ attachment.void_reason }}{% endif %}</span>{% if can_manage_contracts and not attachment.voided_at %} <a class="caption" href="{% url 'workers:contract_attachment_void' worker.pk contract.pk attachment.pk %}">{% translate "Void" %}</a>{% endif %}</li>{% endfor %}</ul>
       {% endif %}
     </section>
   </div>

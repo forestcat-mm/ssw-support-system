@@ -120,6 +120,7 @@ def test_add_and_edit_sites_with_categories(support_staff_client: Client) -> Non
         "name": "本社工場",
         "postal_code": "100-0001",
         "address": "東京都千代田区千代田1-1",
+        "phone_number": "03-1234-5678",
         "industry_code": "2194",
         "field": field("industrial_products").pk,
         "categories": [category("machine_metal_processing").pk, category("sewing").pk],
@@ -127,6 +128,8 @@ def test_add_and_edit_sites_with_categories(support_staff_client: Client) -> Non
     response = submit(support_staff_client, f"/hosts/{host.pk}/sites/new/", data)
     assert response.status_code == 302
     site = HostSite.objects.get()
+    assert site.phone_number == "03-1234-5678"  # 雇用条件書 Ⅱ の連絡先（ADR-0016）
+    assert "03-1234-5678" in support_staff_client.get(f"/hosts/{host.pk}/").content.decode()
     assert set(site.categories.values_list("code", flat=True)) == {
         "machine_metal_processing",
         "sewing",

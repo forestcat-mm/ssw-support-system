@@ -40,7 +40,8 @@ class StyledFormMixin:
         """欄 name を、ほかの欄の値が conditions のときだけ入力できるようにする（forms.js）。
 
         条件を満たさないときは無効にして値を空にする（無効の欄は送信されない）。チェックボックスは
-        チェックしたときの値が "on"。JS が無いときは欄は有効のままなので、保存時の検査で弾くこと。
+        チェックしたときの値が "on"。値を "*" にすると「空でない」の条件になる。JS が無いときは
+        欄は有効のままなので、保存時の検査で弾くこと。
         """
         rule = " ".join(f"{self.add_prefix(other)}={value}" for other, value in conditions.items())
         self.fields[name].widget.attrs["data-enabled-when"] = rule

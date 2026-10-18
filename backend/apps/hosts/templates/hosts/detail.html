@@ -47,7 +47,7 @@
           <td>{% field_tag site.field %}</td>
           <td class="mono">{{ site.industry_code }}</td>
           <td>{% for category in site.categories.all %}{% category_label category today %}{% if not forloop.last %}、{% endif %}{% empty %}—{% endfor %}</td>
-          <td><span class="truncate-line truncate-line--wide" title="〒{{ site.postal_code }} {{ site.address }}"><span class="truncate">〒{{ site.postal_code }} {{ site.address }}</span></span></td>
+          <td><span class="truncate-line truncate-line--wide" title="〒{{ site.postal_code }} {{ site.address }}"><span class="truncate">〒{{ site.postal_code }} {{ site.address }}</span></span>{% if site.phone_number %}<span class="caption mono">{{ site.phone_number }}</span>{% endif %}</td>
           {% if can_manage %}<td><a href="{% url 'hosts:site_edit' host.pk site.pk %}">{% translate "Edit" %}</a></td>{% endif %}
         </tr>{% endfor %}</tbody>
     </table></div>

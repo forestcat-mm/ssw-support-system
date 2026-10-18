@@ -232,6 +232,7 @@ def seed_hosts(ctx: SeedContext) -> None:
                 name=site_name,
                 postal_code="000-0002",
                 address=address,
+                phone_number=f"000-0000-1{len(ctx.sites) + 1:03d}",
                 industry_code=industry_code,
                 field=plan["field"],
             )
@@ -587,6 +588,11 @@ def _version_values(
         "has_bonus": True,
         "bonus_note": "年2回（業績による）",
         "resignation_notice_days": 30,
+        # 雇用条件書の「詳細は、就業規則 第 条～第 条」（ADR-0016）
+        "work_rules_articles_hours": "第15条～第18条（ダミー）",
+        "work_rules_articles_holidays": "第19条～第20条（ダミー）",
+        "work_rules_articles_leave": "第21条～第24条（ダミー）",
+        "work_rules_articles_resignation": "第40条～第42条（ダミー）",
         "insurances": ["employees_pension", "health", "employment", "workers_compensation"],
         "periodic_health_check_interval": "1年ごと",
         "consultation_contact": "総務部（ダミー）",
@@ -726,6 +732,7 @@ def seed_transfer(ctx: SeedContext) -> None:
         name="水産加工工場",
         postal_code="000-0004",
         address="静岡県ダミー浜市サンプル港1-1",
+        phone_number="000-0000-1099",
         industry_code="0929",  # その他の水産食料品製造業（中分類09 食料品製造業）
         field=food,
     )

@@ -232,6 +232,8 @@ class HostSite(TrackedModel):
             RegexValidator(r"^[0-9]{2,4}$", _("Enter 2 to 4 digits (e.g. 09, 0991, 2194)."))
         ],
     )
+    # 雇用条件書（参考様式第1-6号）Ⅱ 就業の場所の「連絡先」（T28b、ADR-0016）
+    phone_number = models.CharField(_("phone number"), max_length=20, blank=True)
     field = models.ForeignKey(
         SpecifiedSkillField,
         verbose_name=_("specified skill field"),

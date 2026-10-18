@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-18 11:03+0900\n"
+"POT-Creation-Date: 2026-10-18 11:23+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -18,8 +18,17 @@ msgstr ""
 msgid "status"
 msgstr "状態"
 
+msgid "reason for cancelling the termination"
+msgstr "終了を取り消す理由"
+
+msgid "Required when you clear the termination date (administrators only)."
+msgstr "終了日を空にして終了を取り消すときは必須です（管理者だけ）。"
+
 msgid "Only administrators can cancel a termination."
 msgstr "終了の取り消しは管理者だけができます。"
+
+msgid "Enter the reason."
+msgstr "理由を入力してください。"
 
 msgid "Termination"
 msgstr "終了"
@@ -121,6 +130,110 @@ msgstr "賃金支払時の控除"
 msgid "Employment contracts"
 msgstr "雇用契約台帳"
 
+#, python-format
+msgid "Saved the employment contract (version %(n)d)."
+msgstr "雇用契約を保存しました（第 %(n)d 版）。"
+
+#, python-format
+msgid ""
+"Created the filing task: %(kind)s. Check whether the notification is "
+"required."
+msgstr "届出タスクを起票しました: %(kind)s。届出が必要かを確かめてください。"
+
+#, python-format
+msgid "Created the filing task: %(kind)s."
+msgstr "届出タスクを起票しました: %(kind)s。"
+
+msgid ""
+"The working conditions change after conversion. Attach annex 2 of the "
+"employment conditions (form 1-6)."
+msgstr ""
+"無期転換後の労働条件が変わります。雇用条件書（参考様式第1-6号）の別紙2 を添付"
+"してください。"
+
+#, python-format
+msgid "Attach documents to version %(n)d"
+msgstr "第 %(n)d 版への根拠資料の添付"
+
+msgid ""
+"Evidence of equal pay, the calendar and agreement for variable working "
+"hours, or annex 2 (conditions after conversion). The version itself is not "
+"changed."
+msgstr ""
+"日本人と同等以上の報酬の根拠、変形労働時間制のカレンダー・協定書、または別紙2"
+"（無期転換後の労働条件）。版の内容は変わりません。"
+
+msgid "Add"
+msgstr "追加"
+
+msgid "Added the attachments."
+msgstr "添付を追加しました。"
+
+msgid "Example: a document of another contract was attached."
+msgstr "例: ほかの契約の資料を添付した。"
+
+msgid "Voided the attachment."
+msgstr "添付を取り消しました。"
+
+msgid "Register the termination"
+msgstr "終了を登録"
+
+msgid ""
+"The notification of termination (within 14 days) is created on the "
+"dashboard. For dismissal or company reasons and other reasons, the "
+"notification of difficulty in acceptance is also created."
+msgstr ""
+"雇用契約終了届出（14 日以内）のタスクがダッシュボードに出ます。解雇・会社都合"
+"とその他の理由では、受入れ困難届出のタスクも出ます。"
+
+msgid "Registered the termination. The notification task was created."
+msgstr "終了を登録しました。届出タスクを起票しました。"
+
+msgid "Example: the termination was registered for the wrong contract."
+msgstr "例: 別の契約に終了を登録した。"
+
+msgid "Cancel the termination"
+msgstr "終了を取り消す"
+
+msgid ""
+"Only for correcting a mistake. Unsubmitted termination notification tasks "
+"are cancelled with this reason."
+msgstr ""
+"入力の誤りを直すときだけ使います。提出前の終了届出のタスクは、この理由で取消"
+"になります。"
+
+msgid "Cancelled the termination."
+msgstr "終了を取り消しました。"
+
+msgid "operation categories"
+msgstr "業務区分"
+
+msgid "Select from the categories registered for the site."
+msgstr "事業所に登録した業務区分から選びます。"
+
+msgid "Leave blank to use the start date (version 1)."
+msgstr "空なら契約の開始日にします（第1版）。"
+
+msgid ""
+"The host organization (employer) is the one of the site. Dispatch is not "
+"allowed."
+msgstr "雇用主の受入れ機関は、選んだ事業所の受入れ機関です。派遣はできません。"
+
+msgid "Date of conclusion (version 1) or of the agreement to the change."
+msgstr "締結日（第1版）、または変更に合意した日。"
+
+msgid "Required when the reason is “other”."
+msgstr "理由が「その他」のときは必須です。"
+
+msgid "kind"
+msgstr "種別"
+
+msgid "files"
+msgstr "ファイル"
+
+msgid "PDF, PNG or JPEG, up to 10 MB each. You can select more than one."
+msgstr "PDF・PNG・JPEG、1 ファイル 10MB まで。複数選べます。"
+
 msgid "expiry of contract period"
 msgstr "契約満了"
 
@@ -197,6 +310,12 @@ msgstr "会社の経営状況"
 msgid "progress of the work"
 msgstr "従事している業務の進捗状況"
 
+msgid "no change"
+msgstr "無"
+
+msgid "changed (annex 2)"
+msgstr "有（別紙2 のとおり）"
+
 msgid "one-week unit"
 msgstr "1週間単位"
 
@@ -251,6 +370,9 @@ msgstr "国民年金"
 msgid "national health insurance"
 msgstr "国民健康保険"
 
+msgid "e.g. Articles 15 to 18, Article 20"
+msgstr "例: 第15条～第18条、第20条"
+
 msgid "version"
 msgstr "版"
 
@@ -291,14 +413,25 @@ msgstr "更新上限（回）"
 msgid "renewal limit (total years)"
 msgstr "更新上限（通算契約期間・年）"
 
+msgid "can apply for an indefinite contract during this period"
+msgstr "本契約の期間中に無期転換の申込みができる"
+
+msgid ""
+"Check when the total period of fixed-term contracts with the same employer "
+"exceeds 5 years during this contract. The conversion date is the day after "
+"the end date."
+msgstr ""
+"同じ雇用主との有期の契約の通算期間が、本契約の期間中に 5 年を超えるときに"
+"チェックします。転換の日は契約の終了日の翌日です。"
+
+msgid "change of working conditions after conversion"
+msgstr "無期転換後の労働条件の変更の有無"
+
 msgid "possible change of workplace"
 msgstr "就業の場所の変更の範囲"
 
 msgid "Leave blank if there is no possibility of change."
 msgstr "変更の可能性がない場合は空欄にします。"
-
-msgid "operation categories"
-msgstr "業務区分"
 
 msgid "duties"
 msgstr "業務の内容"
@@ -349,6 +482,9 @@ msgstr "年の所定労働日数"
 msgid "overtime work"
 msgstr "所定時間外労働あり"
 
+msgid "work rules articles (working hours)"
+msgstr "就業規則の条番号（労働時間）"
+
 msgid "regular holidays (weekdays)"
 msgstr "定例の休日（曜日）"
 
@@ -363,6 +499,9 @@ msgstr "年間合計休日日数"
 
 msgid "irregular holidays"
 msgstr "非定例の休日"
+
+msgid "work rules articles (holidays)"
+msgstr "就業規則の条番号（休日）"
 
 msgid "annual paid leave after 6 months (days)"
 msgstr "年次有給休暇（6か月継続勤務した場合・日）"
@@ -391,6 +530,9 @@ msgid ""
 msgstr ""
 "様式には「年次有給休暇・その他の休暇の範囲内で取得させる」と記載されます。そ"
 "れ以外の取り決めがある場合だけ書きます。"
+
+msgid "work rules articles (leave)"
+msgstr "就業規則の条番号（休暇）"
 
 msgid "wage type"
 msgstr "基本賃金の区分"
@@ -466,6 +608,9 @@ msgstr "休業手当（率・％）"
 
 msgid "notice period for voluntary resignation (days)"
 msgstr "自己都合退職の届出（退職する何日前・日）"
+
+msgid "work rules articles (resignation)"
+msgstr "就業規則の条番号（退職）"
 
 msgid "social and labor insurance"
 msgstr "社会保険・労働保険の加入・適用状況"
@@ -554,9 +699,6 @@ msgstr "居住費"
 msgid "utilities"
 msgstr "水道光熱費"
 
-msgid "kind"
-msgstr "種別"
-
 msgid "For other."
 msgstr "その他の場合の名称。"
 
@@ -565,6 +707,87 @@ msgstr "金額（月額の概算・円）"
 
 msgid "deduction"
 msgstr "控除"
+
+msgid "Void an attachment"
+msgstr "添付の取消"
+
+msgid "target"
+msgstr "対象"
+
+msgid "file"
+msgstr "ファイル"
+
+msgid "uploaded on"
+msgstr "登録日"
+
+msgid ""
+"The file is not deleted. It stays with a strikethrough and is no longer used "
+"as evidence. This cannot be undone."
+msgstr ""
+"ファイルは削除しません。打ち消し線を付けて残し、証跡として扱わなくなります。"
+"元には戻せません。"
+
+msgid "Void"
+msgstr "取り消す"
+
+msgid "Cancel"
+msgstr "キャンセル"
+
+msgid "Register an employment contract"
+msgstr "雇用契約を登録"
+
+#, python-format
+msgid "Add a new version: %(name)s"
+msgstr "新しい版を追加: %(name)s"
+
+#, python-format
+msgid ""
+"The values of version %(number)s are copied. Change only what changed and "
+"enter the date and reason of the change. A version without any change cannot "
+"be saved. Notifications are created from the changes."
+msgstr ""
+"第 %(number)s 版の値を写しています。変わった所だけを直し、変更日と変更理由を"
+"入れます。変更の無い版は保存できません。変更の内容から届出のタスクを起票しま"
+"す。"
+
+msgid ""
+"Items follow the employment conditions (reference form 1-6). The host "
+"organization (employer) is the one of the selected site."
+msgstr ""
+"項目は雇用条件書（参考様式第1-6号）の順です。雇用主の受入れ機関は、選んだ事業"
+"所の受入れ機関になります。"
+
+msgid "Shifts"
+msgstr "交代制の勤務時間"
+
+msgid "Add a shift"
+msgstr "勤務時間を足す"
+
+msgid "Allowances (annex 1)"
+msgstr "諸手当（別紙1）"
+
+msgid "Add an allowance"
+msgstr "手当を足す"
+
+msgid "Deductions (annex 1)"
+msgstr "賃金支払時に控除する項目（別紙1）"
+
+msgid "Add a deduction"
+msgstr "控除を足す"
+
+#, python-format
+msgid "Documents of version %(number)s (reference)"
+msgstr "第 %(number)s 版の根拠資料（参考）"
+
+msgid ""
+"Documents are not copied. Attach them to the new version again after saving "
+"if they still apply."
+msgstr ""
+"根拠資料は写しません。引き続き使う資料は、保存した後に新しい版に添付し直しま"
+"す。"
+
+msgid "Save"
+msgstr "保存する"
 
 msgid "Personal info"
 msgstr "個人情報"
@@ -619,9 +842,6 @@ msgstr "非表示（要配慮）"
 
 msgid "original filename"
 msgstr "元のファイル名"
-
-msgid "file"
-msgstr "ファイル"
 
 msgid "changes"
 msgstr "変更内容"
@@ -725,6 +945,11 @@ msgstr "日本人と同等以上の報酬の根拠資料"
 msgid ""
 "Annual calendar and labor-management agreement for variable working hours"
 msgstr "変形労働時間制の年間カレンダー・労使協定書"
+
+msgid ""
+"Working conditions after conversion to an indefinite contract (form 1-6, "
+"annex 2)"
+msgstr "無期転換後の労働条件（雇用条件書 別紙2）"
 
 msgid "Evidence of support (signed confirmation, photo, etc.)"
 msgstr "支援の証跡（署名入りの確認書・写真など）"
@@ -1089,9 +1314,6 @@ msgstr "操作者"
 msgid "actor username"
 msgstr "操作者のユーザー名"
 
-msgid "target"
-msgstr "対象"
-
 msgid "context"
 msgstr "補足情報"
 
@@ -1409,9 +1631,6 @@ msgstr ""
 "認証アプリに表示された 6 桁のコードを入力してください。端末を紛失した場合は、"
 "回復用コードを 1 つ入力してください。"
 
-msgid "Cancel"
-msgstr "キャンセル"
-
 msgid "Your password has been changed"
 msgstr "パスワードを変更しました"
 
@@ -1545,9 +1764,6 @@ msgstr "一覧へ戻る"
 msgid "item"
 msgstr "項目"
 
-msgid "Save"
-msgstr "保存する"
-
 msgid ""
 "Offices of the own organization where support work is done. An office is not "
 "deleted; turn off “active” when it closes."
@@ -1576,9 +1792,6 @@ msgstr "構成員証明書"
 
 msgid "Replace"
 msgstr "差し替える"
-
-msgid "uploaded on"
-msgstr "登録日"
 
 msgid "voided"
 msgstr "取消"
@@ -1756,9 +1969,6 @@ msgstr "ボタン"
 
 msgid "Save and add another"
 msgstr "保存して続けて登録"
-
-msgid "Void"
-msgstr "取り消す"
 
 msgid "Disabled"
 msgstr "使えない状態"
@@ -2443,20 +2653,8 @@ msgstr "協力確認書の控えの追加"
 msgid "Add the support entrustment contract"
 msgstr "支援委託契約書の追加"
 
-msgid "Add"
-msgstr "追加"
-
-msgid "Added the attachments."
-msgstr "添付を追加しました。"
-
 msgid "Example: a file of another host was attached."
 msgstr "例: ほかの受入れ機関のファイルを添付した。"
-
-msgid "Voided the attachment."
-msgstr "添付を取り消しました。"
-
-msgid "PDF, PNG or JPEG, up to 10 MB each. You can select more than one."
-msgstr "PDF・PNG・JPEG、1 ファイル 10MB まで。複数選べます。"
 
 msgid "Used for the furigana of the support plan."
 msgstr "支援計画書のふりがなに使います。"
@@ -2467,6 +2665,10 @@ msgstr "本店または主たる事務所。"
 msgid ""
 "Select the categories of the site's field. More than one can be selected."
 msgstr "事業所の分野の業務区分を選びます。複数選べます。"
+
+msgid ""
+"The contact of the workplace in the employment conditions (form 1-6, II)."
+msgstr "雇用条件書（参考様式第1-6号）Ⅱ 就業の場所の連絡先。"
 
 msgid ""
 "Japan Standard Industrial Classification. 2 to 4 digits (e.g. 09, 0991, "
@@ -2641,16 +2843,6 @@ msgstr "支援委託契約"
 msgid ""
 "This period overlaps another support contract of the same host organization."
 msgstr "同じ受入れ機関のほかの支援委託契約と期間が重なっています。"
-
-msgid "Void an attachment"
-msgstr "添付の取消"
-
-msgid ""
-"The file is not deleted. It stays with a strikethrough and is no longer used "
-"as evidence. This cannot be undone."
-msgstr ""
-"ファイルは削除しません。打ち消し線を付けて残し、証跡として扱わなくなります。"
-"元には戻せません。"
 
 msgid "previous file"
 msgstr "前のファイル"
@@ -4045,9 +4237,6 @@ msgstr "無効化を外しました。"
 msgid "reason for cancelling the deactivation"
 msgstr "無効化を外す理由"
 
-msgid "files"
-msgstr "ファイル"
-
 msgid ""
 "PDF, PNG or JPEG, up to 10 MB each. Attach the Japanese translation together."
 msgstr "PDF・PNG・JPEG、1 つ 10 MB まで。日本語訳も一緒に添付する。"
@@ -4326,6 +4515,9 @@ msgstr "雇用契約は登録されていません。"
 msgid "(shown below)"
 msgstr "（下に表示中）"
 
+msgid "Attach documents"
+msgstr "根拠資料を添付"
+
 #, python-format
 msgid "Version %(number)s"
 msgstr "第%(number)s版"
@@ -4335,6 +4527,13 @@ msgstr "1か月の支払概算額"
 
 msgid "approximate take-home pay"
 msgstr "手取り支給額（概算）"
+
+msgid "conversion to an indefinite contract"
+msgstr "無期転換"
+
+#, python-format
+msgid "Can apply (from %(day)s)"
+msgstr "申込みができる（%(day)s から転換）"
 
 msgid "Allowances and deductions"
 msgstr "手当・控除"
@@ -4585,8 +4784,59 @@ msgstr "事業所に登録されていない業務区分です: %(names)s"
 msgid "Enter the reason for the change."
 msgstr "変更理由を入力してください。"
 
+msgid ""
+"Select a site of the host organization of this contract. If the employer "
+"changes, register a new contract."
+msgstr ""
+"この契約の受入れ機関の事業所を選んでください。雇用主が変わるときは、新しい契"
+"約として登録します。"
+
+msgid "Select the criteria for renewal."
+msgstr "更新の判断基準を選んでください。"
+
+msgid "Criteria are only for “may be renewed”."
+msgstr "判断基準は「更新する場合があり得る」のときだけ選びます。"
+
+msgid "Enter the other criteria."
+msgstr "その他の判断基準を入れてください。"
+
+msgid "Enter the number of renewals or the total years."
+msgstr "更新の回数か通算の年数を入れてください。"
+
+msgid "Enter after how many months and how many days."
+msgstr "何か月経過で何日かを入れてください。"
+
+msgid "Enter the timing and amount."
+msgstr "時期・金額等を入れてください。"
+
+msgid ""
+"A contract without an end date cannot be converted to an indefinite one."
+msgstr "期間の定めの無い契約には、無期転換の欄はありません。"
+
+msgid "Select whether the working conditions change after conversion."
+msgstr "無期転換後の労働条件の変更の有無を選んでください。"
+
+msgid "Only when the worker can apply for an indefinite contract."
+msgstr "無期転換の申込みができるときだけ選びます。"
+
 msgid "Enter a note for the termination reason."
 msgstr "終了理由のメモを入力してください。"
+
+msgid "There is no change from the previous version. Change at least one item."
+msgstr ""
+"前の版と変わった所がありません。少なくとも 1 つの項目を変えてください。"
+
+msgid ""
+"The total period of the contracts with this host organization registered in "
+"the system exceeds 5 years. Check whether the worker can apply for an "
+"indefinite contract (Labor Contract Act, Article 18). Periods outside the "
+"system (such as technical intern training) are not counted, and gaps between "
+"contracts (cooling-off periods) are not judged."
+msgstr ""
+"システムに登録したこの受入れ機関との契約の通算期間が 5 年を超えます。無期転換"
+"の申込みができるか確かめてください（労働契約法第18条）。システムの外の期間"
+"（技能実習など）は数えておらず、契約の間の空白期間（クーリング）も判定してい"
+"ません。"
 
 msgid "Enter a 13-digit corporate number."
 msgstr "法人番号は数字 13 桁で入力してください。"
@@ -4805,6 +5055,10 @@ msgstr ""
 "起算日を契約の終了日にしています。受入れ困難の事由（解雇の予告など）がそれよ"
 "り前に生じた場合は、起算日を訂正してください。"
 
+#, python-format
+msgid "The termination of the employment contract was cancelled: %(reason)s"
+msgstr "雇用契約の終了が取り消されました: %(reason)s"
+
 msgid "The termination of the employment contract was cancelled."
 msgstr "雇用契約の終了が取り消されました。"
 
@@ -4835,9 +5089,6 @@ msgstr "提出日を入力してください。"
 
 msgid "Enter the receipt number."
 msgstr "受理番号を入力してください。"
-
-msgid "Enter the reason."
-msgstr "理由を入力してください。"
 
 msgid "Another unfinished task of the same kind exists for the same date."
 msgstr "同じ種別・同じ日付の未完了のタスクがほかにあります。"

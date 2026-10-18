@@ -51,7 +51,7 @@ document.querySelectorAll("[data-formset]").forEach((container) => {
   });
 });
 
-// 条件つきの入力欄（[data-enabled-when="名前=値 名前=値"]。StyledFormMixin.enable_when）: 条件をすべて
+// 条件つきの入力欄（[data-enabled-when="名前=値 名前=値"]。値が * なら「空でない」。StyledFormMixin.enable_when）: 条件をすべて
 // 満たすときだけ入力でき、満たさないときは無効にして値を空にする（無効の欄は送信されない）。
 // 欄どうしが連なる（要否が「要」のときだけ通報先）ので、変化が無くなるまで繰り返す。
 // JS が無いときは欄は有効のままで、保存時の検査で弾く。
@@ -80,7 +80,7 @@ document.querySelectorAll("form").forEach((form) => {
       targets.forEach((item) => {
         const enabled = item.dataset.enabledWhen.split(" ").every((rule) => {
           const [name, value] = rule.split("=");
-          return valueOf(name) === value;
+          return value === "*" ? valueOf(name) !== "" : valueOf(name) === value; // * は「空でない」
         });
         if (item.disabled === !enabled) return;
         item.disabled = !enabled;

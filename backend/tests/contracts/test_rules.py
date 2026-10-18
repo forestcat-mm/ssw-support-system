@@ -120,7 +120,9 @@ def test_contract_after_termination_is_allowed() -> None:
         ends_on=None,
     )
     with pytest.raises(ValidationError):
-        contracts.cancel_termination(first, by=None)  # 取り消すと次の契約と重なる
+        contracts.cancel_termination(
+            first, by=None, reason="入力の誤り"
+        )  # 取り消すと次の契約と重なる
 
 
 def test_extending_by_new_version_cannot_overlap_next_contract() -> None:

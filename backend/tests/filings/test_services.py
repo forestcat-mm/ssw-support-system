@@ -75,7 +75,7 @@ def test_acceptance_difficulty_depends_on_reason(reason: str, with_difficulty: b
 def test_cancelling_termination_cancels_filings_with_reason() -> None:
     contract = make_contract()
     contracts.terminate(contract, on=date(2026, 9, 30), reason=TerminationReason.COMPANY, by=None)
-    contracts.cancel_termination(contract, by=None)
+    contracts.cancel_termination(contract, by=None, reason="入力の誤り")
     assert set(Filing.objects.values_list("status", flat=True)) == {FilingStatus.CANCELLED}
     assert all("取り消されました" in f.status_reason for f in Filing.objects.all())
     # 取り消した後にもう一度終了を登録すると、新しく起票される
@@ -89,7 +89,7 @@ def test_submitted_filing_is_not_cancelled_but_noted() -> None:
     contracts.terminate(contract, on=date(2026, 9, 30), reason=TerminationReason.EXPIRY, by=None)
     filing = Filing.objects.get()
     filings.transition(filing, FilingStatus.SUBMITTED, by=None, submitted_on=date(2026, 10, 5))
-    contracts.cancel_termination(contract, by=None)
+    contracts.cancel_termination(contract, by=None, reason="入力の誤り")
     filing.refresh_from_db()
     assert filing.status == FilingStatus.SUBMITTED
     assert "取り消されました" in filing.note

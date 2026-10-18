@@ -125,6 +125,13 @@ class RenewalCriterion(models.TextChoices):
     OTHER = "other", _("other")
 
 
+class ConversionChange(models.TextChoices):
+    """無期転換後の労働条件の変更の有無（雇用条件書 Ⅰ。「有」は別紙2）。"""
+
+    NONE = "none", _("no change")
+    CHANGED = "changed", _("changed (annex 2)")
+
+
 class VariableHoursUnit(models.TextChoices):
     ONE_WEEK = "one_week", _("one-week unit")
     ONE_MONTH = "one_month", _("one-month unit")
@@ -154,6 +161,13 @@ class Insurance(models.TextChoices):
     NATIONAL_PENSION = "national_pension", _("national pension")
     NATIONAL_HEALTH = "national_health", _("national health insurance")
     OTHER = "other", _("other")
+
+
+def _articles(label: Any) -> models.CharField[Any, Any]:
+    """雇用条件書の「詳細は、就業規則 第 条～第 条」（Ⅳ・Ⅴ・Ⅵ・Ⅷ）。"""
+    return models.CharField(
+        label, max_length=100, blank=True, help_text=_("e.g. Articles 15 to 18, Article 20")
+    )
 
 
 def _rate(label: Any) -> models.DecimalField[Any, Any]:
@@ -202,6 +216,22 @@ class EmploymentContractVersion(TrackedModel):
     )
     renewal_limit_years = models.PositiveSmallIntegerField(
         _("renewal limit (total years)"), null=True, blank=True
+    )
+    # 無期転換（労働契約法第18条。労働基準法施行規則第5条第5項・第6項。ADR-0016）
+    indefinite_conversion = models.BooleanField(
+        _("can apply for an indefinite contract during this period"),
+        default=False,
+        help_text=_(
+            "Check when the total period of fixed-term contracts with the same employer "
+            "exceeds 5 years during this contract. The conversion date is the day after the end "
+            "date."
+        ),
+    )
+    conversion_conditions_change = models.CharField(
+        _("change of working conditions after conversion"),
+        max_length=16,
+        choices=ConversionChange.choices,
+        blank=True,
     )
 
     # Ⅱ．就業の場所（直接雇用のみ。派遣は不可）
@@ -256,6 +286,7 @@ class EmploymentContractVersion(TrackedModel):
         _("annual working days"), null=True, blank=True
     )
     has_overtime = models.BooleanField(_("overtime work"), default=True)
+    work_rules_articles_hours = _articles(_("work rules articles (working hours)"))
 
     # Ⅴ．休日
     regular_holiday_weekdays = ChoiceArrayField(
@@ -270,6 +301,7 @@ class EmploymentContractVersion(TrackedModel):
     )
     annual_holidays = models.PositiveSmallIntegerField(_("annual holidays"))
     irregular_holidays = models.CharField(_("irregular holidays"), max_length=200, blank=True)
+    work_rules_articles_holidays = _articles(_("work rules articles (holidays)"))
 
     # Ⅵ．休暇
     paid_leave_days = models.PositiveSmallIntegerField(_("annual paid leave after 6 months (days)"))
@@ -290,6 +322,7 @@ class EmploymentContractVersion(TrackedModel):
             "Write only additional arrangements."
         ),
     )
+    work_rules_articles_leave = _articles(_("work rules articles (leave)"))
 
     # Ⅶ．賃金（別紙1「賃金の支払」を含む）
     wage_type = models.CharField(_("wage type"), max_length=16, choices=WageType.choices)
@@ -338,6 +371,7 @@ class EmploymentContractVersion(TrackedModel):
     resignation_notice_days = models.PositiveSmallIntegerField(
         _("notice period for voluntary resignation (days)"), null=True, blank=True
     )
+    work_rules_articles_resignation = _articles(_("work rules articles (resignation)"))
 
     # Ⅸ．その他
     insurances = ChoiceArrayField(

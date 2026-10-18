@@ -5,7 +5,7 @@ from django import forms
 from django.contrib import admin
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldDoesNotExist
-from django.forms.models import model_to_dict
+from django.forms.models import construct_instance, model_to_dict
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.utils import timezone
@@ -15,7 +15,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core.admin import TRACKED_READONLY_FIELDS, AttachmentInline, TrackedModelAdmin
 from apps.core.admin_filters import DateRangeFilter
-from apps.core.models import Action, AttachmentKind, User
+from apps.core.models import Action, User
 from apps.hosts.models import HostOrganization
 from apps.workers.models import ForeignWorker
 from services import authorization, contracts
@@ -75,6 +75,13 @@ class VersionListInline(admin.TabularInline[EmploymentContractVersion, Employmen
 
 
 class ContractForm(forms.ModelForm[EmploymentContract]):
+    cancel_reason = forms.CharField(
+        label=_("reason for cancelling the termination"),
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 2}),
+        help_text=_("Required when you clear the termination date (administrators only)."),
+    )
+
     class Meta:
         model = EmploymentContract
         fields = ("terminated_on", "termination_reason", "termination_note")
@@ -92,6 +99,8 @@ class ContractForm(forms.ModelForm[EmploymentContract]):
                 user = self.request.user if self.request is not None else AnonymousUser()
                 if not authorization.has_action(user, Action.CONTRACTS_REOPEN):
                     raise forms.ValidationError(_("Only administrators can cancel a termination."))
+                if not (cleaned.get("cancel_reason") or "").strip():
+                    self.add_error("cancel_reason", _("Enter the reason."))
                 contracts.validate_no_overlap(
                     contract.worker_id,
                     contract.current_starts_on,
@@ -141,7 +150,17 @@ class EmploymentContractAdmin(TrackedModelAdmin[EmploymentContract]):
                 )
             },
         ),
-        (_("Termination"), {"fields": ("terminated_on", "termination_reason", "termination_note")}),
+        (
+            _("Termination"),
+            {
+                "fields": (
+                    "terminated_on",
+                    "termination_reason",
+                    "termination_note",
+                    "cancel_reason",
+                )
+            },
+        ),
         (_("Record"), {"fields": TRACKED_READONLY_FIELDS}),
     )
     readonly_fields = (
@@ -205,7 +224,9 @@ class EmploymentContractAdmin(TrackedModelAdmin[EmploymentContract]):
                 by=actor,
             )
         elif obj.terminated_on is None and stored.terminated_on is not None:
-            contracts.cancel_termination(stored, by=actor)
+            contracts.cancel_termination(
+                stored, by=actor, reason=form.cleaned_data.get("cancel_reason") or ""
+            )
         else:
             super().save_model(request, obj, form, change)
 
@@ -252,7 +273,7 @@ class DeductionInline(ImmutableDetailInline):
 class VersionAttachmentInline(AttachmentInline):
     """同等報酬の根拠資料・変形労働時間制の資料。既存の版にも後から追加できる（版の内容は変えない）。"""
 
-    kinds = (AttachmentKind.EQUAL_PAY_EVIDENCE, AttachmentKind.VARIABLE_HOURS_DOCUMENTS)
+    kinds = contracts.VERSION_ATTACHMENT_KINDS
 
 
 class VersionForm(forms.ModelForm[EmploymentContractVersion]):
@@ -287,34 +308,19 @@ class VersionForm(forms.ModelForm[EmploymentContractVersion]):
                 None, _("Select an existing contract, or a foreign worker and a host organization.")
             )
             return cleaned
-        checks = [
-            ("site", lambda: contracts.validate_site_belongs_to_host(host, cleaned.get("site"))),
-            (
-                "categories",
-                lambda: contracts.validate_categories_of_site(
-                    cleaned.get("site"), cleaned.get("categories") or []
-                ),
-            ),
-            (
-                "change_reason",
-                lambda: contracts.validate_change(contract, cleaned.get("change_reason") or ""),
-            ),
-            (
-                "starts_on",
-                lambda: contracts.validate_no_overlap(
-                    getattr(worker, "pk", None),
-                    cleaned.get("starts_on"),
-                    cleaned.get("ends_on"),
-                    contract.terminated_on if contract else None,
-                    exclude_contract_id=contract.pk if contract else None,
-                ),
-            ),
-        ]
-        for field, check in checks:
-            try:
-                check()
-            except forms.ValidationError as error:
-                self.add_error(field, error)
+        # 業務画面と同じ検査（services.contracts.validate_version）
+        candidate = construct_instance(self, EmploymentContractVersion())
+        try:
+            contracts.validate_version(
+                candidate,
+                contract=contract,
+                worker=worker,
+                host_organization=host,
+                categories=cleaned.get("categories") or [],
+            )
+        except forms.ValidationError as error:
+            for field, messages in error.message_dict.items():
+                self.add_error(field if field in self.fields else None, messages)
         return cleaned
 
 
@@ -333,6 +339,8 @@ SECTIONS: tuple[tuple[Any, tuple[str, ...]], ...] = (
             "has_renewal_limit",
             "renewal_limit_count",
             "renewal_limit_years",
+            "indefinite_conversion",
+            "conversion_conditions_change",
         ),
     ),
     (_("II. Workplace"), ("site", "workplace_change_scope")),
@@ -352,6 +360,7 @@ SECTIONS: tuple[tuple[Any, tuple[str, ...]], ...] = (
             "monthly_working_days",
             "annual_working_days",
             "has_overtime",
+            "work_rules_articles_hours",
         ),
     ),
     (
@@ -362,6 +371,7 @@ SECTIONS: tuple[tuple[Any, tuple[str, ...]], ...] = (
             "regular_holidays_other",
             "annual_holidays",
             "irregular_holidays",
+            "work_rules_articles_holidays",
         ),
     ),
     (
@@ -374,6 +384,7 @@ SECTIONS: tuple[tuple[Any, tuple[str, ...]], ...] = (
             "other_paid_leave",
             "other_unpaid_leave",
             "temporary_return_leave_note",
+            "work_rules_articles_leave",
         ),
     ),
     (
@@ -402,7 +413,7 @@ SECTIONS: tuple[tuple[Any, tuple[str, ...]], ...] = (
             "leave_allowance_rate",
         ),
     ),
-    (_("VIII. Resignation"), ("resignation_notice_days",)),
+    (_("VIII. Resignation"), ("resignation_notice_days", "work_rules_articles_resignation")),
     (
         _("IX. Others"),
         (

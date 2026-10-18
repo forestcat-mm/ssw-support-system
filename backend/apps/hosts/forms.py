@@ -98,9 +98,25 @@ class HostSiteForm(StyledFormMixin, forms.ModelForm[HostSite]):
 
     class Meta:
         model = HostSite
-        fields = ("name", "postal_code", "address", "industry_code", "field", "is_active")
+        fields = (
+            "name",
+            "postal_code",
+            "address",
+            "phone_number",
+            "industry_code",
+            "field",
+            "is_active",
+        )
 
-    field_order = ("name", "postal_code", "address", "industry_code", "field", "categories")
+    field_order = (
+        "name",
+        "postal_code",
+        "address",
+        "phone_number",
+        "industry_code",
+        "field",
+        "categories",
+    )
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
@@ -127,6 +143,9 @@ class HostSiteForm(StyledFormMixin, forms.ModelForm[HostSite]):
         else:
             del self.fields["is_active"]  # 新しい事業所は有効
         self.fields["field"].queryset = field_queryset  # type: ignore[attr-defined]
+        self.fields["phone_number"].help_text = _(
+            "The contact of the workplace in the employment conditions (form 1-6, II)."
+        )
         self.fields["industry_code"].help_text = _(
             "Japan Standard Industrial Classification. 2 to 4 digits (e.g. 09, 0991, 2194)."
         )

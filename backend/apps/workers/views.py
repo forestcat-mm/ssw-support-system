@@ -189,9 +189,17 @@ class WorkerContractsView(WorkerDetailView):
             if selected is not None
             else None
         )
+        user = self.request.user
+        active = workers.is_active(self.worker)
         context.update(
             contracts=[(c, contracts.status_of(c, today)) for c in all_contracts],
             view=view,
+            can_manage_contracts=active and authorization.has_action(user, Action.CONTRACTS_MANAGE),
+            can_reopen=active and authorization.has_action(user, Action.CONTRACTS_REOPEN),
+            conversion_warning=contracts.conversion_warning(view.version) if view else "",
+            conversion_terms_missing=(
+                contracts.conversion_terms_missing(view.version) if view else False
+            ),
         )
         if view is None:
             return {"shown": {}}

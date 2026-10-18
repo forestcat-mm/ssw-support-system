@@ -320,7 +320,7 @@ def test_manage_screens_require_workers_manage() -> None:
 
 def test_unknown_record_kind_is_404(manager_client: Client) -> None:
     worker = make_worker()
-    assert manager_client.get(f"/workers/{worker.pk}/contracts/new/").status_code == 404
+    assert manager_client.get(f"/workers/{worker.pk}/unknown/new/").status_code == 404
 
 
 def test_admin_uses_the_same_rule_for_card_number(admin_user: User) -> None:

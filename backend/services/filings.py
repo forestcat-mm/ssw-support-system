@@ -365,13 +365,18 @@ def on_contract_terminated(contract: EmploymentContract, *, by: User | None) -> 
 
 
 def on_termination_cancelled(
-    contract: EmploymentContract, *, terminated_on: date, by: User | None
+    contract: EmploymentContract, *, terminated_on: date, by: User | None, reason: str = ""
 ) -> None:
     """終了の取り消し → 起票済みの終了届出・受入れ困難届出を取消にする。
 
-    提出済み以降のものは取消にせず、メモに残す。
+    提出済み以降のものは取消にせず、メモに残す。取り消した理由（人が入れたもの）を添える。
     """
-    reason = _("The termination of the employment contract was cancelled.")
+    reason = (
+        _("The termination of the employment contract was cancelled: %(reason)s")
+        % {"reason": reason}
+        if reason
+        else _("The termination of the employment contract was cancelled.")
+    )
     for kind in (FilingKind.CONTRACT_TERMINATION, FilingKind.ACCEPTANCE_DIFFICULTY):
         filing = find_open(kind, contract, terminated_on)
         if filing is None:

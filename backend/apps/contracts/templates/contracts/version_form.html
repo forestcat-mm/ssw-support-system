@@ -1,0 +1,37 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% if contract %}{% translate "Add a new version" %}{% else %}{% translate "Register an employment contract" %}{% endif %} | {{ worker }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{{ back }}">← {{ worker }}</a></p>
+  <h1>{% if contract %}{% blocktranslate with name=contract.host_organization.name %}Add a new version: {{ name }}{% endblocktranslate %}{% else %}{% translate "Register an employment contract" %}{% endif %}</h1>
+{% endblock %}
+{% block content %}
+<form class="form" method="post" novalidate id="version-form" data-keepalive="{% url 'accounts:keepalive' %}">
+  {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+  {% include "ui/components/form_errors.html" with form=editor.form %}
+  <div class="stack">
+    <p class="caption">{% if previous %}{% blocktranslate with number=previous.version %}The values of version {{ number }} are copied. Change only what changed and enter the date and reason of the change. A version without any change cannot be saved. Notifications are created from the changes.{% endblocktranslate %}{% else %}{% translate "Items follow the employment conditions (reference form 1-6). The host organization (employer) is the one of the selected site." %}{% endif %}</p>
+    {% for title, fields in editor.form.sections %}{% if fields %}
+    <section class="card stack" id="section-{{ forloop.counter }}">
+      <h2>{{ title }}</h2>
+      {% for field in fields %}{% form_field field %}{% endfor %}
+      {% if forloop.counter == 5 %}{% include "support/components/formset_rows.html" with formset=editor.shifts id="shift-rows" title=_("Shifts") add_label=_("Add a shift") nested=True %}{% endif %}
+      {% if forloop.counter == 8 %}
+        {% include "support/components/formset_rows.html" with formset=editor.allowances id="allowance-rows" title=_("Allowances (annex 1)") add_label=_("Add an allowance") nested=True %}
+        {% include "support/components/formset_rows.html" with formset=editor.deductions id="deduction-rows" title=_("Deductions (annex 1)") add_label=_("Add a deduction") nested=True %}
+      {% endif %}
+    </section>
+    {% endif %}{% endfor %}
+    {% if previous_attachments %}
+    <section class="card" id="previous-attachments">
+      <h2>{% blocktranslate with number=previous.version %}Documents of version {{ number }} (reference){% endblocktranslate %}</h2>
+      <p class="caption">{% translate "Documents are not copied. Attach them to the new version again after saving if they still apply." %}</p>
+      <ul class="attachment-list">{% for attachment in previous_attachments %}<li{% if attachment.voided_at %} class="is-voided"{% endif %}><a class="attachment-list__name" href="{% url 'attachment_download' attachment.pk %}">{{ attachment.original_filename }}</a> <span class="caption">{{ attachment.get_kind_display }}</span></li>{% endfor %}</ul>
+    </section>
+    {% endif %}
+  </div>
+  <div class="form-actions">
+    <button class="button button--primary" type="submit">{% translate "Save" %}</button>
+    <a class="button button--neutral" href="{{ back }}">{% translate "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

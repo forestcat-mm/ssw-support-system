@@ -1,5 +1,6 @@
 from django.urls import path
 
+from apps.contracts import edit_views as contract_views
 from apps.support import record_views
 from apps.support import views as support_views
 from apps.workers import document_views, views
@@ -11,6 +12,37 @@ urlpatterns = [
     path("new/", views.WorkerCreateView.as_view(), name="create"),
     path("<int:pk>/", views.WorkerDetailView.as_view(), name="detail"),
     path("<int:pk>/contracts/", views.WorkerContractsView.as_view(), name="contracts"),
+    # 雇用契約の登録・編集（T28b）。下の "<pk>/<kind>/new/" より前に置く
+    path(
+        "<int:pk>/contracts/new/",
+        contract_views.VersionCreateView.as_view(),
+        name="contract_create",
+    ),
+    path(
+        "<int:pk>/contracts/<int:contract_id>/versions/new/",
+        contract_views.VersionCreateView.as_view(),
+        name="contract_version_create",
+    ),
+    path(
+        "<int:pk>/contracts/<int:contract_id>/versions/<int:number>/attachments/new/",
+        contract_views.VersionAttachView.as_view(),
+        name="contract_attach",
+    ),
+    path(
+        "<int:pk>/contracts/<int:contract_id>/attachments/<int:attachment_id>/void/",
+        contract_views.VersionAttachmentVoidView.as_view(),
+        name="contract_attachment_void",
+    ),
+    path(
+        "<int:pk>/contracts/<int:contract_id>/terminate/",
+        contract_views.TerminateView.as_view(),
+        name="contract_terminate",
+    ),
+    path(
+        "<int:pk>/contracts/<int:contract_id>/reopen/",
+        contract_views.ReopenView.as_view(),
+        name="contract_reopen",
+    ),
     path("<int:pk>/filings/", views.WorkerFilingsView.as_view(), name="filings"),
     path("<int:pk>/history/", views.WorkerHistoryView.as_view(), name="history"),
     path("<int:pk>/edit/", views.WorkerUpdateView.as_view(), name="edit"),

@@ -96,6 +96,11 @@ class AttachmentKind(models.TextChoices):
         "variable_hours_documents",
         _("Annual calendar and labor-management agreement for variable working hours"),
     )
+    # 雇用条件書 別紙2（無期転換後の労働条件。変更が「有」のとき。T28b、ADR-0016）
+    INDEFINITE_CONVERSION_TERMS = (
+        "indefinite_conversion_terms",
+        _("Working conditions after conversion to an indefinite contract (form 1-6, annex 2)"),
+    )
     SUPPORT_RECORD = (
         "support_record",
         _("Evidence of support (signed confirmation, photo, etc.)"),
