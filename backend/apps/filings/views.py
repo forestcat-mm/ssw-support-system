@@ -30,7 +30,15 @@ from apps.filings.forms import (
 from apps.filings.models import Filing, FilingKind, FilingStatus, Trigger
 from apps.forms_engine.models import GeneratedDocument
 from apps.support.models import PeriodicInterview
-from services import audit, authorization, dashboard, filings, form_generation, workers
+from services import (
+    audit,
+    authorization,
+    dashboard,
+    filings,
+    form_generation,
+    incident_reports,
+    workers,
+)
 
 # ダッシュボードの絞り込みの条件（処理の画面から同じ条件で戻るため）
 DASHBOARD_QUERY_SESSION_KEY = "dashboard_query"
@@ -121,6 +129,12 @@ class FilingDetailView(ActionRequiredMixin, View):
                 if form_generation.can_view(request.user, document)
             ],
             "linkable_documents": list(filings.linkable_documents(filing)) if can_manage else [],
+            # 第4-3号: 元の面談の組と、その組の最新の報告書（第5-5号・第5-6号。T35-D6）
+            "interview_sources": (
+                incident_reports.interview_sources(filing)
+                if filing.kind == incident_reports.KIND
+                else []
+            ),
             "back_url": dashboard_url(request),
             **once_context(request),
         }

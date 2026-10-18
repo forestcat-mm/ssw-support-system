@@ -36,7 +36,7 @@ from pypdf import PdfReader
 from apps.contracts.models import EmploymentContractVersion
 from apps.core.models import Action, AuditAction, User
 from apps.forms_engine.models import FormMethod, FormTemplate, GeneratedDocument, GenerationStatus
-from apps.support.models import Briefing, SupportPlanVersion
+from apps.support.models import Briefing, PeriodicInterview, SupportPlanVersion
 from apps.workers.models import ForeignWorker
 from services import (
     audit,
@@ -195,15 +195,19 @@ class Fit:
     target: str
     size: float
     overflow: bool  # 下限の大きさでも収まらない
+    wrap: bool = False  # 欄の幅で改行する（T35-D11）
 
 
 def fits(template: FormTemplate, data: Mapping[str, Any]) -> list[Fit]:
-    """fit を指定した Excel の欄で、値が 1 行に収まる字の大きさ（T31-D7）。"""
+    """fit の欄は 1 行に収まる字の大きさ（T31-D7）、wrap の欄は改行して結合範囲の高さに収まる
+    字の大きさ（T35-D11）。wrap の欄は、値があれば字の大きさが元のままでも残す（改行を入れるため）。
+    """
     definition = template.mapping.definition
     if template.method != FormMethod.XLSX_CELLS:
         return []
-    items = [item for item in definition.get("fields", []) if item.get("fit")]
+    items = [item for item in definition.get("fields", []) if item.get("fit") or item.get("wrap")]
     values = {item["target"]: field_value(item, data) for item in items}
+    wraps = {item["target"] for item in items if item.get("wrap")}
     targets = [target for target, value in values.items() if value is not None]
     if not targets:
         return []
@@ -211,6 +215,10 @@ def fits(template: FormTemplate, data: Mapping[str, Any]) -> list[Fit]:
     minimum = float(definition.get("fit_min_size", DEFAULT_FIT_MIN_SIZE))
     result = []
     for target in targets:
+        if target in wraps:
+            size, overflow = form_xlsx.wrapped_size(str(values[target]), fonts[target], minimum)
+            result.append(Fit(target, size, overflow, wrap=True))
+            continue
         size, overflow = form_xlsx.fitted_size(str(values[target]), fonts[target], minimum)
         if size < fonts[target].size or overflow:
             result.append(Fit(target, size, overflow))
@@ -242,6 +250,8 @@ def worker_of(target: models.Model) -> ForeignWorker | None:
         return target.plan.worker
     if isinstance(target, EmploymentContractVersion):
         return target.contract.worker
+    if isinstance(target, PeriodicInterview):
+        return target.worker
     return None
 
 
@@ -263,7 +273,10 @@ def _check(
 ) -> form_checks.CheckResult:
     worker = worker_of(target)
     if worker is None:
-        raise ValueError("the target has no foreign worker")
+        # 外国人が 1 人に決まらない帳票（第5-4号。T35）は、外国人を見る規則を持たない
+        if template.mapping.rules:
+            raise ValueError("the target has no foreign worker")
+        return form_checks.CheckResult([], [])
     context = form_checks.CheckContext(
         worker=worker, target=target, basis_on=basis_on, data=data, template=template
     )
@@ -297,7 +310,9 @@ def request(
         "data": {key: _jsonable(value) for key, value in data.items()},
         # 長い値の字の大きさ（pt）と、下限でも収まらなかったか（T31-D7）
         "fitted": {
-            fit.target: {"size": fit.size, "overflow": fit.overflow} for fit in fits(template, data)
+            fit.target: {"size": fit.size, "overflow": fit.overflow}
+            | ({"wrap": True} if fit.wrap else {})
+            for fit in fits(template, data)
         },
     }
     with transaction.atomic():
@@ -364,9 +379,11 @@ def _render(
         if fitted:
             fonts = form_xlsx.cell_fonts(source, [t for t in fitted if t in values])
             for target, font in fonts.items():
-                values[target] = form_xlsx.SizedText(
-                    str(values[target]), float(fitted[target]["size"]), font.name, font.charset
-                )
+                size = float(fitted[target]["size"])
+                text = str(values[target])
+                if fitted[target].get("wrap"):
+                    text = "\n".join(form_xlsx.wrap_lines(text, font, size))
+                values[target] = form_xlsx.SizedText(text, size, font.name, font.charset)
         form_xlsx.write_cells(source, filled, values)
     else:
         filled = workdir / f"{template.form_id}.docx"
@@ -444,7 +461,8 @@ def can_view(user: AnyUser, document: GeneratedDocument) -> bool:
     if not authorization.has_action(user, Action.FORMS_GENERATE):
         return False
     if document.worker_id is None:
-        return True
+        # 複数の外国人の個人情報を含む帳票（第5-4号）は、外国人を見る権限も要る（T35）
+        return authorization.has_action(user, Action.WORKERS_VIEW)
     if not authorization.has_action(user, Action.WORKERS_VIEW):
         return False
     return authorization.scope(user, ForeignWorker.objects.filter(pk=document.worker_id)).exists()

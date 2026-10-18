@@ -102,6 +102,15 @@
     {% endif %}
   </section>
 
+  {% if can_generate_consultations %}
+  <section class="card" id="consultation-records">
+    <div class="card__header"><h2 class="card__title">{% translate "Consultation records (form 5-4)" %}</h2><a class="button button--neutral button--small" href="{% url 'hosts:consultation_records' host.pk %}">{% translate "Generate the consultation records" %}</a></div>
+    {% if consultation_documents %}
+    <ul class="stack" style="list-style: none; padding: 0; margin: 0">{% for document in consultation_documents %}<li><a href="{% url 'forms:document' document.pk %}">{{ document.template.form_id }} · {{ document.basis_on|date:"Y-m-d" }} #{{ document.pk }}</a> <span class="caption">{{ document.get_status_display }} · {{ document.created_at|date:"Y-m-d H:i" }}</span></li>{% endfor %}</ul>
+    {% else %}<p class="muted">{% translate "No consultation records have been generated." %}</p>{% endif %}
+  </section>
+  {% endif %}
+
   {% if with_workers %}
   <section id="host-workers">
     <h2 style="margin-bottom: var(--space-12)">{% translate "Foreign workers" %} <span class="caption">{% blocktranslate count counter=detail.workers|length %}{{ counter }} person{% plural %}{{ counter }} people{% endblocktranslate %}</span></h2>

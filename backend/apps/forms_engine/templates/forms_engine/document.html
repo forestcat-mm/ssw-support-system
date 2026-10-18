@@ -1,7 +1,7 @@
 {% extends "ui/base.html" %}{% load i18n ui %}
 {% block title %}{{ document.template.name }}{% if worker %} | {{ worker }}{% endif %}{% endblock %}
 {% block page_header %}
-  {% if back_url %}<p class="caption"><a href="{{ back_url }}">← {{ worker }}</a></p>{% endif %}
+  {% if back_url %}<p class="caption"><a href="{{ back_url }}">← {% if worker %}{{ worker }}{% else %}{{ document.target }}{% endif %}</a></p>{% endif %}
   <h1>{{ document.template.name }}</h1>
 {% endblock %}
 {% block content %}

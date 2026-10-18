@@ -12,6 +12,7 @@ from urllib.parse import urlencode
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
@@ -57,9 +58,11 @@ from services import (
     deliveries,
     form_checks,
     form_data_briefing,
+    form_data_interview,
     form_generation,
     form_templates,
     incident_reports,
+    interview_answers,
     support_interviews,
     support_records,
     workers,
@@ -443,7 +446,7 @@ class InterviewCreateView(RecordFormView):
                     )
                 else:
                     messages.success(request, _("Saved the periodic interview."))
-                incident_messages(request, [incident_reports.interview_key(interview)])
+                incident_messages(request, incident_reports.interview_keys(interview))
                 return redirect(interview_url(interview))
         return self.page(request, worker, editor, task)
 
@@ -462,9 +465,25 @@ class InterviewDetailView(RecordTabMixin, WorkerDetailView):
             pk=self.kwargs["interview_id"],
         )
         records = sorted(interview.records.all(), key=lambda r: r.counterpart != "worker")
+        answers = []
+        for record in records:
+            answer_set = interview_answers.answers_of(record)
+            rows = (
+                interview_answers.rows_of(answer_set, supervisor=record.counterpart != "worker")
+                if answer_set is not None
+                else []
+            )
+            answers.append((record, answer_set, rows))
         context.update(
             interview=interview,
             interview_records=records,
+            interview_answers=answers,
+            nonconformity=interview_answers.nonconformity_of(interview),
+            can_generate_reports=(
+                interview.voided_at is None
+                and workers.is_active(self.worker)
+                and authorization.has_action(self.request.user, Action.FORMS_GENERATE)
+            ),
             interview_warnings=support_interviews.warnings(interview),
             can_void_interview=self.can_manage_support() and interview.voided_at is None,
             support_subtab="records",
@@ -1220,3 +1239,115 @@ class BriefingGenerateView(BriefingMixin, WorkerFormView):
             return self.page(request, worker, briefing, form, pending.result)
         messages.success(request, _("Requested the generation of the form."))
         return redirect("forms:document", pk=document.pk)
+
+
+# --- 定期面談報告書（第5-5号・第5-6号。T35、ADR-0024）---------------------------------------
+
+INTERVIEW_FORM_IDS = ("5-5", "5-6")
+
+
+def merged_result(results: list[form_checks.CheckResult]) -> form_checks.CheckResult:
+    """2 つの様式の検査の結果を 1 つにする（同じ不足は 1 つ）。"""
+    blocking: list[form_checks.Finding] = []
+    warnings: list[form_checks.Finding] = []
+    seen: set[tuple[str, str, str]] = set()
+    for result in results:
+        for finding in result.findings:
+            key = (finding.rule, finding.code, finding.message)
+            if key in seen:
+                continue
+            seen.add(key)
+            (blocking if finding.severity == form_checks.BLOCK else warnings).append(finding)
+    return form_checks.CheckResult(blocking, warnings)
+
+
+class InterviewGenerateView(WorkerFormView):
+    """定期面談の組から報告書（本人用 第5-5号・監督者用 第5-6号）をまとめて生成する（T35-D12）。
+
+    基準日は面談の日（組の起算日）。作成年月日は生成した日。署名欄は無い。
+    """
+
+    required_action = Action.FORMS_GENERATE
+    template_name = "support/interview_generate.html"
+
+    def interview(self, worker: ForeignWorker, interview_id: int) -> PeriodicInterview:
+        return get_object_or_404(
+            support_interviews.interviews_of(worker), pk=interview_id, voided_at__isnull=True
+        )
+
+    def data(self, interview: PeriodicInterview, form_id: str) -> dict[str, Any]:
+        return form_data_interview.build(interview, form_id, made_on=timezone.localdate())
+
+    def check(
+        self, interview: PeriodicInterview, form: BriefingGenerateForm
+    ) -> form_checks.CheckResult | None:
+        try:
+            return merged_result(
+                [
+                    form_generation.check(
+                        form_id,
+                        target=interview,
+                        data=self.data(interview, form_id),
+                        basis_on=interview.basis_on,
+                    )
+                    for form_id in INTERVIEW_FORM_IDS
+                ]
+            )
+        except form_templates.FormTemplateError:
+            form.add_error(None, NOT_LOADED)
+            return None
+
+    def page(
+        self,
+        request: HttpRequest,
+        worker: ForeignWorker,
+        interview: PeriodicInterview,
+        form: BriefingGenerateForm,
+        result: form_checks.CheckResult | None,
+    ) -> HttpResponse:
+        return self.render(
+            request,
+            worker=worker,
+            interview=interview,
+            form=form,
+            result=result,
+            back_url=interview_url(interview),
+        )
+
+    def get(self, request: HttpRequest, pk: int, interview_id: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        interview = self.interview(worker, interview_id)
+        form = BriefingGenerateForm()
+        return self.page(request, worker, interview, form, self.check(interview, form))
+
+    def post(self, request: HttpRequest, pk: int, interview_id: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        interview = self.interview(worker, interview_id)
+        form = BriefingGenerateForm(request.POST)
+        form.is_valid()
+        if not consume_once_token(request):
+            return self.already_submitted(request, interview_url(interview))
+        result = self.check(interview, form)
+        if result is None:
+            return self.page(request, worker, interview, form, None)
+        if result.blocking:
+            return self.page(request, worker, interview, form, result)
+        accepted = bool(form.cleaned_data.get("accept_warnings"))
+        if result.warnings and not accepted:
+            form.add_error("accept_warnings", _("Check the warnings before generating."))
+            return self.page(request, worker, interview, form, result)
+        assert isinstance(request.user, User)
+        with transaction.atomic():
+            for form_id in INTERVIEW_FORM_IDS:
+                form_generation.request(
+                    form_id,
+                    target=interview,
+                    data=self.data(interview, form_id),
+                    basis_on=interview.basis_on,
+                    by=request.user,
+                    accept_warnings=True,
+                )
+        messages.success(
+            request, _("Requested the generation of the interview reports (forms 5-5 and 5-6).")
+        )
+        return redirect("workers:documents", pk=worker.pk)

@@ -8,8 +8,8 @@ from playwright.sync_api import Locator, Page, expect
 from apps.core.models import User
 from apps.filings.models import Filing, FilingKind, FilingStatus, Trigger
 from apps.workers.models import WorkerStatus
-from e2e.conftest import SignIn
-from services import deadlines, filings
+from e2e.conftest import SignIn, answer_all_no
+from services import deadlines, filings, form_templates
 from tests.contracts.factories import make_contract, site_with_categories
 from tests.core.factories import make_staff
 from tests.workers.factories import make_worker
@@ -17,6 +17,7 @@ from tests.workers.factories import make_worker
 
 @pytest.fixture
 def interview_task() -> Filing:
+    form_templates.load_all()
     worker = make_worker(
         assigned_staff=make_staff(name="佐藤 花子", position="支援担当"),
         status=WorkerStatus.RESIDING,
@@ -47,11 +48,28 @@ def test_record_from_dashboard_completes_the_task(
     page.locator("#id_self-body").fill("仕事・生活とも問題なし。")
     page.locator("#id_supervisor-counterpart_name").fill("工場長 田中")
     page.locator("#id_supervisor-body").fill("勤務態度は良好。")
+    # 報告書の質問（T35）: すべて「問題無」にしてから、1 問だけ「問題有」にして内容を書く
+    answer_all_no(page)
+    page.locator('input[name="self_answers-answer_2_4"][value="yes"]').check()
+    page.locator("#id_self_answers-detail_2_4").fill("寮の窓が壊れている。")
     page.get_by_role("button", name="保存する").click()
 
     expect(page.get_by_text("定期面談を保存し、タスクを完了にしました。")).to_be_visible()
     expect(page.locator("#periodic-interview")).to_contain_text("完了")
     expect(page.locator('[data-counterpart="supervisor"]')).to_contain_text("工場長 田中")
+    expect(page.locator('[data-answers="worker"]')).to_contain_text("寮の窓が壊れている。")
+    assert page.evaluate("document.documentElement.scrollWidth") <= width
+
+    # 報告書（第5-5号・第5-6号）をまとめて生成し、帳票タブに 2 つ出る（T35-D12）
+    page.locator("#interview-generate").click()
+    expect(page.locator("#generation-findings")).to_contain_text("不足はありません")
+    assert page.evaluate("document.documentElement.scrollWidth") <= width
+    page.get_by_role("button", name="生成する").click()
+    expect(
+        page.get_by_text("定期面談報告書（第5-5号・第5-6号）の生成を依頼しました。")
+    ).to_be_visible()
+    expect(page.locator("main")).to_contain_text("5-5")
+    expect(page.locator("main")).to_contain_text("5-6")
     assert page.evaluate("document.documentElement.scrollWidth") <= width
 
     # ダッシュボードには完了したタスクが消え、次回のタスク（今日から 3 か月）が出る

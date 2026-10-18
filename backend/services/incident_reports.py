@@ -1,7 +1,8 @@
 """第4-3号（特異事案報告）の届出タスクの自動の起票（T24a、ADR-0012）。
 
-- 起票のきっかけ: 定期面談の通報（T19。通報が「要」）、相談の経過の通報・ハローワーク相談（T20）、
-  非自発的離職時の転職支援（T18。離職の区分が「非自発的」のときだけ）。
+- 起票のきっかけ: 定期面談の通報（T19。通報が「要」）と ⑥ 基準不適合等が「有り」（T35-D5。同じ組の
+  きっかけは 1 件にまとめる）、相談の経過の通報・ハローワーク相談（T20）、非自発的離職時の転職支援
+  （T18。離職の区分が「非自発的」のときだけ）。
 - 事由発生日: 通報日・相談日が入っていればその日、無ければ記録の日。期限は 14 日
   （随時届出と同じ数え方。ADR-0008）。
 - 同じ外国人・同じ事由発生日の未完了のタスクがあれば、それにまとめて trigger_details["sources"] に
@@ -17,7 +18,9 @@ import datetime
 from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass, field
+from typing import Any
 
+from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.db.models import Q, QuerySet
 from django.utils.translation import gettext as _
@@ -59,11 +62,35 @@ class Incident:
     source_key: str
 
 
+def nonconformity_key(interview: PeriodicInterview) -> str:
+    """定期面談の「⑥ 基準不適合等の有無」が「有り」（T35-D5）。"""
+    return f"periodic_interview:{interview.pk}:nonconformity"
+
+
+def interview_keys(interview: PeriodicInterview) -> list[str]:
+    return [interview_key(interview), nonconformity_key(interview)]
+
+
 def of_interview(interview: PeriodicInterview) -> list[Incident]:
-    if not interview.report_required or interview.voided_at is not None:
+    """通報が「要」（T19）と、⑥ 基準不適合等が「有り」（T35-D5）。
+
+    同じ組の 2 つのきっかけは同じ事由として 1 件にまとめる（同じ日にそろえ、参照を両方残す）:
+    通報が「要」なら通報日（無ければ面談の日）、⑥ だけなら面談の日（把握した日）。
+    """
+    if interview.voided_at is not None:
         return []
-    on = interview.reported_on or interview.basis_on
-    return [Incident(interview.worker, on, interview_key(interview))]
+    on = (interview.reported_on or interview.basis_on) if interview.report_required else None
+    result = []
+    if interview.report_required:
+        result.append(
+            Incident(interview.worker, on or interview.basis_on, interview_key(interview))
+        )
+    nonconformity = getattr(interview, "nonconformity", None)
+    if nonconformity is not None and nonconformity.exists:
+        result.append(
+            Incident(interview.worker, on or interview.basis_on, nonconformity_key(interview))
+        )
+    return result
 
 
 def of_entry(entry: ConsultationEntry) -> list[Incident]:
@@ -202,3 +229,48 @@ def withdraw(source_keys: Iterable[str], *, by: User | None, reason: str) -> Wit
 def tasks_for(source_keys: Iterable[str]) -> list[Filing]:
     """元の記録から起票した（参照を持つ）第4-3号のタスク（取消を除く）。画面の通知に使う。"""
     return list(_referring(set(source_keys)).order_by("pk"))
+
+
+# --- 第4-3号のタスクから元の面談と報告書へ（T35-D6）------------------------------------------
+
+
+@dataclass(frozen=True)
+class InterviewSource:
+    interview: PeriodicInterview
+    reasons: tuple[str, ...]  # "report"（通報が要）・"nonconformity"（⑥ が有り）
+    reports: tuple[Any, ...]  # その組の最新の第5-5号・第5-6号（完了したもの）
+
+
+def interview_sources(filing: Filing) -> list[InterviewSource]:
+    """タスクの参照（sources）のうち、定期面談の組と、その組の最新の報告書（手で紐づける）。"""
+    from apps.forms_engine.models import GeneratedDocument, GenerationStatus  # 循環を避ける
+
+    reasons: dict[int, list[str]] = defaultdict(list)
+    for key in _sources(filing):
+        parts = key.split(":")
+        if parts[0] == "periodic_interview" and len(parts) >= 2 and parts[1].isdigit():
+            reasons[int(parts[1])].append(
+                "nonconformity" if parts[2:] == ["nonconformity"] else "report"
+            )
+    if not reasons:
+        return []
+    content_type = ContentType.objects.get_for_model(PeriodicInterview)
+    result = []
+    for interview in PeriodicInterview.objects.filter(pk__in=reasons).order_by("basis_on", "pk"):
+        latest = []
+        for form_id in ("5-5", "5-6"):
+            document = (
+                GeneratedDocument.objects.filter(
+                    content_type=content_type,
+                    object_id=interview.pk,
+                    template__form_id=form_id,
+                    status=GenerationStatus.COMPLETED,
+                )
+                .select_related("template")
+                .order_by("-generated_at", "-pk")
+                .first()
+            )
+            if document is not None:
+                latest.append(document)
+        result.append(InterviewSource(interview, tuple(reasons[interview.pk]), tuple(latest)))
+    return result

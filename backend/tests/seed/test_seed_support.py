@@ -113,6 +113,14 @@ EXPECTED_WARNINGS = {
     10: [("pre_guidance", "below_guideline"), ("pre_guidance", "unsigned")],
     14: [("orientation", "below_guideline"), ("orientation", "unsigned")],
     15: [("career_plan", "career_plan_missing")],  # 食品の契約で未交付
+    # 最後の定期面談の本人の行がオンラインで、計画の実施方法は対面だけ（T35-D8）
+    5: [
+        (
+            "interview",
+            "オンラインで実施しましたが、支援計画の定期面談の実施方法にオンラインがありません。"
+            "計画と本人の同意を確かめてください。",
+        )
+    ],
 }
 
 

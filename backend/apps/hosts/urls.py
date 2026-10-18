@@ -1,5 +1,6 @@
 from django.urls import path
 
+from apps.forms_engine.views import ConsultationRecordView
 from apps.hosts import edit_views, views
 
 app_name = "hosts"
@@ -9,6 +10,11 @@ urlpatterns = [
     path("new/", edit_views.HostEditView.as_view(), name="create"),
     path("<int:pk>/", views.HostDetailView.as_view(), name="detail"),
     path("<int:pk>/edit/", edit_views.HostEditView.as_view(), name="edit"),
+    path(
+        "<int:pk>/consultation-records/",
+        ConsultationRecordView.as_view(),
+        name="consultation_records",
+    ),
     path("<int:pk>/sites/new/", edit_views.SiteEditView.as_view(), name="site_create"),
     path(
         "<int:pk>/sites/<int:site_id>/edit/",

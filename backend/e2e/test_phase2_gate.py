@@ -44,7 +44,7 @@ from apps.support.models import (
     SupportRecord,
 )
 from apps.workers.models import ForeignWorker, WorkerStatus
-from e2e.conftest import SignIn
+from e2e.conftest import SignIn, answer_all_no
 from services import dashboard, deadlines, filings, periodic_report
 from services.support_catalog import SupportItem
 from tests.core.factories import TEST_PASSWORD
@@ -197,6 +197,7 @@ def record_interviews(
         page.locator("#id_self-body").fill("仕事・生活とも問題なし。（受け入れ確認）")
         page.locator("#id_supervisor-counterpart_name").fill("工場長 田中")
         page.locator("#id_supervisor-body").fill("勤務態度・労働時間とも問題なし。（受け入れ確認）")
+        answer_all_no(page)  # 報告書の質問（T35 で足した入力。2 行とも全部「問題無」・⑥「なし」）
         page.get_by_role("button", name="保存する").click()
         expect(page.get_by_text("定期面談を保存し、タスクを完了にしました。")).to_be_visible()
         seconds.append(time.monotonic() - started)

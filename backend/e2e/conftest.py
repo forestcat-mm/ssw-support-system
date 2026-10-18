@@ -87,3 +87,10 @@ def support_staff() -> User:
 @pytest.fixture
 def administrator() -> User:
     return make_user("kanri", roles=("admin",))
+
+
+def answer_all_no(page: Page) -> None:
+    """定期面談の画面で、報告書の質問を 2 行とも「問題無」にし、⑥ を「なし」にする（T35）。"""
+    for scope in ("#interview-self-answers", "#interview-supervisor-answers"):
+        page.locator(scope).get_by_role("button", name="すべて「問題無」にする").click()
+    page.locator('input[name="nonconformity-exists"][value="no"]').check()

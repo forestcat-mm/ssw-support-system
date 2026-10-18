@@ -31,6 +31,7 @@ from services.support_records import RecordInput
 from tests.contracts.factories import make_contract, version_values
 from tests.core.factories import make_office, make_organization, make_staff
 from tests.hosts.factories import VALID_NUMBERS, make_host, make_site
+from tests.support.interview_helpers import answered
 from tests.workers.factories import add_residence, make_worker
 
 pytestmark = pytest.mark.django_db
@@ -200,7 +201,7 @@ def interview(worker: Any, on: date, **overrides: Any) -> Any:
         supervisor_row=record(worker, on, counterpart_name="工場長 田中"),
         **overrides,
     )
-    return support_interviews.create_interview(worker, data, by=None, today=TODAY)
+    return support_interviews.create_interview(worker, answered(data), by=None, today=TODAY)
 
 
 def consultation_with_entry(worker: Any, on: date, **entry: Any) -> Any:

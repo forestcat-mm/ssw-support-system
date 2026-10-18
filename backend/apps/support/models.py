@@ -555,6 +555,126 @@ class PeriodicInterview(TrackedModel):
         return f"{self.worker}: {self.basis_on}"
 
 
+# --- 定期面談報告書の回答（T35、ADR-0024）---------------------------------------------------
+# 既存の表（支援実績・面談の組）の列は変えず、新しい表を足す。どれも追記だけ（作った後に変えない）。
+# T35 より前の記録には行が無い（後から足さない。T35-D3）。
+
+
+class InterviewAnswerSet(ImmutableRow):
+    """定期面談の 1 行（本人用・監督者用）の報告書の回答（第5-5号・第5-6号の ３ と ⑦）。
+
+    質問の文言と符号は services/data/interview_questions.json の版（question_version）。
+    """
+
+    record = models.OneToOneField(
+        SupportRecord,
+        verbose_name=_("support record"),
+        on_delete=models.PROTECT,
+        related_name="interview_answers",
+    )
+    question_version = models.CharField(_("version of the questions"), max_length=20)
+    other_subject = models.CharField(
+        _("other matter (5-2)"), max_length=200, blank=True, help_text=_("Only when there is one.")
+    )
+    notable = models.TextField(_("other matters worth noting (7)"), blank=True)
+    supervisor_position = models.CharField(
+        _("position of the supervisor"), max_length=100, blank=True
+    )
+    supervisor_department = models.CharField(
+        _("department of the supervisor"), max_length=100, blank=True
+    )
+    recording_location = models.CharField(
+        _("where the recording is stored"),
+        max_length=200,
+        blank=True,
+        help_text=_("Required for online interviews (the recording is kept for a year or more)."),
+    )
+
+    class Meta:
+        verbose_name = _("interview answers")
+        verbose_name_plural = _("interview answers")
+
+    def __str__(self) -> str:
+        return f"{self.record}"
+
+
+class InterviewAnswer(ImmutableRow):
+    """質問ごとの「問題の有無」と「問題の内容」。"""
+
+    answer_set = models.ForeignKey(
+        InterviewAnswerSet,
+        verbose_name=_("interview answers"),
+        on_delete=models.PROTECT,
+        related_name="answers",
+    )
+    code = models.CharField(_("question"), max_length=8)
+    has_problem = models.BooleanField(_("problem"))
+    detail = models.TextField(_("details of the problem"), blank=True)
+
+    class Meta:
+        verbose_name = _("interview answer")
+        verbose_name_plural = _("interview answers (per question)")
+        ordering = ["answer_set", "pk"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["answer_set", "code"], name="support_interview_answer_unique"
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.code}: {self.has_problem}"
+
+
+class WorkerGuidance(models.TextChoices):
+    """４③ア 1号特定技能外国人への対応。"""
+
+    GUIDED = "guided", _("guided to the labour standards inspection office or other authorities")
+    NONE = "none", _("no particular action")
+
+
+class InterviewNonconformity(ImmutableRow):
+    """面談の組の「⑥ 基準不適合等の有無」と「４ 基準不適合等への対応」（第5-5号・第5-6号で同じ）。
+
+    通報（４③ウ）の済み・通報日・通報先は面談の組の通報の欄（T19）。ここには未了の理由だけを持つ。
+    """
+
+    interview = models.OneToOneField(
+        PeriodicInterview,
+        verbose_name=_("periodic interview"),
+        on_delete=models.PROTECT,
+        related_name="nonconformity",
+    )
+    exists = models.BooleanField(_("non-conformity with the standards (6)"))
+    occurred_on = models.DateField(_("date of the non-conformity"), null=True, blank=True)
+    content = models.TextField(_("details of the non-conformity"), blank=True)
+    worker_guidance = models.CharField(
+        _("action for the worker"), max_length=16, choices=WorkerGuidance.choices, blank=True
+    )
+    guided_to = models.CharField(
+        _("authority the worker was guided to"), max_length=200, blank=True
+    )
+    no_guidance_reason = models.TextField(_("reason for no particular action"), blank=True)
+    host_notified = models.BooleanField(
+        _("notified the person responsible at the host"), null=True, blank=True
+    )
+    notified_on = models.DateField(_("notified on"), null=True, blank=True)
+    notified_to = models.CharField(_("notified to"), max_length=200, blank=True)
+    not_notified_reason = models.TextField(_("reason for not notifying"), blank=True)
+    immigration_guided = models.BooleanField(
+        _("guided the host to the Immigration Services Agency"), null=True, blank=True
+    )
+    unreported_reason = models.TextField(
+        _("reason the report to authorities is not made"), blank=True
+    )
+
+    class Meta:
+        verbose_name = _("non-conformity found in an interview")
+        verbose_name_plural = _("non-conformities found in interviews")
+
+    def __str__(self) -> str:
+        return f"{self.interview}: {self.exists}"
+
+
 # --- 相談・苦情対応（T20）-----------------------------------------------------------------
 
 

@@ -14,6 +14,7 @@
         <dt>{% translate "target" %}</dt><dd>{% if row.target_url_name %}<a href="{% url row.target_url_name row.target_pk %}">{{ row.target_label }}</a>{% else %}{{ row.target_label }}{% endif %}{% if filing.worker and row.target_label != filing.target_repr %} <span class="caption">{{ filing.target_repr }}</span>{% endif %}</dd>
         <dt>{% translate "trigger" %}</dt><dd>{{ filing.get_trigger_display }}</dd>
         {% if completed_interview %}<dt>{% translate "periodic interview" %}</dt><dd><a href="{% url 'workers:support_interview' completed_interview.worker_id completed_interview.pk %}">{{ completed_interview.basis_on|date:"Y-m-d" }}</a></dd>{% endif %}
+        {% for source in interview_sources %}<dt>{% translate "source periodic interview" %}</dt><dd data-interview-source="{{ source.interview.pk }}"><a href="{% url 'workers:support_interview' source.interview.worker_id source.interview.pk %}">{{ source.interview.basis_on|date:"Y-m-d" }}</a> <span class="caption">{% for reason in source.reasons %}{% if reason == "nonconformity" %}{% translate "non-conformity with the standards" %}{% else %}{% translate "report needed" %}{% endif %}{% if not forloop.last %}・{% endif %}{% endfor %}</span></dd>{% endfor %}
         <dt>{% translate "basis date" %}</dt><dd class="mono">{{ filing.basis_on|date:"Y-m-d" }}</dd>
         {% if filing.opens_on %}<dt>{% translate "opens on" %}</dt><dd class="mono">{{ filing.opens_on|date:"Y-m-d" }}</dd>{% endif %}
         <dt>{% translate "due date" %}</dt><dd>{% due_date row.deadline badge=row.is_open %}</dd>
@@ -42,6 +43,14 @@
         <li><a href="{% url 'forms:document' document.pk %}">{{ document.template.form_id }} {{ document.template.name }}</a> <span class="caption">{{ document.generated_at|date:"Y-m-d" }}</span>
           {% if can_manage %}<form method="post" class="cluster" style="display:inline">{% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}"><input type="hidden" name="form" value="unlink"><input type="hidden" name="document" value="{{ document.pk }}"><button class="button button--neutral button--small" type="submit">{% translate "Unlink" %}</button></form>{% endif %}
         </li>{% endfor %}</ul>{% else %}<p class="muted">{% translate "No generated forms are linked." %}</p>{% endif %}
+      {% for source in interview_sources %}
+      <h3>{% blocktranslate with day=source.interview.basis_on|date:"Y-m-d" %}Interview reports of {{ day }}{% endblocktranslate %}</h3>
+      {% if source.reports %}<ul class="attachment-list" id="interview-reports-{{ source.interview.pk }}">{% for document in source.reports %}
+        <li><a href="{% url 'forms:document' document.pk %}">{{ document.template.form_id }} {{ document.template.name }}</a> <span class="caption">{{ document.generated_at|date:"Y-m-d" }}</span>
+          {% if can_manage and document in linkable_documents %}<form method="post" class="cluster" style="display:inline">{% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}"><input type="hidden" name="form" value="link"><input type="hidden" name="document" value="{{ document.pk }}"><button class="button button--neutral button--small" type="submit">{% translate "Link" %}</button></form>{% endif %}
+        </li>{% endfor %}</ul>
+      {% else %}<p class="muted">{% translate "No interview reports have been generated for this interview. Generate them from the interview record." %}</p>{% endif %}
+      {% endfor %}
       {% if linkable_documents %}
       <form method="post" class="cluster" id="filing-link-document">{% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}"><input type="hidden" name="form" value="link">
         <label class="form-row__label" for="link-document">{% translate "Link a generated form" %}</label>

@@ -915,6 +915,7 @@ def reset() -> int:
     # 支援のデータは台帳の外国人に紐づくものをまとめて消す（届出タスクより先。定期面談の組が
     # 届出タスクを参照しているため）。手で足した記録も、ダミーの外国人のものなら消える
     deleted_support = support_builders.delete_support_data(by_model.get(ForeignWorker, []))
+    deleted_support += support_builders.delete_host_documents(by_model.get(HostOrganization, []))
     targets = [(ContentType.objects.get_for_model(model), ids) for model, ids in by_model.items()]
     filings_query = models.Q(worker_id__in=by_model.get(ForeignWorker, []))
     for content_type, ids in targets:

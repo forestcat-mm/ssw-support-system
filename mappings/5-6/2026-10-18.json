@@ -1,0 +1,715 @@
+{
+ "form_id": "5-6",
+ "valid_from": "2026-10-18",
+ "note": "T35 の全欄（ADR-0024）。値は services/form_data_interview.py が作る。回答の無い記録（T35 より前）は質問の欄を書かない（印刷済みの □ のまま）。",
+ "fit_min_size": 6,
+ "fields": [
+  {
+   "key": "i.supervisor_name",
+   "target": "参考様式第５－６号!L8",
+   "format": "text",
+   "label": "１① 監督者の氏名及び役職",
+   "fit": true
+  },
+  {
+   "key": "i.supervisor_department",
+   "target": "参考様式第５－６号!L9",
+   "format": "text",
+   "label": "１② 監督者の所属部署",
+   "fit": true
+  },
+  {
+   "key": "i.interviewed_on",
+   "target": "参考様式第５－６号!L10",
+   "format": "date",
+   "label": "１③ 面談日"
+  },
+  {
+   "target": "参考様式第５－６号!AB10",
+   "format": "template",
+   "template": "{in_person}　対面\r\n{online}　オンライン",
+   "keys": {
+    "in_person": {
+     "key": "i.method_in_person",
+     "format": "check",
+     "empty": "□"
+    },
+    "online": {
+     "key": "i.method_online",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "１④ 方式"
+  },
+  {
+   "key": "i.staff_name",
+   "target": "参考様式第５－６号!L13",
+   "format": "text",
+   "label": "２① 対応者の氏名",
+   "fit": true
+  },
+  {
+   "target": "参考様式第５－６号!L14",
+   "format": "template",
+   "template": "{manager}　支援責任者\r\n{staff}　支援担当者",
+   "keys": {
+    "manager": {
+     "key": "i.staff_manager",
+     "format": "check",
+     "empty": "□"
+    },
+    "staff": {
+     "key": "i.staff_support",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "２② 対応者の役職"
+  },
+  {
+   "key": "i.staff_position",
+   "target": "参考様式第５－６号!AB14",
+   "format": "text",
+   "label": "２② 役職名",
+   "fit": true
+  },
+  {
+   "target": "参考様式第５－６号!W18",
+   "format": "template",
+   "template": "{yes}有  {no}無",
+   "keys": {
+    "yes": {
+     "key": "i.q1_1_yes",
+     "format": "check",
+     "empty": "□"
+    },
+    "no": {
+     "key": "i.q1_1_no",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "３ 1.1 雇用契約と異なる業務に従事させていないこと。（問題の有無）"
+  },
+  {
+   "key": "i.q1_1_detail",
+   "target": "参考様式第５－６号!Z18",
+   "format": "text",
+   "label": "３ 1.1 雇用契約と異なる業務に従事させていないこと。（問題の内容）",
+   "wrap": true
+  },
+  {
+   "target": "参考様式第５－６号!W19",
+   "format": "template",
+   "template": "{yes}有  {no}無",
+   "keys": {
+    "yes": {
+     "key": "i.q1_2_yes",
+     "format": "check",
+     "empty": "□"
+    },
+    "no": {
+     "key": "i.q1_2_no",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "３ 1.2 他の事業主の下で業務に従事させていないこと。（問題の有無）"
+  },
+  {
+   "key": "i.q1_2_detail",
+   "target": "参考様式第５－６号!Z19",
+   "format": "text",
+   "label": "３ 1.2 他の事業主の下で業務に従事させていないこと。（問題の内容）",
+   "wrap": true
+  },
+  {
+   "target": "参考様式第５－６号!W20",
+   "format": "template",
+   "template": "{yes}有  {no}無",
+   "keys": {
+    "yes": {
+     "key": "i.q1_3_yes",
+     "format": "check",
+     "empty": "□"
+    },
+    "no": {
+     "key": "i.q1_3_no",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "３ 1.3 安全衛生に配慮して適切に業務を行わせていること。（問題の有無）"
+  },
+  {
+   "key": "i.q1_3_detail",
+   "target": "参考様式第５－６号!Z20",
+   "format": "text",
+   "label": "３ 1.3 安全衛生に配慮して適切に業務を行わせていること。（問題の内容）",
+   "wrap": true
+  },
+  {
+   "target": "参考様式第５－６号!W21",
+   "format": "template",
+   "template": "{yes}有  {no}無",
+   "keys": {
+    "yes": {
+     "key": "i.q2_1_yes",
+     "format": "check",
+     "empty": "□"
+    },
+    "no": {
+     "key": "i.q2_1_no",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "３ 2.1 雇用契約に基づき毎月適切に報酬を支払っていること。（問題の有無）"
+  },
+  {
+   "key": "i.q2_1_detail",
+   "target": "参考様式第５－６号!Z21",
+   "format": "text",
+   "label": "３ 2.1 雇用契約に基づき毎月適切に報酬を支払っていること。（問題の内容）",
+   "wrap": true
+  },
+  {
+   "target": "参考様式第５－６号!W22",
+   "format": "template",
+   "template": "{yes}有  {no}無",
+   "keys": {
+    "yes": {
+     "key": "i.q2_2_yes",
+     "format": "check",
+     "empty": "□"
+    },
+    "no": {
+     "key": "i.q2_2_no",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "３ 2.2 雇用契約と異なる労働時間とさせていないこと。（問題の有無）"
+  },
+  {
+   "key": "i.q2_2_detail",
+   "target": "参考様式第５－６号!Z22",
+   "format": "text",
+   "label": "３ 2.2 雇用契約と異なる労働時間とさせていないこと。（問題の内容）",
+   "wrap": true
+  },
+  {
+   "target": "参考様式第５－６号!W23",
+   "format": "template",
+   "template": "{yes}有  {no}無",
+   "keys": {
+    "yes": {
+     "key": "i.q2_3_yes",
+     "format": "check",
+     "empty": "□"
+    },
+    "no": {
+     "key": "i.q2_3_no",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "３ 2.3 休日、休暇等を適切に付与していること（一時帰国休暇を含む）。（問題の有無）"
+  },
+  {
+   "key": "i.q2_3_detail",
+   "target": "参考様式第５－６号!Z23",
+   "format": "text",
+   "label": "３ 2.3 休日、休暇等を適切に付与していること（一時帰国休暇を含む）。（問題の内容）",
+   "wrap": true
+  },
+  {
+   "target": "参考様式第５－６号!W24",
+   "format": "template",
+   "template": "{yes}有  {no}無",
+   "keys": {
+    "yes": {
+     "key": "i.q2_4_yes",
+     "format": "check",
+     "empty": "□"
+    },
+    "no": {
+     "key": "i.q2_4_no",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "３ 2.4 適切な住居を確保していること。（問題の有無）"
+  },
+  {
+   "key": "i.q2_4_detail",
+   "target": "参考様式第５－６号!Z24",
+   "format": "text",
+   "label": "３ 2.4 適切な住居を確保していること。（問題の内容）",
+   "wrap": true
+  },
+  {
+   "target": "参考様式第５－６号!W25",
+   "format": "template",
+   "template": "{yes}有  {no}無",
+   "keys": {
+    "yes": {
+     "key": "i.q2_5_yes",
+     "format": "check",
+     "empty": "□"
+    },
+    "no": {
+     "key": "i.q2_5_no",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "３ 2.5 定期的に負担する食費，居住費等が合意したとおりの内容であること。（問題の有無）"
+  },
+  {
+   "key": "i.q2_5_detail",
+   "target": "参考様式第５－６号!Z25",
+   "format": "text",
+   "label": "３ 2.5 定期的に負担する食費，居住費等が合意したとおりの内容であること。（問題の内容）",
+   "wrap": true
+  },
+  {
+   "target": "参考様式第５－６号!W26",
+   "format": "template",
+   "template": "{yes}有  {no}無",
+   "keys": {
+    "yes": {
+     "key": "i.q2_6_yes",
+     "format": "check",
+     "empty": "□"
+    },
+    "no": {
+     "key": "i.q2_6_no",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "３ 2.6 支援計画にのっとった支援の提供を行っていること。（問題の有無）"
+  },
+  {
+   "key": "i.q2_6_detail",
+   "target": "参考様式第５－６号!Z26",
+   "format": "text",
+   "label": "３ 2.6 支援計画にのっとった支援の提供を行っていること。（問題の内容）",
+   "wrap": true
+  },
+  {
+   "target": "参考様式第５－６号!W27",
+   "format": "template",
+   "template": "{yes}有  {no}無",
+   "keys": {
+    "yes": {
+     "key": "i.q3_1_yes",
+     "format": "check",
+     "empty": "□"
+    },
+    "no": {
+     "key": "i.q3_1_no",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "３ 3.1 暴行・脅迫・監禁等の不法行為を行っていないこと。（問題の有無）"
+  },
+  {
+   "key": "i.q3_1_detail",
+   "target": "参考様式第５－６号!Z27",
+   "format": "text",
+   "label": "３ 3.1 暴行・脅迫・監禁等の不法行為を行っていないこと。（問題の内容）",
+   "wrap": true
+  },
+  {
+   "target": "参考様式第５－６号!W28",
+   "format": "template",
+   "template": "{yes}有  {no}無",
+   "keys": {
+    "yes": {
+     "key": "i.q3_2_yes",
+     "format": "check",
+     "empty": "□"
+    },
+    "no": {
+     "key": "i.q3_2_no",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "３ 3.2 相手方を問わず保証金の徴収・違約金を定める契約等を締結していないこと。（問題の有無）"
+  },
+  {
+   "key": "i.q3_2_detail",
+   "target": "参考様式第５－６号!Z28",
+   "format": "text",
+   "label": "３ 3.2 相手方を問わず保証金の徴収・違約金を定める契約等を締結していないこと。（問題の内容）",
+   "wrap": true
+  },
+  {
+   "target": "参考様式第５－６号!W29",
+   "format": "template",
+   "template": "{yes}有  {no}無",
+   "keys": {
+    "yes": {
+     "key": "i.q3_3_yes",
+     "format": "check",
+     "empty": "□"
+    },
+    "no": {
+     "key": "i.q3_3_no",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "３ 3.3 預金通帳の管理など不当な財産管理を行っていないこと。（問題の有無）"
+  },
+  {
+   "key": "i.q3_3_detail",
+   "target": "参考様式第５－６号!Z29",
+   "format": "text",
+   "label": "３ 3.3 預金通帳の管理など不当な財産管理を行っていないこと。（問題の内容）",
+   "wrap": true
+  },
+  {
+   "target": "参考様式第５－６号!W30",
+   "format": "template",
+   "template": "{yes}有  {no}無",
+   "keys": {
+    "yes": {
+     "key": "i.q3_4_yes",
+     "format": "check",
+     "empty": "□"
+    },
+    "no": {
+     "key": "i.q3_4_no",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "３ 3.4 旅券・在留カードを管理していないこと。（問題の有無）"
+  },
+  {
+   "key": "i.q3_4_detail",
+   "target": "参考様式第５－６号!Z30",
+   "format": "text",
+   "label": "３ 3.4 旅券・在留カードを管理していないこと。（問題の内容）",
+   "wrap": true
+  },
+  {
+   "target": "参考様式第５－６号!W31",
+   "format": "template",
+   "template": "{yes}有  {no}無",
+   "keys": {
+    "yes": {
+     "key": "i.q3_5_yes",
+     "format": "check",
+     "empty": "□"
+    },
+    "no": {
+     "key": "i.q3_5_no",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "３ 3.5 私生活上の自由を不当に制限していないこと。（問題の有無）"
+  },
+  {
+   "key": "i.q3_5_detail",
+   "target": "参考様式第５－６号!Z31",
+   "format": "text",
+   "label": "３ 3.5 私生活上の自由を不当に制限していないこと。（問題の内容）",
+   "wrap": true
+  },
+  {
+   "target": "参考様式第５－６号!W32",
+   "format": "template",
+   "template": "{yes}有  {no}無",
+   "keys": {
+    "yes": {
+     "key": "i.q4_1_yes",
+     "format": "check",
+     "empty": "□"
+    },
+    "no": {
+     "key": "i.q4_1_no",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "３ 4.1 日常生活においてトラブルが発生していないこと。（問題の有無）"
+  },
+  {
+   "key": "i.q4_1_detail",
+   "target": "参考様式第５－６号!Z32",
+   "format": "text",
+   "label": "３ 4.1 日常生活においてトラブルが発生していないこと。（問題の内容）",
+   "wrap": true
+  },
+  {
+   "target": "参考様式第５－６号!W33",
+   "format": "template",
+   "template": "{yes}有  {no}無",
+   "keys": {
+    "yes": {
+     "key": "i.q4_2_yes",
+     "format": "check",
+     "empty": "□"
+    },
+    "no": {
+     "key": "i.q4_2_no",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "３ 4.2 健康診断を定期的に実施し、健康状態に異常がないことを確認していること。（問題の有無）"
+  },
+  {
+   "key": "i.q4_2_detail",
+   "target": "参考様式第５－６号!Z33",
+   "format": "text",
+   "label": "３ 4.2 健康診断を定期的に実施し、健康状態に異常がないことを確認していること。（問題の内容）",
+   "wrap": true
+  },
+  {
+   "target": "参考様式第５－６号!W34",
+   "format": "template",
+   "template": "{yes}有  {no}無",
+   "keys": {
+    "yes": {
+     "key": "i.q5_1_yes",
+     "format": "check",
+     "empty": "□"
+    },
+    "no": {
+     "key": "i.q5_1_no",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "３ 5.1 不法就労者を雇用していないこと。（問題の有無）"
+  },
+  {
+   "key": "i.q5_1_detail",
+   "target": "参考様式第５－６号!Z34",
+   "format": "text",
+   "label": "３ 5.1 不法就労者を雇用していないこと。（問題の内容）",
+   "wrap": true
+  },
+  {
+   "target": "参考様式第５－６号!W35",
+   "format": "template",
+   "template": "{yes}有  {no}無",
+   "keys": {
+    "yes": {
+     "key": "i.q5_2_yes",
+     "format": "check",
+     "empty": "□"
+    },
+    "no": {
+     "key": "i.q5_2_no",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "３ 5.2 その他（問題の有無）"
+  },
+  {
+   "key": "i.q5_2_detail",
+   "target": "参考様式第５－６号!Z35",
+   "format": "text",
+   "label": "３ 5.2 その他（問題の内容）",
+   "wrap": true
+  },
+  {
+   "target": "参考様式第５－６号!I35",
+   "format": "template",
+   "template": "（{subject}）",
+   "keys": {
+    "subject": {
+     "key": "i.other_subject",
+     "empty": "　　　　　　　　　　　　　　　　　　　　　　　　　　　"
+    }
+   },
+   "label": "３ 5.2 その他（事項）",
+   "fit": true
+  },
+  {
+   "target": "参考様式第５－６号!F36",
+   "format": "template",
+   "template": "{yes}　有り （下記４に詳細を記載）\r\n{no}　なし",
+   "keys": {
+    "yes": {
+     "key": "i.nc_yes",
+     "format": "check",
+     "empty": "□"
+    },
+    "no": {
+     "key": "i.nc_no",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "３⑥ 基準不適合等の有無"
+  },
+  {
+   "key": "i.notable",
+   "target": "参考様式第５－６号!F38",
+   "format": "text",
+   "label": "３⑦ その他特筆すべき事項",
+   "wrap": true
+  },
+  {
+   "key": "i.nc_occurred_on",
+   "target": "参考様式第５－６号!L45",
+   "format": "date",
+   "label": "４① 基準不適合等の発生年月日"
+  },
+  {
+   "key": "i.nc_content",
+   "target": "参考様式第５－６号!L46",
+   "format": "text",
+   "label": "４② 基準不適合等の内容",
+   "wrap": true
+  },
+  {
+   "target": "参考様式第５－６号!R47",
+   "format": "template",
+   "template": "{guided}　労働基準監督署等の関係行政機関案内\r\n 　 ・  案内した機関：{guided_to}\r\n\r\n{none}　特段対応なし",
+   "keys": {
+    "guided": {
+     "key": "i.nc_guided",
+     "format": "check",
+     "empty": "□"
+    },
+    "guided_to": {
+     "key": "i.nc_guided_to"
+    },
+    "none": {
+     "key": "i.nc_no_action",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "４③ア 1号特定技能外国人への対応"
+  },
+  {
+   "target": "参考様式第５－６号!R48",
+   "format": "template",
+   "template": "理由：\r\n{reason}",
+   "keys": {
+    "reason": {
+     "key": "i.nc_no_guidance_reason"
+    }
+   },
+   "label": "４③ア 理由"
+  },
+  {
+   "target": "参考様式第５－６号!R49",
+   "format": "template",
+   "template": "（ア）責任者への基準不適合等の通知\r\n 　 {notified}　通知済み\r\n　　　 ・　通知日：{notified_on}\r\n　　　 ・　通知の相手方{notified_to}\r\n　　{not_notified}　未通知\r\n",
+   "keys": {
+    "notified": {
+     "key": "i.nc_notified",
+     "format": "check",
+     "empty": "□"
+    },
+    "notified_on": {
+     "key": "i.nc_notified_on",
+     "format": "date"
+    },
+    "notified_to": {
+     "key": "i.nc_notified_to",
+     "pattern": "：{}"
+    },
+    "not_notified": {
+     "key": "i.nc_not_notified",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "４③イ（ア） 責任者への通知"
+  },
+  {
+   "target": "参考様式第５－６号!R50",
+   "format": "template",
+   "template": "理由：\r\n{reason}",
+   "keys": {
+    "reason": {
+     "key": "i.nc_not_notified_reason"
+    }
+   },
+   "label": "４③イ（ア） 理由"
+  },
+  {
+   "target": "参考様式第５－６号!R51",
+   "format": "template",
+   "template": "（イ）基準不適合等の出入国在留管理庁への案内\r\n　　{guided}　案内済み\r\n　　{not_yet}　未了\r\n",
+   "keys": {
+    "guided": {
+     "key": "i.nc_immigration_guided",
+     "format": "check",
+     "empty": "□"
+    },
+    "not_yet": {
+     "key": "i.nc_immigration_not_yet",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "４③イ（イ） 出入国在留管理庁への案内"
+  },
+  {
+   "target": "参考様式第５－６号!R52",
+   "format": "template",
+   "template": "{reported}　関係行政機関へ通報済み\r\n 　 ・  通報日：{reported_on}\r\n 　 ・  通報先機関：{report_to}\r\n{unreported}　関係行政機関への通報未了\r\n　　（通報不要と判断した場合を含む。）",
+   "keys": {
+    "reported": {
+     "key": "i.nc_reported",
+     "format": "check",
+     "empty": "□"
+    },
+    "reported_on": {
+     "key": "i.nc_reported_on",
+     "format": "date"
+    },
+    "report_to": {
+     "key": "i.nc_report_to"
+    },
+    "unreported": {
+     "key": "i.nc_unreported",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "４③ウ 関係行政機関への対応"
+  },
+  {
+   "target": "参考様式第５－６号!R53",
+   "format": "template",
+   "template": "理由：\r\n{reason}",
+   "keys": {
+    "reason": {
+     "key": "i.nc_unreported_reason"
+    }
+   },
+   "label": "４③ウ 理由"
+  },
+  {
+   "key": "i.made_on",
+   "target": "参考様式第５－６号!V58",
+   "format": "date",
+   "label": "作成年月日"
+  },
+  {
+   "key": "i.staff_name",
+   "target": "参考様式第５－６号!X63",
+   "format": "text",
+   "label": "面談実施者の氏名",
+   "fit": true
+  }
+ ]
+}

@@ -37,7 +37,13 @@ from apps.contracts.models import (
 )
 from apps.core.models import AttachmentKind, Organization, Staff
 from apps.hosts.models import HostOrganization, HostSite
-from apps.support.models import Briefing, DeliveryKind, DepositContract, SupportPlanVersion
+from apps.support.models import (
+    Briefing,
+    DeliveryKind,
+    DepositContract,
+    PeriodicInterview,
+    SupportPlanVersion,
+)
 from apps.workers.models import ApplicationType, ForeignWorker, LatestResidenceRecord
 from services import briefings, contracts, deliveries, hosts
 from services.support_catalog import Method, SupportItem, form_row_name
@@ -153,6 +159,10 @@ class CheckContext:
     @property
     def briefing(self) -> Briefing | None:
         return self.target if isinstance(self.target, Briefing) else None
+
+    @property
+    def interview(self) -> PeriodicInterview | None:
+        return self.target if isinstance(self.target, PeriodicInterview) else None
 
     @property
     def staff(self) -> Staff | None:
@@ -864,6 +874,81 @@ def _wage_equal_or_higher(context: CheckContext, params: Mapping[str, Any]) -> l
         Issue(missing.code, missing.message, destination, strong=True)
         for missing in wage_explanations.lower_than_japanese(
             version, wage_explanations.explanation_of(version)
+        )
+    ]
+
+
+# --- 定期面談報告書（第5-5号・第5-6号。T35、ADR-0024）------------------------------------------
+
+
+def _interview_destination(context: CheckContext) -> Destination | None:
+    interview = context.interview
+    if interview is None:
+        return None
+    return Destination(
+        "workers:support_interview", {"pk": context.worker.pk, "interview_id": interview.pk}
+    )
+
+
+@check("interview_record")
+def _interview_record(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """生成の対象が、取り消していない定期面談の組。"""
+    interview = context.interview
+    if interview is not None and interview.voided_at is None:
+        return []
+    return [
+        Issue(
+            "interview_missing",
+            _("There is no record of the periodic interview."),
+            Destination("workers:support_records", {"pk": context.worker.pk}),
+        )
+    ]
+
+
+@check("interview_answers_present")
+def _interview_answers_present(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """質問の回答が無い（T35 より前の記録）。質問・⑥・４ の欄は印刷済みのまま。"""
+    from services import interview_answers  # 循環を避ける
+
+    interview = context.interview
+    if interview is None or interview_answers.has_answers(interview):
+        return []
+    return [
+        Issue(
+            "interview_answers_missing",
+            _(
+                "The interview has no answers to the questions (a record made before T35). The "
+                "questions, (6) and section 4 are left blank."
+            ),
+            _interview_destination(context),
+        )
+    ]
+
+
+@check("interview_staff_role")
+def _interview_staff_role(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """面談の対応者が支援責任者・支援担当者のどちらでもない（記載例 ★１）。"""
+    interview = context.interview
+    if interview is None:
+        return []
+    names = sorted(
+        {
+            record.staff.name
+            for record in interview.records.select_related("staff")
+            if not (record.staff.is_support_manager or record.staff.is_support_staff)
+        }
+    )
+    if not names:
+        return []
+    return [
+        Issue(
+            "interview_staff_role",
+            _(
+                "%(names)s is neither a support manager nor a support staff member. The interview "
+                "should be held by the support manager or staff in the support plan."
+            )
+            % {"names": "、".join(names)},
+            Destination("settings:staff"),
         )
     ]
 

@@ -1,0 +1,532 @@
+{
+ "form_id": "5-4",
+ "valid_from": "2026-10-18",
+ "note": "T35 の全欄（ADR-0024）。受入れ機関×期間の相談の 9 件ごとに 1 つの生成物（T35-D9・D10）。値は services/form_data_consultation.py が作る。",
+ "fields": [
+  {
+   "key": "c.from_m",
+   "target": "from_m",
+   "format": "zen",
+   "label": "対象期間",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.from_d",
+   "target": "from_d",
+   "format": "zen",
+   "label": "対象期間",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.to_m",
+   "target": "to_m",
+   "format": "zen",
+   "label": "対象期間",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.to_d",
+   "target": "to_d",
+   "format": "zen",
+   "label": "対象期間",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.organization_name",
+   "target": "organization_name",
+   "format": "text",
+   "label": "機関の氏名又は名称"
+  },
+  {
+   "key": "c.r1_received_on",
+   "target": "r1_received_on",
+   "format": "text",
+   "label": "1 行目 相談受理日"
+  },
+  {
+   "key": "c.r1_name",
+   "target": "r1_name",
+   "format": "text",
+   "label": "1 行目 相談者 氏名"
+  },
+  {
+   "key": "c.r1_sex",
+   "target": "r1_sex",
+   "format": "text",
+   "label": "1 行目 相談者 性別"
+  },
+  {
+   "key": "c.r1_nationality",
+   "target": "r1_nationality",
+   "format": "text",
+   "label": "1 行目 相談者 国籍・地域"
+  },
+  {
+   "key": "c.r1_birth_date",
+   "target": "r1_birth_date",
+   "format": "text",
+   "label": "1 行目 相談者 生年月日"
+  },
+  {
+   "key": "c.r1_card_number",
+   "target": "r1_card_number",
+   "format": "text",
+   "label": "1 行目 相談者 在留カード番号"
+  },
+  {
+   "key": "c.r1_content",
+   "target": "r1_content",
+   "format": "text",
+   "label": "1 行目 相談内容"
+  },
+  {
+   "key": "c.r1_result",
+   "target": "r1_result",
+   "format": "text",
+   "label": "1 行目 対応結果"
+  },
+  {
+   "key": "c.r1_staff",
+   "target": "r1_staff",
+   "format": "text",
+   "label": "1 行目 対応者の氏名"
+  },
+  {
+   "key": "c.r2_received_on",
+   "target": "r2_received_on",
+   "format": "text",
+   "label": "2 行目 相談受理日"
+  },
+  {
+   "key": "c.r2_name",
+   "target": "r2_name",
+   "format": "text",
+   "label": "2 行目 相談者 氏名"
+  },
+  {
+   "key": "c.r2_sex",
+   "target": "r2_sex",
+   "format": "text",
+   "label": "2 行目 相談者 性別"
+  },
+  {
+   "key": "c.r2_nationality",
+   "target": "r2_nationality",
+   "format": "text",
+   "label": "2 行目 相談者 国籍・地域"
+  },
+  {
+   "key": "c.r2_birth_date",
+   "target": "r2_birth_date",
+   "format": "text",
+   "label": "2 行目 相談者 生年月日"
+  },
+  {
+   "key": "c.r2_card_number",
+   "target": "r2_card_number",
+   "format": "text",
+   "label": "2 行目 相談者 在留カード番号"
+  },
+  {
+   "key": "c.r2_content",
+   "target": "r2_content",
+   "format": "text",
+   "label": "2 行目 相談内容"
+  },
+  {
+   "key": "c.r2_result",
+   "target": "r2_result",
+   "format": "text",
+   "label": "2 行目 対応結果"
+  },
+  {
+   "key": "c.r2_staff",
+   "target": "r2_staff",
+   "format": "text",
+   "label": "2 行目 対応者の氏名"
+  },
+  {
+   "key": "c.r3_received_on",
+   "target": "r3_received_on",
+   "format": "text",
+   "label": "3 行目 相談受理日"
+  },
+  {
+   "key": "c.r3_name",
+   "target": "r3_name",
+   "format": "text",
+   "label": "3 行目 相談者 氏名"
+  },
+  {
+   "key": "c.r3_sex",
+   "target": "r3_sex",
+   "format": "text",
+   "label": "3 行目 相談者 性別"
+  },
+  {
+   "key": "c.r3_nationality",
+   "target": "r3_nationality",
+   "format": "text",
+   "label": "3 行目 相談者 国籍・地域"
+  },
+  {
+   "key": "c.r3_birth_date",
+   "target": "r3_birth_date",
+   "format": "text",
+   "label": "3 行目 相談者 生年月日"
+  },
+  {
+   "key": "c.r3_card_number",
+   "target": "r3_card_number",
+   "format": "text",
+   "label": "3 行目 相談者 在留カード番号"
+  },
+  {
+   "key": "c.r3_content",
+   "target": "r3_content",
+   "format": "text",
+   "label": "3 行目 相談内容"
+  },
+  {
+   "key": "c.r3_result",
+   "target": "r3_result",
+   "format": "text",
+   "label": "3 行目 対応結果"
+  },
+  {
+   "key": "c.r3_staff",
+   "target": "r3_staff",
+   "format": "text",
+   "label": "3 行目 対応者の氏名"
+  },
+  {
+   "key": "c.r4_received_on",
+   "target": "r4_received_on",
+   "format": "text",
+   "label": "4 行目 相談受理日"
+  },
+  {
+   "key": "c.r4_name",
+   "target": "r4_name",
+   "format": "text",
+   "label": "4 行目 相談者 氏名"
+  },
+  {
+   "key": "c.r4_sex",
+   "target": "r4_sex",
+   "format": "text",
+   "label": "4 行目 相談者 性別"
+  },
+  {
+   "key": "c.r4_nationality",
+   "target": "r4_nationality",
+   "format": "text",
+   "label": "4 行目 相談者 国籍・地域"
+  },
+  {
+   "key": "c.r4_birth_date",
+   "target": "r4_birth_date",
+   "format": "text",
+   "label": "4 行目 相談者 生年月日"
+  },
+  {
+   "key": "c.r4_card_number",
+   "target": "r4_card_number",
+   "format": "text",
+   "label": "4 行目 相談者 在留カード番号"
+  },
+  {
+   "key": "c.r4_content",
+   "target": "r4_content",
+   "format": "text",
+   "label": "4 行目 相談内容"
+  },
+  {
+   "key": "c.r4_result",
+   "target": "r4_result",
+   "format": "text",
+   "label": "4 行目 対応結果"
+  },
+  {
+   "key": "c.r4_staff",
+   "target": "r4_staff",
+   "format": "text",
+   "label": "4 行目 対応者の氏名"
+  },
+  {
+   "key": "c.r5_received_on",
+   "target": "r5_received_on",
+   "format": "text",
+   "label": "5 行目 相談受理日"
+  },
+  {
+   "key": "c.r5_name",
+   "target": "r5_name",
+   "format": "text",
+   "label": "5 行目 相談者 氏名"
+  },
+  {
+   "key": "c.r5_sex",
+   "target": "r5_sex",
+   "format": "text",
+   "label": "5 行目 相談者 性別"
+  },
+  {
+   "key": "c.r5_nationality",
+   "target": "r5_nationality",
+   "format": "text",
+   "label": "5 行目 相談者 国籍・地域"
+  },
+  {
+   "key": "c.r5_birth_date",
+   "target": "r5_birth_date",
+   "format": "text",
+   "label": "5 行目 相談者 生年月日"
+  },
+  {
+   "key": "c.r5_card_number",
+   "target": "r5_card_number",
+   "format": "text",
+   "label": "5 行目 相談者 在留カード番号"
+  },
+  {
+   "key": "c.r5_content",
+   "target": "r5_content",
+   "format": "text",
+   "label": "5 行目 相談内容"
+  },
+  {
+   "key": "c.r5_result",
+   "target": "r5_result",
+   "format": "text",
+   "label": "5 行目 対応結果"
+  },
+  {
+   "key": "c.r5_staff",
+   "target": "r5_staff",
+   "format": "text",
+   "label": "5 行目 対応者の氏名"
+  },
+  {
+   "key": "c.r6_received_on",
+   "target": "r6_received_on",
+   "format": "text",
+   "label": "6 行目 相談受理日"
+  },
+  {
+   "key": "c.r6_name",
+   "target": "r6_name",
+   "format": "text",
+   "label": "6 行目 相談者 氏名"
+  },
+  {
+   "key": "c.r6_sex",
+   "target": "r6_sex",
+   "format": "text",
+   "label": "6 行目 相談者 性別"
+  },
+  {
+   "key": "c.r6_nationality",
+   "target": "r6_nationality",
+   "format": "text",
+   "label": "6 行目 相談者 国籍・地域"
+  },
+  {
+   "key": "c.r6_birth_date",
+   "target": "r6_birth_date",
+   "format": "text",
+   "label": "6 行目 相談者 生年月日"
+  },
+  {
+   "key": "c.r6_card_number",
+   "target": "r6_card_number",
+   "format": "text",
+   "label": "6 行目 相談者 在留カード番号"
+  },
+  {
+   "key": "c.r6_content",
+   "target": "r6_content",
+   "format": "text",
+   "label": "6 行目 相談内容"
+  },
+  {
+   "key": "c.r6_result",
+   "target": "r6_result",
+   "format": "text",
+   "label": "6 行目 対応結果"
+  },
+  {
+   "key": "c.r6_staff",
+   "target": "r6_staff",
+   "format": "text",
+   "label": "6 行目 対応者の氏名"
+  },
+  {
+   "key": "c.r7_received_on",
+   "target": "r7_received_on",
+   "format": "text",
+   "label": "7 行目 相談受理日"
+  },
+  {
+   "key": "c.r7_name",
+   "target": "r7_name",
+   "format": "text",
+   "label": "7 行目 相談者 氏名"
+  },
+  {
+   "key": "c.r7_sex",
+   "target": "r7_sex",
+   "format": "text",
+   "label": "7 行目 相談者 性別"
+  },
+  {
+   "key": "c.r7_nationality",
+   "target": "r7_nationality",
+   "format": "text",
+   "label": "7 行目 相談者 国籍・地域"
+  },
+  {
+   "key": "c.r7_birth_date",
+   "target": "r7_birth_date",
+   "format": "text",
+   "label": "7 行目 相談者 生年月日"
+  },
+  {
+   "key": "c.r7_card_number",
+   "target": "r7_card_number",
+   "format": "text",
+   "label": "7 行目 相談者 在留カード番号"
+  },
+  {
+   "key": "c.r7_content",
+   "target": "r7_content",
+   "format": "text",
+   "label": "7 行目 相談内容"
+  },
+  {
+   "key": "c.r7_result",
+   "target": "r7_result",
+   "format": "text",
+   "label": "7 行目 対応結果"
+  },
+  {
+   "key": "c.r7_staff",
+   "target": "r7_staff",
+   "format": "text",
+   "label": "7 行目 対応者の氏名"
+  },
+  {
+   "key": "c.r8_received_on",
+   "target": "r8_received_on",
+   "format": "text",
+   "label": "8 行目 相談受理日"
+  },
+  {
+   "key": "c.r8_name",
+   "target": "r8_name",
+   "format": "text",
+   "label": "8 行目 相談者 氏名"
+  },
+  {
+   "key": "c.r8_sex",
+   "target": "r8_sex",
+   "format": "text",
+   "label": "8 行目 相談者 性別"
+  },
+  {
+   "key": "c.r8_nationality",
+   "target": "r8_nationality",
+   "format": "text",
+   "label": "8 行目 相談者 国籍・地域"
+  },
+  {
+   "key": "c.r8_birth_date",
+   "target": "r8_birth_date",
+   "format": "text",
+   "label": "8 行目 相談者 生年月日"
+  },
+  {
+   "key": "c.r8_card_number",
+   "target": "r8_card_number",
+   "format": "text",
+   "label": "8 行目 相談者 在留カード番号"
+  },
+  {
+   "key": "c.r8_content",
+   "target": "r8_content",
+   "format": "text",
+   "label": "8 行目 相談内容"
+  },
+  {
+   "key": "c.r8_result",
+   "target": "r8_result",
+   "format": "text",
+   "label": "8 行目 対応結果"
+  },
+  {
+   "key": "c.r8_staff",
+   "target": "r8_staff",
+   "format": "text",
+   "label": "8 行目 対応者の氏名"
+  },
+  {
+   "key": "c.r9_received_on",
+   "target": "r9_received_on",
+   "format": "text",
+   "label": "9 行目 相談受理日"
+  },
+  {
+   "key": "c.r9_name",
+   "target": "r9_name",
+   "format": "text",
+   "label": "9 行目 相談者 氏名"
+  },
+  {
+   "key": "c.r9_sex",
+   "target": "r9_sex",
+   "format": "text",
+   "label": "9 行目 相談者 性別"
+  },
+  {
+   "key": "c.r9_nationality",
+   "target": "r9_nationality",
+   "format": "text",
+   "label": "9 行目 相談者 国籍・地域"
+  },
+  {
+   "key": "c.r9_birth_date",
+   "target": "r9_birth_date",
+   "format": "text",
+   "label": "9 行目 相談者 生年月日"
+  },
+  {
+   "key": "c.r9_card_number",
+   "target": "r9_card_number",
+   "format": "text",
+   "label": "9 行目 相談者 在留カード番号"
+  },
+  {
+   "key": "c.r9_content",
+   "target": "r9_content",
+   "format": "text",
+   "label": "9 行目 相談内容"
+  },
+  {
+   "key": "c.r9_result",
+   "target": "r9_result",
+   "format": "text",
+   "label": "9 行目 対応結果"
+  },
+  {
+   "key": "c.r9_staff",
+   "target": "r9_staff",
+   "format": "text",
+   "label": "9 行目 対応者の氏名"
+  }
+ ],
+ "rules": []
+}

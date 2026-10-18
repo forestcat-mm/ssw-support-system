@@ -1,0 +1,11 @@
+{
+  "form_id": "5-6",
+  "valid_from": "2026-10-18",
+  "note": "T35 の規則（ADR-0024）。面談の組が無い・取り消したものは生成不可。回答の無い記録（T35 より前）・対応者が支援責任者でも支援担当者でもない・欄に収まらない長い文は警告。",
+  "rules": [
+    {"id": "interview_record", "type": "check", "name": "interview_record", "severity": "block"},
+    {"id": "answers_present", "type": "check", "name": "interview_answers_present", "severity": "warn", "requires": "interview_record"},
+    {"id": "staff_role", "type": "check", "name": "interview_staff_role", "severity": "warn", "requires": "interview_record"},
+    {"id": "text_fits", "type": "check", "name": "text_fits", "severity": "warn", "requires": "interview_record"}
+  ]
+}

@@ -1,0 +1,14 @@
+{% load i18n ui %}
+<div class="stack" id="{{ scope_id }}" data-radio-scope>
+  <div class="card__header">
+    <h3>{% translate "Questions of the report (3. Results of the interview)" %}</h3>
+    <button class="button button--neutral button--small" type="button" data-set-radios="no" hidden>{% translate "Set all to no problem" %}</button>
+  </div>
+  {% for answer, detail in answers.question_fields %}
+  <div class="stack interview-question">{% form_field answer %}{% form_field detail %}</div>
+  {% endfor %}
+  {% form_field answers.other_subject %}
+  {% form_field answers.notable %}
+  {% if answers.supervisor_position %}{% form_field answers.supervisor_position %}{% form_field answers.supervisor_department %}{% endif %}
+  {% form_field answers.recording_location %}
+</div>

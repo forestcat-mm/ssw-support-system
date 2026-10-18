@@ -382,9 +382,14 @@ def test_field_rules(rule: dict[str, Any], value: Any, message: str | None) -> N
     assert form_checks._field_issue(rule | {"label": "氏名"}, value) == message
 
 
+# 規則を持たない様式（外国人が 1 人に決まらないので、外国人を見る規則を置けない。ADR-0024）
+WITHOUT_RULES = {"5-4"}
+
+
 def test_every_rule_file_in_the_repository_loads(loaded: None) -> None:
-    for mapping in FormMapping.objects.all():
-        assert mapping.rules and mapping.rules_sha256 and mapping.rules_path.endswith(".rules.json")
+    for mapping in FormMapping.objects.select_related("template"):
+        assert mapping.rules_sha256 and mapping.rules_path.endswith(".rules.json")
+        assert bool(mapping.rules) is (mapping.template.form_id not in WITHOUT_RULES)
 
 
 def test_contract_on_the_basis_date(seeded: list[ForeignWorker]) -> None:

@@ -1,0 +1,21 @@
+{
+  "form_id": "5-5",
+  "name": "定期面談報告書（１号特定技能外国人用。参考様式第5-5号）",
+  "valid_from": "2026-10-18",
+  "language": "ja",
+  "owner": "common",
+  "method": "xlsx-cells",
+  "requires_signed_copy": false,
+  "original": "original.xlsx",
+  "template": null,
+  "source": {
+    "url": "https://www.moj.go.jp/isa/content/001340544.xlsx",
+    "page": "https://www.moj.go.jp/isa/applications/ssw/10_00020.html",
+    "retrieved_on": "2026-10-18",
+    "revision_date": null,
+    "revision_date_unknown": true,
+    "original_sha256": "841bc7a996769313e72da6891976b31201b99a113ea6cd11cd9f2b7bc377f9ff",
+    "template_sha256": null,
+    "adr": "ADR-0024（取得日 2026-10-18。Last-Modified 2025-05-29。改正日の記載なし）、ADR-0018"
+  }
+}

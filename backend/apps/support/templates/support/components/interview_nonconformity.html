@@ -1,0 +1,18 @@
+{% load i18n %}<section class="card{% if interview.voided_at %} is-voided{% endif %}" id="interview-nonconformity">
+  <div class="card__header"><h2 class="card__title">{% translate "Non-conformity with the standards (6 and 4)" %}</h2></div>
+  {% if nonconformity %}
+  <dl class="fields fields--long-labels">
+    <dt>{% translate "non-conformity with the standards (6)" %}</dt><dd>{% if nonconformity.exists %}{% translate "yes" %}{% else %}{% translate "no" %}{% endif %}</dd>
+    {% if nonconformity.exists %}
+    <dt>{% translate "date of the non-conformity" %}</dt><dd class="mono">{{ nonconformity.occurred_on|date:"Y-m-d" }}</dd>
+    <dt>{% translate "details of the non-conformity" %}</dt><dd>{{ nonconformity.content|linebreaksbr }}</dd>
+    <dt>{% translate "action for the worker" %}</dt><dd>{{ nonconformity.get_worker_guidance_display }}{% if nonconformity.guided_to %}（{{ nonconformity.guided_to }}）{% endif %}{% if nonconformity.no_guidance_reason %}（{{ nonconformity.no_guidance_reason }}）{% endif %}</dd>
+    <dt>{% translate "notified the person responsible at the host" %}</dt><dd>{% if nonconformity.host_notified %}{% translate "notified" %} <span class="mono">{{ nonconformity.notified_on|date:"Y-m-d" }}</span> {{ nonconformity.notified_to }}{% else %}{% translate "not notified" %}（{{ nonconformity.not_notified_reason }}）{% endif %}</dd>
+    <dt>{% translate "guided the host to the Immigration Services Agency" %}</dt><dd>{% if nonconformity.immigration_guided %}{% translate "guided" %}{% else %}{% translate "not yet" %}{% endif %}</dd>
+    {% if nonconformity.unreported_reason %}<dt>{% translate "reason the report to authorities is not made" %}</dt><dd>{{ nonconformity.unreported_reason }}</dd>{% endif %}
+    {% endif %}
+  </dl>
+  {% else %}
+  <p class="muted">{% translate "There are no answers to the questions (a record made before T35)." %}</p>
+  {% endif %}
+</section>

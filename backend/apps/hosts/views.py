@@ -63,4 +63,11 @@ class HostDetailView(ActionRequiredMixin, TemplateView):
             can_manage=authorization.has_action(user, Action.HOSTS_MANAGE),
             can_reopen=authorization.has_action(user, Action.CONTRACTS_REOPEN),
         )
+        # 相談記録書（第5-4号。複数の外国人の個人情報を含むので、外国人の閲覧の権限も要る。T35）
+        can_generate = with_workers and authorization.has_action(user, Action.FORMS_GENERATE)
+        context["can_generate_consultations"] = can_generate
+        if can_generate:
+            from apps.forms_engine.views import consultation_documents
+
+            context["consultation_documents"] = consultation_documents(host)
         return context

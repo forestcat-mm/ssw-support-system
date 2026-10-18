@@ -93,3 +93,19 @@ document.querySelectorAll("form").forEach((form) => {
   form.addEventListener("change", update);
   update();
 });
+
+// まとめて選ぶボタン（[data-set-radios="値"]。[data-radio-scope] の中の、その値のラジオボタンをすべて
+// 選ぶ）。定期面談の「すべて問題無にする」。JS が無いときはボタンを出さない。
+document.querySelectorAll("[data-set-radios]").forEach((button) => {
+  const scope = button.closest("[data-radio-scope]");
+  if (!scope) return;
+  button.hidden = false;
+  button.addEventListener("click", () => {
+    scope
+      .querySelectorAll(`input[type="radio"][value="${button.dataset.setRadios}"]`)
+      .forEach((radio) => {
+        if (!radio.disabled) radio.checked = true;
+      });
+    scope.closest("form")?.dispatchEvent(new Event("change"));
+  });
+});

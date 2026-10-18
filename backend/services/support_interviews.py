@@ -30,8 +30,15 @@ from apps.support.models import (
     SupportRecord,
 )
 from apps.workers.models import ForeignWorker
-from services import deadlines, filings, incident_reports, support_records, workers
-from services.support_catalog import SupportItem
+from services import (
+    deadlines,
+    filings,
+    incident_reports,
+    interview_answers,
+    support_records,
+    workers,
+)
+from services.support_catalog import Method, SupportItem
 from services.support_records import RecordInput
 
 INTERVIEW_METHODS: tuple[str, ...] = (RecordMethod.IN_PERSON, RecordMethod.ONLINE)
@@ -51,6 +58,10 @@ class InterviewInput:
     report_to_note: str = ""
     reported_on: datetime.date | None = None
     next_scheduled_on: datetime.date | None = None
+    # 定期面談報告書の回答（T35。新しい記録では必須。ADR-0024）
+    self_answers: interview_answers.AnswerSetInput | None = None
+    supervisor_answers: interview_answers.AnswerSetInput | None = None
+    nonconformity: interview_answers.NonconformityInput | None = None
 
 
 @dataclass(frozen=True)
@@ -76,9 +87,17 @@ def legal_due_on(basis_on: datetime.date) -> datetime.date:
 
 
 def validate(
-    worker: ForeignWorker, data: InterviewInput, *, today: datetime.date
+    worker: ForeignWorker,
+    data: InterviewInput,
+    *,
+    today: datetime.date,
+    without_answers: bool = False,
 ) -> dict[str, RecordInput]:
-    """組を検査し、相手を固定した 2 行を返す。エラーは "self.body"・"next_scheduled_on" など。"""
+    """組を検査し、相手を固定した 2 行を返す。エラーは "self.body"・"next_scheduled_on" など。
+
+    報告書の回答（2 行の質問・⑥・４）は必須（T35-D2）。without_answers は、ダミーデータとテストで
+    T35 より前の記録（回答の無い組）を作るときだけ使う（回答を渡すとエラー）。
+    """
     rows = _rows(data)
     errors: dict[str, list[ValidationError]] = {}
 
@@ -139,6 +158,30 @@ def validate(
     if data.reported_on is not None and data.reported_on > today:
         add("reported_on", _("The date cannot be in the future."), "future")
 
+    answers = {"self": data.self_answers, "supervisor": data.supervisor_answers}
+    if without_answers:
+        if any(value is not None for value in (*answers.values(), data.nonconformity)):
+            add("__all__", _("Answers cannot be given for a record without answers."), "answers")
+    else:
+        for name, row in rows.items():
+            answer_set = answers[name]
+            if answer_set is None:
+                answer_set = interview_answers.AnswerSetInput()
+            for key, texts in interview_answers.answer_errors(
+                name, answer_set, method=row.method, on=row.occurred_on
+            ).items():
+                for text in texts:
+                    add(key, text, "answers")
+        reported = bool(data.report_required and data.reported_on)
+        for key, texts in interview_answers.nonconformity_errors(
+            data.nonconformity or interview_answers.NonconformityInput(),
+            violation_suspected=data.violation_suspected,
+            reported=reported,
+            today=today,
+        ).items():
+            for text in texts:
+                add(key, text, "nonconformity")
+
     if data.next_scheduled_on is not None and "self.occurred_on" not in errors:
         basis = basis_of(rows)
         latest = max(row.occurred_on for row in rows.values())
@@ -177,13 +220,16 @@ def create_interview(
     files: dict[str, list[File[Any]]] | None = None,
     task: Filing | None = None,
     today: datetime.date | None = None,
+    without_answers: bool = False,
 ) -> PeriodicInterview:
     """組を記録し、タスクを完了にして次回のタスクを起票する（1 つのトランザクション）。
 
     もっと新しい面談がすでに記録されているとき（過去の面談の後からの記録）はタスクを動かさない。
+    報告書の回答も保存する。⑥ が「有り」なら第4-3号を起票する（通報の起票と 1 件にまとめる）。
+    without_answers は validate を見る（ダミーデータ・テストだけ）。
     """
     today = today or timezone.localdate()
-    rows = validate(worker, data, today=today)
+    rows = validate(worker, data, today=today, without_answers=without_answers)
     uploads: dict[str, list[File[Any]]] = {}
     for name in ROWS:
         try:
@@ -209,13 +255,19 @@ def create_interview(
             updated_by=by,
         )
         interview.save()
+        answers = {"self": data.self_answers, "supervisor": data.supervisor_answers}
         for name in ROWS:
-            support_records.save_record(
+            record = support_records.save_record(
                 worker, rows[name], {}, uploads[name], by=by, interview=interview
             )
+            answer_set = answers[name]
+            if answer_set is not None:
+                interview_answers.save_answers(record, answer_set, by=by)
+        if data.nonconformity is not None:
+            interview_answers.save_nonconformity(interview, data.nonconformity, by=by)
         if not newer_exists:
             _advance_tasks(interview, task=task, by=by)
-        # 通報が「要」なら第4-3号（特異事案報告）のタスクを起票する（T24a）
+        # 通報が「要」・⑥ が「有り」なら第4-3号（特異事案報告）のタスクを起票する（T24a・T35-D5）
         incident_reports.raise_tasks(incident_reports.of_interview(interview), by=by)
     return interview
 
@@ -270,7 +322,7 @@ def void_interview(interview: PeriodicInterview, *, by: User | None, reason: str
         for record in SupportRecord.objects.filter(interview=interview, voided_at__isnull=True):
             support_records.void_record(record, by=by, reason=reason, as_part=True)
         incident = incident_reports.withdraw(
-            [incident_reports.interview_key(interview)], by=by, reason=reason
+            incident_reports.interview_keys(interview), by=by, reason=reason
         )
         next_filing = _fresh(interview.next_filing)
         completed = _fresh(interview.completed_filing)
@@ -310,4 +362,23 @@ def warnings(interview: PeriodicInterview) -> list[str]:
     result = []
     if interview.report_required and interview.reported_on is None:
         result.append(_("A report is required but has not been made yet."))
+    if any(_online_against_plan(record) for record in interview.records.all()):
+        result.append(
+            _(
+                "The interview was held online, but the support plan does not list online "
+                "interviews. Check the plan and the consent of the worker."
+            )
+        )
     return result
+
+
+def _online_against_plan(record: SupportRecord) -> bool:
+    """オンラインで実施したが、計画の定期面談の実施方法にオンラインが無い（T35-D8）。"""
+    if record.method != RecordMethod.ONLINE or record.plan_version_id is None:
+        return False
+    row = (
+        record.plan_version.activities.filter(code="9.main").first()
+        if record.plan_version
+        else None
+    )
+    return row is not None and row.planned and Method.ONLINE not in row.methods

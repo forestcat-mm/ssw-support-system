@@ -23,6 +23,7 @@ from services.support_interviews import InterviewInput
 from services.support_records import RecordInput
 from tests.contracts.factories import make_contract, site_with_categories
 from tests.core.factories import make_staff
+from tests.support.interview_helpers import answered
 from tests.workers.factories import make_worker
 
 pytestmark = pytest.mark.django_db
@@ -54,7 +55,7 @@ def interview(worker: Any, on: date, **overrides: Any) -> Any:
         supervisor_row=record(worker, on, counterpart_name="工場長 田中"),
         **overrides,
     )
-    return support_interviews.create_interview(worker, data, by=None, today=TODAY)
+    return support_interviews.create_interview(worker, answered(data), by=None, today=TODAY)
 
 
 def reported_interview(worker: Any, on: date, reported_on: date | None = None) -> Any:
@@ -121,7 +122,8 @@ def test_interview_report_raises_a_task_with_a_14_day_deadline(worker: Any) -> N
         FilingStatus.NOT_STARTED,
     )
     assert task.trigger == Trigger.INCIDENT_RECORDED
-    assert task.trigger_details == {"sources": [f"periodic_interview:{case.pk}"]}
+    # 違反の疑いがあれば ⑥ 基準不適合等も「有り」で、同じ事由として参照を両方残す（T35-D5）
+    assert task.trigger_details == {"sources": incident_reports.interview_keys(case)}
     # 通報日が無ければ面談の日
     second = reported_interview(worker, date(2026, 8, 20))
     assert tasks(worker)[1].basis_on == date(2026, 8, 20)
@@ -165,7 +167,7 @@ def test_same_day_incidents_share_one_task(worker: Any) -> None:
     record_ = job_change(worker, date(2026, 10, 1))
     [task] = tasks(worker)
     assert task.trigger_details["sources"] == [
-        f"periodic_interview:{case.pk}",
+        *incident_reports.interview_keys(case),
         f"support_record:{record_.pk}",
     ]
     added = AuditLog.objects.filter(action=AuditAction.UPDATE, object_id=str(task.pk)).latest("pk")
@@ -179,7 +181,8 @@ def test_closed_task_on_the_same_day_gets_a_new_task(worker: Any) -> None:
     filings.transition(submitted, FilingStatus.SUBMITTED, by=None, submitted_on=date(2026, 10, 5))
     record_ = job_change(worker, date(2026, 10, 1))
     old, new = tasks(worker)
-    assert old == submitted and old.trigger_details["sources"] == [f"periodic_interview:{case.pk}"]
+    assert old == submitted
+    assert old.trigger_details["sources"] == incident_reports.interview_keys(case)
     assert (new.basis_on, new.status) == (date(2026, 10, 1), FilingStatus.NOT_STARTED)
     assert new.trigger_details["sources"] == [f"support_record:{record_.pk}"]
     # 同じ日の次の事由は、未完了の新しいタスクにまとまる
@@ -188,7 +191,7 @@ def test_closed_task_on_the_same_day_gets_a_new_task(worker: Any) -> None:
     new.refresh_from_db()
     assert new.trigger_details["sources"] == [
         f"support_record:{record_.pk}",
-        f"periodic_interview:{second.pk}",
+        *incident_reports.interview_keys(second),
     ]
     # 提出済みのタスクを未完了に戻すと同じ日の未完了が 2 件になるので、戻せない
     with pytest.raises(ValidationError) as error:
@@ -216,7 +219,7 @@ def test_voiding_one_of_several_sources_keeps_the_task(worker: Any) -> None:
     result = support_records.void_record(record_, by=None, reason="誤り")
     [task] = tasks(worker)
     assert task.status == FilingStatus.NOT_STARTED  # 未着手でも取消にしない
-    assert task.trigger_details["sources"] == [f"periodic_interview:{case.pk}"]
+    assert task.trigger_details["sources"] == incident_reports.interview_keys(case)
     assert result.kept == [task] and not result.cancelled
     removed = AuditLog.objects.filter(action=AuditAction.UPDATE, object_id=str(task.pk)).latest(
         "pk"

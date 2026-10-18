@@ -1,0 +1,22 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Generate the interview reports (forms 5-5 and 5-6)" %} | {{ worker }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{{ back_url }}">← {{ worker }}</a></p>
+  <h1>{% translate "Generate the interview reports (forms 5-5 and 5-6)" %}</h1>
+  <p class="caption">{% blocktranslate with day=interview.basis_on|date:"Y-m-d" %}Periodic interview ({{ day }}){% endblocktranslate %}</p>
+{% endblock %}
+{% block content %}
+<div class="stack form">
+  {% if result %}{% include "forms_engine/components/findings.html" %}{% endif %}
+  <p class="caption">{% translate "The report for the worker (form 5-5) and the report for the supervisor (form 5-6) are generated together. They have no signature fields." %}</p>
+  <form class="form" method="post" novalidate id="generate-form">
+    {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+    {% include "ui/components/form_errors.html" %}
+    {% if result.warnings and not result.blocking %}<section class="card stack">{% form_field form.accept_warnings %}</section>{% endif %}
+    <div class="form-actions">
+      {% if result and not result.blocking %}<button class="button button--primary" type="submit">{% translate "Generate" %}</button>{% endif %}
+      <a class="button button--neutral" href="{{ back_url }}">{% translate "Cancel" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

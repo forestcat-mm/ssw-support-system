@@ -1,0 +1,37 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Generate the consultation records (form 5-4)" %} | {{ host.name }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{{ back_url }}">← {{ host.name }}</a></p>
+  <h1>{% translate "Generate the consultation records (form 5-4)" %}</h1>
+{% endblock %}
+{% block content %}
+<div class="stack form">
+  <p class="caption">{% translate "Consultations received in the period from foreign workers employed by this host organization on the day of reception. Nine consultations fit on one form; from the tenth, another form is generated as the second sheet." %}</p>
+  <form class="form" method="post" novalidate id="consultation-record-form">
+    {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+    {% include "ui/components/form_errors.html" %}
+    <section class="card stack">
+      {% form_field form.starts_on %}
+      {% form_field form.ends_on %}
+    </section>
+    {% if form.is_bound and not form.errors %}
+    <section class="card stack" id="consultation-record-preview">
+      <p>{% blocktranslate count count=rows|length with documents=documents %}{{ count }} consultation in the period ({{ documents }} form).{% plural %}{{ count }} consultations in the period ({{ documents }} forms).{% endblocktranslate %}</p>
+      {% if rows %}
+      <div class="table-scroll">
+        <table class="table">
+          <thead><tr><th>{% translate "date received" %}</th><th>{% translate "foreign worker" %}</th><th>{% translate "staff in charge" %}</th></tr></thead>
+          <tbody>{% for row in rows %}<tr><td class="mono">{{ row.record.occurred_on|date:"Y-m-d" }}</td><td>{{ row.worker }}</td><td>{{ row.record.staff.name }}</td></tr>{% endfor %}</tbody>
+        </table>
+      </div>
+      {% endif %}
+    </section>
+    {% endif %}
+    <div class="form-actions">
+      <button class="button button--neutral" type="submit" name="action" value="check">{% translate "Check again" %}</button>
+      {% if rows %}<button class="button button--primary" type="submit" name="action" value="generate">{% translate "Generate" %}</button>{% endif %}
+      <a class="button button--neutral" href="{{ back_url }}">{% translate "Cancel" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

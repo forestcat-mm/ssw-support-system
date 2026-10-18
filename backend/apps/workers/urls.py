@@ -130,6 +130,11 @@ urlpatterns = [
         name="support_interview_void",
     ),
     path(
+        "<int:pk>/support/interviews/<int:interview_id>/generate/",
+        record_views.InterviewGenerateView.as_view(),
+        name="support_interview_generate",
+    ),
+    path(
         "<int:pk>/support/consultations/new/",
         record_views.ConsultationCreateView.as_view(),
         name="support_consultation_create",

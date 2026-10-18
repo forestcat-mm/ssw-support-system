@@ -1,0 +1,21 @@
+{
+  "form_id": "5-4",
+  "name": "相談記録書（参考様式第5-4号）",
+  "valid_from": "2026-10-18",
+  "language": "ja",
+  "owner": "common",
+  "method": "docx-tags",
+  "requires_signed_copy": false,
+  "original": "original.docx",
+  "template": "template.docx",
+  "source": {
+    "url": "https://www.moj.go.jp/isa/content/001340543.docx",
+    "page": "https://www.moj.go.jp/isa/applications/ssw/10_00020.html",
+    "retrieved_on": "2026-10-18",
+    "revision_date": null,
+    "revision_date_unknown": true,
+    "original_sha256": "342793e4d218ac60e75b931b1fa05e507e94703bb9be11dbe0994fa72848c1a7",
+    "template_sha256": "f5518ac6478587e4d2b8d4ef48bb7d9bf3fbbe1e3a595f7c1cf2bdc11780725b",
+    "adr": "ADR-0024（取得日 2026-10-18。Last-Modified 2025-05-29。改正日の記載なし）、ADR-0018"
+  }
+}

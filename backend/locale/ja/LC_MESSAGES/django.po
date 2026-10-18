@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-18 21:17+0900\n"
+"POT-Creation-Date: 2026-10-18 22:00+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -2704,6 +2704,15 @@ msgstr "タスク"
 msgid "periodic interview"
 msgstr "定期面談"
 
+msgid "source periodic interview"
+msgstr "元の定期面談"
+
+msgid "non-conformity with the standards"
+msgstr "基準不適合等"
+
+msgid "report needed"
+msgstr "要"
+
 msgid "Open the Forms tab"
 msgstr "帳票タブを開く"
 
@@ -2722,11 +2731,21 @@ msgstr "紐づけを外す"
 msgid "No generated forms are linked."
 msgstr "紐づけた帳票はありません。"
 
-msgid "Link a generated form"
-msgstr "生成した帳票を紐づける"
+#, python-format
+msgid "Interview reports of %(day)s"
+msgstr "%(day)s の面談の報告書"
 
 msgid "Link"
 msgstr "紐づける"
+
+msgid ""
+"No interview reports have been generated for this interview. Generate them "
+"from the interview record."
+msgstr ""
+"この面談の報告書はまだ生成されていません。面談の記録から生成してください。"
+
+msgid "Link a generated form"
+msgstr "生成した帳票を紐づける"
 
 msgid "Change status"
 msgstr "状態を変更する"
@@ -2788,6 +2807,15 @@ msgstr "署名済みのスキャン"
 
 msgid "PDF, PNG or JPEG, up to 10 MB each."
 msgstr "PDF・PNG・JPEG。1 つ 10 MB まで。"
+
+msgid "period from"
+msgstr "期間（開始）"
+
+msgid "period to"
+msgstr "期間（終了）"
+
+msgid "The end of the period must be on or after the start."
+msgstr "期間の終了は開始以後の日にしてください。"
 
 msgid "common"
 msgstr "共通"
@@ -2939,6 +2967,29 @@ msgstr "直す"
 msgid "No problems were found."
 msgstr "不足はありません。"
 
+msgid "Generate the consultation records (form 5-4)"
+msgstr "相談記録書を作る（第5-4号）"
+
+msgid ""
+"Consultations received in the period from foreign workers employed by this "
+"host organization on the day of reception. Nine consultations fit on one "
+"form; from the tenth, another form is generated as the second sheet."
+msgstr ""
+"期間の中に受け付けた相談のうち、受付の日にこの受入れ機関に雇用されていた外国"
+"人のものを載せます。1 枚に 9 件まで入り、10 件目からは 2 枚目として別の帳票を"
+"作ります。"
+
+#, python-format
+msgid "%(count)s consultation in the period (%(documents)s form)."
+msgid_plural "%(count)s consultations in the period (%(documents)s forms)."
+msgstr[0] "期間の相談は %(count)s 件です（帳票 %(documents)s 枚）。"
+
+msgid "date received"
+msgstr "相談受理日"
+
+msgid "staff in charge"
+msgstr "担当者"
+
 #, python-format
 msgid ""
 "Requested more than %(minutes)s minutes ago. Ask an administrator to check "
@@ -3026,6 +3077,12 @@ msgstr "署名済みの書類を添付しました。"
 
 msgid "Voided the signed copy."
 msgstr "署名済みの書類を取り消しました。"
+
+msgid "There are no consultations in this period."
+msgstr "この期間の相談はありません。"
+
+msgid "Requested the generation of the consultation records."
+msgstr "相談記録書の生成を依頼しました。"
 
 msgid "Support contracts entered on this page overlap each other."
 msgstr "この画面で入力した支援委託契約どうしの期間が重なっています。"
@@ -3537,6 +3594,15 @@ msgstr "提出先"
 msgid "copy"
 msgstr "控え"
 
+msgid "Consultation records (form 5-4)"
+msgstr "相談記録書（第5-4号）"
+
+msgid "Generate the consultation records"
+msgstr "相談記録書を作る"
+
+msgid "No consultation records have been generated."
+msgstr "相談記録書はまだ生成していません。"
+
 #, python-format
 msgid "%(counter)s person"
 msgid_plural "%(counter)s people"
@@ -3851,9 +3917,6 @@ msgstr "所要時間（分）"
 msgid "online meeting URL"
 msgstr "オンライン会議の URL"
 
-msgid "staff in charge"
-msgstr "担当者"
-
 msgid "counterpart"
 msgstr "相手"
 
@@ -3920,6 +3983,97 @@ msgstr "次回の面談のタスク"
 
 msgid "periodic interviews"
 msgstr "定期面談"
+
+msgid "version of the questions"
+msgstr "質問の版"
+
+msgid "other matter (5-2)"
+msgstr "その他の事項（⑤②）"
+
+msgid "Only when there is one."
+msgstr "ある場合だけ。"
+
+msgid "other matters worth noting (7)"
+msgstr "その他特筆すべき事項（⑦）"
+
+msgid "position of the supervisor"
+msgstr "監督者の役職"
+
+msgid "department of the supervisor"
+msgstr "監督者の所属部署"
+
+msgid "where the recording is stored"
+msgstr "録画の保存先"
+
+msgid ""
+"Required for online interviews (the recording is kept for a year or more)."
+msgstr "オンラインの面談では必須です（録画は 1 年以上保管します）。"
+
+msgid "interview answers"
+msgstr "定期面談報告書の回答"
+
+msgid "question"
+msgstr "質問"
+
+msgid "problem"
+msgstr "問題有"
+
+msgid "details of the problem"
+msgstr "問題の内容"
+
+msgid "interview answer"
+msgstr "定期面談報告書の回答（質問ごと）"
+
+msgid "interview answers (per question)"
+msgstr "定期面談報告書の回答（質問ごと）"
+
+msgid "guided to the labour standards inspection office or other authorities"
+msgstr "労働基準監督署等の関係行政機関を案内"
+
+msgid "no particular action"
+msgstr "特段対応なし"
+
+msgid "non-conformity with the standards (6)"
+msgstr "基準不適合等の有無（⑥）"
+
+msgid "date of the non-conformity"
+msgstr "基準不適合等の発生年月日"
+
+msgid "details of the non-conformity"
+msgstr "基準不適合等の内容"
+
+msgid "action for the worker"
+msgstr "1号特定技能外国人への対応"
+
+msgid "authority the worker was guided to"
+msgstr "案内した機関"
+
+msgid "reason for no particular action"
+msgstr "特段対応なしの理由"
+
+msgid "notified the person responsible at the host"
+msgstr "特定技能所属機関の責任者への通知"
+
+msgid "notified on"
+msgstr "通知日"
+
+msgid "notified to"
+msgstr "通知の相手方"
+
+msgid "reason for not notifying"
+msgstr "未通知の理由"
+
+msgid "guided the host to the Immigration Services Agency"
+msgstr "出入国在留管理庁への案内"
+
+msgid "reason the report to authorities is not made"
+msgstr "関係行政機関への通報未了の理由"
+
+msgid "non-conformity found in an interview"
+msgstr "定期面談の基準不適合等"
+
+msgid "non-conformities found in interviews"
+msgstr "定期面談の基準不適合等"
 
 msgid "work"
 msgstr "就業"
@@ -4159,9 +4313,6 @@ msgstr "実施日（まで）"
 msgid "All"
 msgstr "すべて"
 
-msgid "report needed"
-msgstr "要"
-
 msgid "report not needed"
 msgstr "不要"
 
@@ -4180,6 +4331,30 @@ msgid ""
 msgstr ""
 "任意。次回のタスクの期限になります（3か月以内）。空なら面談日の3か月後が期限"
 "です。"
+
+msgid "no problem"
+msgstr "問題無"
+
+msgid "Required when \"other\" has a problem."
+msgstr "「その他」が問題有のときは必須です。"
+
+msgid "\"Yes\" when a violation of labour laws is suspected."
+msgstr "労働法令違反の疑いが「あり」なら「あり」にします。"
+
+msgid "notified"
+msgstr "通知済み"
+
+msgid "not notified"
+msgstr "未通知"
+
+msgid "guided"
+msgstr "案内済み"
+
+msgid "not yet"
+msgstr "未了"
+
+msgid "Including when the report is judged not needed."
+msgstr "通報不要と判断した場合を含みます。"
 
 msgid "If it spans several categories, select the main one."
 msgstr "複数にまたがる場合は主なもの 1 つ"
@@ -4370,6 +4545,9 @@ msgstr "交付記録を保存しました。"
 msgid "Voided the delivery record."
 msgstr "交付記録を取り消しました。"
 
+msgid "Requested the generation of the interview reports (forms 5-5 and 5-6)."
+msgstr "定期面談報告書（第5-5号・第5-6号）の生成を依頼しました。"
+
 msgid "Attach the signed confirmation"
 msgstr "署名済みの確認書を添付"
 
@@ -4507,6 +4685,18 @@ msgstr "経過"
 
 msgid "no plan"
 msgstr "計画なし"
+
+msgid "Questions of the report (3. Results of the interview)"
+msgstr "報告書の質問（３ 面談結果）"
+
+msgid "There are no answers to the questions (a record made before T35)."
+msgstr "質問の回答はありません（T35 より前の記録）。"
+
+msgid "Set all to no problem"
+msgstr "すべて「問題無」にする"
+
+msgid "Non-conformity with the standards (6 and 4)"
+msgstr "基準不適合等（⑥・４）"
 
 #, python-format
 msgid "%(counter)s planned"
@@ -4650,6 +4840,9 @@ msgstr ""
 msgid "Periodic interview (%(day)s)"
 msgstr "定期面談（%(day)s）"
 
+msgid "Generate the interview reports (forms 5-5 and 5-6)"
+msgstr "定期面談報告書を作る（第5-5号・第5-6号）"
+
 msgid "Interview with the worker"
 msgstr "本人との面談"
 
@@ -4676,6 +4869,13 @@ msgstr ""
 
 msgid "Findings and next interview"
 msgstr "把握した事項・次回の面談"
+
+msgid ""
+"The report for the worker (form 5-5) and the report for the supervisor (form "
+"5-6) are generated together. They have no signature fields."
+msgstr ""
+"本人用（第5-5号）と監督者用（第5-6号）をまとめて生成します。署名の欄はありま"
+"せん。"
 
 msgid "Void a periodic interview"
 msgstr "定期面談の取消"
@@ -6034,6 +6234,24 @@ msgstr ""
 "別紙２（無期転換後の条件）は生成しません。版に添付した別紙２ を、この書類と一"
 "緒に使ってください。"
 
+msgid "There is no record of the periodic interview."
+msgstr "定期面談の記録がありません。"
+
+msgid ""
+"The interview has no answers to the questions (a record made before T35). "
+"The questions, (6) and section 4 are left blank."
+msgstr ""
+"この面談には質問の回答がありません（T35 より前の記録）。質問・⑥・４ の欄は空"
+"のままです。"
+
+#, python-format
+msgid ""
+"%(names)s is neither a support manager nor a support staff member. The "
+"interview should be held by the support manager or staff in the support plan."
+msgstr ""
+"%(names)s は支援責任者・支援担当者のどちらでもありません。定期面談は支援計画"
+"書の支援責任者か支援担当者が行います。"
+
 #, python-format
 msgid "\"%(label)s\" is empty."
 msgstr "「%(label)s」が空です。"
@@ -6149,6 +6367,62 @@ msgstr "小分類が「その他」のときだけ入れます。"
 msgid "The record that raised this report task was voided: %(reason)s"
 msgstr "このタスクを起票した記録が取り消されました: %(reason)s"
 
+msgid "Select whether there is a problem."
+msgstr "問題の有無を選んでください。"
+
+msgid "Enter the details of the problem."
+msgstr "問題の内容を入れてください。"
+
+msgid "Enter the other matter."
+msgstr "その他の事項を入れてください。"
+
+#, python-format
+msgid "Unknown questions: %(codes)s"
+msgstr "知らない質問です: %(codes)s"
+
+msgid "Enter where the recording of the online interview is stored."
+msgstr "オンラインの面談の録画の保存先を入れてください。"
+
+msgid "Select whether there is a non-conformity with the standards."
+msgstr "基準不適合等の有無を選んでください。"
+
+msgid ""
+"A violation of labour laws is suspected, so select \"yes\" for non-"
+"conformity with the standards."
+msgstr ""
+"労働法令違反の疑いが「あり」なので、基準不適合等は「あり」にしてください。"
+
+msgid "Enter section 4 only when there is a non-conformity."
+msgstr "４ は基準不適合等が「あり」のときだけ入れます。"
+
+msgid "Enter the date."
+msgstr "日付を入れてください。"
+
+msgid "Enter the details."
+msgstr "内容を入れてください。"
+
+msgid "Select the action for the worker."
+msgstr "1号特定技能外国人への対応を選んでください。"
+
+msgid "Enter the authority."
+msgstr "案内した機関を入れてください。"
+
+msgid "Select whether the host was notified."
+msgstr "責任者への通知の有無を選んでください。"
+
+msgid "Enter who was notified."
+msgstr "通知の相手方を入れてください。"
+
+msgid "Select whether the host was guided to the agency."
+msgstr "出入国在留管理庁への案内の済み・未了を選んでください。"
+
+msgid ""
+"Enter why the report to the authorities has not been made (including not "
+"needed)."
+msgstr ""
+"関係行政機関への通報が未了の理由を入れてください（通報不要と判断した場合を含"
+"む）。"
+
 msgid "Enter a passport number of 6 to 12 letters and digits."
 msgstr "旅券番号は英数字 6〜12 桁で入力してください。"
 
@@ -6212,6 +6486,9 @@ msgstr "通報日は、通報が「要」のときだけ入力してください
 msgid "Enter the report only when a violation of labour laws is suspected."
 msgstr "通報は、労働法令違反の疑いが「あり」のときだけ入力してください。"
 
+msgid "Answers cannot be given for a record without answers."
+msgstr "回答の無い記録には回答を入れられません。"
+
 #, python-format
 msgid "Enter a date after the interview and on or before %(legal)s (3 months)."
 msgstr "面談日より後で、%(legal)s（3か月）以前の日付を入力してください。"
@@ -6225,6 +6502,13 @@ msgstr "定期面談の記録を取り消したため: %(reason)s"
 
 msgid "A report is required but has not been made yet."
 msgstr "通報が「要」ですが、まだ通報日が入っていません。"
+
+msgid ""
+"The interview was held online, but the support plan does not list online "
+"interviews. Check the plan and the consent of the worker."
+msgstr ""
+"オンラインで実施しましたが、支援計画の定期面談の実施方法にオンラインがありま"
+"せん。計画と本人の同意を確かめてください。"
 
 msgid "All ten support items are required."
 msgstr "10項目すべてが必要です。"

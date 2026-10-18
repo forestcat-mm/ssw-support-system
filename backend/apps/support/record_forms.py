@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime
 from typing import Any
 
 from django import forms
@@ -28,9 +29,10 @@ from apps.support.models import (
     ForeignFees,
     RecordMethod,
     ReportDestination,
+    WorkerGuidance,
 )
 from apps.workers.models import ForeignWorker
-from services import briefings, deliveries, support_records
+from services import briefings, deliveries, interview_answers, support_records
 from services.consultations import CONSULTATION_METHODS, EntryInput, ReceptionInput
 from services.support_catalog import SupportItem
 from services.support_interviews import INTERVIEW_METHODS, InterviewInput
@@ -326,6 +328,194 @@ class InterviewForm(StyledFormMixin, forms.Form):
             self.enable_when(name, violation_suspected="yes", report_required="yes")
 
 
+PROBLEM_CHOICES = [("no", _("no problem")), ("yes", _("problem"))]
+
+
+class AnswerSetForm(StyledFormMixin, forms.Form):
+    """1 行（本人用・監督者用）の報告書の質問（第5-5号・第5-6号の ３ と ⑦。T35、ADR-0024）。
+
+    質問ごとに「問題の有無」（answer_<符号>）と「問題の内容」（detail_<符号>。「有」のときだけ）。
+    質問の文言は、本人用は第5-5号、監督者用は第5-6号のもの。
+    """
+
+    other_subject = forms.CharField(
+        label=_("other matter (5-2)"),
+        max_length=200,
+        required=False,
+        help_text=_('Required when "other" has a problem.'),
+    )
+    notable = forms.CharField(
+        label=_("other matters worth noting (7)"),
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 2}),
+    )
+    supervisor_position = forms.CharField(
+        label=_("position of the supervisor"), max_length=100, required=False
+    )
+    supervisor_department = forms.CharField(
+        label=_("department of the supervisor"), max_length=100, required=False
+    )
+    recording_location = forms.CharField(
+        label=_("where the recording is stored"),
+        max_length=200,
+        required=False,
+        help_text=_("Required for online interviews (the recording is kept for a year or more)."),
+    )
+
+    def __init__(self, *args: Any, supervisor: bool, on: datetime.date, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.supervisor = supervisor
+        self.version = interview_answers.version_for(on)
+        if not supervisor:
+            del self.fields["supervisor_position"]
+            del self.fields["supervisor_department"]
+        for question in self.version.questions:
+            key = question.code.replace(".", "_")
+            text = question.supervisor_text if supervisor else question.self_text
+            self.fields[f"answer_{key}"] = forms.ChoiceField(
+                label=f"{question.code}　{text}",
+                choices=PROBLEM_CHOICES,
+                widget=forms.RadioSelect,
+                required=False,
+            )
+            self.fields[f"detail_{key}"] = forms.CharField(
+                label=_("details of the problem"),
+                required=False,
+                widget=forms.Textarea(attrs={"rows": 2}),
+            )
+        self.style_fields()
+        for question in self.version.questions:
+            key = question.code.replace(".", "_")
+            self.enable_when(f"detail_{key}", **{f"answer_{key}": "yes"})
+
+    def question_fields(self) -> list[tuple[Any, Any]]:
+        return [
+            (self[f"answer_{q.code.replace('.', '_')}"], self[f"detail_{q.code.replace('.', '_')}"])
+            for q in self.version.questions
+        ]
+
+    def to_input(self) -> interview_answers.AnswerSetInput:
+        data = self.cleaned_data
+        answers = {}
+        for question in self.version.questions:
+            key = question.code.replace(".", "_")
+            value = data.get(f"answer_{key}") or ""
+            answers[question.code] = interview_answers.AnswerInput(
+                None if not value else value == "yes", data.get(f"detail_{key}") or ""
+            )
+        return interview_answers.AnswerSetInput(
+            answers=answers,
+            other_subject=data.get("other_subject") or "",
+            notable=data.get("notable") or "",
+            supervisor_position=data.get("supervisor_position") or "",
+            supervisor_department=data.get("supervisor_department") or "",
+            recording_location=data.get("recording_location") or "",
+        )
+
+    def apply_errors(self, error: ValidationError) -> None:
+        for key, messages in error.error_dict.items():
+            name = key
+            for prefix in ("answer.", "detail."):
+                if key.startswith(prefix):
+                    name = prefix[:-1] + "_" + key[len(prefix) :].replace(".", "_")
+            self.add_error(name if name in self.fields else None, messages)
+
+
+class NonconformityForm(StyledFormMixin, forms.Form):
+    """⑥ 基準不適合等の有無と ４ 基準不適合等への対応（組に 1 つ。T35-D4）。"""
+
+    exists = forms.ChoiceField(
+        label=_("non-conformity with the standards (6)"),
+        choices=YES_NO,
+        widget=forms.RadioSelect,
+        required=False,
+        help_text=_('"Yes" when a violation of labour laws is suspected.'),
+    )
+    occurred_on = forms.DateField(
+        label=_("date of the non-conformity"), required=False, widget=forms.DateInput
+    )
+    content = forms.CharField(
+        label=_("details of the non-conformity"),
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 2}),
+    )
+    worker_guidance = forms.ChoiceField(
+        label=_("action for the worker"),
+        choices=WorkerGuidance.choices,
+        widget=forms.RadioSelect,
+        required=False,
+    )
+    guided_to = forms.CharField(
+        label=_("authority the worker was guided to"), max_length=200, required=False
+    )
+    no_guidance_reason = forms.CharField(
+        label=_("reason for no particular action"), max_length=500, required=False
+    )
+    host_notified = forms.ChoiceField(
+        label=_("notified the person responsible at the host"),
+        choices=[("yes", _("notified")), ("no", _("not notified"))],
+        widget=forms.RadioSelect,
+        required=False,
+    )
+    notified_on = forms.DateField(label=_("notified on"), required=False, widget=forms.DateInput)
+    notified_to = forms.CharField(label=_("notified to"), max_length=200, required=False)
+    not_notified_reason = forms.CharField(
+        label=_("reason for not notifying"), max_length=500, required=False
+    )
+    immigration_guided = forms.ChoiceField(
+        label=_("guided the host to the Immigration Services Agency"),
+        choices=[("yes", _("guided")), ("no", _("not yet"))],
+        widget=forms.RadioSelect,
+        required=False,
+    )
+    unreported_reason = forms.CharField(
+        label=_("reason the report to authorities is not made"),
+        max_length=500,
+        required=False,
+        help_text=_("Including when the report is judged not needed."),
+    )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.style_fields()
+        for name in (
+            "occurred_on",
+            "content",
+            "worker_guidance",
+            "host_notified",
+            "immigration_guided",
+            "unreported_reason",
+        ):
+            self.enable_when(name, exists="yes")
+        self.enable_when("guided_to", exists="yes", worker_guidance=WorkerGuidance.GUIDED)
+        self.enable_when("no_guidance_reason", exists="yes", worker_guidance=WorkerGuidance.NONE)
+        self.enable_when("notified_on", exists="yes", host_notified="yes")
+        self.enable_when("notified_to", exists="yes", host_notified="yes")
+        self.enable_when("not_notified_reason", exists="yes", host_notified="no")
+
+    def to_input(self) -> interview_answers.NonconformityInput:
+        data = self.cleaned_data
+
+        def yes_no(name: str) -> bool | None:
+            value = data.get(name) or ""
+            return None if not value else value == "yes"
+
+        return interview_answers.NonconformityInput(
+            exists=yes_no("exists"),
+            occurred_on=data.get("occurred_on"),
+            content=data.get("content") or "",
+            worker_guidance=data.get("worker_guidance") or "",
+            guided_to=data.get("guided_to") or "",
+            no_guidance_reason=data.get("no_guidance_reason") or "",
+            host_notified=yes_no("host_notified"),
+            notified_on=data.get("notified_on"),
+            notified_to=data.get("notified_to") or "",
+            not_notified_reason=data.get("not_notified_reason") or "",
+            immigration_guided=yes_no("immigration_guided"),
+            unreported_reason=data.get("unreported_reason") or "",
+        )
+
+
 class InterviewEditor:
     """定期面談の画面のフォーム（本人用の行・上司用の行・組の欄）を束ねる。"""
 
@@ -359,9 +549,23 @@ class InterviewEditor:
             initial=supervisor_initial,
         )
         self.interview_form = InterviewForm(data, prefix="interview")
+        # 質問の版は実施日で決まる（入力の前は今日）。2 行の日付が違っても、今の質問の版は 1 つ
+        on = timezone.localdate()
+        self.self_answers = AnswerSetForm(data, prefix="self_answers", supervisor=False, on=on)
+        self.supervisor_answers = AnswerSetForm(
+            data, prefix="supervisor_answers", supervisor=True, on=on
+        )
+        self.nonconformity_form = NonconformityForm(data, prefix="nonconformity")
 
     def forms(self) -> list[forms.Form]:
-        return [self.self_form, self.supervisor_form, self.interview_form]
+        return [
+            self.self_form,
+            self.self_answers,
+            self.supervisor_form,
+            self.supervisor_answers,
+            self.interview_form,
+            self.nonconformity_form,
+        ]
 
     def is_valid(self) -> bool:
         return all([form.is_valid() for form in self.forms()])
@@ -378,6 +582,9 @@ class InterviewEditor:
             report_to_note=data.get("report_to_note") or "",
             reported_on=data.get("reported_on"),
             next_scheduled_on=data.get("next_scheduled_on"),
+            self_answers=self.self_answers.to_input(),
+            supervisor_answers=self.supervisor_answers.to_input(),
+            nonconformity=self.nonconformity_form.to_input(),
         )
 
     def files(self) -> dict[str, list[Any]]:
@@ -389,10 +596,16 @@ class InterviewEditor:
     def apply_errors(self, error: ValidationError) -> None:
         """サービスのエラー（"self.body"・"report_to" など）を該当する入力欄に戻す。"""
         rows = {"self": self.self_form, "supervisor": self.supervisor_form}
+        answers = {"self": self.self_answers, "supervisor": self.supervisor_answers}
+        answer_keys = ("answer", "detail", "other_subject", "recording_location")
         for key, messages in error.error_dict.items():
             prefix, _dot, name = key.partition(".")
-            if prefix in rows and name:
+            if prefix in answers and name.split(".")[0] in answer_keys:
+                answers[prefix].apply_errors(ValidationError({name: messages}))
+            elif prefix in rows and name:
                 rows[prefix].apply_errors(ValidationError({name: messages}))
+            elif prefix == "nonconformity" and name in self.nonconformity_form.fields:
+                self.nonconformity_form.add_error(name, messages)
             elif key in self.interview_form.fields:
                 self.interview_form.add_error(key, messages)
             else:

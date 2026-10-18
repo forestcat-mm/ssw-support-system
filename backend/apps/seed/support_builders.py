@@ -22,6 +22,7 @@ from apps.contracts.models import EmploymentContract
 from apps.core.models import Attachment
 from apps.filings.models import Filing, FilingKind, FilingStatus
 from apps.forms_engine.models import GeneratedDocument, GeneratedDocumentSignature
+from apps.hosts.models import HostOrganization
 from apps.seed.context import DUMMY_MARK, DUMMY_PDF, SeedContext
 from apps.support.models import (
     Briefing,
@@ -32,6 +33,9 @@ from apps.support.models import (
     ConsultationEntry,
     ConsultationStatus,
     DocumentDelivery,
+    InterviewAnswer,
+    InterviewAnswerSet,
+    InterviewNonconformity,
     PeriodicInterview,
     SupportPlan,
     SupportPlanActivity,
@@ -48,6 +52,7 @@ from services import (
     consultations,
     deliveries,
     filings,
+    interview_answers,
     support_interviews,
     support_plans,
     support_records,
@@ -85,6 +90,8 @@ OVERDUE = (1, 10, 16)  # 最後の面談 D−100 → 期限は D−11〜D−8
 WITHIN_7 = (2, 11, 17, 22)  # D−88 → D+1〜D+4
 WITHIN_14 = (3, 12, 18, 23)  # D−80 → D+9〜D+12
 REPORT_DAY = -5  # 7 番の通報・6 番の転職支援の日（第4-3号の期限が 14 日以内に入る）
+NO_ANSWERS = frozenset({3, 19})  # 最後の定期面談も報告書の回答が無い（T35 より前の記録。T35-D3）
+ONLINE_INTERVIEW = 5  # 最後の定期面談の本人用の行がオンライン（録画の保存先つき。T35-D8）
 
 
 def _pdf(name: str) -> ContentFile[bytes]:
@@ -141,20 +148,52 @@ def _row(ctx: SeedContext, worker: ForeignWorker, on: date, **overrides: Any) ->
     return RecordInput(**(values | overrides))
 
 
-def _interview(ctx: SeedContext, worker: ForeignWorker, on: date, **overrides: Any) -> Any:
-    data = InterviewInput(
-        self_row=_row(ctx, worker, on),
-        supervisor_row=_row(
-            ctx,
-            worker,
-            on,
-            counterpart_name=f"工場長 田中{DUMMY_MARK}",
-            languages=[],
-            body=f"勤務態度・労働時間を確認した。{DUMMY_MARK}",
-        ),
-        **overrides,
+def _answers(on: date, **overrides: Any) -> interview_answers.AnswerSetInput:
+    """報告書の回答（全部「問題無」。overrides で問題のある質問などを足す）。"""
+    values: dict[str, Any] = {
+        "answers": interview_answers.all_no(on),
+        "notable": f"特になし。{DUMMY_MARK}",
+    }
+    return interview_answers.AnswerSetInput(**(values | overrides))
+
+
+def _interview(
+    ctx: SeedContext,
+    worker: ForeignWorker,
+    on: date,
+    *,
+    with_answers: bool = True,
+    self_overrides: dict[str, Any] | None = None,
+    supervisor_overrides: dict[str, Any] | None = None,
+    nonconformity: interview_answers.NonconformityInput | None = None,
+    **overrides: Any,
+) -> Any:
+    """面談の組。with_answers=False は T35 より前の記録（報告書の回答が無い。T35-D3）。"""
+    self_row = _row(ctx, worker, on, **(overrides.pop("self_row", {})))
+    supervisor_row = _row(
+        ctx,
+        worker,
+        on,
+        counterpart_name=f"工場長 田中{DUMMY_MARK}",
+        languages=[],
+        body=f"勤務態度・労働時間を確認した。{DUMMY_MARK}",
     )
-    return support_interviews.create_interview(worker, data, by=None, today=ctx.base)
+    answers: dict[str, Any] = {}
+    if with_answers:
+        answers = {
+            "self_answers": _answers(on, **(self_overrides or {})),
+            "supervisor_answers": _answers(
+                on,
+                supervisor_position=f"工場長{DUMMY_MARK}",
+                supervisor_department=f"製造部{DUMMY_MARK}",
+                **(supervisor_overrides or {}),
+            ),
+            "nonconformity": nonconformity or interview_answers.NonconformityInput(exists=False),
+        }
+    data = InterviewInput(self_row=self_row, supervisor_row=supervisor_row, **answers, **overrides)
+    return support_interviews.create_interview(
+        worker, data, by=None, today=ctx.base, without_answers=not with_answers
+    )
 
 
 def last_interview_days(number: int) -> int:
@@ -176,10 +215,28 @@ def seed_interviews(ctx: SeedContext) -> None:
         last = ctx.days(-last_interview_days(number))
         history = [last - timedelta(days=180), last - timedelta(days=90), last]
         for on in history:
-            if on > first_start:
-                _interview(ctx, worker, on)
-    # 7 番: 通報「要」の組（通報日 D−5）→ 第4-3号のタスクを起票（T24a）
+            if on <= first_start:
+                continue
+            # 古い組と NO_ANSWERS の番号の最後の組は、T35 より前の記録（回答なし）の場面
+            with_answers = on == last and number not in NO_ANSWERS
+            if on == last and number == ONLINE_INTERVIEW:
+                _interview(
+                    ctx,
+                    worker,
+                    on,
+                    self_row={"method": "online", "meeting_url": "https://meet.example.com/dummy"},
+                    self_overrides={
+                        "recording_location": f"社内の共有フォルダ（面談録画）{DUMMY_MARK}"
+                    },
+                )
+                continue
+            _interview(ctx, worker, on, with_answers=with_answers)
+    # 7 番: 通報「要」の組（通報日 D−5）→ 第4-3号のタスクを起票（T24a）。
+    # ⑥ 基準不適合等も「有り」で、同じ事由として 1 件のタスクにまとまる（T35-D5）
     reporter = ctx.worker(REPORTED_INTERVIEW)
+    problem = f"残業代が契約どおりに支払われていない。{DUMMY_MARK}"
+    answers = interview_answers.all_no(ctx.days(REPORT_DAY))
+    answers["2.1"] = interview_answers.AnswerInput(True, problem)
     _interview(
         ctx,
         reporter,
@@ -188,6 +245,19 @@ def seed_interviews(ctx: SeedContext) -> None:
         report_required=True,
         report_to="labor_standards_office",
         reported_on=ctx.days(REPORT_DAY),
+        self_overrides={"answers": answers},
+        supervisor_overrides={"answers": dict(answers)},
+        nonconformity=interview_answers.NonconformityInput(
+            exists=True,
+            occurred_on=ctx.days(REPORT_DAY - 30),
+            content=f"所定時間外労働の割増賃金の一部が支払われていない。{DUMMY_MARK}",
+            worker_guidance="guided",
+            guided_to=f"労働基準監督署{DUMMY_MARK}",
+            host_notified=True,
+            notified_on=ctx.days(REPORT_DAY),
+            notified_to=f"代表取締役 代表 一郎{DUMMY_MARK}",
+            immigration_guided=True,
+        ),
     )
     # 8 番: 記録してから取り消した組（タスクは自動で戻る）
     voided = _interview(ctx, ctx.worker(VOIDED_INTERVIEW), ctx.days(-3))
@@ -487,6 +557,33 @@ def seed_support(ctx: SeedContext) -> None:
     seed_health_documents(ctx)
 
 
+def _delete_document_files(
+    documents: models.QuerySet[GeneratedDocument], files: models.QuerySet[Attachment]
+) -> int:
+    """生成物の署名の紐づけ・添付とファイルを消す（生成物の行は呼び出し側が後で消す）。"""
+    deleted = GeneratedDocumentSignature.objects.filter(document__in=documents).delete()[0]
+    files = files | Attachment.objects.filter(
+        content_type=ContentType.objects.get_for_model(GeneratedDocument),
+        object_id__in=documents.values("pk"),
+    )
+    for document in documents:
+        document.pdf_file.delete(save=False)
+        document.filled_file.delete(save=False)
+    for attachment in files:
+        attachment.file.delete(save=False)
+    return deleted + files.delete()[0]
+
+
+def delete_host_documents(host_ids: Iterable[int]) -> int:
+    """ダミーの受入れ機関の帳票（外国人が 1 人に決まらない第5-4号。T35）を消す。"""
+    documents = GeneratedDocument.objects.filter(
+        content_type=ContentType.objects.get_for_model(HostOrganization),
+        object_id__in=list(host_ids),
+    )
+    deleted = _delete_document_files(documents, Attachment.objects.none())
+    return deleted + documents.delete()[0]
+
+
 def delete_support_data(worker_ids: Iterable[int]) -> int:
     """台帳の外国人に紐づく支援のデータを消す（開発用。外部キーの PROTECT の順に一括削除）。
 
@@ -514,19 +611,12 @@ def delete_support_data(worker_ids: Iterable[int]) -> int:
     # 生成した帳票（T29〜T33）: 署名の紐づけ → 添付・ファイル → 生成物（交付記録の後）の順に消す。
     # 生成物と紐づけはモデルの delete() では消せないので、開発用のこの処理に限り一括で消す
     documents = GeneratedDocument.objects.filter(worker_id__in=ids)
-    deleted = GeneratedDocumentSignature.objects.filter(document__in=documents).delete()[0]
-    files = files | Attachment.objects.filter(
-        content_type=ContentType.objects.get_for_model(GeneratedDocument),
-        object_id__in=documents.values("pk"),
-    )
-    for document in documents:
-        document.pdf_file.delete(save=False)
-        document.filled_file.delete(save=False)
-    for attachment in files:
-        attachment.file.delete(save=False)
-    deleted += files.delete()[0]
+    deleted = _delete_document_files(documents, files)
     plan_filter = {"version__plan__worker_id__in": ids}
     for queryset in (
+        InterviewAnswer.objects.filter(answer_set__record__worker_id__in=ids),
+        InterviewAnswerSet.objects.filter(record__worker_id__in=ids),
+        InterviewNonconformity.objects.filter(interview__worker_id__in=ids),
         BriefingCheck.objects.filter(briefing__worker_id__in=ids),
         BriefingSession.objects.filter(briefing__worker_id__in=ids),
         BriefingForeignFee.objects.filter(briefing__worker_id__in=ids),

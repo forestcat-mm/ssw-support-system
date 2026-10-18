@@ -8,7 +8,9 @@ from typing import Any
 
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.db import transaction
 from django.http import FileResponse, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
@@ -20,13 +22,23 @@ from django.views import View
 from apps.contracts.models import EmploymentContractVersion
 from apps.core.models import Action, Attachment, AuditAction, User
 from apps.core.permissions import ActionRequiredMixin
-from apps.core.web_forms import consume_once_token
-from apps.forms_engine.forms import SignatureForm
+from apps.core.web_forms import consume_once_token, once_context
+from apps.forms_engine.forms import NOT_LOADED, ConsultationRecordForm, SignatureForm
 from apps.forms_engine.models import GeneratedDocument, GenerationStatus
-from apps.support.models import Briefing, DeliveryKind, SupportPlanVersion
+from apps.hosts.models import HostOrganization
+from apps.support.models import Briefing, DeliveryKind, PeriodicInterview, SupportPlanVersion
 from apps.support.record_forms import ReasonForm
 from apps.workers.views import WorkerDetailView, WorkerFormView
-from services import attachments, audit, authorization, form_generation, form_signatures, workers
+from services import (
+    attachments,
+    audit,
+    authorization,
+    form_data_consultation,
+    form_generation,
+    form_signatures,
+    form_templates,
+    workers,
+)
 
 
 class GeneratedDocumentView(ActionRequiredMixin, View):
@@ -51,6 +63,8 @@ class GeneratedDocumentView(ActionRequiredMixin, View):
         )
         if document.worker is not None:
             audit.record_view(document.worker, context={"generated_document": document.pk})
+        elif isinstance(target, HostOrganization):  # 相談記録書（複数の外国人。T35）
+            audit.record_view(target, context={"generated_document": document.pk})
         back_url = ""
         if version is not None and document.worker is not None:
             back_url = (
@@ -59,6 +73,10 @@ class GeneratedDocumentView(ActionRequiredMixin, View):
             )
         elif isinstance(target, Briefing):
             back_url = reverse("workers:support_briefing", args=[target.worker_id, target.pk])
+        elif isinstance(target, PeriodicInterview):
+            back_url = reverse("workers:support_interview", args=[target.worker_id, target.pk])
+        elif isinstance(target, HostOrganization):
+            back_url = reverse("hosts:detail", args=[target.pk]) + "#consultation-records"
         elif isinstance(target, EmploymentContractVersion) and document.worker is not None:
             back_url = (
                 reverse("workers:contracts", args=[document.worker.pk])
@@ -223,3 +241,99 @@ class SignatureVoidView(WorkerFormView):
         return self.render(
             request, worker=worker, document=document, attachment=attachment, form=form
         )
+
+
+# --- 相談記録書（第5-4号。T35、ADR-0024）------------------------------------------------------
+
+
+def consultation_documents(host: HostOrganization) -> list[GeneratedDocument]:
+    """受入れ機関の相談記録書の生成物（新しい順）。"""
+    content_type = ContentType.objects.get_for_model(HostOrganization)
+    return list(
+        GeneratedDocument.objects.filter(
+            template__form_id=CONSULTATION_FORM_ID, content_type=content_type, object_id=host.pk
+        )
+        .select_related("template", "created_by")
+        .order_by("-created_at", "-pk")[:10]
+    )
+
+
+CONSULTATION_FORM_ID = "5-4"
+
+
+class ConsultationRecordView(ActionRequiredMixin, View):
+    """受入れ機関×期間の相談記録書を生成する（9 件ごとに 1 つの生成物。T35-D9・D10）。
+
+    複数の外国人の個人情報を含むので、帳票の生成と外国人の閲覧の両方の権限が要る。
+    """
+
+    required_action = Action.FORMS_GENERATE
+    template_name = "forms_engine/consultation_record.html"
+
+    def host(self, request: HttpRequest, pk: int) -> HostOrganization:
+        if not authorization.has_action(request.user, Action.WORKERS_VIEW):
+            raise PermissionDenied
+        return get_object_or_404(
+            authorization.scope(request.user, HostOrganization.objects.all()), pk=pk
+        )
+
+    def page(
+        self, request: HttpRequest, host: HostOrganization, form: ConsultationRecordForm
+    ) -> HttpResponse:
+        rows: list[Any] = []
+        if form.is_bound and form.is_valid():
+            rows = form_data_consultation.consultations_for(
+                host, form.cleaned_data["starts_on"], form.cleaned_data["ends_on"]
+            )
+            audit.record_view(host, context={"consultations": [row.pk for row in rows]})
+        return TemplateResponse(
+            request,
+            self.template_name,
+            {
+                "host": host,
+                "form": form,
+                "rows": rows,
+                "documents": len(form_data_consultation.pages(rows)),
+                "back_url": reverse("hosts:detail", args=[host.pk]),
+                **once_context(request),
+            },
+        )
+
+    def get(self, request: HttpRequest, pk: int) -> HttpResponse:
+        host = self.host(request, pk)
+        starts_on, ends_on = form_data_consultation.default_period(timezone.localdate())
+        form = ConsultationRecordForm(
+            {"starts_on": starts_on.isoformat(), "ends_on": ends_on.isoformat()}
+        )
+        return self.page(request, host, form)
+
+    def post(self, request: HttpRequest, pk: int) -> HttpResponse:
+        host = self.host(request, pk)
+        form = ConsultationRecordForm(request.POST)
+        if not form.is_valid() or request.POST.get("action") != "generate":
+            return self.page(request, host, form)
+        back = reverse("hosts:detail", args=[host.pk])
+        if not consume_once_token(request):
+            messages.info(request, _("This form has already been submitted."))
+            return redirect(back)
+        starts_on, ends_on = form.cleaned_data["starts_on"], form.cleaned_data["ends_on"]
+        rows = form_data_consultation.consultations_for(host, starts_on, ends_on)
+        if not rows:
+            form.add_error(None, _("There are no consultations in this period."))
+            return self.page(request, host, form)
+        assert isinstance(request.user, User)
+        try:
+            with transaction.atomic():
+                for page in form_data_consultation.pages(rows):
+                    form_generation.request(
+                        CONSULTATION_FORM_ID,
+                        target=host,
+                        data=form_data_consultation.build(starts_on, ends_on, page),
+                        basis_on=ends_on,
+                        by=request.user,
+                    )
+        except form_templates.FormTemplateError:
+            form.add_error(None, NOT_LOADED)
+            return self.page(request, host, form)
+        messages.success(request, _("Requested the generation of the consultation records."))
+        return redirect(f"{back}#consultation-records")

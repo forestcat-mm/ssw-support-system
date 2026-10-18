@@ -16,6 +16,7 @@ from services.support_records import RecordInput
 from tests.contracts.factories import make_contract, site_with_categories
 from tests.core.factories import make_staff
 from tests.hosts.factories import VALID_NUMBERS, make_host, make_site
+from tests.support.interview_helpers import answer_fields, answered
 from tests.workers.factories import make_worker
 
 pytestmark = pytest.mark.django_db
@@ -46,7 +47,7 @@ def interview(worker: Any, on: date = date(2026, 7, 1), **overrides: Any) -> Int
         "self_row": row(worker, on),
         "supervisor_row": row(worker, on, counterpart_name="工場長 田中"),
     }
-    return InterviewInput(**(values | overrides))
+    return answered(InterviewInput(**(values | overrides)))
 
 
 def open_task(worker: Any, basis_on: date = date(2026, 4, 1)) -> Filing:
@@ -352,6 +353,7 @@ def post_data(page: Any, **overrides: Any) -> dict[str, Any]:
             "supervisor-counterpart_name": "工場長 田中",
             "supervisor-body": "勤務態度は良好。",
         }
+        | answer_fields(date(2026, 10, 1))
     )
     data.update(overrides)
     return data

@@ -13,13 +13,16 @@
       {% if can_void_interview %}<a class="button button--danger button--small" href="{% url 'workers:support_interview_void' worker.pk interview.pk %}">{% translate "Void" %}</a>{% endif %}
     </div>
     {% include "support/components/interview_fields.html" with show_tasks=True %}
+    {% if can_generate_reports %}<div class="cluster"><a class="button button--neutral button--small" id="interview-generate" href="{% url 'workers:support_interview_generate' worker.pk interview.pk %}">{% translate "Generate the interview reports (forms 5-5 and 5-6)" %}</a></div>{% endif %}
   </section>
-  {% for record in interview_records %}
+  {% include "support/components/interview_nonconformity.html" %}
+  {% for record, answer_set, answer_rows in interview_answers %}
   <section class="card{% if record.voided_at %} is-voided{% endif %}" data-counterpart="{{ record.counterpart }}">
     <div class="card__header"><h2 class="card__title">{% if record.counterpart == "worker" %}{% translate "Interview with the worker" %}{% else %}{% translate "Interview with the supervisor" %}{% endif %}</h2>
       <a class="button button--neutral button--small" href="{% url 'workers:support_record' worker.pk record.pk %}">{% translate "Attachments" %}</a></div>
     {% include "support/components/record_fields.html" with details=None %}
     <p class="record-body" lang="{{ record.body_language }}">{{ record.body|linebreaksbr }}</p>
+    {% include "support/components/interview_answers.html" %}
   </section>
   {% endfor %}
 </div>

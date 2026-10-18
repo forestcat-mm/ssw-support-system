@@ -49,6 +49,7 @@ class CellFont:
     size: float
     charset: str | None
     width_pt: float
+    height_pt: float = 0.0  # 書き込み先（結合範囲）の高さ（行の高さの合計。wrap で使う）
 
 
 def column_index(letters: str) -> int:
@@ -376,6 +377,16 @@ def _column_widths(sheet_xml: str) -> tuple[dict[int, float], float]:
     return widths, float(default.group(1)) if default else 8.43
 
 
+def _row_heights(sheet_xml: str) -> tuple[dict[int, float], float]:
+    """行の高さ（pt）。高さの指定の無い行は既定の高さ。"""
+    default = re.search(r'<sheetFormatPr\b[^>]*defaultRowHeight="([\d.]+)"', sheet_xml)
+    heights = {
+        int(match.group(1)): float(match.group(2))
+        for match in re.finditer(r'<row r="(\d+)"[^>]*?\sht="([\d.]+)"', sheet_xml)
+    }
+    return heights, float(default.group(1)) if default else 13.5
+
+
 def _width_pt(width_chars: float) -> float:
     pixels = math.trunc(
         ((256 * width_chars + math.trunc(128 / MAX_DIGIT_WIDTH_PX)) / 256) * MAX_DIGIT_WIDTH_PX
@@ -424,19 +435,21 @@ def cell_fonts(path: Path, targets: list[str]) -> dict[str, CellFont]:
             xml = cache.setdefault(sheet, archive.read(sheets[sheet]).decode("utf-8"))
             letters, row = split_ref(ref)
             column = column_index(letters)
-            right = column
-            for left, top, end, _bottom in merged_ranges(xml):
+            right, bottom = column, row
+            for left, top, end, last in merged_ranges(xml):
                 if (left, top) == (column, row):
-                    right = end
+                    right, bottom = end, last
             widths, default = _column_widths(xml)
             width = sum(_width_pt(widths.get(c, default)) for c in range(column, right + 1))
+            heights, default_height = _row_heights(xml)
+            height = sum(heights.get(r, default_height) for r in range(row, bottom + 1))
             element = _find_cell(xml, ref)
             style = (
                 re.search(r'\ss="(\d+)"', element.group(0).split(">", 1)[0]) if element else None
             )
             font_id = xf_fonts[int(style.group(1))] if style else 0
             name, size, charset = fonts[font_id] if font_id < len(fonts) else ("", 11.0, None)
-            result[target] = CellFont(name, size, charset, width)
+            result[target] = CellFont(name, size, charset, width, height)
     return result
 
 
@@ -457,3 +470,37 @@ def fitted_size(text: str, font: CellFont, min_size: float) -> tuple[float, bool
     if size < min_size:
         return min_size, True
     return size, False
+
+
+# --- 複数行（長い自由記述。T35-D11、ADR-0024）---------------------------------------------
+
+LINE_SPACING = 1.25  # 行の高さ ÷ 字の大きさの近似（置き換え先の明朝・ゴシック）
+
+
+def wrap_lines(text: str, font: CellFont, size: float) -> list[str]:
+    """欄の幅で改行した行（もとの改行は残す。字の大きさ size のとき）。"""
+    room = max(font.width_pt - PADDING_PT, 1.0) / size  # 1 行に入る幅（em）
+    lines: list[str] = []
+    for paragraph in text.splitlines() or [""]:
+        line, used = "", 0.0
+        for char in paragraph:
+            em = text_em(char)
+            if line and used + em > room:
+                lines.append(line)
+                line, used = "", 0.0
+            line += char
+            used += em
+        lines.append(line)
+    return lines
+
+
+def wrapped_size(text: str, font: CellFont, min_size: float) -> tuple[float, bool]:
+    """欄の幅で改行して、結合範囲の高さに収まる字の大きさ（0.5pt 刻み）と、下限でも収まらないか。"""
+    size = font.size
+    while True:
+        lines = wrap_lines(text, font, size)
+        if len(lines) * size * LINE_SPACING <= font.height_pt:
+            return size, False
+        if size - 0.5 < min_size:
+            return size, True
+        size -= 0.5

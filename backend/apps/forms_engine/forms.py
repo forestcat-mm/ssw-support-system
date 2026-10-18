@@ -60,3 +60,21 @@ class SignatureForm(StyledFormMixin, forms.Form):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.style_fields()
+
+
+class ConsultationRecordForm(StyledFormMixin, forms.Form):
+    """相談記録書（第5-4号）の期間（受入れ機関ごと。既定は今日を含む年度。T35-D9）。"""
+
+    starts_on = forms.DateField(label=_("period from"), widget=forms.DateInput)
+    ends_on = forms.DateField(label=_("period to"), widget=forms.DateInput)
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.style_fields()
+
+    def clean(self) -> dict[str, Any]:
+        data = super().clean() or {}
+        starts_on, ends_on = data.get("starts_on"), data.get("ends_on")
+        if starts_on and ends_on and starts_on > ends_on:
+            self.add_error("ends_on", _("The end of the period must be on or after the start."))
+        return data

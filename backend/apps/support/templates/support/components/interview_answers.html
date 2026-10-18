@@ -1,0 +1,16 @@
+{% load i18n %}{% if answer_set %}
+<h3>{% translate "Questions of the report (3. Results of the interview)" %}</h3>
+<div class="table-scroll">
+  <table class="table" data-answers="{{ record.counterpart }}">
+    <thead><tr><th>{% translate "question" %}</th><th>{% translate "problem" %}</th><th>{% translate "details of the problem" %}</th></tr></thead>
+    <tbody>{% for row in answer_rows %}<tr{% if row.has_problem %} class="is-flagged"{% endif %}><td>{{ row.question.code }}　{{ row.text }}{% if row.question.other and answer_set.other_subject %}（{{ answer_set.other_subject }}）{% endif %}</td><td>{% if row.has_problem %}{% translate "problem" %}{% else %}{% translate "no problem" %}{% endif %}</td><td>{{ row.detail|default:"—"|linebreaksbr }}</td></tr>{% endfor %}</tbody>
+  </table>
+</div>
+<dl class="fields fields--long-labels">
+  <dt>{% translate "other matters worth noting (7)" %}</dt><dd>{{ answer_set.notable|default:"—"|linebreaksbr }}</dd>
+  {% if record.counterpart == "supervisor" %}<dt>{% translate "position of the supervisor" %}</dt><dd>{{ answer_set.supervisor_position|default:"—" }}</dd><dt>{% translate "department of the supervisor" %}</dt><dd>{{ answer_set.supervisor_department|default:"—" }}</dd>{% endif %}
+  {% if answer_set.recording_location %}<dt>{% translate "where the recording is stored" %}</dt><dd>{{ answer_set.recording_location }}</dd>{% endif %}
+</dl>
+{% else %}
+<p class="muted" data-no-answers>{% translate "There are no answers to the questions (a record made before T35)." %}</p>
+{% endif %}

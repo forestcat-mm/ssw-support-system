@@ -18,16 +18,22 @@
     {% for field in editor.self_form.common_fields %}{% form_field field %}{% endfor %}
     {% for field in editor.self_form.body_fields %}{% form_field field %}{% endfor %}
     {% form_field editor.self_form.uploads %}
+    {% include "support/components/interview_answers_form.html" with answers=editor.self_answers scope_id="interview-self-answers" %}
   </section>
   <section class="card stack" id="interview-supervisor">
     <h2>{% translate "Interview with the supervisor" %}</h2>
     {% for field in editor.supervisor_form.common_fields %}{% form_field field %}{% endfor %}
     {% for field in editor.supervisor_form.body_fields %}{% form_field field %}{% endfor %}
     {% form_field editor.supervisor_form.uploads %}
+    {% include "support/components/interview_answers_form.html" with answers=editor.supervisor_answers scope_id="interview-supervisor-answers" %}
   </section>
   <section class="card stack" id="interview-findings">
     <h2>{% translate "Findings and next interview" %}</h2>
     {% for field in editor.interview_form %}{% form_field field %}{% endfor %}
+  </section>
+  <section class="card stack" id="interview-nonconformity">
+    <h2>{% translate "Non-conformity with the standards (6 and 4)" %}</h2>
+    {% for field in editor.nonconformity_form %}{% form_field field %}{% endfor %}
   </section>
   <div class="form-actions">
     <button class="button button--primary" type="submit">{% translate "Save" %}</button>
