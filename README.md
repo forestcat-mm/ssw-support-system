@@ -81,6 +81,7 @@ make filings        # 日次の届出タスクの起票を手で実行する（D
 make forms          # 様式マスタを読み込む（様式・マッピング定義・規則のファイルを足したり直したりしたとき）
 docker compose exec web python manage.py check_form 1-17 --worker <ID>  # 見本の生成前の検査の結果を見る（生成はしない。1-17 は今の計画の最新の版）
 python3 tools/forms/make_1_17_mapping.py > mappings/1-17/2026-10-17.json  # 第1-17号のマッピングを作り直す（手で直さない。ADR-0020）
+python3 tools/forms/make_briefing_template.py 5-9 <original.docx> <template.docx>  # 確認書の template.docx を作り直す（5-8 も同じ。ADR-0021）
 docker compose exec web python manage.py generate_sample_form 1-17 --worker <ID>  # 見本の帳票を生成する（開発者向け。警告があるときは --accept-warnings）
 make lock           # pyproject.toml の変更を uv.lock に反映する（その後 make build）
 ```
@@ -137,6 +138,6 @@ backend/
   e2e/          Playwright の通しのテスト
 templates/forms/ 入管の様式（版ごとのフォルダに original・template・manifest）
 mappings/       様式ごとのマッピング定義（<適用開始日>.json）と生成前の検査の規則（<適用開始日>.rules.json。ADR-0019）
-tools/          開発用の道具（make checks の run_checks.sh、forms/ の template.docx を作るスクリプト）
+tools/          開発用の道具（make checks の run_checks.sh、forms/ のマッピング・template.docx を作るスクリプト）
 docs/           仕様書・タスク・ADR・運用手順・デザイン
 ```
