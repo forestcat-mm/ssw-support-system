@@ -70,6 +70,13 @@ FILER_LABELS = {
 }
 
 
+def _signed_copy_deadline(basis_on: date) -> Deadline:
+    """署名済み書類の回収（生成日から自機関の設定の日数。T33、ADR-0022）。"""
+    organization = Organization.objects.first()
+    days = organization.signed_copy_due_days if organization is not None else 14
+    return deadlines.signed_copy(basis_on, days)
+
+
 @dataclass(frozen=True)
 class KindDefinition:
     category: Category
@@ -136,6 +143,10 @@ KIND_DEFINITIONS: dict[FilingKind, KindDefinition] = {
     FilingKind.PERIODIC_INTERVIEW: KindDefinition(
         Category.INTERNAL, Filer.INTERNAL, deadlines.periodic_interview
     ),
+    # 起算日は生成日。署名済みの添付で自動で完了し、取消はさせない（「不要」で閉じる。T33）
+    FilingKind.SIGNED_COPY_COLLECTION: KindDefinition(
+        Category.INTERNAL, Filer.INTERNAL, _signed_copy_deadline
+    ),
 }
 
 # 手動で起票できる種別（事由が人の判断で生じるもの）
@@ -187,7 +198,9 @@ TRANSITIONS: dict[FilingStatus, frozenset[FilingStatus]] = {
 }
 
 # 記録を通してだけ完了・完了の取り消しをする種別（手では変えない）
-COMPLETED_BY_RECORD = frozenset({FilingKind.PERIODIC_INTERVIEW})
+COMPLETED_BY_RECORD = frozenset({FilingKind.PERIODIC_INTERVIEW, FilingKind.SIGNED_COPY_COLLECTION})
+# 手では取り消さない種別（「不要」で閉じる。元の記録の取消のときだけ記録を通して取り消す）
+CANCELLED_BY_RECORD_ONLY = frozenset({FilingKind.SIGNED_COPY_COLLECTION})
 
 
 def definition(kind: FilingKind | str) -> KindDefinition:
@@ -204,6 +217,8 @@ def allowed_transitions(filing: Filing, *, by_record: bool = False) -> frozenset
         allowed.discard(FilingStatus.COMPLETED)
         if current is FilingStatus.COMPLETED:
             allowed.clear()
+    if FilingKind(filing.kind) in CANCELLED_BY_RECORD_ONLY and not by_record:
+        allowed.discard(FilingStatus.CANCELLED)
     return frozenset(allowed)
 
 
@@ -386,6 +401,7 @@ def on_contract_terminated(contract: EmploymentContract, *, by: User | None) -> 
 SOURCE_CANCELLED_LABELS = {
     "contract_termination": gettext_lazy("the termination of the employment contract"),
     "support_contract_termination": gettext_lazy("the termination of the support contract"),
+    "briefing": gettext_lazy("the record of the guidance or orientation"),
 }
 
 
@@ -395,7 +411,9 @@ class Reverted(enum.StrEnum):
     NOTED = "noted"  # 提出済み・完了などなのでメモを付けて残した
 
 
-def revert_raised_task(filing: Filing, *, source: str, reason: str, by: User | None) -> Reverted:
+def revert_raised_task(
+    filing: Filing, *, source: str, reason: str, by: User | None, by_record: bool = False
+) -> Reverted:
     """元の事由（終了の登録など）を取り消したときの、起票済みのタスクの扱い（T28a〜T28c で共通）。
 
     - 未着手: 理由つきで取消
@@ -404,7 +422,7 @@ def revert_raised_task(filing: Filing, *, source: str, reason: str, by: User | N
     """
     status = FilingStatus(filing.status)
     if status is FilingStatus.NOT_STARTED:
-        transition(filing, FilingStatus.CANCELLED, by=by, reason=reason)
+        transition(filing, FilingStatus.CANCELLED, by=by, reason=reason, by_record=by_record)
         return Reverted.CANCELLED
     with audit.event(AuditAction.FILING_TRANSITION, target=filing, actor=by):
         if status is FilingStatus.IN_PROGRESS:
@@ -612,6 +630,11 @@ def create_scheduled(today: date, *, by: User | None = None) -> ScheduledResult:
                 season,
                 Trigger.PERIODIC_SEASON,
             )
+
+    # 署名済み書類の回収（生成から自機関の設定の日数。T33）
+    from services import form_signatures  # 循環を避ける
+
+    result.created.extend(form_signatures.raise_collection_tasks(today, by=by))
     return result
 
 
@@ -926,6 +949,13 @@ def task_notes(filing: Filing, today: date) -> list[str]:
         notes.append(
             _("The original event (%(event)s) was cancelled. Check this task.") % {"event": label}
         )
+    if kind is FilingKind.SIGNED_COPY_COLLECTION and open_:
+        notes.append(
+            _(
+                "Attach the signed copy on the Forms tab of the foreign worker; this task is then "
+                "completed automatically."
+            )
+        )
     notes.extend(_support_contract_notes(filing))
     if kind is FilingKind.CONTRACT_TERMINATION and (filing.trigger_details or {}).get(
         "support_contract"
@@ -1170,3 +1200,82 @@ def manual_target(
             code="deactivated",
         )
     return target
+
+
+# --- 記録を通した完了・取り消し（署名済み書類の回収。T33）------------------------------------
+
+
+def _automatic(source: models.Model, reason: str) -> dict[str, Any]:
+    return {
+        "automatic": True,
+        "source": f"{source._meta.label_lower}:{source.pk}",
+        "reason": reason,
+    }
+
+
+def complete_by_record(
+    filing: Filing, *, by: User | None, reason: str, source: models.Model
+) -> None:
+    """記録（署名済みの添付）で自動で完了する。"""
+    transition(
+        filing,
+        FilingStatus.COMPLETED,
+        by=by,
+        reason=reason,
+        by_record=True,
+        context=_automatic(source, reason),
+    )
+
+
+def reopen_by_record(filing: Filing, *, by: User | None, reason: str, source: models.Model) -> None:
+    """記録の取消（署名済みの添付の取消）で、自動で完了したタスクを未着手に戻す。"""
+    transition(
+        filing,
+        FilingStatus.NOT_STARTED,
+        by=by,
+        reason=reason,
+        by_record=True,
+        context=_automatic(source, reason),
+    )
+
+
+def close_not_required(
+    filing: Filing, *, by: User | None, reason: str, source: models.Model
+) -> None:
+    """自動で「不要」にする（新しい生成物ができた古い生成物の回収など）。"""
+    transition(
+        filing, FilingStatus.NOT_REQUIRED, by=by, reason=reason, context=_automatic(source, reason)
+    )
+
+
+# --- 生成した帳票への参照（T33-D6、ADR-0022）---------------------------------------------
+
+
+def linkable_documents(filing: Filing) -> models.QuerySet[Any]:
+    """紐づけられる生成物（同じ外国人の、生成が完了したもの。紐づけ済みを除く）。"""
+    from apps.forms_engine.models import GeneratedDocument, GenerationStatus  # 循環を避ける
+
+    if filing.worker_id is None:
+        return GeneratedDocument.objects.none()
+    return (
+        GeneratedDocument.objects.filter(
+            worker_id=filing.worker_id, status=GenerationStatus.COMPLETED
+        )
+        .exclude(filings=filing)
+        .select_related("template")
+        .order_by("-generated_at", "-pk")
+    )
+
+
+def link_document(filing: Filing, document: Any, *, by: User | None) -> None:
+    """届出タスクに生成物を紐づける（同じ外国人の完了した生成物だけ。監査ログに残る）。"""
+    if not linkable_documents(filing).filter(pk=document.pk).exists():
+        raise ValidationError(
+            _("Only completed documents of the same foreign worker can be linked."),
+            code="document",
+        )
+    filing.generated_documents.add(document)
+
+
+def unlink_document(filing: Filing, document: Any, *, by: User | None) -> None:
+    filing.generated_documents.remove(document)

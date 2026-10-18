@@ -11,14 +11,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.fields import EncryptedCharField
-from apps.core.models import PrivateFileField, TrackedModel
+from apps.core.models import Attachment, PrivateFileField, TrackedModel
 from services.files import upload_path
 
 
@@ -188,6 +188,8 @@ class GeneratedDocument(TrackedModel):
     def __str__(self) -> str:
         return f"{self.template.form_id} #{self.pk}"
 
+    attachments = GenericRelation(Attachment)
+
     def save(self, *args: Any, **kwargs: Any) -> None:
         # 完了・失敗の後は変えない（上書きしない。再生成は新しい行）
         if not self._state.adding:
@@ -198,3 +200,42 @@ class GeneratedDocument(TrackedModel):
 
     def delete(self, *args: Any, **kwargs: Any) -> tuple[int, dict[str, int]]:
         raise ImmutableRowError("generated documents cannot be deleted")
+
+
+class GeneratedDocumentSignature(TrackedModel):
+    """生成物の署名済みのスキャンとの紐づけ（追記だけ。T33、ADR-0022）。
+
+    状態（署名待ち・署名済み）は列で持たず、取り消していない添付の紐づけがあるかで決める。
+    添付は、確認書（第5-8号・第5-9号）なら記録（支援実績）の確認書の添付、記録の無い様式（第1-17号など）
+    なら生成物の添付（種別「署名済みの帳票」）。署名日はこの行に持つ。
+    """
+
+    document = models.ForeignKey(
+        GeneratedDocument,
+        verbose_name=_("generated document"),
+        on_delete=models.PROTECT,
+        related_name="signatures",
+    )
+    attachment = models.OneToOneField(
+        Attachment,
+        verbose_name=_("signed scan"),
+        on_delete=models.PROTECT,
+        related_name="signature",
+    )
+    signed_on = models.DateField(_("date of signature"))
+
+    class Meta:
+        verbose_name = _("signature of a generated document")
+        verbose_name_plural = _("signatures of generated documents")
+        ordering = ["document", "-signed_on", "-pk"]
+
+    def __str__(self) -> str:
+        return f"{self.document} signed {self.signed_on:%Y-%m-%d}"
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        if not self._state.adding:
+            raise ImmutableRowError("signatures cannot be changed; void the attachment instead")
+        super().save(*args, **kwargs)
+
+    def delete(self, *args: Any, **kwargs: Any) -> tuple[int, dict[str, int]]:
+        raise ImmutableRowError("signatures cannot be deleted; void the attachment instead")

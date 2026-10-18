@@ -107,6 +107,7 @@ DETAIL_TABS = [
     Tab("filings", _("Filings"), "workers:filings", Action.FILINGS_VIEW),
     Tab("history", _("History"), "workers:history"),
     Tab("support", _("Support"), "workers:support", Action.SUPPORT_VIEW),
+    Tab("documents", _("Forms"), "workers:documents", Action.FORMS_GENERATE),
 ]
 
 

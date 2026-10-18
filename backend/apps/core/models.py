@@ -114,6 +114,11 @@ class AttachmentKind(models.TextChoices):
         "orientation_confirmation",
         _("Signed confirmation of the life orientation (reference form 5-8)"),
     )
+    # 生成した帳票の署名済みのスキャン（記録の無い様式。第1-17号など。T33、ADR-0022）
+    SIGNED_DOCUMENT = (
+        "signed_document",
+        _("Signed scan of a generated form"),
+    )
     # 本人に交付した書類の署名済みの控え・受領の記録（T22、ADR-0010）
     DELIVERED_DOCUMENT = (
         "delivered_document",
@@ -271,6 +276,10 @@ class Organization(TrackedModel):
     address = models.CharField(_("address"), max_length=255)
     food_council_joined_on = models.DateField(
         _("Food Industry SSW Council joined on"), null=True, blank=True
+    )
+    # 署名済み書類の回収のタスクを、生成から何日たったら起票するか（T33、ADR-0022）
+    signed_copy_due_days = models.PositiveSmallIntegerField(
+        _("days until the signed copy is collected"), default=14
     )
     logo = models.FileField(
         _("logo"),

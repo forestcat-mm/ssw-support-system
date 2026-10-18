@@ -6,6 +6,7 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.web_forms import StyledFormMixin
+from apps.support.record_forms import MultipleFileField
 
 NOT_LOADED = _("The form is not loaded. Ask an administrator to load the forms (make forms).")
 
@@ -40,6 +41,20 @@ class PlanGenerateForm(StyledFormMixin, forms.Form):
     )
     accept_warnings = forms.BooleanField(
         label=_("I have checked the warnings and will generate the form anyway."), required=False
+    )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.style_fields()
+
+
+class SignatureForm(StyledFormMixin, forms.Form):
+    """署名済みのスキャンと署名日（T33）。"""
+
+    signed_on = forms.DateField(label=_("date of signature"), widget=forms.DateInput)
+    scans = MultipleFileField(
+        label=_("signed scan"),
+        help_text=_("PDF, PNG or JPEG, up to 10 MB each."),
     )
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:

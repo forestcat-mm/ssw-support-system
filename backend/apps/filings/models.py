@@ -59,6 +59,8 @@ class FilingKind(models.TextChoices):
         _("check of employment contract expiry (termination not registered)"),
     )
     PERIODIC_INTERVIEW = "periodic_interview", _("periodic interview (every 3 months)")
+    # 生成した帳票の署名済みの添付が、生成から一定日数を過ぎても無い（T33、ADR-0022）
+    SIGNED_COPY_COLLECTION = "signed_copy_collection", _("collect the signed copy")
 
 
 class FilingStatus(models.TextChoices):
@@ -91,6 +93,7 @@ class Trigger(models.TextChoices):
     SUPPORT_CONTRACT_CONCLUDED = "support_contract_concluded", _("support contract concluded")
     SUPPORT_CONTRACT_CHANGED = "support_contract_changed", _("support contract changed")
     SUPPORT_CONTRACT_TERMINATED = "support_contract_terminated", _("support contract terminated")
+    FORM_GENERATED = "form_generated", _("form generated")
     MANUAL = "manual", _("registered manually")
 
 
@@ -143,7 +146,13 @@ class Filing(TrackedModel):
         blank=True,
     )
     note = models.TextField(_("note"), blank=True)
-    # 生成した帳票への参照は段階3（GeneratedDocument）で追加する
+    # 生成した帳票への参照（届出タスクの詳細から紐づける。添付のセットも持てる。T33、ADR-0022）
+    generated_documents = models.ManyToManyField(
+        "forms_engine.GeneratedDocument",
+        verbose_name=_("generated documents"),
+        related_name="filings",
+        blank=True,
+    )
 
     class Meta:
         verbose_name = _("filing task")

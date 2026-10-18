@@ -28,8 +28,9 @@ from apps.filings.forms import (
     own_staff_id,
 )
 from apps.filings.models import Filing, FilingKind, FilingStatus, Trigger
+from apps.forms_engine.models import GeneratedDocument
 from apps.support.models import PeriodicInterview
-from services import audit, authorization, dashboard, filings, workers
+from services import audit, authorization, dashboard, filings, form_generation, workers
 
 # ダッシュボードの絞り込みの条件（処理の画面から同じ条件で戻るため）
 DASHBOARD_QUERY_SESSION_KEY = "dashboard_query"
@@ -114,6 +115,12 @@ class FilingDetailView(ActionRequiredMixin, View):
             "completed_interview": PeriodicInterview.objects.filter(
                 completed_filing=filing
             ).first(),
+            "linked_documents": [
+                document
+                for document in filing.generated_documents.select_related("template")
+                if form_generation.can_view(request.user, document)
+            ],
+            "linkable_documents": list(filings.linkable_documents(filing)) if can_manage else [],
             "back_url": dashboard_url(request),
             **once_context(request),
         }
@@ -161,6 +168,18 @@ class FilingDetailView(ActionRequiredMixin, View):
                 receipt_number=details.cleaned_data.get("receipt_number"),
             )
             messages.success(request, _("Saved."))
+            return redirect("filings:detail", pk)
+        if which in ("link", "unlink"):
+            document = get_object_or_404(GeneratedDocument, pk=request.POST.get("document") or 0)
+            try:
+                if which == "link":
+                    filings.link_document(filing, document, by=actor)
+                else:
+                    filings.unlink_document(filing, document, by=actor)
+            except ValidationError as error:
+                messages.error(request, " ".join(error.messages))
+            else:
+                messages.success(request, _("Saved."))
             return redirect("filings:detail", pk)
         if which == "rebase":
             rebase = RebaseForm(request.POST)

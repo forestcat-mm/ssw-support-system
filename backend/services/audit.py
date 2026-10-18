@@ -87,6 +87,7 @@ AUDITED_MODELS: frozenset[str] = frozenset(
         "forms_engine.formtemplate",
         "forms_engine.formmapping",
         "forms_engine.generateddocument",
+        "forms_engine.generateddocumentsignature",
     }
 )
 

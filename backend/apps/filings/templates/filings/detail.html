@@ -26,13 +26,28 @@
         {% if filing.note %}<dt>{% translate "note" %}</dt><dd>{{ filing.note|linebreaksbr }}</dd>{% endif %}
       </dl>
       {% if row.notes %}<ul class="messages" id="filing-notes">{% for note in row.notes %}<li class="message message--warning">{{ note }}</li>{% endfor %}</ul>{% endif %}
-      {% if row.record_url and perms.support.add_supportrecord %}<p style="margin-top: var(--space-16)"><a class="button button--primary" href="{{ row.record_url }}" id="record-interview">{% translate "Record the periodic interview" %}</a></p>{% endif %}
+      {% if row.record_url and filing.kind == "signed_copy_collection" %}<p style="margin-top: var(--space-16)"><a class="button button--primary" href="{{ row.record_url }}" id="open-documents">{% translate "Open the Forms tab" %}</a></p>
+      {% elif row.record_url and perms.support.add_supportrecord %}<p style="margin-top: var(--space-16)"><a class="button button--primary" href="{{ row.record_url }}" id="record-interview">{% translate "Record the periodic interview" %}</a></p>{% endif %}
       {% if findings.required or findings.review %}
       <h3 style="margin-top: var(--space-16)">{% translate "Changes that need a notification" %}</h3>
       <ul>
         {% for finding in findings.required %}<li><strong>{{ finding.item }}</strong>: {{ finding.message }}</li>{% endfor %}
         {% for finding in findings.review %}<li><span class="caption">{% translate "needs review" %}</span> <strong>{{ finding.item }}</strong>: {{ finding.message }}</li>{% endfor %}
       </ul>
+      {% endif %}
+    </section>
+    <section class="card" id="filing-documents">
+      <div class="card__header"><h2 class="card__title">{% translate "Generated forms" %}</h2></div>
+      {% if linked_documents %}<ul class="attachment-list">{% for document in linked_documents %}
+        <li><a href="{% url 'forms:document' document.pk %}">{{ document.template.form_id }} {{ document.template.name }}</a> <span class="caption">{{ document.generated_at|date:"Y-m-d" }}</span>
+          {% if can_manage %}<form method="post" class="cluster" style="display:inline">{% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}"><input type="hidden" name="form" value="unlink"><input type="hidden" name="document" value="{{ document.pk }}"><button class="button button--neutral button--small" type="submit">{% translate "Unlink" %}</button></form>{% endif %}
+        </li>{% endfor %}</ul>{% else %}<p class="muted">{% translate "No generated forms are linked." %}</p>{% endif %}
+      {% if linkable_documents %}
+      <form method="post" class="cluster" id="filing-link-document">{% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}"><input type="hidden" name="form" value="link">
+        <label class="form-row__label" for="link-document">{% translate "Link a generated form" %}</label>
+        <select class="select" id="link-document" name="document">{% for document in linkable_documents %}<option value="{{ document.pk }}">{{ document.template.form_id }} #{{ document.pk }} {{ document.generated_at|date:"Y-m-d" }}</option>{% endfor %}</select>
+        <button class="button button--neutral button--small" type="submit">{% translate "Link" %}</button>
+      </form>
       {% endif %}
     </section>
 

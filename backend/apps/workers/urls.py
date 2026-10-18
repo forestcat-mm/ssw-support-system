@@ -1,6 +1,7 @@
 from django.urls import path
 
 from apps.contracts import edit_views as contract_views
+from apps.forms_engine import views as forms_views
 from apps.support import record_views
 from apps.support import views as support_views
 from apps.workers import document_views, views
@@ -44,6 +45,17 @@ urlpatterns = [
         name="contract_reopen",
     ),
     path("<int:pk>/filings/", views.WorkerFilingsView.as_view(), name="filings"),
+    path("<int:pk>/documents/", forms_views.WorkerDocumentsView.as_view(), name="documents"),
+    path(
+        "<int:pk>/documents/<int:document_id>/signature/",
+        forms_views.SignatureAddView.as_view(),
+        name="document_signature",
+    ),
+    path(
+        "<int:pk>/documents/<int:document_id>/attachments/<int:attachment_id>/void/",
+        forms_views.SignatureVoidView.as_view(),
+        name="document_signature_void",
+    ),
     path("<int:pk>/history/", views.WorkerHistoryView.as_view(), name="history"),
     path("<int:pk>/edit/", views.WorkerUpdateView.as_view(), name="edit"),
     path("<int:pk>/support/", support_views.SupportPlanTabView.as_view(), name="support"),

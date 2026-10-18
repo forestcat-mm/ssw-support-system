@@ -1,0 +1,40 @@
+{% extends "workers/detail_base.html" %}{% load i18n ui %}
+{% block tab_content %}
+<div class="stack" style="margin-top: var(--space-16)">
+  <section class="card" id="generated-documents">
+    <div class="card__header"><h2 class="card__title">{% translate "Generated forms" %}</h2></div>
+    {% if document_rows %}
+    <div class="table-scroll"><table class="table table--list">
+      <thead><tr><th>{% translate "form" %}</th><th>{% translate "generated at" %}</th><th>{% translate "status" %}</th><th>{% translate "date of signature" %}</th><th>{% translate "files" %}</th></tr></thead>
+      <tbody>{% for item in document_rows %}{% with row=item.row document=item.row.document %}
+        <tr data-document="{{ document.pk }}" data-state="{{ row.state }}">
+          <td><a href="{% url 'forms:document' document.pk %}">{{ document.template.form_id }} {{ document.template.name }}</a><br><span class="caption">{% translate "form version" %} {{ document.template.valid_from|date:"Y-m-d" }}</span></td>
+          <td class="mono">{{ document.generated_at|date:"Y-m-d H:i"|default:"—" }}</td>
+          <td>
+            {% if document.status == "requested" %}{% if row.stale %}<span class="badge badge--overdue">{% translate "taking too long" %}</span><br><span class="caption">{% blocktranslate with minutes=stale_minutes %}Requested more than {{ minutes }} minutes ago. Ask an administrator to check the job worker (qcluster), and generate it again if needed.{% endblocktranslate %}</span>{% else %}<span class="badge badge--open">{% translate "generating" %}</span>{% endif %}
+            {% elif document.status == "failed" %}<span class="badge badge--overdue">{% translate "failed" %}</span>
+            {% elif row.state == "awaiting" %}<span class="badge badge--within-7">{% translate "awaiting signature" %}</span>
+            {% elif row.state == "signed" %}<span class="badge badge--not-yet">{% translate "signed" %}</span>
+            {% else %}<span class="muted">{% translate "no signature needed" %}</span>{% endif %}
+          </td>
+          <td class="mono">{{ row.signed_on|date:"Y-m-d"|default:"—" }}</td>
+          <td><div class="cluster">
+            {% if item.can_download %}<a class="button button--neutral button--small" href="{% url 'forms:generated_pdf' document.pk %}">PDF</a>{% endif %}
+            {% for scan in row.scans %}<a class="button button--neutral button--small" href="{% url 'attachment_download' scan.pk %}">{% translate "signed scan" %}</a>{% if scan.content_type.model == "generateddocument" %}<a class="button button--danger button--small" href="{% url 'workers:document_signature_void' worker.pk document.pk scan.pk %}">{% translate "Void" %}</a>{% endif %}{% endfor %}
+            {% if item.can_sign %}<a class="button button--primary button--small" href="{% url 'workers:document_signature' worker.pk document.pk %}">{% translate "Attach the signed copy" %}</a>{% endif %}
+          </div></td>
+        </tr>{% endwith %}{% endfor %}</tbody>
+    </table></div>
+    {% else %}<div class="empty">{% translate "No forms have been generated." %}</div>{% endif %}
+  </section>
+  {% if legacy_rows %}
+  <section class="card" id="legacy-signed">
+    <div class="card__header"><h2 class="card__title">{% translate "Signed documents without a generation record" %}</h2></div>
+    <div class="table-scroll"><table class="table table--list">
+      <thead><tr><th>{% translate "document" %}</th><th>{% translate "date" %}</th></tr></thead>
+      <tbody>{% for row in legacy_rows %}<tr><td><a href="{{ row.url }}">{{ row.label }}</a></td><td class="mono">{{ row.signed_on|date:"Y-m-d"|default:"—" }}</td></tr>{% endfor %}</tbody>
+    </table></div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

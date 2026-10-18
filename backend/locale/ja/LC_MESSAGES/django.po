@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-18 18:24+0900\n"
+"POT-Creation-Date: 2026-10-18 18:49+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -969,6 +969,9 @@ msgstr "署名済みの事前ガイダンスの確認書（参考様式第5-9号
 msgid "Signed confirmation of the life orientation (reference form 5-8)"
 msgstr "署名済みの生活オリエンテーションの確認書（参考様式第5-8号）"
 
+msgid "Signed scan of a generated form"
+msgstr "署名済みの帳票（スキャン）"
+
 msgid "Signed copy or receipt of a document given to the worker"
 msgstr "本人に交付した書類の署名済みの控え・受領の記録"
 
@@ -1046,6 +1049,9 @@ msgstr "所在地"
 
 msgid "Food Industry SSW Council joined on"
 msgstr "食品産業特定技能協議会 加入日"
+
+msgid "days until the signed copy is collected"
+msgstr "署名済み書類の回収のタスクを起票するまでの日数（生成から）"
 
 msgid "logo"
 msgstr "ロゴ"
@@ -2370,6 +2376,9 @@ msgstr "雇用契約の期間満了確認（終了未登録）"
 msgid "periodic interview (every 3 months)"
 msgstr "定期面談（3か月ごと）"
 
+msgid "collect the signed copy"
+msgstr "署名済み書類の回収"
+
 msgid "not started"
 msgstr "未着手"
 
@@ -2437,6 +2446,9 @@ msgstr "支援委託契約の変更"
 msgid "support contract terminated"
 msgstr "支援委託契約の終了"
 
+msgid "form generated"
+msgstr "帳票の生成"
+
 msgid "registered manually"
 msgstr "手動で起票"
 
@@ -2460,6 +2472,9 @@ msgstr "期限（閉庁日の繰り延べ前）"
 
 msgid "final deadline"
 msgstr "最終の限度"
+
+msgid "generated documents"
+msgstr "生成履歴"
 
 msgid "filing task"
 msgstr "届出タスク"
@@ -2512,11 +2527,29 @@ msgstr "タスク"
 msgid "periodic interview"
 msgstr "定期面談"
 
+msgid "Open the Forms tab"
+msgstr "帳票タブを開く"
+
 msgid "Record the periodic interview"
 msgstr "定期面談を記録する"
 
 msgid "Changes that need a notification"
 msgstr "届出が必要な変更"
+
+msgid "Generated forms"
+msgstr "生成した帳票"
+
+msgid "Unlink"
+msgstr "紐づけを外す"
+
+msgid "No generated forms are linked."
+msgstr "紐づけた帳票はありません。"
+
+msgid "Link a generated form"
+msgstr "生成した帳票を紐づける"
+
+msgid "Link"
+msgstr "紐づける"
 
 msgid "Change status"
 msgstr "状態を変更する"
@@ -2578,6 +2611,15 @@ msgstr ""
 "支援の適正性を確保していることを申告します（Ⅲ欄７: 支援責任者が特定技能所属機"
 "関の役員の配偶者・親族・密接な関係にある者などでないこと、支援責任者・支援担"
 "当者が登録拒否事由に該当しないこと）。"
+
+msgid "date of signature"
+msgstr "署名日"
+
+msgid "signed scan"
+msgstr "署名済みのスキャン"
+
+msgid "PDF, PNG or JPEG, up to 10 MB each."
+msgstr "PDF・PNG・JPEG。1 つ 10 MB まで。"
 
 msgid "common"
 msgstr "共通"
@@ -2705,8 +2747,11 @@ msgstr "生成のときの警告"
 msgid "generated document"
 msgstr "生成履歴"
 
-msgid "generated documents"
-msgstr "生成履歴"
+msgid "signature of a generated document"
+msgstr "帳票の署名"
+
+msgid "signatures of generated documents"
+msgstr "帳票の署名"
 
 msgid "Cannot generate"
 msgstr "生成できません"
@@ -2726,6 +2771,15 @@ msgstr "直す"
 msgid "No problems were found."
 msgstr "不足はありません。"
 
+#, python-format
+msgid ""
+"Requested more than %(minutes)s minutes ago. Ask an administrator to check "
+"the job worker (qcluster), and generate it again if needed."
+msgstr ""
+"依頼から %(minutes)s 分を過ぎても生成が終わっていません。時間がかかっていま"
+"す。管理者にジョブの処理（qcluster）の確認を依頼し、必要なら生成し直してくだ"
+"さい。"
+
 msgid "The form is being generated. Reload this page in a moment."
 msgstr "生成しています。しばらくしてから、この画面を再読み込みしてください。"
 
@@ -2744,6 +2798,9 @@ msgstr "生成履歴"
 msgid "Download the PDF"
 msgstr "PDF をダウンロード"
 
+msgid "Attach the signed copy"
+msgstr "署名済みの書類を添付"
+
 msgid "Record the delivery of a copy"
 msgstr "写しの交付を記録する"
 
@@ -2756,8 +2813,47 @@ msgstr "支援計画の版"
 msgid "requested by"
 msgstr "依頼した人"
 
+msgid "signature"
+msgstr "署名"
+
+msgid "signed"
+msgstr "署名済み"
+
+msgid "awaiting signature"
+msgstr "署名待ち"
+
+msgid "no signature needed"
+msgstr "署名は不要"
+
 msgid "Warnings at generation"
 msgstr "生成のときの警告"
+
+msgid "form"
+msgstr "様式"
+
+msgid "taking too long"
+msgstr "時間がかかっています"
+
+msgid "generating"
+msgstr "生成中"
+
+msgid "No forms have been generated."
+msgstr "生成した帳票はありません。"
+
+msgid "Signed documents without a generation record"
+msgstr "生成履歴の無い署名済みの書類"
+
+msgid "document"
+msgstr "書類"
+
+msgid "date"
+msgstr "日付"
+
+msgid "Attached the signed copy."
+msgstr "署名済みの書類を添付しました。"
+
+msgid "Voided the signed copy."
+msgstr "署名済みの書類を取り消しました。"
 
 msgid "Support contracts entered on this page overlap each other."
 msgstr "この画面で入力した支援委託契約どうしの期間が重なっています。"
@@ -3771,17 +3867,11 @@ msgstr "外国の機関への費用の支払"
 msgid "understood and agreed on the amount and breakdown"
 msgstr "額と内訳を十分に理解して合意している"
 
-msgid "date of signature"
-msgstr "署名日"
-
 msgid "guidance or orientation"
 msgstr "事前ガイダンス・生活オリエンテーション"
 
 msgid "guidance and orientation"
 msgstr "事前ガイダンス・生活オリエンテーション"
-
-msgid "date"
-msgstr "日付"
 
 msgid "starts at"
 msgstr "開始時刻"
@@ -3845,9 +3935,6 @@ msgstr "電磁的記録を提供（電子メール等）"
 
 msgid "our organization"
 msgstr "自機関"
-
-msgid "document"
-msgstr "書類"
 
 msgid "name of the document"
 msgstr "書類名"
@@ -4565,9 +4652,6 @@ msgstr "相談・苦情への対応"
 msgid "%(counter)s record"
 msgid_plural "%(counter)s records"
 msgstr[0] "%(counter)s 件"
-
-msgid "signed"
-msgstr "署名済み"
 
 msgid "not signed"
 msgstr "未署名"
@@ -5459,6 +5543,9 @@ msgstr "雇用契約の終了"
 msgid "the termination of the support contract"
 msgstr "支援委託契約の終了"
 
+msgid "the record of the guidance or orientation"
+msgstr "ガイダンス・オリエンテーションの記録"
+
 #, python-format
 msgid "The termination of the employment contract was cancelled: %(reason)s"
 msgstr "雇用契約の終了が取り消されました: %(reason)s"
@@ -5495,6 +5582,12 @@ msgstr "終了日を過ぎています：次の期間か終了を登録"
 msgid "The original event (%(event)s) was cancelled. Check this task."
 msgstr ""
 "元の事由（%(event)s）が取り消されました。このタスクを確かめてください。"
+
+msgid ""
+"Attach the signed copy on the Forms tab of the foreign worker; this task is "
+"then completed automatically."
+msgstr ""
+"外国人の帳票タブで署名済みの書類を添付すると、このタスクは自動で完了します。"
 
 msgid ""
 "A support contract was in effect: fill in column c (termination of the "
@@ -5555,6 +5648,9 @@ msgstr "対象を 1 つだけ選んでください。"
 
 msgid "Filing tasks cannot be created for a deactivated foreign worker."
 msgstr "無効化した外国人の届出タスクは起票できません。"
+
+msgid "Only completed documents of the same foreign worker can be linked."
+msgstr "同じ外国人の、生成が完了した帳票だけを紐づけられます。"
 
 #, python-format
 msgid ""
@@ -5702,6 +5798,23 @@ msgstr "「%(label)s」は全角で書いてください。"
 #, python-format
 msgid "\"%(label)s\" is longer than %(limit)d characters."
 msgstr "「%(label)s」が %(limit)d 文字を超えています。"
+
+msgid "A signed copy cannot be added to this document."
+msgstr "この帳票には署名済みの書類を添付できません。"
+
+#, python-format
+msgid ""
+"The date of the signature cannot be before the form was generated (%(day)s)."
+msgstr "署名日は、帳票の生成日（%(day)s）より前にできません。"
+
+msgid "The signed copy was attached."
+msgstr "署名済みの書類が添付されました。"
+
+msgid "The signed copy was voided."
+msgstr "署名済みの書類が取り消されました。"
+
+msgid "A newer document was generated."
+msgstr "新しい帳票が生成されました。"
 
 #, python-format
 msgid ""

@@ -188,3 +188,5 @@ FORM_TEMPLATES_ROOT = REPO_ROOT / "templates" / "forms"
 FORM_MAPPINGS_ROOT = REPO_ROOT / "mappings"
 # LibreOffice headless の PDF 変換の時間の上限（秒）
 FORM_CONVERT_TIMEOUT = 120
+# 依頼のまま、この秒数を過ぎた生成履歴は「時間がかかっています」と出す（T33、ADR-0022）
+FORM_STALE_AFTER = 600

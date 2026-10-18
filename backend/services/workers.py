@@ -262,7 +262,10 @@ def deactivate(worker: ForeignWorker, *, by: User | None, reason: str) -> Deacti
         for record in [*effects.residence_records, *effects.passport_records]:
             void_record(record, by=by, reason=cascade_reason)
         for filing in effects.filings:
-            filings.validate_transition(filing, FilingStatus.CANCELLED, reason=cascade_reason)
+            # 無効化に伴う取消は記録を通した操作として扱う（手では取り消さない種別も取り消す。T33）
+            filings.validate_transition(
+                filing, FilingStatus.CANCELLED, reason=cascade_reason, by_record=True
+            )
             event.changes.setdefault("cancelled_filings", []).append(
                 [filing.pk, filing.kind, filing.status]
             )

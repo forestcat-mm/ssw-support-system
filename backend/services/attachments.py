@@ -12,6 +12,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.core.models import Action, Attachment, AttachmentKind, User
+from apps.forms_engine.models import GeneratedDocument
 from services import authorization
 from services.authorization import AnyUser
 from services.files import MB, FilePolicy, sha256_of, validate_file
@@ -30,6 +31,7 @@ POLICIES: dict[AttachmentKind, FilePolicy] = {
     AttachmentKind.PRE_GUIDANCE_CONFIRMATION: DOCUMENT_POLICY,
     AttachmentKind.ORIENTATION_CONFIRMATION: DOCUMENT_POLICY,
     AttachmentKind.DELIVERED_DOCUMENT: DOCUMENT_POLICY,
+    AttachmentKind.SIGNED_DOCUMENT: DOCUMENT_POLICY,
     AttachmentKind.HEALTH_CHECK_RECORD: DOCUMENT_POLICY,
     AttachmentKind.HEALTH_DECLARATION: DOCUMENT_POLICY,
     AttachmentKind.DOCTOR_OPINION: DOCUMENT_POLICY,
@@ -94,6 +96,10 @@ def void_attachment(attachment: Attachment, *, by: User | None, reason: str) -> 
     attachment.save(
         update_fields=["voided_at", "voided_by", "void_reason", "updated_by", "updated_at"]
     )
+    # 生成した帳票の署名済みの添付なら、署名待ちに戻ったときの回収のタスクを戻す（T33）
+    from services import form_signatures  # 循環を避ける
+
+    form_signatures.on_attachment_voided(attachment, by=by)
 
 
 # --- ダウンロードの判定（T05・T23、ADR-0011） ------------------------------------------------
@@ -104,6 +110,11 @@ def can_view_target(user: AnyUser, attachment: Attachment) -> bool:
     target = attachment.target
     if target is None:
         return False
+    if isinstance(target, GeneratedDocument):
+        # 生成物の添付（署名済みの帳票）は PDF と同じ（forms.generate と外国人を見る権限。T33）
+        from services import form_generation  # 循環を避ける
+
+        return form_generation.can_view(user, target)
     content_type = attachment.content_type
     perm = f"{content_type.app_label}.view_{content_type.model}"
     return authorization.has_django_permission(user, perm, target)

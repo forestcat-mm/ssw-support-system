@@ -77,6 +77,7 @@ def _organization_form(file: SimpleUploadedFile) -> dict[str, object]:
         "postal_code": "100-0001",
         "address": "東京都千代田区千代田1-1",
         "food_council_joined_on": "2024-04-01",
+        "signed_copy_due_days": "14",
         f"{INLINE}-TOTAL_FORMS": "1",
         f"{INLINE}-INITIAL_FORMS": "0",
         f"{INLINE}-MIN_NUM_FORMS": "0",

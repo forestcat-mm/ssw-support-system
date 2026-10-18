@@ -78,6 +78,7 @@ class OrganizationForm(StyledFormMixin, forms.ModelForm[Organization]):
             "address",
             "phone_number",
             "food_council_joined_on",
+            "signed_copy_due_days",
         )
         widgets = {
             "registered_on": forms.DateInput,

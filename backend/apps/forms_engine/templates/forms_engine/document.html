@@ -6,7 +6,9 @@
 {% endblock %}
 {% block content %}
 <div class="stack">
-  {% if document.status == "requested" %}
+  {% if document.status == "requested" and stale %}
+  <p class="message message--error" id="document-status">{% blocktranslate with minutes=stale_minutes %}Requested more than {{ minutes }} minutes ago. Ask an administrator to check the job worker (qcluster), and generate it again if needed.{% endblocktranslate %}</p>
+  {% elif document.status == "requested" %}
   <p class="message message--warning" id="document-status">{% translate "The form is being generated. Reload this page in a moment." %} <a href="">{% translate "Reload" %}</a></p>
   {% elif document.status == "failed" %}
   <p class="message message--error" id="document-status">{% translate "Generation failed." %} {{ document.failure_reason }}</p>
@@ -17,6 +19,7 @@
     <div class="card__header"><h2 class="card__title">{% translate "Generation record" %}</h2>
       <div class="cluster">
         {% if can_download %}<a class="button button--primary" id="document-pdf" href="{% url 'forms:generated_pdf' document.pk %}">{% translate "Download the PDF" %}</a>{% endif %}
+        {% if can_sign %}<a class="button button--neutral" id="document-sign" href="{% url 'workers:document_signature' worker.pk document.pk %}">{% translate "Attach the signed copy" %}</a>{% endif %}
         {% if can_deliver %}<a class="button button--neutral" id="document-deliver" href="{% url 'workers:support_delivery_create' worker.pk delivery_kind %}?generated={{ document.pk }}">{% translate "Record the delivery of a copy" %}</a>{% endif %}
       </div>
     </div>
@@ -27,6 +30,7 @@
       <dt>{% translate "requested by" %}</dt><dd>{{ document.created_by.get_username|default:"—" }} · {{ document.created_at|date:"Y-m-d H:i" }}</dd>
       <dt>{% translate "generated at" %}</dt><dd>{{ document.generated_at|date:"Y-m-d H:i"|default:"—" }}</dd>
       <dt>{% translate "pages" %}</dt><dd>{{ document.page_count|default:"—" }}</dd>
+      <dt>{% translate "signature" %}</dt><dd id="document-signature">{% if signature_state == "signed" %}{% translate "signed" %}（{{ signed_on|date:"Y-m-d" }}）{% elif signature_state == "awaiting" %}{% translate "awaiting signature" %}{% elif signature_state == "not_required" %}{% translate "no signature needed" %}{% else %}—{% endif %}</dd>
     </dl>
   </section>
   {% if document.findings %}

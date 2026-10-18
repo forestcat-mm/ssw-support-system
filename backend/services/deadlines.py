@@ -36,6 +36,7 @@ class DeadlineKind(enum.StrEnum):
     PASSPORT_EXPIRY = "passport_expiry"  # 旅券の有効期限
     SUPPORT_CONTRACT_END = "support_contract_end"  # 支援委託契約の終了日
     EMPLOYMENT_CONTRACT_EXPIRY = "employment_contract_expiry"  # 雇用契約の期間満了（終了未登録）
+    SIGNED_COPY = "signed_copy"  # 生成した帳票の署名済みの添付の回収（T33）
 
 
 class Level(enum.StrEnum):
@@ -57,6 +58,7 @@ PRIORITY: dict[DeadlineKind, int] = {
     DeadlineKind.PASSPORT_EXPIRY: 3,
     DeadlineKind.SUPPORT_CONTRACT_END: 3,
     DeadlineKind.DOCUMENT_EXPIRY: 4,
+    DeadlineKind.SIGNED_COPY: 4,
 }
 
 # 仕様書に定めの無い「受付・着手の日」の前倒し月数（業務ルール。2026-10 に決定）
@@ -312,3 +314,18 @@ def employment_contract_expiry(ends_on: date) -> Deadline:
     """雇用契約の期間満了。終了が未登録のまま期限を過ぎたら超過（終了の登録を促す）。"""
     kind = DeadlineKind.EMPLOYMENT_CONTRACT_EXPIRY
     return _fixed(kind, ends_on, _lead(kind, ends_on))
+
+
+def signed_copy(generated_on: date, days: int) -> Deadline:
+    """署名済み書類の回収（T33、ADR-0022）。生成から days 日たった日に起票し、期限もその日。
+
+    日数は自機関の設定（Organization.signed_copy_due_days）。業務ルール（制度の期限ではない）。
+    """
+    due = generated_on + timedelta(days=days)
+    return Deadline(
+        kind=DeadlineKind.SIGNED_COPY,
+        basis_on=generated_on,
+        due_on=due,
+        unadjusted_due_on=due,
+        opens_on=due,
+    )

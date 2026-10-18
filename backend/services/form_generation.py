@@ -290,20 +290,28 @@ def request(
 
 def run(document_id: int) -> None:
     """生成のジョブ。完了・失敗のどちらでも生成履歴を閉じる（上書きしない）。"""
-    document = GeneratedDocument.objects.select_related("template", "template__mapping").get(
-        pk=document_id
-    )
-    if document.status != GenerationStatus.REQUESTED:
-        return
-    snapshot = json.loads(document.snapshot)
-    try:
-        with tempfile.TemporaryDirectory(prefix="form-") as workdir:
-            filled, pdf = _render(
-                document.template, snapshot["data"], Path(workdir), snapshot.get("fitted", {})
-            )
-            _complete(document, filled, pdf)
-    except Exception as error:  # noqa: BLE001  失敗は理由を残して閉じる（出力は残さない）
-        _fail(document, error)
+    # 行をロックして、同じ生成履歴を 2 つのジョブが同時に作らないようにする（T33）。
+    # ほかのジョブが処理中（ロック中）なら何もしない。
+    with transaction.atomic():
+        document = (
+            GeneratedDocument.objects.select_for_update(skip_locked=True, of=("self",))
+            .select_related("template", "template__mapping")
+            .filter(pk=document_id)
+            .first()
+        )
+        if document is None or document.status != GenerationStatus.REQUESTED:
+            return
+        snapshot = json.loads(document.snapshot)
+        try:
+            # 失敗が DB の誤りでも、失敗の記録を残せるように、セーブポイントの中で生成する
+            with transaction.atomic(), tempfile.TemporaryDirectory(prefix="form-") as workdir:
+                filled, pdf = _render(
+                    document.template, snapshot["data"], Path(workdir), snapshot.get("fitted", {})
+                )
+                _complete(document, filled, pdf)
+        except Exception as error:  # noqa: BLE001  失敗は理由を残して閉じる（出力は残さない）
+            document.refresh_from_db()
+            _fail(document, error)
 
 
 def _render(
@@ -384,6 +392,14 @@ def _fail(document: GeneratedDocument, error: Exception) -> None:
 
 
 # --- ダウンロード -------------------------------------------------------------------
+
+
+def is_stale(document: GeneratedDocument, now: datetime.datetime | None = None) -> bool:
+    """依頼のまま、設定の時間（FORM_STALE_AFTER 秒）を過ぎた（qcluster の停止など。T33-D5）。"""
+    if document.status != GenerationStatus.REQUESTED:
+        return False
+    now = now or timezone.now()
+    return (now - document.created_at).total_seconds() > settings.FORM_STALE_AFTER
 
 
 def can_view(user: AnyUser, document: GeneratedDocument) -> bool:

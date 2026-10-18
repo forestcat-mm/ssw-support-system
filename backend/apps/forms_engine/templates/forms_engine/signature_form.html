@@ -1,0 +1,18 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Attach the signed copy" %} | {{ worker }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{% url 'workers:documents' worker.pk %}">← {{ worker }}</a></p>
+  <h1>{% translate "Attach the signed copy" %}</h1>
+  <p class="caption">{{ document.template.form_id }} {{ document.template.name }} · {{ document.generated_at|date:"Y-m-d" }}</p>
+{% endblock %}
+{% block content %}
+<form class="form" method="post" enctype="multipart/form-data" novalidate id="signature-form">
+  {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+  {% include "ui/components/form_errors.html" %}
+  <section class="card stack">{% for field in form %}{% form_field field %}{% endfor %}</section>
+  <div class="form-actions">
+    <button class="button button--primary" type="submit">{% translate "Save" %}</button>
+    <a class="button button--neutral" href="{% url 'workers:documents' worker.pk %}">{% translate "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

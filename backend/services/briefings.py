@@ -576,6 +576,10 @@ def void_briefing(briefing: Briefing, *, by: User | None, reason: str) -> None:
     if not workers.is_active(briefing.worker):
         raise ValidationError(_("This foreign worker is deactivated."), code="deactivated")
     support_records.void_record(briefing.record, by=by, reason=reason, as_part=True)
+    # 生成した確認書の回収のタスクを、共通の規則で戻す（T33）
+    from services import form_signatures  # 循環を避ける
+
+    form_signatures.on_briefing_voided(briefing, by=by, reason=reason)
 
 
 # --- 表示・警告 -------------------------------------------------------------------------

@@ -79,9 +79,14 @@ def _target_link(filing: Filing) -> tuple[str, str, int | None]:
 
 
 def _record_url(filing: Filing) -> str:
-    if filing.kind != FilingKind.PERIODIC_INTERVIEW or filing.worker_id is None:
+    if filing.worker_id is None or filing.worker is None:
         return ""
-    if filing.worker is None or filing.worker.deactivated_at is not None:
+    if filing.worker.deactivated_at is not None:
+        return ""
+    if filing.kind == FilingKind.SIGNED_COPY_COLLECTION:
+        # 署名済みの書類は帳票タブで添付する（添付すると自動で完了。T33）
+        return reverse("workers:documents", args=[filing.worker_id])
+    if filing.kind != FilingKind.PERIODIC_INTERVIEW:
         return ""
     url = reverse("workers:support_interview_create", args=[filing.worker_id])
     return f"{url}?filing={filing.pk}"
