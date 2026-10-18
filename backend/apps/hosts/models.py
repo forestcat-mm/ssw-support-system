@@ -402,3 +402,135 @@ class SupportContract(TrackedModel):
     def effective_ends_on(self) -> date | None:
         """期間の末日（実際の終了日があればそれ、無ければ予定の終了日。空は期限なし）。"""
         return self.terminated_on or self.ends_on
+
+
+# --- キャリアアッププラン（T36、ADR-0025）-----------------------------------------------------
+
+
+class CareerPlanImmutableError(Exception):
+    """キャリアアッププランの版とレベルは作成後に変更・削除できない。"""
+
+
+class CareerPlan(TrackedModel):
+    """キャリアアッププランの見出し（受入れ機関×分野。事業所ごとに違えば事業所で上書き。T36-D1）。
+
+    飲食料品製造業分野の告示（雇用契約の締結の前に書面を交付して説明）による。様式は任意で、
+    内容の例は別冊（飲食料品製造業分野）18頁の 4 項目。工業の契約でも作れる（T36-D8）。
+    """
+
+    host_organization = models.ForeignKey(
+        HostOrganization,
+        verbose_name=_("host organization"),
+        on_delete=models.PROTECT,
+        related_name="career_plans",
+    )
+    field = models.ForeignKey(
+        SpecifiedSkillField,
+        verbose_name=_("specified skill field"),
+        on_delete=models.PROTECT,
+        related_name="+",
+    )
+    site = models.ForeignKey(
+        HostSite,
+        verbose_name=_("site (only when it differs by site)"),
+        on_delete=models.PROTECT,
+        related_name="career_plans",
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = _("career-up plan")
+        verbose_name_plural = _("career-up plans")
+        ordering = ["host_organization", "field", "site", "pk"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["host_organization", "field"],
+                condition=Q(site__isnull=True),
+                name="hosts_careerplan_one_per_field",
+            ),
+            models.UniqueConstraint(
+                fields=["host_organization", "field", "site"],
+                condition=Q(site__isnull=False),
+                name="hosts_careerplan_one_per_site",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        site = f" / {self.site.name}" if self.site is not None else ""
+        return f"{self.host_organization} / {self.field}{site}"
+
+
+class _CareerPlanRow(TrackedModel):
+    class Meta:
+        abstract = True
+
+    def save(self, *args: object, **kwargs: object) -> None:
+        if not self._state.adding:
+            raise CareerPlanImmutableError(f"{self._meta.label} rows cannot be changed")
+        super().save(*args, **kwargs)  # type: ignore[arg-type]
+
+    def delete(self, *args: object, **kwargs: object) -> tuple[int, dict[str, int]]:
+        raise CareerPlanImmutableError(f"{self._meta.label} rows cannot be deleted")
+
+
+class CareerPlanVersion(_CareerPlanRow):
+    """プランの版（追記だけ。交付したものを再現できる）。"""
+
+    plan = models.ForeignKey(
+        CareerPlan,
+        verbose_name=_("career-up plan"),
+        on_delete=models.PROTECT,
+        related_name="versions",
+    )
+    version = models.PositiveIntegerField(_("version"), editable=False)
+    applies_from = models.DateField(_("applies from"))
+    change_reason = models.TextField(_("change reason"), blank=True)
+    career_route = models.TextField(_("expected career route"))
+    transfer_scope = models.TextField(
+        _("scope of job changes"),
+        blank=True,
+        help_text=_(
+            "For the seafood processing category (from 1 April 2027): the scope within which the "
+            "worker can change jobs (in principle the same category), explained for consent."
+        ),
+    )
+
+    class Meta:
+        verbose_name = _("career-up plan version")
+        verbose_name_plural = _("career-up plan versions")
+        ordering = ["plan", "-version"]
+        constraints = [
+            models.UniqueConstraint(fields=["plan", "version"], name="hosts_careerplan_version")
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.plan} v{self.version}"
+
+
+class CareerPlanLevel(_CareerPlanRow):
+    """各レベルの業務・習熟の目安の年数・必要な経験と資格・地位と処遇（別冊 18頁の例）。"""
+
+    version = models.ForeignKey(
+        CareerPlanVersion,
+        verbose_name=_("career-up plan version"),
+        on_delete=models.PROTECT,
+        related_name="levels",
+    )
+    order = models.PositiveSmallIntegerField(_("order"))
+    name = models.CharField(_("level"), max_length=50)
+    years = models.CharField(
+        _("years as a guide"), max_length=50, help_text=_("Example: 1st to 2nd year.")
+    )
+    duties = models.TextField(_("duties"))
+    requirements = models.TextField(_("experience, results, qualifications and tests"), blank=True)
+    position = models.CharField(_("position"), max_length=100, blank=True)
+    treatment = models.TextField(_("treatment such as wages"), blank=True)
+
+    class Meta:
+        verbose_name = _("career-up plan level")
+        verbose_name_plural = _("career-up plan levels")
+        ordering = ["version", "order", "pk"]
+
+    def __str__(self) -> str:
+        return f"{self.version}: {self.name}"

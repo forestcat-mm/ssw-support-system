@@ -95,6 +95,8 @@
       <a class="button button--neutral button--small" href="{% url 'workers:contract_generate' worker.pk contract.pk version.version '1-6' %}">{% translate "Generate form 1-6" %}</a>
       <a class="button button--neutral button--small" href="{% url 'workers:contract_generate' worker.pk contract.pk version.version '1-5' %}">{% translate "Generate form 1-5" %}</a>
       <a class="button button--neutral button--small" href="{% url 'workers:contract_generate' worker.pk contract.pk version.version '1-4' %}">{% translate "Generate form 1-4" %}</a>
+      <a class="button button--neutral button--small" href="{% url 'workers:contract_own_document' worker.pk contract.pk 'career-plan' %}">{% translate "Generate the career-up plan" %}</a>
+      <a class="button button--neutral button--small" href="{% url 'workers:contract_own_document' worker.pk contract.pk 'experience-certificate' %}">{% translate "Generate the certificate of work experience" %}</a>
     </div>
     {% endif %}
   </section>

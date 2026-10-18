@@ -89,6 +89,13 @@ def _read_manifest(path: Path) -> dict[str, Any]:
         raise FormTemplateError(f"{path}: folder does not match form_id / valid_from")
     if data["method"] == FormMethod.DOCX_TAGS and not data.get("template"):
         raise FormTemplateError(f"{path}: a Word form needs template.docx")
+    source = data.get("source") or {}
+    if source.get("self_made"):
+        # 自機関のテンプレート（公式の様式が無い。T36-D3）: 出典の URL は空、作った道具を書く
+        if source.get("url") or not source.get("tool"):
+            raise FormTemplateError(f"{path}: a self-made form has no url and names the tool")
+    elif not source.get("url"):
+        raise FormTemplateError(f"{path}: the source url is required")
     return data
 
 

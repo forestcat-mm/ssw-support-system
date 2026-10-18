@@ -20,6 +20,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 
+from apps.contracts.models import EmploymentContract
 from apps.core.models import Action, Attachment, User
 from apps.core.permissions import ActionRequiredMixin
 from apps.core.web_forms import consume_once_token
@@ -1027,6 +1028,9 @@ class DeliveryCreateView(RecordFormView):
         generated = request.GET.get("generated", "")
         if generated.isdigit():
             initial["generated"] = int(generated)  # 生成履歴から作る（T31-D16）
+            document = GeneratedDocument.objects.filter(pk=int(generated), worker=worker).first()
+            if document is not None and isinstance(document.target, EmploymentContract):
+                initial["contract"] = document.target.pk  # 自機関の書類は対象の契約（T36）
         form = DeliveryForm(worker=worker, kind=self.kind(kind), initial=initial)
         return self.page(request, worker, form)
 

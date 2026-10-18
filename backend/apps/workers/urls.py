@@ -45,6 +45,11 @@ urlpatterns = [
         name="contract_generate",
     ),
     path(
+        "<int:pk>/contracts/<int:contract_id>/documents/<str:form_id>/",
+        contract_views.OwnDocumentGenerateView.as_view(),
+        name="contract_own_document",
+    ),
+    path(
         "<int:pk>/contracts/<int:contract_id>/terminate/",
         contract_views.TerminateView.as_view(),
         name="contract_terminate",

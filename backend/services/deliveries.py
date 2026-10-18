@@ -36,6 +36,11 @@ from apps.workers.models import ForeignWorker
 from services import attachments, support_records, workers
 
 PLAN_FORM_ID = "1-17"  # 支援計画書の写しの元にできる様式
+# 雇用契約を対象に生成した自機関の書類（T36）。交付記録の種別ごとに元にできる様式
+CONTRACT_FORM_IDS = {
+    DeliveryKind.CAREER_UP_PLAN: "career-plan",
+    DeliveryKind.EXPERIENCE_CERTIFICATE: "experience-certificate",
+}
 
 FOOD_FIELD = "food_manufacturing"  # 飲食料品製造業分野（2027-04-01 以降の水産加工業の区分も含む）
 RECEIPT_KIND = AttachmentKind.DELIVERED_DOCUMENT
@@ -74,8 +79,10 @@ class DeliveryInput:
     requested_on: datetime.date | None = None
     languages: Sequence[SupportLanguage] = ()
     note: str = ""
-    # 生成履歴から作るときの元の生成物（同じ外国人の第1-17号。T31-D16）
+    # 生成履歴から作るときの元の生成物（同じ外国人の第1-17号。T31-D16。自機関の書類は T36）
     generated_document: GeneratedDocument | None = None
+    # 水産加工業の区分のキャリアアッププラン: 転職できる範囲を含むキャリアパスの説明に同意を得た
+    consented: bool = False
 
 
 class _Errors:
@@ -130,8 +137,12 @@ def validate(
                 _("The date of the request cannot be after the delivery."),
                 "requested_after",
             )
+    if data.consented and data.kind != DeliveryKind.CAREER_UP_PLAN:
+        errors.add("consented", _("Only for a career-up plan."), "consented")
     plan_version = None
-    if data.generated_document is not None:
+    if data.generated_document is not None and data.kind in CONTRACT_FORM_IDS:
+        _check_contract_document(errors, worker, data)
+    elif data.generated_document is not None:
         plan_version = _generated_plan_version(errors, worker, data)
     elif data.kind == DeliveryKind.SUPPORT_PLAN_COPY and "delivered_on" not in errors.items:
         plan_version = support_records.plan_version_for(worker, data.delivered_on)
@@ -174,6 +185,28 @@ def _generated_plan_version(
     return target
 
 
+def _check_contract_document(errors: _Errors, worker: ForeignWorker, data: DeliveryInput) -> None:
+    """自機関の書類（キャリアアッププラン・実務経験証明書）の生成物から作る交付記録（T36）。
+
+    元にできるのは、同じ外国人の、その種別の様式の完了した生成物で、対象が交付記録の契約のもの。
+    """
+    document = data.generated_document
+    assert document is not None
+    target = document.target
+    if (
+        document.worker_id != worker.pk
+        or document.template.form_id != CONTRACT_FORM_IDS[DeliveryKind(data.kind)]
+        or document.status != GenerationStatus.COMPLETED
+        or not isinstance(target, EmploymentContract)
+        or (data.contract is not None and target.pk != data.contract.pk)
+    ):
+        errors.add(
+            "__all__",
+            _("Only a completed document of this kind for the selected contract can be used."),
+            "generated_document",
+        )
+
+
 def validate_files(files: Iterable[File[Any]]) -> list[File[Any]]:
     files = list(files)
     for file in files:
@@ -207,6 +240,7 @@ def create_delivery(
             delivered_by=data.delivered_by,
             delivered_by_name=data.delivered_by_name.strip(),
             explained=data.explained,
+            consented=data.consented,
             contract=data.contract,
             requested_on=data.requested_on,
             plan_version=plan_version,
@@ -356,6 +390,21 @@ def warnings(
                     },
                 )
             )
+    if (
+        kind == DeliveryKind.CAREER_UP_PLAN
+        and delivery.contract is not None
+        and not delivery.consented
+        and _fishery_contract(delivery.contract, delivery.delivered_on)
+    ):
+        result.append(
+            DeliveryWarning(
+                "no_consent",
+                _(
+                    "The contract is in the seafood processing category. Record that the worker "
+                    "consented to the career path including the scope of job changes."
+                ),
+            )
+        )
     if kind in EXPLANATION_KINDS and not delivery.explained:
         result.append(DeliveryWarning("not_explained", _("There is no record of explaining it.")))
     if kind in RECEIPT_KINDS and not has_receipt(delivery, delivery_attachments):
@@ -363,6 +412,13 @@ def warnings(
             DeliveryWarning("no_receipt", _("The signed copy or receipt is not attached."))
         )
     return result
+
+
+def _fishery_contract(contract: EmploymentContract, on: datetime.date) -> bool:
+    """契約の版（交付日。無ければ最初の版）が水産加工業の区分か（2027-04-01 から。T36-D5）。"""
+    from services import career_plans, contracts  # 循環を避ける
+
+    return career_plans.is_fishery(contracts.version_on(contract, on))
 
 
 @dataclass(frozen=True)

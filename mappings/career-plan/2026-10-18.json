@@ -1,0 +1,236 @@
+{
+ "form_id": "career-plan",
+ "valid_from": "2026-10-18",
+ "note": "T36 の全欄（ADR-0025）。自機関のテンプレート（任意様式）。値は services/form_data_career.py が作る。",
+ "fields": [
+  {
+   "key": "p.made_y",
+   "target": "made_y",
+   "format": "zen",
+   "label": "作成日（年）"
+  },
+  {
+   "key": "p.made_m",
+   "target": "made_m",
+   "format": "zen",
+   "label": "作成日（月）"
+  },
+  {
+   "key": "p.made_d",
+   "target": "made_d",
+   "format": "zen",
+   "label": "作成日（日）"
+  },
+  {
+   "key": "p.worker_name",
+   "target": "worker_name",
+   "format": "text",
+   "label": "特定技能外国人の氏名"
+  },
+  {
+   "key": "p.host_name",
+   "target": "host_name",
+   "format": "text",
+   "label": "特定技能所属機関名"
+  },
+  {
+   "key": "p.host_representative",
+   "target": "host_representative",
+   "format": "text",
+   "label": "代表者 役職・氏名"
+  },
+  {
+   "key": "p.site_name",
+   "target": "site_name",
+   "format": "text",
+   "label": "事業所"
+  },
+  {
+   "key": "p.field",
+   "target": "field",
+   "format": "text",
+   "label": "分野"
+  },
+  {
+   "key": "p.categories",
+   "target": "categories",
+   "format": "text",
+   "label": "業務区分"
+  },
+  {
+   "key": "p.career_route",
+   "target": "career_route",
+   "format": "text",
+   "label": "想定されるキャリアルート"
+  },
+  {
+   "key": "p.l1_name",
+   "target": "l1_name",
+   "format": "text",
+   "label": "２ 1 行目 レベル"
+  },
+  {
+   "key": "p.l1_years",
+   "target": "l1_years",
+   "format": "text",
+   "label": "２ 1 行目 目安の年数"
+  },
+  {
+   "key": "p.l1_duties",
+   "target": "l1_duties",
+   "format": "text",
+   "label": "２ 1 行目 業務内容"
+  },
+  {
+   "key": "p.l1_requirements",
+   "target": "l1_requirements",
+   "format": "text",
+   "label": "２ 1 行目 必要な経験・実績、資格・検定"
+  },
+  {
+   "key": "p.l1_treatment",
+   "target": "l1_treatment",
+   "format": "text",
+   "label": "２ 1 行目 職務上の地位・処遇"
+  },
+  {
+   "key": "p.l2_name",
+   "target": "l2_name",
+   "format": "text",
+   "label": "２ 2 行目 レベル"
+  },
+  {
+   "key": "p.l2_years",
+   "target": "l2_years",
+   "format": "text",
+   "label": "２ 2 行目 目安の年数"
+  },
+  {
+   "key": "p.l2_duties",
+   "target": "l2_duties",
+   "format": "text",
+   "label": "２ 2 行目 業務内容"
+  },
+  {
+   "key": "p.l2_requirements",
+   "target": "l2_requirements",
+   "format": "text",
+   "label": "２ 2 行目 必要な経験・実績、資格・検定"
+  },
+  {
+   "key": "p.l2_treatment",
+   "target": "l2_treatment",
+   "format": "text",
+   "label": "２ 2 行目 職務上の地位・処遇"
+  },
+  {
+   "key": "p.l3_name",
+   "target": "l3_name",
+   "format": "text",
+   "label": "２ 3 行目 レベル"
+  },
+  {
+   "key": "p.l3_years",
+   "target": "l3_years",
+   "format": "text",
+   "label": "２ 3 行目 目安の年数"
+  },
+  {
+   "key": "p.l3_duties",
+   "target": "l3_duties",
+   "format": "text",
+   "label": "２ 3 行目 業務内容"
+  },
+  {
+   "key": "p.l3_requirements",
+   "target": "l3_requirements",
+   "format": "text",
+   "label": "２ 3 行目 必要な経験・実績、資格・検定"
+  },
+  {
+   "key": "p.l3_treatment",
+   "target": "l3_treatment",
+   "format": "text",
+   "label": "２ 3 行目 職務上の地位・処遇"
+  },
+  {
+   "key": "p.l4_name",
+   "target": "l4_name",
+   "format": "text",
+   "label": "２ 4 行目 レベル"
+  },
+  {
+   "key": "p.l4_years",
+   "target": "l4_years",
+   "format": "text",
+   "label": "２ 4 行目 目安の年数"
+  },
+  {
+   "key": "p.l4_duties",
+   "target": "l4_duties",
+   "format": "text",
+   "label": "２ 4 行目 業務内容"
+  },
+  {
+   "key": "p.l4_requirements",
+   "target": "l4_requirements",
+   "format": "text",
+   "label": "２ 4 行目 必要な経験・実績、資格・検定"
+  },
+  {
+   "key": "p.l4_treatment",
+   "target": "l4_treatment",
+   "format": "text",
+   "label": "２ 4 行目 職務上の地位・処遇"
+  },
+  {
+   "key": "p.l5_name",
+   "target": "l5_name",
+   "format": "text",
+   "label": "２ 5 行目 レベル"
+  },
+  {
+   "key": "p.l5_years",
+   "target": "l5_years",
+   "format": "text",
+   "label": "２ 5 行目 目安の年数"
+  },
+  {
+   "key": "p.l5_duties",
+   "target": "l5_duties",
+   "format": "text",
+   "label": "２ 5 行目 業務内容"
+  },
+  {
+   "key": "p.l5_requirements",
+   "target": "l5_requirements",
+   "format": "text",
+   "label": "２ 5 行目 必要な経験・実績、資格・検定"
+  },
+  {
+   "key": "p.l5_treatment",
+   "target": "l5_treatment",
+   "format": "text",
+   "label": "２ 5 行目 職務上の地位・処遇"
+  },
+  {
+   "key": "p.transfer_scope",
+   "target": "transfer_scope",
+   "format": "text",
+   "label": "転職できる範囲"
+  },
+  {
+   "key": "p.plan_version",
+   "target": "plan_version",
+   "format": "text",
+   "label": "プランの版"
+  },
+  {
+   "key": "p.applies_from",
+   "target": "applies_from",
+   "format": "date",
+   "label": "プランの適用開始日"
+  }
+ ],
+ "rules": []
+}

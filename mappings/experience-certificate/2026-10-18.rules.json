@@ -1,0 +1,8 @@
+{
+  "form_id": "experience-certificate",
+  "valid_from": "2026-10-18",
+  "note": "T36 の規則（ADR-0025）。契約の期間が基準日に始まっていなければ生成不可。期間は雇用契約上の期間（休業等の期間を含む。T36-D7）。",
+  "rules": [
+    {"id": "period_started", "type": "check", "name": "experience_period_started", "severity": "block"}
+  ]
+}

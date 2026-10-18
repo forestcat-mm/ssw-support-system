@@ -46,6 +46,9 @@ from apps.core.models import (
 )
 from apps.filings.models import Filing, FilingStatus
 from apps.hosts.models import (
+    CareerPlan,
+    CareerPlanLevel,
+    CareerPlanVersion,
     HostCooperationConfirmation,
     HostMembership,
     HostOrganization,
@@ -75,7 +78,15 @@ from apps.workers.models import (
     WorkerContact,
     WorkerStatus,
 )
-from services import contracts, corporate_number, deadlines, filings, passport, residence_card
+from services import (
+    career_plans,
+    contracts,
+    corporate_number,
+    deadlines,
+    filings,
+    passport,
+    residence_card,
+)
 from services.attachments import create_attachment
 
 
@@ -847,6 +858,56 @@ def seed_filings(ctx: SeedContext) -> None:
 
 Step = Callable[[SeedContext], None]
 
+
+def seed_career_plans(ctx: SeedContext) -> None:
+    """飲食料品製造業分野の事業所を持つ受入れ機関（食品・水産加工）のキャリアアッププラン（T36）。"""
+    food = SpecifiedSkillField.objects.get(code="food_manufacturing")
+    levels = [
+        career_plans.LevelInput(
+            name="レベル1",
+            years="1〜2年目",
+            duties=f"製造ラインの基本作業（指示を受けて行う）{DUMMY_MARK}",
+            requirements="特定技能1号の評価試験の合格",
+            position="一般",
+            treatment="基本給の見直し（年1回）",
+        ),
+        career_plans.LevelInput(
+            name="レベル2",
+            years="3〜4年目",
+            duties=f"工程の段取り・後輩の指導{DUMMY_MARK}",
+            requirements="衛生管理の社内研修の修了",
+            position="ライン長補佐",
+            treatment="役職手当",
+        ),
+        career_plans.LevelInput(
+            name="レベル3",
+            years="5年目以降",
+            duties=f"工程の管理（特定技能2号の業務）{DUMMY_MARK}",
+            requirements="特定技能2号の評価試験の合格・2年以上の工程管理の実務経験",
+            position="ライン長",
+            treatment="昇給・賞与の加算",
+        ),
+    ]
+    for host in HostOrganization.objects.filter(pk__in=[h.pk for h in ctx.hosts]):
+        if not host.sites.filter(field=food).exists():
+            continue
+        version = career_plans.create_plan(
+            host,
+            food,
+            None,
+            career_plans.VersionInput(
+                applies_from=ctx.days(-900),
+                career_route=f"作業員 → ライン長補佐 → ライン長（特定技能2号）{DUMMY_MARK}",
+                levels=levels,
+            ),
+            by=None,
+        )
+        ctx.keep(version.plan)
+        ctx.keep(version)
+        for level in version.levels.all():
+            ctx.keep(level)
+
+
 STEPS: tuple[Step, ...] = (
     seed_organization,
     seed_staff,
@@ -854,6 +915,7 @@ STEPS: tuple[Step, ...] = (
     seed_workers,
     seed_contracts,
     seed_transfer,
+    seed_career_plans,
     support_builders.seed_support,  # 段階2（支援計画・実績・相談・ガイダンス・交付・要配慮添付）
     seed_filings,
 )
@@ -878,6 +940,9 @@ def run(base: date) -> SeedContext:
 # 消す順番（依存の逆順）。台帳に無い行（届出タスク）は対象から辿って消す
 DELETE_ORDER: tuple[type[models.Model], ...] = (
     Attachment,
+    CareerPlanLevel,
+    CareerPlanVersion,
+    CareerPlan,
     EmploymentContractShift,
     EmploymentContractAllowance,
     EmploymentContractDeduction,

@@ -1,0 +1,92 @@
+{
+ "form_id": "experience-certificate",
+ "valid_from": "2026-10-18",
+ "note": "T36 の全欄（ADR-0025）。自機関のテンプレート（様式なし）。値は services/form_data_career.py が作る。",
+ "fields": [
+  {
+   "key": "e.issued_y",
+   "target": "issued_y",
+   "format": "zen",
+   "label": "証明日（年）"
+  },
+  {
+   "key": "e.issued_m",
+   "target": "issued_m",
+   "format": "zen",
+   "label": "証明日（月）"
+  },
+  {
+   "key": "e.issued_d",
+   "target": "issued_d",
+   "format": "zen",
+   "label": "証明日（日）"
+  },
+  {
+   "key": "e.worker_name",
+   "target": "worker_name",
+   "format": "text",
+   "label": "氏名"
+  },
+  {
+   "key": "e.birth_date",
+   "target": "birth_date",
+   "format": "date",
+   "label": "生年月日"
+  },
+  {
+   "key": "e.nationality",
+   "target": "nationality",
+   "format": "text",
+   "label": "国籍・地域"
+  },
+  {
+   "key": "e.period",
+   "target": "period",
+   "format": "text",
+   "label": "従事した期間"
+  },
+  {
+   "key": "e.field",
+   "target": "field",
+   "format": "text",
+   "label": "分野"
+  },
+  {
+   "key": "e.categories",
+   "target": "categories",
+   "format": "text",
+   "label": "業務区分"
+  },
+  {
+   "key": "e.site",
+   "target": "site",
+   "format": "text",
+   "label": "事業所"
+  },
+  {
+   "key": "e.duties",
+   "target": "duties",
+   "format": "text",
+   "label": "従事した業務の内容"
+  },
+  {
+   "key": "e.host_name",
+   "target": "host_name",
+   "format": "text",
+   "label": "特定技能所属機関名"
+  },
+  {
+   "key": "e.host_address",
+   "target": "host_address",
+   "format": "text",
+   "label": "所在地"
+  },
+  {
+   "key": "e.host_representative",
+   "target": "host_representative",
+   "format": "text",
+   "label": "代表者 役職・氏名"
+  }
+ ],
+ "rules": []
+}

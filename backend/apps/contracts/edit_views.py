@@ -43,6 +43,7 @@ from services import (
     authorization,
     contracts,
     form_checks,
+    form_data_career,
     form_data_contract,
     form_generation,
     form_templates,
@@ -616,5 +617,104 @@ class ContractGenerateView(WorkerFormView):
         except form_generation.WarningsNotAccepted as pending:
             form.add_error("accept_warnings", _("Check the warnings before generating."))
             return self.page(request, worker, version, form_id, form, pending.result)
+        messages.success(request, _("Requested the generation of the form."))
+        return redirect("forms:document", pk=document.pk)
+
+
+# --- 自機関の書類（キャリアアッププラン・実務経験証明書。T36、ADR-0025）-----------------------
+
+OWN_FORMS = {
+    "career-plan": gettext_lazy("career-up plan"),
+    "experience-certificate": gettext_lazy("certificate of work experience"),
+}
+
+
+class OwnDocumentGenerateView(WorkerFormView):
+    """契約タブから、契約を対象に自機関の書類を生成する（基準日は画面で入れる。T36-D2）。"""
+
+    required_action = Action.FORMS_GENERATE
+    template_name = "contracts/generate.html"
+
+    def target(
+        self, request: HttpRequest, pk: int, contract_id: int, form_id: str
+    ) -> tuple[ForeignWorker, EmploymentContract]:
+        if form_id not in OWN_FORMS:
+            raise Http404
+        worker = self.worker(request, pk)
+        return worker, get_object_or_404(worker.employment_contracts, pk=contract_id)
+
+    def data(self, contract: EmploymentContract, form_id: str, on: Any) -> dict[str, Any]:
+        if form_id == "career-plan":
+            return form_data_career.build_career_plan(contract, on)
+        return form_data_career.build_experience_certificate(contract, on)
+
+    def page(
+        self,
+        request: HttpRequest,
+        worker: ForeignWorker,
+        contract: EmploymentContract,
+        form_id: str,
+        form: ContractGenerateForm,
+        result: form_checks.CheckResult | None,
+    ) -> HttpResponse:
+        return self.render(
+            request,
+            worker=worker,
+            version=contracts.latest_version(contract),
+            form_id=form_id,
+            form_name=OWN_FORMS[form_id],
+            form=form,
+            result=result,
+            back_url=tab_url(worker, contract),
+        )
+
+    def check(
+        self, contract: EmploymentContract, form_id: str, form: ContractGenerateForm
+    ) -> form_checks.CheckResult | None:
+        on = form.cleaned_data["basis_on"]
+        try:
+            return form_generation.check(
+                form_id, target=contract, data=self.data(contract, form_id, on), basis_on=on
+            )
+        except form_templates.FormTemplateError:
+            form.add_error(None, NOT_LOADED)
+            return None
+
+    def get(self, request: HttpRequest, pk: int, contract_id: int, form_id: str) -> HttpResponse:
+        worker, contract = self.target(request, pk, contract_id, form_id)
+        initial = {"basis_on": timezone.localdate().isoformat()}
+        form = ContractGenerateForm(initial)
+        result = self.check(contract, form_id, form) if form.is_valid() else None
+        form = ContractGenerateForm(initial=initial)
+        return self.page(request, worker, contract, form_id, form, result)
+
+    def post(self, request: HttpRequest, pk: int, contract_id: int, form_id: str) -> HttpResponse:
+        worker, contract = self.target(request, pk, contract_id, form_id)
+        form = ContractGenerateForm(request.POST)
+        if not form.is_valid():
+            return self.page(request, worker, contract, form_id, form, None)
+        if request.POST.get("action") != "generate":
+            result = self.check(contract, form_id, form)
+            return self.page(request, worker, contract, form_id, form, result)
+        if not consume_once_token(request):
+            return self.already_submitted(request, tab_url(worker, contract))
+        on = form.cleaned_data["basis_on"]
+        try:
+            document = form_generation.request(
+                form_id,
+                target=contract,
+                data=self.data(contract, form_id, on),
+                basis_on=on,
+                by=_actor(request),
+                accept_warnings=bool(form.cleaned_data.get("accept_warnings")),
+            )
+        except form_generation.GenerationBlocked as blocked:
+            return self.page(request, worker, contract, form_id, form, blocked.result)
+        except form_templates.FormTemplateError:
+            form.add_error(None, NOT_LOADED)
+            return self.page(request, worker, contract, form_id, form, None)
+        except form_generation.WarningsNotAccepted as pending:
+            form.add_error("accept_warnings", _("Check the warnings before generating."))
+            return self.page(request, worker, contract, form_id, form, pending.result)
         messages.success(request, _("Requested the generation of the form."))
         return redirect("forms:document", pk=document.pk)

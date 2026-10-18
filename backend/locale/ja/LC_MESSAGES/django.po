@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-18 22:00+0900\n"
+"POT-Creation-Date: 2026-10-18 22:35+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -231,6 +231,12 @@ msgstr "警告を確かめてから生成してください。"
 
 msgid "Requested the generation of the form."
 msgstr "帳票の生成を依頼しました。"
+
+msgid "career-up plan"
+msgstr "キャリアアッププラン"
+
+msgid "certificate of work experience"
+msgstr "実務経験証明書"
 
 msgid "operation categories"
 msgstr "業務区分"
@@ -3093,6 +3099,52 @@ msgstr "代表者"
 msgid "Contact"
 msgstr "連絡先"
 
+msgid "specified skill field"
+msgstr "分野"
+
+msgid "site (only when it differs by site)"
+msgstr "事業所（事業所ごとに違う場合だけ）"
+
+msgid "Leave blank to use the plan for all sites of the field."
+msgstr "空にすると、分野のすべての事業所のプランになります。"
+
+msgid "expected career route"
+msgstr "想定されるキャリアルート"
+
+msgid ""
+"Example: worker → line leader → foreman (specified skilled worker (ii))."
+msgstr "例: 作業員 → ライン長補佐 → ライン長（特定技能2号）"
+
+msgid "scope of job changes"
+msgstr "転職できる範囲"
+
+msgid ""
+"For the seafood processing category (from 1 April 2027): the scope within "
+"which the worker can change jobs (in principle the same category), explained "
+"for consent."
+msgstr ""
+"水産加工業の区分（2027年4月1日から）: 転職できる範囲（原則として同一の業務区"
+"分内に限ること等）。説明して同意を得ます。"
+
+msgid "Example: level 1."
+msgstr "例: レベル1"
+
+msgid "years as a guide"
+msgstr "習熟の目安となる年数"
+
+msgid "Example: 1st to 2nd year."
+msgstr "例: 1〜2年目"
+
+msgid "experience, results, qualifications and tests"
+msgstr "レベルアップに必要な経験・実績、資格・検定"
+
+msgid "treatment such as wages"
+msgstr "賃金をはじめとする処遇"
+
+#, python-format
+msgid "Saved the career-up plan (version %(n)d)."
+msgstr "キャリアアッププランを保存しました（第%(n)d版）。"
+
 #, python-format
 msgid "Created %(count)d task for the deadline on the dashboard."
 msgid_plural "Created %(count)d tasks for the deadline on the dashboard."
@@ -3382,9 +3434,6 @@ msgstr "加入先"
 msgid "registered support organization must also be a member"
 msgstr "登録支援機関（自機関）にも加入を求める"
 
-msgid "specified skill field"
-msgstr "分野"
-
 msgid "specified skill fields"
 msgstr "分野"
 
@@ -3506,6 +3555,50 @@ msgid ""
 "This period overlaps another support contract of the same host organization."
 msgstr "同じ受入れ機関のほかの支援委託契約と期間が重なっています。"
 
+msgid "career-up plans"
+msgstr "キャリアアッププラン"
+
+msgid "career-up plan version"
+msgstr "キャリアアッププランの版"
+
+msgid "career-up plan versions"
+msgstr "キャリアアッププランの版"
+
+msgid "order"
+msgstr "並び順"
+
+msgid "career-up plan level"
+msgstr "キャリアアッププランのレベル"
+
+msgid "career-up plan levels"
+msgstr "キャリアアッププランのレベル"
+
+msgid "Career-up plan"
+msgstr "キャリアアッププラン"
+
+msgid "all sites"
+msgstr "すべての事業所"
+
+msgid "Add a new version of the career-up plan"
+msgstr "キャリアアッププランの新しい版を作る"
+
+msgid "Create a career-up plan"
+msgstr "キャリアアッププランを作る"
+
+msgid ""
+"Give the plan in writing and explain it before the employment contract is "
+"concluded (food manufacturing field). The format is free; the content "
+"follows the four examples of the guidelines."
+msgstr ""
+"雇用契約を締結する前に書面を交付して説明します（飲食料品製造業分野）。様式は"
+"任意で、内容は運用要領の 4 つの例に沿います。"
+
+msgid "Levels"
+msgstr "レベル"
+
+msgid "Add a level"
+msgstr "レベルを足す"
+
 msgid "previous file"
 msgstr "前のファイル"
 
@@ -3593,6 +3686,12 @@ msgstr "提出先"
 
 msgid "copy"
 msgstr "控え"
+
+msgid "Career-up plans"
+msgstr "キャリアアッププラン"
+
+msgid "No career-up plans are registered."
+msgstr "キャリアアッププランは登録されていません。"
 
 msgid "Consultation records (form 5-4)"
 msgstr "相談記録書（第5-4号）"
@@ -4232,12 +4331,6 @@ msgstr "内訳"
 msgid "fee paid to an organization abroad"
 msgstr "外国の機関に支払った費用"
 
-msgid "career-up plan"
-msgstr "キャリアアッププラン"
-
-msgid "certificate of work experience"
-msgstr "実務経験証明書"
-
 msgid "copy of the support plan"
 msgstr "支援計画書の写し"
 
@@ -4282,6 +4375,12 @@ msgstr "交付した人の氏名"
 
 msgid "explained the content"
 msgstr "内容を説明した"
+
+msgid "obtained consent to the career path including the scope of job changes"
+msgstr "転職できる範囲を含むキャリアパスの説明に同意を得た"
+
+msgid "Career-up plan for the seafood processing category (from 1 April 2027)."
+msgstr "水産加工業の区分（2027年4月1日から）のキャリアアッププラン。"
 
 msgid "requested on"
 msgstr "求めを受けた日"
@@ -5086,9 +5185,6 @@ msgstr "入国前・在留中"
 msgid "All fields"
 msgstr "すべての分野"
 
-msgid "order"
-msgstr "並び順"
-
 msgid "Expiry date (nearest first)"
 msgstr "在留期限の近い順"
 
@@ -5394,6 +5490,12 @@ msgstr "第1-5号を作る"
 msgid "Generate form 1-4"
 msgstr "第1-4号を作る"
 
+msgid "Generate the career-up plan"
+msgstr "キャリアアッププランを作る"
+
+msgid "Generate the certificate of work experience"
+msgstr "実務経験証明書を作る"
+
 msgid "No filing tasks for this foreign worker."
 msgstr "この外国人の届出タスクはありません。"
 
@@ -5582,6 +5684,36 @@ msgstr "実施日時が %(rows)s 行を超えるため、確認書の欄に収�
 msgid "The signed confirmation is not attached."
 msgstr "署名済みの確認書が添付されていません。"
 
+msgid "Select a field of a site of this host organization."
+msgstr "この受入れ機関の事業所の分野を選んでください。"
+
+msgid "Select a site of this host organization in the field."
+msgstr "この受入れ機関の、その分野の事業所を選んでください。"
+
+msgid "A plan for this field (and site) already exists. Add a new version."
+msgstr "この分野（事業所）のプランはすでにあります。新しい版を作ってください。"
+
+msgid "Enter the reason for the change."
+msgstr "変更理由を入力してください。"
+
+#, python-format
+msgid ""
+"The date must be on or after the date of the previous version (%(day)s)."
+msgstr "前の版の適用開始日（%(day)s）以後の日にしてください。"
+
+msgid "Enter the date."
+msgstr "日付を入れてください。"
+
+msgid "Enter the expected career route."
+msgstr "想定されるキャリアルートを入れてください。"
+
+msgid "Enter at least one level."
+msgstr "レベルを 1 つ以上入れてください。"
+
+#, python-format
+msgid "Level %(n)d: enter the name, the years and the duties."
+msgstr "%(n)d 行目のレベル: レベル・目安の年数・業務内容を入れてください。"
+
 msgid "Enter the organization the case was handed over to."
 msgstr "引継ぎ先を入力してください。"
 
@@ -5633,9 +5765,6 @@ msgstr ""
 #, python-format
 msgid "These operation categories are not registered for the site: %(names)s"
 msgstr "事業所に登録されていない業務区分です: %(names)s"
-
-msgid "Enter the reason for the change."
-msgstr "変更理由を入力してください。"
 
 msgid ""
 "Select a site of the host organization of this contract. If the employer "
@@ -5715,6 +5844,9 @@ msgstr "実務経験証明書のときだけ入力してください。"
 msgid "The date of the request cannot be after the delivery."
 msgstr "求めを受けた日は、交付日より後にできません。"
 
+msgid "Only for a career-up plan."
+msgstr "キャリアアッププランのときだけです。"
+
 msgid ""
 "There is no support plan in effect on this date, so the copy cannot be "
 "identified. Create the support plan or check the date."
@@ -5725,6 +5857,10 @@ msgstr ""
 msgid ""
 "Only a completed support plan (form 1-17) of this foreign worker can be used."
 msgstr "この外国人の、生成が完了した支援計画書（第1-17号）だけを元にできます。"
+
+msgid ""
+"Only a completed document of this kind for the selected contract can be used."
+msgstr "選んだ契約の、この種別の生成が完了した帳票だけを使えます。"
 
 msgid "This record is already voided."
 msgstr "この記録は取り消し済みです。"
@@ -5744,6 +5880,13 @@ msgid ""
 "delivery date is %(applied)s."
 msgstr ""
 "第 %(version)s 版の写しですが、交付日に適用されている版は %(applied)s です。"
+
+msgid ""
+"The contract is in the seafood processing category. Record that the worker "
+"consented to the career path including the scope of job changes."
+msgstr ""
+"水産加工業の区分の契約です。転職できる範囲を含むキャリアパスの説明に同意を得"
+"たことを記録してください。"
 
 msgid "There is no record of explaining it."
 msgstr "内容を説明した記録がありません。"
@@ -6252,6 +6395,33 @@ msgstr ""
 "%(names)s は支援責任者・支援担当者のどちらでもありません。定期面談は支援計画"
 "書の支援責任者か支援担当者が行います。"
 
+msgid ""
+"No career-up plan is registered for the field (and site) of this contract."
+msgstr "この契約の分野（事業所）のキャリアアッププランが登録されていません。"
+
+#, python-format
+msgid ""
+"The plan has %(count)d levels, but the form has %(limit)d rows. The rows "
+"after that are not printed; list them in a separate document."
+msgstr ""
+"プランのレベルは %(count)d 行ですが、様式の行は %(limit)d 行です。超えた行は"
+"出ません。任意の様式の別紙に書いてください。"
+
+msgid ""
+"The contract is in the seafood processing category, but the plan does not "
+"explain the scope of job changes. The council requires explaining it and "
+"obtaining consent."
+msgstr ""
+"水産加工業の区分の契約ですが、プランに転職できる範囲がありません。協議会は、"
+"説明して同意を得ることを定めています。"
+
+#, python-format
+msgid ""
+"The contract has not started on %(day)s, so there is no experience to "
+"certify."
+msgstr ""
+"%(day)s の時点で契約が始まっていないため、証明する実務経験がありません。"
+
 #, python-format
 msgid "\"%(label)s\" is empty."
 msgstr "「%(label)s」が空です。"
@@ -6394,9 +6564,6 @@ msgstr ""
 
 msgid "Enter section 4 only when there is a non-conformity."
 msgstr "４ は基準不適合等が「あり」のときだけ入れます。"
-
-msgid "Enter the date."
-msgstr "日付を入れてください。"
 
 msgid "Enter the details."
 msgstr "内容を入れてください。"

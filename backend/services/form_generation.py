@@ -33,7 +33,7 @@ from django.db import models, transaction
 from django.utils import timezone
 from pypdf import PdfReader
 
-from apps.contracts.models import EmploymentContractVersion
+from apps.contracts.models import EmploymentContract, EmploymentContractVersion
 from apps.core.models import Action, AuditAction, User
 from apps.forms_engine.models import FormMethod, FormTemplate, GeneratedDocument, GenerationStatus
 from apps.support.models import Briefing, PeriodicInterview, SupportPlanVersion
@@ -250,6 +250,8 @@ def worker_of(target: models.Model) -> ForeignWorker | None:
         return target.plan.worker
     if isinstance(target, EmploymentContractVersion):
         return target.contract.worker
+    if isinstance(target, EmploymentContract):
+        return target.worker
     if isinstance(target, PeriodicInterview):
         return target.worker
     return None

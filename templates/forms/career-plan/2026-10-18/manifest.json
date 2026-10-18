@@ -1,0 +1,23 @@
+{
+  "form_id": "career-plan",
+  "name": "キャリアアッププラン（自機関のテンプレート）",
+  "valid_from": "2026-10-18",
+  "language": "ja",
+  "owner": "common",
+  "method": "docx-tags",
+  "requires_signed_copy": true,
+  "original": "original.docx",
+  "template": "template.docx",
+  "source": {
+    "self_made": true,
+    "tool": "tools/forms/make_own_templates.py",
+    "url": "",
+    "page": "",
+    "retrieved_on": "2026-10-18",
+    "revision_date": null,
+    "revision_date_unknown": false,
+    "original_sha256": "10af186f72f700ca243db822707eac702b85e1054cd88a4d4d97b90e83706a4c",
+    "template_sha256": "561ddded69160ca8e3943e7a4388240656a52f591add85e96b54411ea41b9a21",
+    "adr": "ADR-0025（自機関のテンプレート。公式の様式が無い。作成日 2026-10-18）"
+  }
+}

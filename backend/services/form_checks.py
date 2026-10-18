@@ -132,9 +132,11 @@ class CheckContext:
 
     @cached_property
     def contract(self) -> EmploymentContract | None:
-        """基準日の契約（雇用契約の書類は、生成の対象の版の契約。T34）。"""
+        """基準日の契約（雇用契約の書類は生成の対象の版の契約、自機関の書類は対象の契約。T34・T36）。"""
         if isinstance(self.target, EmploymentContractVersion):
             return self.target.contract
+        if isinstance(self.target, EmploymentContract):
+            return self.target
         return contracts.contract_on(self.worker, self.basis_on)
 
     @cached_property
@@ -949,6 +951,97 @@ def _interview_staff_role(context: CheckContext, params: Mapping[str, Any]) -> l
             )
             % {"names": "、".join(names)},
             Destination("settings:staff"),
+        )
+    ]
+
+
+# --- キャリアアッププラン・実務経験証明書（自機関のテンプレート。T36、ADR-0025）------------------
+
+
+@check("career_plan_exists")
+def _career_plan_exists(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """契約の受入れ機関×分野（事業所）のキャリアアッププランが登録されている。"""
+    from services import career_plans  # 循環を避ける
+
+    contract = context.contract
+    if contract is not None and career_plans.plan_for(contract, context.basis_on) is not None:
+        return []
+    host = context.host
+    return [
+        Issue(
+            "career_plan_missing_content",
+            _("No career-up plan is registered for the field (and site) of this contract."),
+            Destination("hosts:detail", {"pk": host.pk}) if host else None,
+        )
+    ]
+
+
+@check("career_plan_levels_fit")
+def _career_plan_levels_fit(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """レベルが様式の行（5 行）を超える（超えた行は書かない）。"""
+    from services import career_plans, form_data_career  # 循環を避ける
+
+    contract = context.contract
+    version = career_plans.plan_version_for(contract, context.basis_on) if contract else None
+    if version is None or version.levels.count() <= form_data_career.LEVEL_ROWS:
+        return []
+    return [
+        Issue(
+            "career_plan_levels_overflow",
+            _(
+                "The plan has %(count)d levels, but the form has %(limit)d rows. The rows after "
+                "that are not printed; list them in a separate document."
+            )
+            % {"count": version.levels.count(), "limit": form_data_career.LEVEL_ROWS},
+            Destination(
+                "hosts:career_plan",
+                {"pk": version.plan.host_organization_id, "plan_id": version.plan_id},
+            ),
+        )
+    ]
+
+
+@check("career_plan_transfer_scope")
+def _career_plan_transfer_scope(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """水産加工業の区分の契約で、プランの「転職できる範囲」が空（協議会の定め。T36-D5）。"""
+    from services import career_plans  # 循環を避ける
+
+    contract = context.contract
+    if contract is None or not career_plans.is_fishery(context.version):
+        return []
+    version = career_plans.plan_version_for(contract, context.basis_on)
+    if version is None or version.transfer_scope.strip():
+        return []
+    return [
+        Issue(
+            "transfer_scope_missing",
+            _(
+                "The contract is in the seafood processing category, but the plan does not "
+                "explain the scope of job changes. The council requires explaining it and "
+                "obtaining consent."
+            ),
+            Destination(
+                "hosts:career_plan",
+                {"pk": version.plan.host_organization_id, "plan_id": version.plan_id},
+            ),
+        )
+    ]
+
+
+@check("experience_period_started")
+def _experience_period_started(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """実務経験証明書: 契約の期間が基準日に始まっている。"""
+    from services import form_data_career  # 循環を避ける
+
+    contract = context.contract
+    if contract is None or form_data_career.period_start(contract) <= context.basis_on:
+        return []
+    return [
+        Issue(
+            "experience_not_started",
+            _("The contract has not started on %(day)s, so there is no experience to certify.")
+            % {"day": context.basis_on.isoformat()},
+            Destination("workers:contracts", {"pk": context.worker.pk}),
         )
     ]
 

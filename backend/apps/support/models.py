@@ -1037,6 +1037,11 @@ class DocumentDelivery(TrackedModel):
         _("name of the person who delivered it"), max_length=100, blank=True
     )
     explained = models.BooleanField(_("explained the content"), default=False)
+    consented = models.BooleanField(
+        _("obtained consent to the career path including the scope of job changes"),
+        default=False,
+        help_text=_("Career-up plan for the seafood processing category (from 1 April 2027)."),
+    )
     contract = models.ForeignKey(
         "contracts.EmploymentContract",
         verbose_name=_("employment contract"),

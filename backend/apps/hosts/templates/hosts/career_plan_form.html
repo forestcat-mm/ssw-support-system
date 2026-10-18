@@ -1,0 +1,22 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Career-up plan" %} | {{ host.name }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{{ back }}">← {{ host.name }}</a></p>
+  <h1>{% if plan %}{% translate "Add a new version of the career-up plan" %}{% else %}{% translate "Create a career-up plan" %}{% endif %}</h1>
+  {% if plan %}<p class="caption">{{ plan.field.name }}{% if plan.site %} · {{ plan.site.name }}{% endif %}</p>{% endif %}
+{% endblock %}
+{% block content %}
+<form class="form" method="post" novalidate id="career-plan-form">
+  {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+  {% include "ui/components/form_errors.html" %}
+  <section class="card stack">
+    <p class="caption">{% translate "Give the plan in writing and explain it before the employment contract is concluded (food manufacturing field). The format is free; the content follows the four examples of the guidelines." %}</p>
+    {% for field in form %}{% form_field field %}{% endfor %}
+  </section>
+  {% include "support/components/formset_rows.html" with formset=levels id="level-rows" title=_("Levels") add_label=_("Add a level") %}
+  <div class="form-actions">
+    <button class="button button--primary" type="submit">{% translate "Save" %}</button>
+    <a class="button button--neutral" href="{{ back }}">{% translate "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

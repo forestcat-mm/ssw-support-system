@@ -1239,6 +1239,11 @@ class DeliveryForm(StyledFormMixin, forms.Form):
         help_text=_("PDF, PNG or JPEG, up to 10 MB each. You can also attach it later."),
     )
     generated = forms.IntegerField(required=False, widget=forms.HiddenInput)
+    consented = forms.BooleanField(
+        label=_("obtained consent to the career path including the scope of job changes"),
+        required=False,
+        help_text=_("Career-up plan for the seafood processing category (from 1 April 2027)."),
+    )
 
     def __init__(self, *args: Any, worker: ForeignWorker, kind: str, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
@@ -1269,6 +1274,8 @@ class DeliveryForm(StyledFormMixin, forms.Form):
             self.fields["delivered_on"].help_text = _(
                 "Give it before the employment contract is concluded."
             )
+        else:
+            del self.fields["consented"]
         self.fields["languages"].queryset = SupportLanguage.objects.filter(  # type: ignore[attr-defined]
             is_active=True
         )
@@ -1307,6 +1314,7 @@ class DeliveryForm(StyledFormMixin, forms.Form):
             languages=list(data.get("languages") or []),
             note=data.get("note") or "",
             generated_document=self.generated_document(),
+            consented=bool(data.get("consented")),
         )
 
     def clean(self) -> dict[str, Any]:

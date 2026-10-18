@@ -19,7 +19,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views import View
 
-from apps.contracts.models import EmploymentContractVersion
+from apps.contracts.models import EmploymentContract, EmploymentContractVersion
 from apps.core.models import Action, Attachment, AuditAction, User
 from apps.core.permissions import ActionRequiredMixin
 from apps.core.web_forms import consume_once_token, once_context
@@ -33,6 +33,7 @@ from services import (
     attachments,
     audit,
     authorization,
+    deliveries,
     form_data_consultation,
     form_generation,
     form_signatures,
@@ -54,8 +55,19 @@ class GeneratedDocumentView(ActionRequiredMixin, View):
             raise PermissionDenied
         target = document.target
         version = target if isinstance(target, SupportPlanVersion) else None
+        # 交付記録を作れる生成物: 支援計画書（写し）と、契約を対象にした自機関の書類（T36）
+        delivery_kind: str | None = DeliveryKind.SUPPORT_PLAN_COPY if version is not None else None
+        if isinstance(target, EmploymentContract):
+            delivery_kind = next(
+                (
+                    kind
+                    for kind, form_id in deliveries.CONTRACT_FORM_IDS.items()
+                    if form_id == document.template.form_id
+                ),
+                None,
+            )
         can_deliver = (
-            version is not None
+            delivery_kind is not None
             and document.status == GenerationStatus.COMPLETED
             and document.worker is not None
             and workers.is_active(document.worker)
@@ -77,6 +89,10 @@ class GeneratedDocumentView(ActionRequiredMixin, View):
             back_url = reverse("workers:support_interview", args=[target.worker_id, target.pk])
         elif isinstance(target, HostOrganization):
             back_url = reverse("hosts:detail", args=[target.pk]) + "#consultation-records"
+        elif isinstance(target, EmploymentContract) and document.worker is not None:
+            back_url = reverse("workers:contracts", args=[document.worker.pk]) + (
+                f"?contract={target.pk}"
+            )
         elif isinstance(target, EmploymentContractVersion) and document.worker is not None:
             back_url = (
                 reverse("workers:contracts", args=[document.worker.pk])
@@ -92,7 +108,7 @@ class GeneratedDocumentView(ActionRequiredMixin, View):
             "back_url": back_url,
             "can_download": form_generation.can_download_pdf(request.user, document),
             "can_deliver": can_deliver,
-            "delivery_kind": DeliveryKind.SUPPORT_PLAN_COPY,
+            "delivery_kind": delivery_kind,
             "signature_state": form_signatures.state(document),
             "signed_on": form_signatures.signed_on(document),
             "can_sign": form_signatures.can_add_signature(document),

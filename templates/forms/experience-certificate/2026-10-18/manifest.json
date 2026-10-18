@@ -1,0 +1,23 @@
+{
+  "form_id": "experience-certificate",
+  "name": "実務経験証明書（自機関のテンプレート）",
+  "valid_from": "2026-10-18",
+  "language": "ja",
+  "owner": "common",
+  "method": "docx-tags",
+  "requires_signed_copy": false,
+  "original": "original.docx",
+  "template": "template.docx",
+  "source": {
+    "self_made": true,
+    "tool": "tools/forms/make_own_templates.py",
+    "url": "",
+    "page": "",
+    "retrieved_on": "2026-10-18",
+    "revision_date": null,
+    "revision_date_unknown": false,
+    "original_sha256": "b199f138589c9385d067198990c836cbbf407f7480e1276f30b821d72f31c32c",
+    "template_sha256": "c1708ea2ead02bb84c71cce932b0271ea153e94c4ac61bafbad092896f9a9921",
+    "adr": "ADR-0025（自機関のテンプレート。公式の様式が無い。作成日 2026-10-18）"
+  }
+}
