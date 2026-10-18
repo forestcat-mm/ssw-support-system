@@ -7,6 +7,7 @@
 
 import datetime
 import json
+import re
 import subprocess
 import sys
 import zipfile
@@ -36,6 +37,7 @@ from services import (
     form_samples,
     form_templates,
     form_xlsx,
+    support_catalog,
     support_plans,
 )
 from tests.core.factories import make_user, verified_client
@@ -150,7 +152,7 @@ def test_text_that_does_not_fit_even_at_the_minimum_is_a_warning(
     data = form_data_1_17.build(longer, BASE) | form_data_1_17.declaration_values(True)
     result = form_generation.check("1-17", target=longer, data=data, basis_on=BASE)
     assert [f.message for f in result.warnings if f.code == "text_overflow"] == [
-        "「Ⅳ 1.main 実施予定 有」は 6 pt でも欄に収まりません。"
+        "「Ⅳ１\u3000事前ガイダンスの提供 実施予定（有）」は 6 pt でも欄に収まりません。"
     ]
 
 
@@ -393,3 +395,58 @@ def test_standard_plan_with_old_defaults_gets_a_new_version() -> None:
     assert {k: v for k, v in new.items.items()} == {k: v for k, v in old.items.items()}
     migration.fit_default_timing(apps, None)
     assert plan.versions.count() == 2  # 2 回目は何もしない
+
+
+# --- 文言に内部の符号を出さない（T31 の直し）-------------------------------------------------
+
+INTERNAL_CODE = re.compile(
+    r"\d[ab]?\.(main|free|[a-g])\b|\b[a-z]+_[a-z_]+\b|\b(mon|tue|wed|thu|fri|sat|sun|holiday)\b"
+)
+
+
+def test_row_names_are_the_same_in_the_tool_and_the_service() -> None:
+    import importlib.util
+
+    tool = Path(settings.REPO_ROOT) / "tools" / "forms" / "make_1_17_mapping.py"
+    spec = importlib.util.spec_from_file_location("make_1_17_mapping", tool)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    for row in support_catalog.ROWS:
+        assert module.row_name(row.code) == support_catalog.form_row_name(row.code)
+    assert support_catalog.form_row_name("2.a") == "Ⅳ２\u3000出入国する際の送迎（ａ）"
+    definition = json.loads(MAPPING.read_text(encoding="utf-8"))
+    assert not [f["label"] for f in definition["fields"] if INTERNAL_CODE.search(f["label"])]
+
+
+def test_findings_do_not_show_internal_codes(seeded: list[ForeignWorker]) -> None:
+    """生成不可・警告の文言に、マッピングや計画の内部の符号（1.main・in_person など）を出さない。"""
+    messages: list[str] = []
+    for worker in seeded:
+        for form_id in ("1-17", "5-9", "5-8"):
+            target, data = form_samples.sample(form_id, worker, BASE)
+            result = form_generation.check(form_id, target=target, data=data, basis_on=BASE)
+            messages += [finding.message for finding in result.findings]
+    # 計画の行の文言（委託の有無・4 の「その他」・長い文）も出す
+    version = form_samples.latest_plan_version(seeded[14])
+    assert version is not None
+    content = support_plans.content_of(version)
+    content.activities["2.a"].outsourced = True
+    content.activities["2.a"].outsourcee_name = "（ダミー）送迎会社"
+    content.activities["2.a"].outsourcee_address = "東京都サンプル区1-1"
+    content.activities["4.main"].methods = [*content.activities["4.main"].methods, "other"]
+    content.activities["4.main"].method_notes = {"other": "動画"}
+    content.activities[
+        "1.main"
+    ].planned_note = "在留資格認定証明書交付申請前（在留資格変更許可申請前）"
+    changed = support_plans.add_version(
+        version.plan, content, applies_from=version.applies_from, by=None, change_reason="文言"
+    )
+    data = form_data_1_17.build(changed, BASE)
+    result = form_generation.check("1-17", target=changed, data=data, basis_on=BASE)
+    messages += [finding.message for finding in result.findings]
+    assert {"plan_outsourced", "orientation_other", "text_overflow"} <= {
+        finding.code for finding in result.findings
+    }
+    assert messages
+    assert [message for message in messages if INTERNAL_CODE.search(message)] == []

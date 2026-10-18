@@ -34,7 +34,7 @@ from apps.hosts.models import HostOrganization, HostSite
 from apps.support.models import Briefing, DeliveryKind, DepositContract, SupportPlanVersion
 from apps.workers.models import ApplicationType, ForeignWorker, LatestResidenceRecord
 from services import briefings, contracts, deliveries, hosts
-from services.support_catalog import Method, SupportItem
+from services.support_catalog import Method, SupportItem, form_row_name
 
 BLOCK = "block"
 WARN = "warn"
@@ -474,7 +474,7 @@ def _plan_not_outsourced(context: CheckContext, params: Mapping[str, Any]) -> li
                 "Rows %(codes)s are marked as outsourced. When all support is entrusted to a "
                 'registered support organization, every row must be "not outsourced".'
             )
-            % {"codes": "、".join(codes)},
+            % {"codes": "、".join(form_row_name(code) for code in codes)},
             Destination("workers:support", {"pk": context.worker.pk}),
         )
     ]

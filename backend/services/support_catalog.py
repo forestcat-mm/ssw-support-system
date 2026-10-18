@@ -182,3 +182,22 @@ SECTIONS: tuple[Section, ...] = tuple(
     )
     for code, title in SECTION_TITLES.items()
 )
+
+
+# --- 様式の欄の名前（警告・生成前の検査の文言に出す。内部の符号は出さない。T31 の直し）--------
+
+_FULL_WIDTH_LETTERS = str.maketrans("abcdefghij", "ａｂｃｄｅｆｇｈｉｊ")
+
+
+def form_row_name(code: str) -> str:
+    """行の符号（"2.a" など）を、第1-17号の欄の名前（「Ⅳ２　出入国する際の送迎（ａ）」）にする。
+
+    tools/forms/make_1_17_mapping.py の欄の名前と同じ規則（テストで一致を確かめる）。
+    """
+    section, _, sub = code.partition(".")
+    name = f"Ⅳ{SECTION_TITLES[section]}"
+    if sub == "free":
+        return f"{name}（自由記入）"
+    if sub and sub != "main":
+        return f"{name}（{sub.translate(_FULL_WIDTH_LETTERS)}）"
+    return name

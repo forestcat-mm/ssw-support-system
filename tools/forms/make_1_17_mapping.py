@@ -10,9 +10,38 @@
 
 import json
 import sys
+from pathlib import Path
 
 SHEET = "参考様式第１－１７号!"
 SP = "　"
+
+# 欄の名前（警告の文言に出す。内部の符号は出さない）。区分の題は支援計画の細目のデータから取り、
+# services.support_catalog.form_row_name と同じ規則で作る（テストで一致を確かめる）
+_CATALOG = (
+    Path(__file__).resolve().parents[2] / "backend" / "services" / "data" / "support_plan_1-17.json"
+)
+SECTION_TITLES = json.loads(_CATALOG.read_text(encoding="utf-8"))["sections"]
+FULL_WIDTH_LETTERS = str.maketrans("abcdefghij", "ａｂｃｄｅｆｇｈｉｊ")
+METHOD_WORDS = {
+    "in_person": "対面", "video_call": "テレビ電話装置", "other": "その他",
+    "arrival_airport": "出迎え空港", "departure_airport": "出国予定空港", "transport": "送迎方法",
+    "information": "情報提供", "accompany": "同行", "video_or_dvd": "テレビ電話やＤＶＤ等",
+    "online": "オンライン",
+}
+ITEM_SECTIONS = {"pre_guidance": "1", "orientation": "4", "consultation": "6",
+                 "periodic_interview": "9"}
+DAY_WORDS = {"mon": "月曜日", "tue": "火曜日", "wed": "水曜日", "thu": "木曜日", "fri": "金曜日",
+             "sat": "土曜日", "sun": "日曜日", "holiday": "祝日"}
+
+
+def row_name(code: str) -> str:
+    section, _, sub = code.partition(".")
+    name = f"Ⅳ{SECTION_TITLES[section]}"
+    if sub == "free":
+        return f"{name}（自由記入）"
+    if sub and sub != "main":
+        return f"{name}（{sub.translate(FULL_WIDTH_LETTERS)}）"
+    return name
 
 
 def cell(ref: str) -> str:
@@ -212,34 +241,34 @@ A764_TEMPLATE = (
 
 def row_fields(code: str, spec: dict) -> list[dict]:
     key = f"plan.{code}."
-    label = f"Ⅳ {code}"
+    label = row_name(code)
     fields = [
-        check(key + "planned_yes", "S" + spec["yes"], f"{label} 実施予定 有"),
-        check(key + "planned_no", "S" + spec["no"], f"{label} 実施予定 無"),
-        template("T" + spec["yes"], f"{label} 実施予定 有", "有（{n}）",
+        check(key + "planned_yes", "S" + spec["yes"], f"{label} 実施予定（有）"),
+        check(key + "planned_no", "S" + spec["no"], f"{label} 実施予定（無）"),
+        template("T" + spec["yes"], f"{label} 実施予定（有）", "有（{n}）",
                  {"n": {"key": key + "yes_note"}}, fit=True),
-        template("T" + spec["no"], f"{label} 実施予定 無", "無（{n}）",
+        template("T" + spec["no"], f"{label} 実施予定（無）", "無（{n}）",
                  {"n": {"key": key + "no_note"}}, fit=True),
         text(key + "outsourced", spec["outs"], f"{label} 委託の有無"),
         text(key + "staff", spec["staff"], f"{label} 担当者", fit=True),
         text(key + "address", spec["addr"], f"{label} 委託先の住所"),
     ]
     if "cd" in spec:
-        fields.append(check(key + "planned_yes", "S" + spec["cd"][0], f"{label} c・d 実施予定 有"))
-        fields.append(check(key + "planned_no", "S" + spec["cd"][1], f"{label} c・d 実施予定 無"))
+        fields.append(check(key + "planned_yes", "S" + spec["cd"][0], f"{label} 実施予定（ｃ・ｄ）（有）"))
+        fields.append(check(key + "planned_no", "S" + spec["cd"][1], f"{label} 実施予定（ｃ・ｄ）（無）"))
     for method, ref in spec.get("methods", {}).items():
-        fields.append(check(key + f"method.{method}", ref, f"{label} 実施方法 {method}"))
+        fields.append(check(key + f"method.{method}", ref, f"{label} 実施方法（{METHOD_WORDS[method]}）"))
     for method, (ref, pattern) in spec.get("notes", {}).items():
-        fields.append(template(ref, f"{label} 実施方法 {method}", pattern,
+        fields.append(template(ref, f"{label} 実施方法（{METHOD_WORDS[method]}）", pattern,
                                {"n": {"key": key + f"method_note.{method}"}}, fit=True))
     for method, (ref, word) in spec.get("checked_methods", {}).items():
-        fields.append(template(ref, f"{label} 実施方法 {word}", "{c} " + word,
+        fields.append(template(ref, f"{label} 実施方法（{word}）", "{c} " + word,
                                {"c": {"key": key + f"method.{method}", "format": "check",
                                       "empty": "□"}}))
     if "text" in spec:
         fields.append(text(key + "method_text", spec["text"], f"{label} 実施方法"))
     if "content" in spec:
-        fields.append(text(key + "content", spec["content"], f"{label} 自由記入の内容"))
+        fields.append(text(key + "content", spec["content"], f"{label} 内容"))
     if "diff" in spec:
         fields.append(text(key + "note", spec["diff"], f"{label} 支援内容ごとに異なる場合"))
     return fields
@@ -298,12 +327,13 @@ def fields() -> list[dict]:
         result += row_fields(code, spec)
     for item, spec in ITEM_CELLS.items():
         key = f"plan.item.{item}."
-        result.append(text(key + "languages", spec["language"], f"Ⅳ {item} 実施言語"))
-        result.append(template(spec["interpreter"], f"Ⅳ {item} 通訳者",
+        section = f"Ⅳ{SECTION_TITLES[ITEM_SECTIONS[item]]}"
+        result.append(text(key + "languages", spec["language"], f"{section} 実施言語"))
+        result.append(template(spec["interpreter"], f"{section} 通訳者",
                                INTERPRETER_LABEL + SP + SP + "{n}",
                                {"n": {"key": key + "interpreter"}}, fit=True))
         if "hours" in spec:
-            result.append(text(key + "planned_hours", spec["hours"], f"Ⅳ {item} 実施予定時間",
+            result.append(text(key + "planned_hours", spec["hours"], f"{section} 実施予定時間",
                                fmt="number"))
     result += [
         check("housing.secured", "S312", "Ⅳ ３ア ｄ 申請時点で確保"),
@@ -322,7 +352,7 @@ def fields() -> list[dict]:
              "sat": "S502", "sun": "S506", "holiday": "S510"}
     for day, ref in hours.items():
         key = f"consultation.{day}."
-        result.append(template(ref, f"Ⅳ ６イ 対応時間 {day}", "{s}" + SP + "～" + SP + "{e}",
+        result.append(template(ref, f"Ⅳ６イ 対応時間（{DAY_WORDS[day]}）", "{s}" + SP + "～" + SP + "{e}",
                                {"s": {"key": key + "start"}, "e": {"key": key + "end"}}, fit=True))
     for prefix, row in (("consultation", 517), ("emergency", 532)):
         label = "Ⅳ ６イ 相談方法" if prefix == "consultation" else "Ⅳ ６イ 緊急時"

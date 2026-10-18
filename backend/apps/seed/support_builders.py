@@ -21,6 +21,7 @@ from django.db import models
 from apps.contracts.models import EmploymentContract
 from apps.core.models import Attachment
 from apps.filings.models import Filing, FilingKind, FilingStatus
+from apps.forms_engine.models import GeneratedDocument, GeneratedDocumentSignature
 from apps.seed.context import DUMMY_MARK, DUMMY_PDF, SeedContext
 from apps.support.models import (
     Briefing,
@@ -510,9 +511,20 @@ def delete_support_data(worker_ids: Iterable[int]) -> int:
         )
         | models.Q(content_type=ContentType.objects.get_for_model(ForeignWorker), object_id__in=ids)
     )
+    # 生成した帳票（T29〜T33）: 署名の紐づけ → 添付・ファイル → 生成物（交付記録の後）の順に消す。
+    # 生成物と紐づけはモデルの delete() では消せないので、開発用のこの処理に限り一括で消す
+    documents = GeneratedDocument.objects.filter(worker_id__in=ids)
+    deleted = GeneratedDocumentSignature.objects.filter(document__in=documents).delete()[0]
+    files = files | Attachment.objects.filter(
+        content_type=ContentType.objects.get_for_model(GeneratedDocument),
+        object_id__in=documents.values("pk"),
+    )
+    for document in documents:
+        document.pdf_file.delete(save=False)
+        document.filled_file.delete(save=False)
     for attachment in files:
         attachment.file.delete(save=False)
-    deleted = files.delete()[0]
+    deleted += files.delete()[0]
     plan_filter = {"version__plan__worker_id__in": ids}
     for queryset in (
         BriefingCheck.objects.filter(briefing__worker_id__in=ids),
@@ -522,6 +534,7 @@ def delete_support_data(worker_ids: Iterable[int]) -> int:
         ConsultationEntry.objects.filter(consultation__worker_id__in=ids),
         Consultation.objects.filter(worker_id__in=ids),
         DocumentDelivery.objects.filter(pk__in=delivery_ids),
+        GeneratedDocument.objects.filter(worker_id__in=ids),
         SupportRecord.objects.filter(pk__in=record_ids),
         PeriodicInterview.objects.filter(worker_id__in=ids),
         SupportPlanActivity.objects.filter(**plan_filter),

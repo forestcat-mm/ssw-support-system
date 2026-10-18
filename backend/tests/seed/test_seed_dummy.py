@@ -201,3 +201,62 @@ def test_every_contract_version_passes_the_current_checks() -> None:
         for version in versions
     }
     assert {key: value for key, value in errors.items() if value} == {}
+
+
+def test_reset_removes_generated_documents_of_dummy_workers() -> None:
+    """ダミーの外国人の生成した帳票（署名の紐づけ・添付・交付記録・届出タスクの参照を含む）も消える。"""
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from django.utils import timezone
+
+    from apps.forms_engine.models import (
+        FormTemplate,
+        GeneratedDocument,
+        GeneratedDocumentSignature,
+        GenerationStatus,
+    )
+    from apps.support.models import DeliveredBy, DeliveryKind, DeliveryMethod
+    from services import deliveries, filings, form_signatures, form_templates
+    from tests.conftest import PDF_BYTES
+
+    _seed()
+    form_templates.load_all()
+    dummy = ForeignWorker.objects.filter(
+        pk__in=SeedObject.objects.filter(content_type__model="foreignworker").values("object_id")
+    ).order_by("pk")[14]
+    version = dummy.support_plans.get().versions.order_by("-version").first()
+    template = FormTemplate.objects.get(form_id="1-17")
+    document = GeneratedDocument.objects.create(
+        template=template,
+        target=version,
+        worker=dummy,
+        basis_on=BASE,
+        snapshot="{}",
+        status=GenerationStatus.COMPLETED,
+        generated_at=timezone.now(),
+    )
+    pdf = SimpleUploadedFile("s.pdf", PDF_BYTES, content_type="application/pdf")
+    form_signatures.add_signature(document, [pdf], signed_on=timezone.localdate(), by=None)
+    deliveries.create_delivery(
+        dummy,
+        deliveries.DeliveryInput(
+            kind=DeliveryKind.SUPPORT_PLAN_COPY,
+            delivered_on=timezone.localdate(),
+            method=DeliveryMethod.HAND,
+            delivered_by=DeliveredBy.ORGANIZATION,
+            explained=True,
+            generated_document=document,
+        ),
+        by=None,
+    )
+    filing = Filing.objects.filter(worker=dummy).first()
+    assert filing is not None
+    filings.link_document(filing, document, by=None)
+    kept_worker = make_worker(name_romaji="NOT DUMMY")
+    kept = GeneratedDocument.objects.create(
+        template=template, target=kept_worker, worker=kept_worker, basis_on=BASE, snapshot="{}"
+    )
+
+    _seed("--reset")
+    assert not GeneratedDocument.objects.filter(pk=document.pk).exists()
+    assert not GeneratedDocumentSignature.objects.exists()
+    assert GeneratedDocument.objects.filter(pk=kept.pk).exists()  # ダミーでない外国人の分は残る
