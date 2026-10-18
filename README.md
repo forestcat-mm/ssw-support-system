@@ -90,6 +90,8 @@ python3 tools/forms/make_own_templates.py career-plan templates/forms/career-pla
 python3 tools/forms/make_application_templates.py 3-1 templates/forms/3-1/2026-10-18 > mappings/3-1/2026-10-18.json  # 申請の書類の template.docx とマッピング（13-1・13-2・5-10・1-25 も同じ。ADR-0026）
 python3 tools/forms/make_industry_lists.py > backend/services/data/industries.json  # 第3-1号・第13-1号の産業の一覧（ADR-0026）
 python3 tools/forms/make_application_sets.py  # 申請の書類の一覧の定義（application_sets/。入管の提出書類一覧・確認表から。ADR-0026）
+python3 tools/forms/extract_zh_forms.py templates/forms/5-9/2026-10-18.ja-zh/original.docx 5-9 templates/forms/5-9/2026-10-18.ja-zh/extracted.docx  # 入管の中国語の版から様式の部分を取り出す（1-5・5-8 も同じ。ADR-0027）
+python3 tools/forms/make_zh_templates.py 5-9 templates/forms/5-9/2026-10-18.ja-zh > mappings/5-9/2026-10-18.ja-zh.json  # 日中併記の版の template.docx とマッピング（1-5・5-8 も同じ。ADR-0027）
 docker compose exec web python manage.py generate_sample_form 1-17 --worker <ID>  # 見本の帳票を生成する（開発者向け。警告があるときは --accept-warnings）
 make lock           # pyproject.toml の変更を uv.lock に反映する（その後 make build）
 ```
