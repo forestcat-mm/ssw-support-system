@@ -15,7 +15,12 @@ from django.db import connection
 from django.test import Client
 
 from apps.core.models import AuditAction, AuditLog
-from apps.forms_engine.models import GeneratedDocument, GenerationStatus, ImmutableRowError
+from apps.forms_engine.models import (
+    FormMapping,
+    GeneratedDocument,
+    GenerationStatus,
+    ImmutableRowError,
+)
 from apps.workers.models import ForeignWorker
 from services import form_convert, form_generation
 from tests.core.factories import make_user, verified_client
@@ -26,6 +31,14 @@ pytestmark = pytest.mark.django_db
 
 ROOT = Path(settings.FORM_TEMPLATES_ROOT)
 BASIS = datetime.date(2026, 10, 18)
+
+
+@pytest.fixture(autouse=True)
+def no_rules(loaded: None) -> None:
+    """生成そのものを確かめるため、生成前の検査の規則を外す（検査は test_checks.py）。"""
+    for mapping in FormMapping.objects.all():
+        mapping.rules = []
+        mapping.save()
 
 
 @pytest.fixture

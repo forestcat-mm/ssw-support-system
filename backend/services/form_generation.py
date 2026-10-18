@@ -1,6 +1,9 @@
 """帳票の生成と生成履歴（仕様書 第6章「生成履歴」、第5章 F08・F12。T29、ADR-0018）。
 
 流れ:
+0. check(): 基準日に適用される版の規則で生成前の検査をする（T30、ADR-0019）。生成不可があれば
+   request() は GenerationBlocked で止め、生成履歴を作らない。警告は accept_warnings=True で確かめた
+   ときだけ生成し、生成履歴に警告（findings）と規則のファイルの SHA-256 を残す。
 1. request(): 基準日に適用される版を選び、データのスナップショット（暗号化）を持つ生成履歴を
    「依頼」で作り、ジョブ（Django-Q2）を登録する。
 2. run()（ジョブ）: マッピング定義でデータを様式の欄の値にし、Excel はセルの値だけを書き、Word は
@@ -29,8 +32,18 @@ from pypdf import PdfReader
 
 from apps.core.models import Action, AuditAction, User
 from apps.forms_engine.models import FormMethod, FormTemplate, GeneratedDocument, GenerationStatus
+from apps.support.models import Briefing
 from apps.workers.models import ForeignWorker
-from services import audit, authorization, form_convert, form_docx, form_templates, form_xlsx, jobs
+from services import (
+    audit,
+    authorization,
+    form_checks,
+    form_convert,
+    form_docx,
+    form_templates,
+    form_xlsx,
+    jobs,
+)
 from services.authorization import AnyUser
 
 CHECKED = "☑"
@@ -39,6 +52,22 @@ UNCHECKED = "□"
 
 class MappingError(Exception):
     """マッピング定義の不備（欄の書式が分からない など）。"""
+
+
+class GenerationBlocked(Exception):
+    """生成不可の不足がある（生成履歴を作らない）。"""
+
+    def __init__(self, result: form_checks.CheckResult) -> None:
+        super().__init__(f"{len(result.blocking)} blocking finding(s)")
+        self.result = result
+
+
+class WarningsNotAccepted(Exception):
+    """警告を確かめずに生成しようとした（accept_warnings=True が要る）。"""
+
+    def __init__(self, result: form_checks.CheckResult) -> None:
+        super().__init__(f"{len(result.warnings)} warning(s) not accepted")
+        self.result = result
 
 
 # --- 値の書式 ---------------------------------------------------------------------
@@ -86,6 +115,38 @@ def _sha256(path: Path) -> str:
 # --- 依頼 ------------------------------------------------------------------------
 
 
+def worker_of(target: models.Model) -> ForeignWorker | None:
+    """生成の対象の外国人（対象が外国人そのもの、またはガイダンスの記録）。"""
+    if isinstance(target, ForeignWorker):
+        return target
+    if isinstance(target, Briefing):
+        return target.worker
+    return None
+
+
+def check(
+    form_id: str,
+    *,
+    target: models.Model,
+    data: Mapping[str, Any],
+    basis_on: datetime.date,
+    language: str = "ja",
+) -> form_checks.CheckResult:
+    """生成前の検査（基準日に適用される版の規則）。生成の画面（T31〜）と request() が使う。"""
+    template = form_templates.select_template(form_id, basis_on, language=language).template
+    return _check(template, target, data, basis_on)
+
+
+def _check(
+    template: FormTemplate, target: models.Model, data: Mapping[str, Any], basis_on: datetime.date
+) -> form_checks.CheckResult:
+    worker = worker_of(target)
+    if worker is None:
+        raise ValueError("the target has no foreign worker")
+    context = form_checks.CheckContext(worker=worker, target=target, basis_on=basis_on, data=data)
+    return form_checks.evaluate(template.mapping.rules, context)
+
+
 def request(
     form_id: str,
     *,
@@ -94,10 +155,16 @@ def request(
     basis_on: datetime.date,
     by: User | None,
     language: str = "ja",
+    accept_warnings: bool = False,
 ) -> GeneratedDocument:
-    """生成を依頼する（生成履歴を作り、ジョブを登録する）。"""
+    """生成を依頼する（検査を通し、生成履歴を作り、ジョブを登録する）。"""
     selection = form_templates.select_template(form_id, basis_on, language=language)
     template = selection.template
+    result = _check(template, target, data, basis_on)
+    if result.blocking:
+        raise GenerationBlocked(result)
+    if result.warnings and not accept_warnings:
+        raise WarningsNotAccepted(result)
     snapshot = {
         "form_id": form_id,
         "template_id": template.pk,
@@ -110,9 +177,11 @@ def request(
         document = GeneratedDocument.objects.create(
             template=template,
             target=target,
-            worker=target if isinstance(target, ForeignWorker) else None,
+            worker=worker_of(target),
             basis_on=basis_on,
             revision_unknown=template.revision_unknown,
+            rules_sha256=template.mapping.rules_sha256,
+            findings=[finding.as_json() for finding in result.warnings],
             snapshot=json.dumps(snapshot, ensure_ascii=False),
             created_by=by,
             updated_by=by,

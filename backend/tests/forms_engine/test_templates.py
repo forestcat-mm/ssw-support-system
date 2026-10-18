@@ -2,12 +2,10 @@
 
 import datetime
 import json
-import shutil
 from pathlib import Path
 
 import pytest
 from django.conf import settings
-from pytest_django.fixtures import Settings as SettingsWrapper
 
 from apps.forms_engine.models import FormMapping, FormTemplate, GeneratedDocument
 from services import form_templates
@@ -26,18 +24,6 @@ def test_loading_is_idempotent_and_records_the_sources(loaded: None) -> None:
     assert report.created == [] and report.updated == []
     assert sorted(report.unchanged) == ["1-17 2026-10-17 ja", "5-9 2026-10-17 ja"]
     assert FormTemplate.objects.count() == 2 and FormMapping.objects.count() == 2
-
-
-@pytest.fixture
-def repo_copy(tmp_path: Path, settings: SettingsWrapper) -> tuple[Path, Path]:
-    """リポジトリの様式とマッピングを一時の場所に写して読む（書き換えの試験用）。"""
-    templates = tmp_path / "forms"
-    mappings = tmp_path / "mappings"
-    shutil.copytree(settings.FORM_TEMPLATES_ROOT, templates)
-    shutil.copytree(settings.FORM_MAPPINGS_ROOT, mappings)
-    settings.FORM_TEMPLATES_ROOT = templates
-    settings.FORM_MAPPINGS_ROOT = mappings
-    return templates, mappings
 
 
 def test_changed_original_stops_loading(repo_copy: tuple[Path, Path]) -> None:

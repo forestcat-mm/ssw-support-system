@@ -19,9 +19,11 @@ class Command(BaseCommand):
             self.stdout.write(f"created: {key}")
         for key in report.updated:
             self.stdout.write(f"updated: {key}")
+        for key in report.rules_updated:
+            self.stdout.write(f"rules updated: {key}")
         self.stdout.write(
             self.style.SUCCESS(
                 f"created {len(report.created)}, updated {len(report.updated)}, "
-                f"unchanged {len(report.unchanged)}"
+                f"unchanged {len(report.unchanged)}, rules updated {len(report.rules_updated)}"
             )
         )

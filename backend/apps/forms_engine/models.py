@@ -107,6 +107,10 @@ class FormMapping(TrackedModel):
     path = models.CharField(_("mapping file"), max_length=255)
     sha256 = models.CharField("SHA-256", max_length=64)
     definition = models.JSONField(_("definition"), default=dict)
+    # 生成前の検査の規則（mappings/<様式ID>/<適用開始日>.rules.json。置き換えてよい。ADR-0019）
+    rules_path = models.CharField(_("rules file"), max_length=255, blank=True)
+    rules_sha256 = models.CharField(_("rules SHA-256"), max_length=64, blank=True)
+    rules = models.JSONField(_("rules"), default=list)
 
     class Meta:
         verbose_name = _("form mapping")
@@ -171,6 +175,9 @@ class GeneratedDocument(TrackedModel):
     pdf_file = PrivateFileField(_("PDF"), upload_to=generated_upload_to, max_length=255, blank=True)
     pdf_sha256 = models.CharField(_("PDF SHA-256"), max_length=64, blank=True)
     page_count = models.PositiveSmallIntegerField(_("pages"), null=True, blank=True)
+    # 生成前の検査（ADR-0019）: 使った規則のファイルと、確かめて生成した警告
+    rules_sha256 = models.CharField(_("rules SHA-256"), max_length=64, blank=True)
+    findings = models.JSONField(_("warnings at generation"), default=list, blank=True)
 
     class Meta:
         verbose_name = _("generated document")

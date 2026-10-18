@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-18 13:06+0900\n"
+"POT-Creation-Date: 2026-10-18 16:57+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -2617,6 +2617,15 @@ msgstr "マッピング定義のファイル"
 msgid "definition"
 msgstr "定義"
 
+msgid "rules file"
+msgstr "規則のファイル"
+
+msgid "rules SHA-256"
+msgstr "規則の SHA-256"
+
+msgid "rules"
+msgstr "規則"
+
 msgid "form mapping"
 msgstr "マッピング定義"
 
@@ -2655,6 +2664,9 @@ msgstr "PDF の SHA-256"
 
 msgid "pages"
 msgstr "頁数"
+
+msgid "warnings at generation"
+msgstr "生成のときの警告"
 
 msgid "generated document"
 msgstr "生成履歴"
@@ -5406,6 +5418,71 @@ msgstr "対象を 1 つだけ選んでください。"
 
 msgid "Filing tasks cannot be created for a deactivated foreign worker."
 msgstr "無効化した外国人の届出タスクは起票できません。"
+
+#, python-format
+msgid ""
+"There is no employment contract in effect on %(day)s (or starting after it)."
+msgstr ""
+"基準日（%(day)s）に有効な雇用契約（またはその後に始まる契約）がありません。"
+
+#, python-format
+msgid "%(host)s has no membership of %(body)s registered."
+msgstr "%(host)sの%(body)sへの加入が登録されていません。"
+
+#, python-format
+msgid ""
+"The membership of %(host)s in %(body)s expired on %(day)s. An expired "
+"certificate is treated as no certificate."
+msgstr ""
+"%(host)sの%(body)sへの加入の有効期限（%(day)s）を過ぎています。有効期限を過ぎ"
+"た証明書は、無いものとみなします。"
+
+#, python-format
+msgid "The membership certificate of %(host)s (%(body)s) is not attached."
+msgstr "%(host)sの加入の証明書（%(body)s）が添付されていません。"
+
+msgid "No residence record is registered."
+msgstr "在留情報が登録されていません。"
+
+#, python-format
+msgid "The period of stay expires on %(day)s, which is not after %(basis)s."
+msgstr "在留期限（%(day)s）が基準日（%(basis)s）より後ではありません。"
+
+msgid "No staff member is assigned to this foreign worker."
+msgstr "この外国人の担当者が決まっていません。"
+
+#, python-format
+msgid ""
+"The assigned staff member (%(staff)s) is not registered as speaking the "
+"support language (%(language)s). This is not a problem if an interpreter is "
+"arranged."
+msgstr ""
+"担当者（%(staff)s）の対応言語に、支援言語（%(language)s）が登録されていませ"
+"ん。通訳の手配がある場合は問題ありません。"
+
+#, python-format
+msgid "There is no record of the %(kind)s."
+msgstr "%(kind)sの記録がありません。"
+
+#, python-format
+msgid "\"%(label)s\" is empty."
+msgstr "「%(label)s」が空です。"
+
+#, python-format
+msgid "\"%(label)s\" is not a date."
+msgstr "「%(label)s」が日付ではありません。"
+
+#, python-format
+msgid "\"%(label)s\" must be in half-width characters."
+msgstr "「%(label)s」は半角で書いてください。"
+
+#, python-format
+msgid "\"%(label)s\" must be in full-width characters."
+msgstr "「%(label)s」は全角で書いてください。"
+
+#, python-format
+msgid "\"%(label)s\" is longer than %(limit)d characters."
+msgstr "「%(label)s」が %(limit)d 文字を超えています。"
 
 #, python-format
 msgid ""

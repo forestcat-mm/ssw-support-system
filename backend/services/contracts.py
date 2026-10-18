@@ -66,6 +66,35 @@ def latest_version(contract: EmploymentContract) -> EmploymentContractVersion | 
     return contract.versions.order_by("-version").first()
 
 
+def contract_on(worker: ForeignWorker, on: date) -> EmploymentContract | None:
+    """その日の雇用契約（帳票の生成前の検査。ADR-0019）。
+
+    その日に始まっていて終了していない契約（終了日がその日以後を含む。期間の満了を登録していない
+    契約は status_of と同じく有効とみなす）のうち、最も新しく始まったもの。無ければ、その日より後に
+    始まる予定の契約（入国前など）のうち、最も早いもの。
+    """
+    contracts = EmploymentContract.objects.filter(worker=worker)
+    started = (
+        contracts.filter(current_starts_on__lte=on)
+        .filter(Q(terminated_on__isnull=True) | Q(terminated_on__gte=on))
+        .order_by("-current_starts_on", "-pk")
+        .first()
+    )
+    if started is not None:
+        return started
+    return (
+        contracts.filter(current_starts_on__gt=on, terminated_on__isnull=True)
+        .order_by("current_starts_on", "pk")
+        .first()
+    )
+
+
+def version_on(contract: EmploymentContract, on: date) -> EmploymentContractVersion | None:
+    """その日に有効な版（変更日がその日以前の最も新しい版。無ければ第1版）。"""
+    applied = contract.versions.filter(changed_on__lte=on).order_by("-version").first()
+    return applied or contract.versions.order_by("version").first()
+
+
 # --- 検査 ----------------------------------------------------------------------
 
 
