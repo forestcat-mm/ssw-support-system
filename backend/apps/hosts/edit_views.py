@@ -11,7 +11,7 @@ from typing import Any
 
 from django import forms
 from django.contrib import messages
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
@@ -33,6 +33,7 @@ from apps.hosts.forms import (
     HostSiteForm,
     MembershipForm,
     SupportContractForm,
+    SupportTerminationForm,
     apply_errors,
 )
 from apps.hosts.models import (
@@ -43,7 +44,7 @@ from apps.hosts.models import (
     SupportContract,
 )
 from apps.support.record_forms import AttachmentForm, ReasonForm
-from services import attachments, authorization, filings, host_records
+from services import attachments, authorization, filings, host_records, support_filings
 
 
 def _actor(request: HttpRequest) -> User:
@@ -90,6 +91,33 @@ def sync_messages(request: HttpRequest, result: filings.SyncResult) -> None:
                 len(result.left_open),
             )
             % {"count": len(result.left_open)},
+        )
+
+
+def raised_messages(request: HttpRequest, raised: support_filings.Raised) -> None:
+    """支援委託契約の届出タスクの起票・取消の結果を知らせる。"""
+    if raised.created:
+        names = "、".join(str(worker) for worker in raised.workers)
+        messages.info(
+            request,
+            ngettext(
+                "Created %(count)d notification task for: %(names)s.",
+                "Created %(count)d notification tasks for: %(names)s.",
+                len(raised.created),
+            )
+            % {"count": len(raised.created), "names": names},
+        )
+    if raised.left_open:
+        messages.warning(
+            request,
+            ngettext(
+                "%(count)d notification task was already started or closed and was not "
+                "cancelled. Check it.",
+                "%(count)d notification tasks were already started or closed and were not "
+                "cancelled. Check them.",
+                len(raised.left_open),
+            )
+            % {"count": len(raised.left_open)},
         )
 
 
@@ -471,20 +499,146 @@ class SupportContractEditView(HostFormView):
             return self.already_submitted(request, detail_url(host, "support-contracts"))
         form = SupportContractForm(request.POST, request.FILES, instance=contract, host=host)
         if form.is_valid():
+            amendment = (
+                host_records.Amendment(changed_on=form.cleaned_data["amended_on"])
+                if form.cleaned_data.get("is_amendment")
+                else None
+            )
             try:
                 result = host_records.save_support_contract(
                     form.save(commit=False),
                     files=form.cleaned_data.get("uploads") or [],
                     by=_actor(request),
                     today=timezone.localdate(),
+                    amendment=amendment,
                 )
             except ValidationError as error:
                 apply_errors(form, error)
             else:
                 messages.success(request, _("Saved."))
-                sync_messages(request, result)
+                sync_messages(request, result.sync)
+                raised_messages(request, result.raised)
                 return redirect(detail_url(host, "support-contracts"))
         return self.page(request, host, contract, form)
+
+
+class SupportTerminateView(HostFormView):
+    """支援委託契約の終了の登録（第3-3-2号・第3-2号を外国人ごとに起票。ADR-0017）。"""
+
+    def target(self, request: HttpRequest, pk: int, contract_id: int) -> Any:
+        host = self.host(request, pk)
+        contract = get_object_or_404(host.support_contracts, pk=contract_id)
+        if contract.terminated_on is not None:
+            raise PermissionDenied
+        return host, contract
+
+    def page(
+        self, request: HttpRequest, host: HostOrganization, contract: Any, form: Any
+    ) -> HttpResponse:
+        return self.render(
+            request,
+            host=host,
+            form=form,
+            title=_("Register the termination of the support contract"),
+            lead=_(
+                "Notification tasks (form 3-3-2 and form 3-2) are created for each foreign worker "
+                "with an effective employment contract on the termination date. When the "
+                "support ends because the worker leaves the job, register the termination of "
+                "the employment contract instead (column c of form 3-1-2)."
+            ),
+            back=detail_url(host, "support-contracts"),
+            submit=_("Register the termination"),
+            form_id="support-termination-form",
+        )
+
+    def get(self, request: HttpRequest, pk: int, contract_id: int) -> HttpResponse:
+        host, contract = self.target(request, pk, contract_id)
+        return self.page(request, host, contract, SupportTerminationForm())
+
+    def post(self, request: HttpRequest, pk: int, contract_id: int) -> HttpResponse:
+        host, contract = self.target(request, pk, contract_id)
+        if not consume_once_token(request):
+            return self.already_submitted(request, detail_url(host, "support-contracts"))
+        form = SupportTerminationForm(request.POST)
+        if form.is_valid():
+            try:
+                result = host_records.terminate_support_contract(
+                    contract,
+                    terminated_on=form.cleaned_data["terminated_on"],
+                    category=form.cleaned_data["termination_category"],
+                    reason=form.cleaned_data["termination_reason"],
+                    note=form.cleaned_data.get("termination_note") or "",
+                    by=_actor(request),
+                    today=timezone.localdate(),
+                )
+            except ValidationError as error:
+                apply_errors(form, error)
+            else:
+                messages.success(request, _("Registered the termination."))
+                sync_messages(request, result.sync)
+                raised_messages(request, result.raised)
+                return redirect(detail_url(host, "support-contracts"))
+        return self.page(request, host, contract, form)
+
+
+class SupportReopenView(HostFormView):
+    """支援委託契約の終了の取消（管理者だけ。理由は必須）。"""
+
+    required_action = Action.CONTRACTS_REOPEN
+
+    def target(self, request: HttpRequest, pk: int, contract_id: int) -> Any:
+        host = self.host(request, pk)
+        contract = get_object_or_404(host.support_contracts, pk=contract_id)
+        if contract.terminated_on is None:
+            raise PermissionDenied
+        return host, contract
+
+    def form(self, data: Any = None) -> ReasonForm:
+        form = ReasonForm(
+            data, help_text=_("Example: the termination was registered for the wrong contract.")
+        )
+        form.fields["reason"].label = _("reason for cancelling the termination")
+        return form
+
+    def page(self, request: HttpRequest, host: HostOrganization, form: Any) -> HttpResponse:
+        return self.render(
+            request,
+            host=host,
+            form=form,
+            title=_("Cancel the termination of the support contract"),
+            lead=_(
+                "Only for correcting a mistake. Notification tasks not yet started are cancelled "
+                "with this reason. Tasks in progress or closed are kept; check them."
+            ),
+            back=detail_url(host, "support-contracts"),
+            submit=_("Cancel the termination"),
+            form_id="support-reopen-form",
+        )
+
+    def get(self, request: HttpRequest, pk: int, contract_id: int) -> HttpResponse:
+        host, _contract = self.target(request, pk, contract_id)
+        return self.page(request, host, self.form())
+
+    def post(self, request: HttpRequest, pk: int, contract_id: int) -> HttpResponse:
+        host, contract = self.target(request, pk, contract_id)
+        if not consume_once_token(request):
+            return self.already_submitted(request, detail_url(host, "support-contracts"))
+        form = self.form(request.POST)
+        if form.is_valid():
+            try:
+                result = host_records.cancel_support_termination(
+                    contract,
+                    reason=form.cleaned_data["reason"],
+                    by=_actor(request),
+                    today=timezone.localdate(),
+                )
+            except ValidationError as error:
+                apply_errors(form, error)
+            else:
+                messages.success(request, _("Cancelled the termination."))
+                raised_messages(request, result.raised)
+                return redirect(detail_url(host, "support-contracts"))
+        return self.page(request, host, form)
 
 
 # --- 添付 ------------------------------------------------------------------------

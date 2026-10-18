@@ -56,6 +56,7 @@ class FilingRow:
     record_url: str = (
         ""  # 開いている定期面談のタスクから記録の画面へ（T19。表示は権限のある人だけ）
     )
+    notes: tuple[str, ...] = ()  # 行に添える注意（services.filings.task_notes）
 
 
 def _host_id_of(target: object) -> int | None:
@@ -103,6 +104,7 @@ def filing_rows(items: Iterable[Filing], today: datetime.date) -> list[FilingRow
                 target_url_name=url_name,
                 target_pk=pk,
                 record_url=_record_url(filing) if is_open else "",
+                notes=tuple(filings.task_notes(filing, today)),
             )
         )
     return rows

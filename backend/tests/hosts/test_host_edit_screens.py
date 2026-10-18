@@ -333,3 +333,97 @@ def test_second_submission_of_the_same_form_is_ignored(support_staff_client: Cli
     assert support_staff_client.post("/hosts/new/", data).status_code == 302
     assert support_staff_client.post("/hosts/new/", data).status_code == 302
     assert HostOrganization.objects.count() == 1
+
+
+def test_terminate_and_reopen_a_support_contract(
+    support_staff_client: Client, admin_client: Client
+) -> None:
+    """終了の登録（担当者）→ 外国人ごとの届出タスク → 終了の取消（管理者だけ・理由必須）。"""
+    from tests.contracts.factories import make_contract, site_with_categories
+    from tests.workers.factories import add_residence, make_worker
+
+    site = site_with_categories()
+    host = site.host_organization
+    worker = make_worker(status="residing")
+    add_residence(worker)
+    make_contract(worker, site=site, ends_on=None)
+    contract = SupportContract.objects.create(
+        host_organization=host,
+        concluded_on=date(2025, 3, 1),
+        starts_on=date(2025, 4, 1),
+        ends_on=date(2027, 3, 31),
+        monthly_fee=30000,
+    )
+    detail = support_staff_client.get(f"/hosts/{host.pk}/").content.decode()
+    assert "¥30,000" in detail
+    assert f"/hosts/{host.pk}/support-contracts/{contract.pk}/terminate/" in detail
+
+    url = f"/hosts/{host.pk}/support-contracts/{contract.pk}/terminate/"
+    response = submit(
+        support_staff_client,
+        url,
+        {
+            "terminated_on": "2026-09-30",
+            "termination_category": "expiry",
+            "termination_reason": "business",
+        },
+    )
+    assert "termination_reason" in response.context["form"].errors  # 大分類に合わない
+    page = support_staff_client.get(url)
+    response = support_staff_client.post(
+        url,
+        {
+            "once_token": page.context["once_token"],
+            "terminated_on": "2026-09-30",
+            "termination_category": "host",
+            "termination_reason": "business",
+        },
+        follow=True,
+    )
+    assert any("届出タスクを 2 件起票しました" in str(m) for m in response.context["messages"])
+    assert set(Filing.objects.filter(worker=worker).values_list("kind", flat=True)) >= {
+        FilingKind.SUPPORT_CONTRACT_END_OR_CONCLUSION,
+        FilingKind.SUPPORT_PLAN_CHANGE,
+    }
+    assert "data-terminated" in response.content.decode()
+
+    reopen = f"/hosts/{host.pk}/support-contracts/{contract.pk}/reopen/"
+    assert support_staff_client.get(reopen).status_code == 403
+    response = submit(admin_client, reopen, {"reason": ""})
+    assert "reason" in response.context["form"].errors
+    response = submit(admin_client, reopen, {"reason": "別の契約に登録した"})
+    assert response.status_code == 302
+    contract.refresh_from_db()
+    assert contract.terminated_on is None
+    assert (
+        not Filing.objects.filter(worker=worker, trigger_details__event="terminated")
+        .exclude(status=FilingStatus.CANCELLED)
+        .exists()
+    )
+
+
+def test_amending_the_fee_needs_a_date_and_raises_3_3_1(support_staff_client: Client) -> None:
+    from tests.contracts.factories import make_contract, site_with_categories
+    from tests.workers.factories import add_residence, make_worker
+
+    site = site_with_categories()
+    host = site.host_organization
+    worker = make_worker(status="residing")
+    add_residence(worker)
+    make_contract(worker, site=site, ends_on=None)
+    contract = SupportContract.objects.create(
+        host_organization=host,
+        concluded_on=date(2025, 3, 1),
+        starts_on=date(2025, 4, 1),
+        monthly_fee=30000,
+    )
+    url = f"/hosts/{host.pk}/support-contracts/{contract.pk}/edit/"
+    data = {"concluded_on": "2025-03-01", "starts_on": "2025-04-01", "monthly_fee": "35000"}
+    response = submit(support_staff_client, url, data | {"is_amendment": "on"})
+    assert "amended_on" in response.context["form"].errors
+    response = submit(
+        support_staff_client, url, data | {"is_amendment": "on", "amended_on": "2026-10-01"}
+    )
+    assert response.status_code == 302
+    task = Filing.objects.get(worker=worker, kind=FilingKind.SUPPORT_CONTRACT_CHANGE)
+    assert task.basis_on == date(2026, 10, 1)

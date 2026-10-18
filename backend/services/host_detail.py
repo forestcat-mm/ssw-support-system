@@ -49,7 +49,9 @@ def support_contract_for(
 ) -> SupportContract | None:
     """表示する支援委託契約: 今日有効 → 開始前（近い順）→ 最後に終わった契約。"""
     active = [
-        c for c in contracts if c.starts_on <= today and (c.ends_on is None or c.ends_on >= today)
+        c
+        for c in contracts
+        if c.starts_on <= today and (c.effective_ends_on is None or c.effective_ends_on >= today)
     ]
     if active:
         return max(active, key=lambda c: c.starts_on)
@@ -60,7 +62,8 @@ def support_contract_for(
 
 
 def _contract_deadline(contract: SupportContract | None) -> deadlines.Deadline | None:
-    if contract is None or contract.ends_on is None:
+    # 終了を登録した契約には更新の期限が無い（ADR-0017）
+    if contract is None or contract.ends_on is None or contract.terminated_on is not None:
         return None
     return deadlines.support_contract_end(contract.ends_on)
 

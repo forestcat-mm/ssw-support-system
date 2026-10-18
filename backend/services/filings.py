@@ -32,6 +32,8 @@ from apps.hosts.models import (
     HostMembership,
     HostOrganization,
     SupportContract,
+    SupportTerminationCategory,
+    SupportTerminationReason,
 )
 from apps.support.models import PeriodicInterview
 from apps.workers.models import (
@@ -100,6 +102,13 @@ KIND_DEFINITIONS: dict[FilingKind, KindDefinition] = {
     FilingKind.SUPPORT_DIFFICULTY: KindDefinition(
         Category.IMMIGRATION_FILING, Filer.SUPPORT_ORGANIZATION, deadlines.ad_hoc_filing
     ),
+    # 支援委託契約の変更（第3-3-1号）・終了又は締結（第3-3-2号）。所属機関が外国人ごと（T28c）
+    FilingKind.SUPPORT_CONTRACT_CHANGE: KindDefinition(
+        Category.IMMIGRATION_FILING, Filer.HOST, deadlines.ad_hoc_filing
+    ),
+    FilingKind.SUPPORT_CONTRACT_END_OR_CONCLUSION: KindDefinition(
+        Category.IMMIGRATION_FILING, Filer.HOST, deadlines.ad_hoc_filing
+    ),
     FilingKind.PERIODIC_HOST: KindDefinition(
         Category.IMMIGRATION_FILING, Filer.HOST, lambda basis: deadlines.periodic_filing(basis.year)
     ),
@@ -138,6 +147,8 @@ MANUAL_KINDS: tuple[FilingKind, ...] = (
     FilingKind.CONTRACT_CHANGE,
     FilingKind.CONTRACT_TERMINATION,
     FilingKind.CONTRACT_NEW,
+    FilingKind.SUPPORT_CONTRACT_CHANGE,
+    FilingKind.SUPPORT_CONTRACT_END_OR_CONCLUSION,
 )
 
 # 受入れ困難届出を併せて起票しない終了理由
@@ -331,10 +342,15 @@ def on_contract_terminated(contract: EmploymentContract, *, by: User | None) -> 
     会社都合・その他なら受入れ困難届出も起票する（自己都合退職・契約満了・転職は除く）。
     """
     assert contract.terminated_on is not None
-    details = {
+    details: dict[str, Any] = {
         "termination_reason": contract.termination_reason,
         "termination_note": contract.termination_note,
     }
+    # 外国人の退職で支援委託契約も終わる場合は、第3-1-2号の c 欄に記入して第3-3-2号に代える
+    # （運用要領 本体 印刷 115頁。ADR-0017）
+    support = hosts.active_contract(contract.host_organization, contract.terminated_on)
+    if support is not None:
+        details["support_contract"] = support.pk
     candidates = [
         create_if_active(
             FilingKind.CONTRACT_TERMINATION,
@@ -521,7 +537,9 @@ def create_scheduled(today: date, *, by: User | None = None) -> ScheduledResult:
             Trigger.DOCUMENT_EXPIRY,
         )
 
-    for support_contract in SupportContract.objects.filter(ends_on__isnull=False):
+    for support_contract in SupportContract.objects.filter(
+        ends_on__isnull=False, terminated_on__isnull=True
+    ):
         assert support_contract.ends_on is not None
         if not _support_contract_renewed(support_contract):
             add(
@@ -791,6 +809,19 @@ def sync_support_contracts(host: HostOrganization, *, by: User | None, today: da
     left: list[Filing] = []
     created: list[Filing] = []
     for contract in host.support_contracts.order_by("starts_on", "pk"):
+        if contract.terminated_on is not None:
+            # 終了の登録で更新は不要になった（ADR-0017。次の行か終了の登録まで完了にしない）
+            for filing in _unfinished_of(FilingKind.SUPPORT_CONTRACT_RENEWAL, contract):
+                _close_automatically(
+                    filing,
+                    FilingStatus.COMPLETED,
+                    by=by,
+                    reason=_("The termination of the support contract was registered (%(day)s).")
+                    % {"day": contract.terminated_on.isoformat()},
+                    source=contract,
+                )
+                closed.append(filing)
+            continue
         following = (
             SupportContract.objects.filter(
                 host_organization_id=contract.host_organization_id,
@@ -842,6 +873,92 @@ def sync_support_contracts(host: HostOrganization, *, by: User | None, today: da
             if raised is not None and was_created:
                 created.append(raised)
     return SyncResult(created=created, closed=closed, left_open=left)
+
+
+# --- タスクの注意書き（画面の表示）---------------------------------------------------------
+
+
+def task_notes(filing: Filing, today: date) -> list[str]:
+    """タスクに添えて表示する注意（ダッシュボードの行とタスクの詳細）。"""
+    notes: list[str] = []
+    kind = FilingKind(filing.kind)
+    open_ = FilingStatus(filing.status) in OPEN_STATUSES
+    if kind is FilingKind.SUPPORT_CONTRACT_RENEWAL and open_ and filing.basis_on < today:
+        notes.append(_("The end date has passed: register the next period or the termination."))
+    notes.extend(_support_contract_notes(filing))
+    if kind is FilingKind.CONTRACT_TERMINATION and (filing.trigger_details or {}).get(
+        "support_contract"
+    ):
+        notes.append(
+            _(
+                "A support contract was in effect: fill in column c (termination of the "
+                "support contract) of form 3-1-2. Form 3-3-2 is then not required."
+            )
+        )
+    return notes
+
+
+def _support_contract_notes(filing: Filing) -> list[str]:
+    """支援委託契約の届出タスク（第3-3-1号・3-3-2号と、それに伴う第3-2号）に、記入の手がかりを添える。"""
+    details = filing.trigger_details or {}
+    if not details.get("support_contract"):
+        return []
+    kind = FilingKind(filing.kind)
+    event = details.get("event")
+    if kind is FilingKind.SUPPORT_PLAN_CHANGE:
+        return [
+            _(
+                "The support plan changes because the support contract was %(event)s "
+                "(table %(item)s). Submit it before form 3-3-2."
+            )
+            % {
+                "event": _("concluded") if event == "concluded" else _("terminated"),
+                "item": {"III-6": "Ⅲ⑥", "III-7": "Ⅲ⑦"}.get(details.get("plan_change_item", ""), ""),
+            }
+        ]
+    if kind is FilingKind.SUPPORT_CONTRACT_END_OR_CONCLUSION and event == "concluded":
+        return [
+            _(
+                "Conclusion of the support contract on %(day)s: fill in B (conclusion) of "
+                "form 3-3-2 and attach form 1-25."
+            )
+            % {"day": details.get("concluded_on", "")}
+        ]
+    if kind is FilingKind.SUPPORT_CONTRACT_END_OR_CONCLUSION and event == "terminated":
+        category = details.get("termination_category") or ""
+        reason = details.get("termination_reason") or ""
+        reason_label = (
+            str(SupportTerminationReason(reason).label)
+            if reason in SupportTerminationReason.values
+            else ""
+        )
+        if details.get("termination_note"):
+            reason_label = f"{reason_label}（{details['termination_note']}）"
+        return [
+            _(
+                "Termination of the support contract on %(day)s (%(category)s / %(reason)s): "
+                "fill in A (termination) of form 3-3-2."
+            )
+            % {
+                "day": details.get("terminated_on", ""),
+                "category": (
+                    str(SupportTerminationCategory(category).label)
+                    if category in SupportTerminationCategory.values
+                    else ""
+                ),
+                "reason": reason_label,
+            }
+        ]
+    if kind is FilingKind.SUPPORT_CONTRACT_CHANGE:
+        changes = []
+        for name, (before, after) in (details.get("changes") or {}).items():
+            label = str(getattr(SupportContract._meta.get_field(name), "verbose_name", name))
+            changes.append(f"{label}: {before or '—'} → {after or '—'}")
+        return [
+            _("Change of the support contract on %(day)s: %(changes)s")
+            % {"day": details.get("changed_on", ""), "changes": "、".join(changes)}
+        ]
+    return []
 
 
 # --- 状態の遷移・起算日の訂正 --------------------------------------------------------------

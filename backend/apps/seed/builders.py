@@ -271,6 +271,7 @@ def seed_hosts(ctx: SeedContext) -> None:
         ctx.keep(
             SupportContract.objects.create(
                 host_organization=host,
+                monthly_fee=30000,  # 委託料（1 名あたり月額。ADR-0017）
                 concluded_on=starts_on - timedelta(days=14),
                 starts_on=starts_on,
                 ends_on=ends_on,
@@ -768,6 +769,7 @@ def seed_transfer(ctx: SeedContext) -> None:
     ctx.keep(
         SupportContract.objects.create(
             host_organization=host,
+            monthly_fee=30000,
             concluded_on=ctx.days(-380),
             starts_on=ctx.days(-365),
             ends_on=None,

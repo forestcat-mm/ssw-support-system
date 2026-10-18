@@ -149,7 +149,7 @@ def support_rows(fiscal_year: int) -> list[SupportRow]:
         overlaps = []
         for support in support_contracts.get(contract.host_organization_id, []):
             begin = max(contract_from, support.starts_on)
-            finish = min(contract_until, support.ends_on or contract_until)
+            finish = min(contract_until, support.effective_ends_on or contract_until)
             if begin <= finish:
                 overlaps.append((begin, finish, support))
         if not overlaps:

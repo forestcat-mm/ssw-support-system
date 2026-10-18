@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-18 11:23+0900\n"
+"POT-Creation-Date: 2026-10-18 12:02+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -2317,6 +2317,14 @@ msgid ""
 "report of a special incident in implementing the support plan (form 4-3)"
 msgstr "支援計画の実施における特異事案報告（参考様式第4-3号）"
 
+msgid "notification of change of support entrustment contract (form 3-3-1)"
+msgstr "支援委託契約変更届出（第3-3-1号）"
+
+msgid ""
+"notification of termination or conclusion of support entrustment contract "
+"(form 3-3-2)"
+msgstr "支援委託契約終了・締結届出（第3-3-2号）"
+
 msgid "periodic notification (host organization)"
 msgstr "定期届出（受入れ機関）"
 
@@ -2398,6 +2406,15 @@ msgstr "定期面談の記録"
 msgid ""
 "report to authorities, Hello Work consultation or job change support recorded"
 msgstr "通報・ハローワーク相談・転職支援の記録"
+
+msgid "support contract concluded"
+msgstr "支援委託契約の締結"
+
+msgid "support contract changed"
+msgstr "支援委託契約の変更"
+
+msgid "support contract terminated"
+msgstr "支援委託契約の終了"
 
 msgid "registered manually"
 msgstr "手動で起票"
@@ -2549,6 +2566,22 @@ msgstr[0] ""
 "前の期限のタスク %(count)d 件は対応中のため、変えていません。ダッシュボードで"
 "確かめてください。"
 
+#, python-format
+msgid "Created %(count)d notification task for: %(names)s."
+msgid_plural "Created %(count)d notification tasks for: %(names)s."
+msgstr[0] "届出タスクを %(count)d 件起票しました（対象: %(names)s）。"
+
+#, python-format
+msgid ""
+"%(count)d notification task was already started or closed and was not "
+"cancelled. Check it."
+msgid_plural ""
+"%(count)d notification tasks were already started or closed and were not "
+"cancelled. Check them."
+msgstr[0] ""
+"届出タスク %(count)d 件は対応中・完了などのため取り消していません。確かめてく"
+"ださい。"
+
 msgid "Edit the host organization"
 msgstr "受入れ機関の編集"
 
@@ -2647,6 +2680,32 @@ msgstr ""
 "支援計画の全部の委託（全部委託）です。同じ受入れ機関の契約は期間を重ねられま"
 "せん。次の契約を登録すると、前の契約の更新のタスクは自動で完了になります。"
 
+msgid "Register the termination of the support contract"
+msgstr "支援委託契約の終了を登録"
+
+msgid ""
+"Notification tasks (form 3-3-2 and form 3-2) are created for each foreign "
+"worker with an effective employment contract on the termination date. When "
+"the support ends because the worker leaves the job, register the termination "
+"of the employment contract instead (column c of form 3-1-2)."
+msgstr ""
+"終了日に雇用契約が有効な特定技能1号の外国人ごとに、届出タスク（第3-3-2号と第"
+"3-2号）を起票します。外国人の退職で支援が終わる場合は、ここではなく雇用契約の"
+"終了を登録します（第3-1-2号の c 欄）。"
+
+msgid "Registered the termination."
+msgstr "終了を登録しました。"
+
+msgid "Cancel the termination of the support contract"
+msgstr "支援委託契約の終了の取消"
+
+msgid ""
+"Only for correcting a mistake. Notification tasks not yet started are "
+"cancelled with this reason. Tasks in progress or closed are kept; check them."
+msgstr ""
+"入力の誤りを直すときだけ使います。未着手の届出タスクは、この理由で取消になり"
+"ます。対応中・完了などのタスクは残すので、確かめてください。"
+
 msgid "Add a copy of the cooperation confirmation"
 msgstr "協力確認書の控えの追加"
 
@@ -2719,12 +2778,55 @@ msgstr "未来の日付は入力できません。"
 msgid "support entrustment contract"
 msgstr "支援委託契約書"
 
+msgid "this is a change of the contract (not a correction of a mistake)"
+msgstr "契約の変更として届け出る（誤りの訂正ではない）"
+
 msgid ""
-"One row is one period. When the contract is renewed automatically, register "
-"the renewed period as the next contract. Leave blank if there is no end date."
+"When the fee or the period changes, notification tasks (form 3-3-1) are "
+"created for each worker. Leave unchecked to correct a mistake."
 msgstr ""
-"1 行が 1 期間です。自動更新で続いたときは、更新後の期間を次の契約として登録し"
-"ます。終了日が無ければ空にします。"
+"委託料・期間が変わると、外国人ごとに届出タスク（第3-3-1号）を起票します。誤り"
+"の訂正なら、チェックしません。"
+
+msgid "date of the change"
+msgstr "変更日"
+
+msgid ""
+"The planned end date. One row is one period: when the contract is renewed "
+"automatically, register the renewed period as the next contract (it starts "
+"the day after this end date). Register an actual termination with “Register "
+"the termination”. Leave blank if there is no end date."
+msgstr ""
+"予定の終了日。1 行が 1 期間です。自動更新で続いたときは、更新後の期間を次の契"
+"約として登録します（この終了日の翌日から始まる行）。実際に終わったときは「終"
+"了を登録」で登録します。終了日が無ければ空にします。"
+
+msgid ""
+"Form 1-25, item 5. The breakdown (annex of form 5-10) is handled later (T37)."
+msgstr "第1-25号の第5欄。内訳（第5-10号の別紙）は後で扱います（T37）。"
+
+msgid "Enter the date of the change."
+msgstr "変更日を入れてください。"
+
+msgid "The actual end date. It must be within the contract period."
+msgstr "実際に終了した日。契約の期間の中の日にします。"
+
+msgid "termination category"
+msgstr "終了の事由（大分類）"
+
+msgid ""
+"Expiry: expiry of the period. Host organization: business reasons, breach of "
+"contract or other. Support organization: revocation of registration, breach "
+"of contract, business reasons or other."
+msgstr ""
+"委託契約の期間満了: 期間満了。特定技能所属機関の都合: 経営上の都合・契約違"
+"反・その他。登録支援機関の都合: 登録取消し・契約違反・経営上の都合・その他。"
+
+msgid "termination reason (other)"
+msgstr "終了の事由（その他の内容）"
+
+msgid "Up to 20 characters (written on form 3-3-2)."
+msgstr "全角 20 文字以内（第3-3-2号に書きます）。"
 
 msgid "registered corporation"
 msgstr "登録法人"
@@ -2828,17 +2930,47 @@ msgstr "事業所"
 msgid "full entrustment"
 msgstr "全部委託"
 
+msgid "expiry of the entrustment period"
+msgstr "委託契約の期間満了"
+
+msgid "for reasons of the host organization"
+msgstr "特定技能所属機関の都合による終了"
+
+msgid "for reasons of the registered support organization"
+msgstr "登録支援機関の都合による終了"
+
+msgid "expiry of the period"
+msgstr "期間満了"
+
+msgid "business reasons"
+msgstr "経営上の都合"
+
+msgid "breach of contract"
+msgstr "契約違反"
+
+msgid "revocation of registration"
+msgstr "登録取消し"
+
 msgid "concluded on"
 msgstr "締結日"
 
 msgid "scope"
 msgstr "委託の範囲"
 
+msgid "entrustment fee per person per month (yen)"
+msgstr "委託料（1 名あたり月額・円）"
+
 msgid "support contract"
 msgstr "支援委託契約"
 
 msgid "support contracts"
 msgstr "支援委託契約"
+
+msgid "The termination date must be within the contract period."
+msgstr "終了日は契約の期間の中の日にしてください。"
+
+msgid "Select the termination category."
+msgstr "終了の事由（大分類）を選んでください。"
 
 msgid ""
 "This period overlaps another support contract of the same host organization."
@@ -2856,8 +2988,17 @@ msgstr "支援委託契約"
 msgid "period"
 msgstr "期間"
 
+msgid "fee per person per month"
+msgstr "委託料（1 名・月額）"
+
 msgid "Attachments"
 msgstr "添付"
+
+msgid "terminated"
+msgstr "終了"
+
+msgid "planned end date"
+msgstr "予定の終了日"
 
 msgid "no end date"
 msgstr "期限なし"
@@ -2867,8 +3008,11 @@ msgstr "添付"
 
 msgid ""
 "Full entrustment. One row is one period: register the renewed period as the "
-"next contract."
-msgstr "全部委託。1 行が 1 期間です。更新後の期間は次の契約として登録します。"
+"next contract (it starts the day after the planned end date). Register an "
+"actual termination with “Register the termination”."
+msgstr ""
+"全部委託。1 行が 1 期間です。更新後の期間は、予定の終了日の翌日から始まる次の"
+"契約として登録します。実際に終わったときは「終了を登録」で登録します。"
 
 msgid "Sites and operation categories"
 msgstr "事業所と業務区分"
@@ -4762,9 +4906,6 @@ msgstr "この相談は取り消し済みです。"
 msgid "scheduled"
 msgstr "予定"
 
-msgid "terminated"
-msgstr "終了"
-
 #, python-format
 msgid ""
 "This period overlaps the employment contract (ID: %(id)s) of the same "
@@ -5073,12 +5214,57 @@ msgid "The expiry date of the membership was changed (%(old)s → %(new)s)."
 msgstr "加入状況の有効期限を変更（%(old)s → %(new)s。自動）"
 
 #, python-format
+msgid "The termination of the support contract was registered (%(day)s)."
+msgstr "支援委託契約の終了の登録により不要（%(day)s。自動）"
+
+#, python-format
 msgid "The next support contract (from %(start)s) was registered."
 msgstr "次の支援委託契約（%(start)s から）の登録により更新（自動）"
 
 #, python-format
 msgid "The end date of the support contract was changed (%(old)s → %(new)s)."
 msgstr "支援委託契約の終了日を変更（%(old)s → %(new)s。自動）"
+
+msgid "The end date has passed: register the next period or the termination."
+msgstr "終了日を過ぎています：次の期間か終了を登録"
+
+msgid ""
+"A support contract was in effect: fill in column c (termination of the "
+"support contract) of form 3-1-2. Form 3-3-2 is then not required."
+msgstr ""
+"支援委託契約が有効でした。第3-1-2号の c 欄（支援委託契約の終了）の記入が要り"
+"ます。この場合、第3-3-2号は要りません。"
+
+#, python-format
+msgid ""
+"The support plan changes because the support contract was %(event)s (table "
+"%(item)s). Submit it before form 3-3-2."
+msgstr ""
+"支援委託契約の%(event)sにより支援計画が変わります（別表%(item)s）。第3-3-2号"
+"より前に提出します。"
+
+msgid "concluded"
+msgstr "締結"
+
+#, python-format
+msgid ""
+"Conclusion of the support contract on %(day)s: fill in B (conclusion) of "
+"form 3-3-2 and attach form 1-25."
+msgstr ""
+"支援委託契約の締結（%(day)s）: 第3-3-2号の B 欄（契約の締結）に記入し、第1-25"
+"号を添付します。"
+
+#, python-format
+msgid ""
+"Termination of the support contract on %(day)s (%(category)s / %(reason)s): "
+"fill in A (termination) of form 3-3-2."
+msgstr ""
+"支援委託契約の終了（%(day)s・%(category)s／%(reason)s）: 第3-3-2号の A 欄（契"
+"約の終了）に記入します。"
+
+#, python-format
+msgid "Change of the support contract on %(day)s: %(changes)s"
+msgstr "支援委託契約の変更（%(day)s）: %(changes)s"
 
 #, python-format
 msgid "The status cannot be changed from %(from)s to %(to)s."
@@ -5104,6 +5290,13 @@ msgstr "無効化した外国人の届出タスクは起票できません。"
 
 msgid "The field of a membership cannot be changed after registration."
 msgstr "加入状況の分野は、登録した後は変えられません。"
+
+msgid "The termination is not registered."
+msgstr "終了は登録されていません。"
+
+#, python-format
+msgid "The termination of the support contract was cancelled: %(reason)s"
+msgstr "支援委託契約の終了が取り消されました: %(reason)s"
 
 #, python-format
 msgid "These operation categories do not belong to the site's field: %(names)s"
@@ -5131,6 +5324,21 @@ msgstr ""
 
 msgid "Select a site of this host organization."
 msgstr "この受入れ機関の事業所を選んでください。"
+
+msgid "The termination is already registered."
+msgstr "終了はすでに登録されています。"
+
+msgid "Enter the termination date."
+msgstr "終了日を入れてください。"
+
+msgid "Select a reason that belongs to the category."
+msgstr "大分類に合う小分類を選んでください。"
+
+msgid "Enter the reason (up to 20 characters)."
+msgstr "内容を入れてください（全角 20 文字以内）。"
+
+msgid "Only for the reason “other”."
+msgstr "小分類が「その他」のときだけ入れます。"
 
 #, python-format
 msgid "The record that raised this report task was voided: %(reason)s"

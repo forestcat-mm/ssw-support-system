@@ -433,7 +433,7 @@ def test_next_contract_completes_the_renewal_task_of_the_previous_one() -> None:
         starts_on=date(2025, 4, 1),
         ends_on=first_ends_on,
     )
-    (task,) = host_records.save_support_contract(first, by=None, today=TODAY).created
+    (task,) = host_records.save_support_contract(first, by=None, today=TODAY).sync.created
     assert filings.create_scheduled(TODAY).created == []  # 日次の起票と二重にならない
 
     renewed = SupportContract(
@@ -442,7 +442,7 @@ def test_next_contract_completes_the_renewal_task_of_the_previous_one() -> None:
         starts_on=first_ends_on + timedelta(days=1),
         ends_on=first_ends_on + timedelta(days=366),
     )
-    result = host_records.save_support_contract(renewed, by=None, today=TODAY)
+    result = host_records.save_support_contract(renewed, by=None, today=TODAY).sync
     task.refresh_from_db()
     assert result.closed == [task]
     assert task.status == FilingStatus.COMPLETED

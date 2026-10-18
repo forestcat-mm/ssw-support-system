@@ -5,6 +5,8 @@ host_sites / support_contracts）。
 登録法人・協議会への加入は受入れ機関×分野で持つ（ADR-0004）。
 """
 
+from datetime import date
+
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.constraints import ExclusionConstraint
@@ -12,6 +14,7 @@ from django.contrib.postgres.fields import DateRangeField, RangeBoundary, RangeO
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import F, Func, Q
+from django.db.models.functions import Least
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import Attachment, TrackedModel
@@ -258,6 +261,44 @@ class SupportScope(models.TextChoices):
     FULL = "full", _("full entrustment")
 
 
+class SupportTerminationCategory(models.TextChoices):
+    """支援委託契約の終了の事由の大分類（参考様式第3-3-2号 A b。ADR-0017）。"""
+
+    EXPIRY = "expiry", _("expiry of the entrustment period")
+    HOST = "host", _("for reasons of the host organization")
+    SUPPORT_ORGANIZATION = (
+        "support_organization",
+        _("for reasons of the registered support organization"),
+    )
+
+
+class SupportTerminationReason(models.TextChoices):
+    """終了の事由の小分類（第3-3-2号の記載要領の対応表）。"""
+
+    EXPIRY = "expiry", _("expiry of the period")
+    BUSINESS = "business", _("business reasons")
+    BREACH = "breach", _("breach of contract")
+    REGISTRATION_REVOKED = "registration_revoked", _("revocation of registration")
+    OTHER = "other", _("other")
+
+
+# 大分類ごとに選べる小分類（記載要領の対応表）
+SUPPORT_TERMINATION_REASONS: dict[str, tuple[str, ...]] = {
+    SupportTerminationCategory.EXPIRY: (SupportTerminationReason.EXPIRY,),
+    SupportTerminationCategory.HOST: (
+        SupportTerminationReason.BUSINESS,
+        SupportTerminationReason.BREACH,
+        SupportTerminationReason.OTHER,
+    ),
+    SupportTerminationCategory.SUPPORT_ORGANIZATION: (
+        SupportTerminationReason.REGISTRATION_REVOKED,
+        SupportTerminationReason.BREACH,
+        SupportTerminationReason.BUSINESS,
+        SupportTerminationReason.OTHER,
+    ),
+}
+
+
 class DateRange(Func):
     """PostgreSQL の daterange(開始, 終了, '[]')。終了が NULL なら期限なし。"""
 
@@ -266,7 +307,11 @@ class DateRange(Func):
 
 
 class SupportContract(TrackedModel):
-    """自機関と受入れ機関の支援委託契約。同じ受入れ機関で期間の重なる契約は持てない。"""
+    """自機関と受入れ機関の支援委託契約。同じ受入れ機関で期間の重なる契約は持てない。
+
+    1 行＝1 期間（ADR-0015）。ends_on は契約の予定の終了日、terminated_on は終了を登録した実際の
+    終了日（ADR-0017）。実際の終了日がある行は、それを期間の末日とする（effective_ends_on）。
+    """
 
     host_organization = models.ForeignKey(
         HostOrganization,
@@ -280,6 +325,27 @@ class SupportContract(TrackedModel):
     scope = models.CharField(
         _("scope"), max_length=16, choices=SupportScope.choices, default=SupportScope.FULL
     )
+    # 委託料（1 名あたりの月額。第1-25号 第5欄・第5-10号 第2条。内訳〔別紙〕は T37）
+    monthly_fee = models.PositiveIntegerField(
+        _("entrustment fee per person per month (yen)"), null=True, blank=True
+    )
+    # 終了の登録（第3-3-2号 A。ADR-0017）
+    terminated_on = models.DateField(_("terminated on"), null=True, blank=True)
+    termination_category = models.CharField(
+        _("termination category"),
+        max_length=24,
+        choices=SupportTerminationCategory.choices,
+        blank=True,
+    )
+    termination_reason = models.CharField(
+        _("termination reason"), max_length=24, choices=SupportTerminationReason.choices, blank=True
+    )
+    termination_note = models.CharField(
+        _("termination reason (other)"),
+        max_length=20,
+        blank=True,
+        help_text=_("Up to 20 characters (written on form 3-3-2)."),
+    )
     attachments = GenericRelation(Attachment)
 
     class Meta:
@@ -292,14 +358,31 @@ class SupportContract(TrackedModel):
                 name="hosts_supportcontract_period",
                 violation_error_message=_("The end date must be on or after the start date."),
             ),
+            models.CheckConstraint(
+                condition=Q(terminated_on__isnull=True)
+                | (
+                    Q(terminated_on__gte=F("starts_on"))
+                    & (Q(ends_on__isnull=True) | Q(terminated_on__lte=F("ends_on")))
+                ),
+                name="hosts_supportcontract_terminated_within_period",
+                violation_error_message=_(
+                    "The termination date must be within the contract period."
+                ),
+            ),
+            models.CheckConstraint(
+                condition=Q(terminated_on__isnull=True) | ~Q(termination_category=""),
+                name="hosts_supportcontract_termination_has_category",
+                violation_error_message=_("Select the termination category."),
+            ),
             ExclusionConstraint(
                 name="hosts_supportcontract_no_overlap",
                 expressions=[
                     (
-                        # 開始日・終了日とも含む（同じ日に終わる契約と始まる契約は重なる）
+                        # 開始日〜期間の末日（実際の終了日があればそれ、無ければ予定の終了日）。
+                        # 両端を含む（同じ日に終わる契約と始まる契約は重なる）
                         DateRange(
                             "starts_on",
-                            "ends_on",
+                            Least("ends_on", "terminated_on"),
                             RangeBoundary(inclusive_lower=True, inclusive_upper=True),
                         ),
                         RangeOperators.OVERLAPS,
@@ -314,3 +397,8 @@ class SupportContract(TrackedModel):
 
     def __str__(self) -> str:
         return f"{self.host_organization}: {self.starts_on}~{self.ends_on or ''}"
+
+    @property
+    def effective_ends_on(self) -> date | None:
+        """期間の末日（実際の終了日があればそれ、無ければ予定の終了日。空は期限なし）。"""
+        return self.terminated_on or self.ends_on

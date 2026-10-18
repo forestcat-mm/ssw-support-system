@@ -25,6 +25,7 @@
         {% if filing.status_reason %}<dt>{% translate "reason" %}</dt><dd>{{ filing.status_reason }}</dd>{% endif %}
         {% if filing.note %}<dt>{% translate "note" %}</dt><dd>{{ filing.note|linebreaksbr }}</dd>{% endif %}
       </dl>
+      {% if row.notes %}<ul class="messages" id="filing-notes">{% for note in row.notes %}<li class="message message--warning">{{ note }}</li>{% endfor %}</ul>{% endif %}
       {% if row.record_url and perms.support.add_supportrecord %}<p style="margin-top: var(--space-16)"><a class="button button--primary" href="{{ row.record_url }}" id="record-interview">{% translate "Record the periodic interview" %}</a></p>{% endif %}
       {% if findings.required or findings.review %}
       <h3 style="margin-top: var(--space-16)">{% translate "Changes that need a notification" %}</h3>

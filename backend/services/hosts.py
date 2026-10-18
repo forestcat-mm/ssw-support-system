@@ -5,14 +5,15 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.utils.translation import gettext as _
 
-from apps.contracts.models import EmploymentContractVersion
+from apps.contracts.models import EmploymentContract, EmploymentContractVersion
 from apps.hosts.models import (
+    SUPPORT_TERMINATION_REASONS,
     EntityType,
     HostCooperationConfirmation,
     HostMembership,
@@ -21,7 +22,9 @@ from apps.hosts.models import (
     OperationCategory,
     SpecifiedSkillField,
     SupportContract,
+    SupportTerminationReason,
 )
+from apps.workers.models import ForeignWorker, ResidenceRecord, StatusOfResidence
 
 
 def validate_site_categories(
@@ -211,20 +214,23 @@ def validate_contract_period(
     ends_on: date | None,
     *,
     exclude_pk: int | None = None,
+    terminated_on: date | None = None,
 ) -> None:
     """同じ受入れ機関の契約と期間が重ならないこと（両端を含む。終了日が空なら期限なし）。
 
+    期間の末日は、実際の終了日（終了の登録）があればそれ、無ければ予定の終了日（ADR-0017）。
     DB の排他制約と同じ判定を保存前に行う（admin のインラインでは制約の検査が飛ばされるため）。
     """
     if host_id is None or starts_on is None:
         return
     if ends_on is not None and ends_on < starts_on:
         raise ValidationError(_("The end date must be on or after the start date."), code="period")
+    end = terminated_on or ends_on
     overlapping = SupportContract.objects.filter(host_organization_id=host_id).filter(
-        Q(ends_on__isnull=True) | Q(ends_on__gte=starts_on)
+        _ends_on_or_after(starts_on)
     )
-    if ends_on is not None:
-        overlapping = overlapping.filter(starts_on__lte=ends_on)
+    if end is not None:
+        overlapping = overlapping.filter(starts_on__lte=end)
     if exclude_pk is not None:
         overlapping = overlapping.exclude(pk=exclude_pk)
     if overlapping.exists():
@@ -240,8 +246,96 @@ def periods_overlap(a: tuple[date, date | None], b: tuple[date, date | None]) ->
     return (a_end is None or a_end >= b_start) and (b_end is None or b_end >= a_start)
 
 
+def _ends_on_or_after(on: date) -> Q:
+    """期間の末日（実際の終了日、無ければ予定の終了日。空は期限なし）が on 以後。"""
+    return (Q(terminated_on__isnull=True) | Q(terminated_on__gte=on)) & (
+        Q(ends_on__isnull=True) | Q(ends_on__gte=on)
+    )
+
+
 def _active_on_q(on: date) -> Q:
-    return Q(starts_on__lte=on) & (Q(ends_on__isnull=True) | Q(ends_on__gte=on))
+    return Q(starts_on__lte=on) & _ends_on_or_after(on)
+
+
+def previous_row(contract: SupportContract) -> SupportContract | None:
+    """続く行の前の行（ADR-0017）: 同じ受入れ機関で、終了の登録が無く、予定の終了日の翌日に
+    この行が始まる行。無ければ None（この行は新しい締結）。"""
+    if contract.starts_on is None:
+        return None
+    return (
+        SupportContract.objects.filter(
+            host_organization_id=contract.host_organization_id,
+            terminated_on__isnull=True,
+            ends_on=contract.starts_on - timedelta(days=1),
+        )
+        .exclude(pk=contract.pk)
+        .first()
+    )
+
+
+def validate_termination(
+    contract: SupportContract,
+    *,
+    terminated_on: date | None,
+    category: str,
+    reason: str,
+    note: str,
+) -> None:
+    """支援委託契約の終了の登録（第3-3-2号 A の終了年月日・事由）。"""
+    errors: dict[str, list[str]] = {}
+
+    def add(field: str, message: str) -> None:
+        errors.setdefault(field, []).append(message)
+
+    if contract.terminated_on is not None:
+        add("terminated_on", _("The termination is already registered."))
+    if terminated_on is None:
+        add("terminated_on", _("Enter the termination date."))
+    elif terminated_on < contract.starts_on or (
+        contract.ends_on is not None and terminated_on > contract.ends_on
+    ):
+        add("terminated_on", _("The termination date must be within the contract period."))
+    if category not in SUPPORT_TERMINATION_REASONS:
+        add("termination_category", _("Select the termination category."))
+    elif reason not in SUPPORT_TERMINATION_REASONS[category]:
+        add("termination_reason", _("Select a reason that belongs to the category."))
+    if reason == SupportTerminationReason.OTHER and not note.strip():
+        add("termination_note", _("Enter the reason (up to 20 characters)."))
+    if reason != SupportTerminationReason.OTHER and note.strip():
+        add("termination_note", _("Only for the reason “other”."))
+    if errors:
+        raise ValidationError(errors)
+
+
+def support_targets(host: HostOrganization, on: date) -> list[ForeignWorker]:
+    """支援委託契約の届出の対象の外国人（ADR-0017）。
+
+    前提: 台帳に載っていて、その受入れ機関と雇用契約がある 1号の人は、全員が自機関の支援の対象
+    （外国人ごとの委託〔第5-10号の丙〕は T37 で見直す）。対象は、on の日に
+    - その受入れ機関との雇用契約が有効（開始日が on 以前、期間の末日〔版の終了日と終了の登録日の
+      早いほう〕が空か on 以後）で、
+    - on の日に適用されている在留情報（取り消していない行のうち、許可日が on 以前の最も新しい行）の
+      在留資格が特定技能1号の人。無効化した外国人は除く。
+    申請の前の事由（在留資格がまだ特定技能でない）は届出が要らない（運用要領 本体 印刷 100頁）。
+    """
+    workers: dict[int, ForeignWorker] = {}
+    contracts = EmploymentContract.objects.filter(
+        host_organization=host, current_starts_on__lte=on, worker__deactivated_at__isnull=True
+    ).select_related("worker")
+    for contract in contracts:
+        ends = [d for d in (contract.current_ends_on, contract.terminated_on) if d is not None]
+        if ends and min(ends) < on:
+            continue
+        record = (
+            ResidenceRecord.objects.filter(
+                worker_id=contract.worker_id, voided_at__isnull=True, permitted_on__lte=on
+            )
+            .order_by("-permitted_on", "-pk")
+            .first()
+        )
+        if record is not None and record.status_of_residence == StatusOfResidence.SSW_1:
+            workers[contract.worker_id] = contract.worker
+    return sorted(workers.values(), key=lambda worker: worker.pk)
 
 
 def active_contract(host: HostOrganization, on: date) -> SupportContract | None:

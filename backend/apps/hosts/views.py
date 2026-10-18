@@ -61,5 +61,6 @@ class HostDetailView(ActionRequiredMixin, TemplateView):
             today=today,
             with_workers=with_workers,
             can_manage=authorization.has_action(user, Action.HOSTS_MANAGE),
+            can_reopen=authorization.has_action(user, Action.CONTRACTS_REOPEN),
         )
         return context

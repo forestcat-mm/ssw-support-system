@@ -51,6 +51,16 @@ urlpatterns = [
         name="support_contract_edit",
     ),
     path(
+        "<int:pk>/support-contracts/<int:contract_id>/terminate/",
+        edit_views.SupportTerminateView.as_view(),
+        name="support_contract_terminate",
+    ),
+    path(
+        "<int:pk>/support-contracts/<int:contract_id>/reopen/",
+        edit_views.SupportReopenView.as_view(),
+        name="support_contract_reopen",
+    ),
+    path(
         "<int:pk>/<str:section>/<int:object_id>/attachments/new/",
         edit_views.AttachmentAddView.as_view(),
         name="attachment_add",

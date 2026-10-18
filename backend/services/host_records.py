@@ -16,12 +16,14 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any
 
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db import models, transaction
 from django.utils.translation import gettext as _
 
-from apps.core.models import Attachment, AttachmentKind, User
+from apps.core.models import Attachment, AttachmentKind, AuditAction, AuditLog, User
+from apps.filings.models import Filing, FilingKind, FilingStatus
 from apps.hosts.models import (
     HostCooperationConfirmation,
     HostMembership,
@@ -30,7 +32,7 @@ from apps.hosts.models import (
     OperationCategory,
     SupportContract,
 )
-from services import attachments, corporate_number, filings, hosts
+from services import attachments, audit, corporate_number, filings, hosts, support_filings
 
 # 添付できる対象と種別（ほかの種別では添付させない）
 ATTACHMENT_KINDS: dict[type[models.Model], AttachmentKind] = {
@@ -171,6 +173,24 @@ def save_cooperation(
 # --- 支援委託契約 ------------------------------------------------------------------
 
 
+@dataclass(frozen=True)
+class SupportSaved:
+    """支援委託契約の保存の結果（期限のタスクの処理と、届出タスクの起票）。"""
+
+    sync: filings.SyncResult
+    raised: support_filings.Raised
+
+
+@dataclass(frozen=True)
+class Amendment:
+    """同じ行の委託料・期間を「契約の変更」として直す（誤りの訂正なら None）。"""
+
+    changed_on: datetime.date
+
+
+AMENDABLE_FIELDS = ("monthly_fee", "starts_on", "ends_on")
+
+
 @transaction.atomic
 def save_support_contract(
     contract: SupportContract,
@@ -178,14 +198,29 @@ def save_support_contract(
     files: Iterable[File[Any]] = (),
     by: User | None,
     today: datetime.date,
-) -> filings.SyncResult:
-    """1 行＝1 期間。自動更新の後の期間は次の行で登録する（ADR-0015）。"""
+    amendment: Amendment | None = None,
+) -> SupportSaved:
+    """1 行＝1 期間。自動更新の後の期間は次の行で登録する（ADR-0015・0017）。
+
+    新しい行は締結（続く行なら委託料の変更だけ）として届出タスクを起票する。既存の行の委託料・
+    期間の変更は、amendment があれば第3-3-1号を起票し、無ければ誤りの訂正として起票しない。
+    """
     hosts.validate_contract_period(
         contract.host_organization_id,
         contract.starts_on,
         contract.ends_on,
         exclude_pk=contract.pk,
+        terminated_on=contract.terminated_on,
     )
+    changes: dict[str, list[Any]] = {}
+    is_new = contract.pk is None
+    if not is_new:
+        saved = SupportContract.objects.get(pk=contract.pk)
+        changes = {
+            name: [getattr(saved, name), getattr(contract, name)]
+            for name in AMENDABLE_FIELDS
+            if getattr(saved, name) != getattr(contract, name)
+        }
     files = list(files)
     _validate_files(AttachmentKind.SUPPORT_CONTRACT, files)
     _stamp(contract, by)
@@ -194,7 +229,113 @@ def save_support_contract(
         attachments.create_attachment(
             target=contract, kind=AttachmentKind.SUPPORT_CONTRACT, file=file, created_by=by
         )
-    return filings.sync_support_contracts(contract.host_organization, by=by, today=today)
+    sync = filings.sync_support_contracts(contract.host_organization, by=by, today=today)
+    if is_new:
+        raised = support_filings.on_registered(contract, by=by)
+    elif changes and amendment is not None:
+        raised = support_filings.on_amended(
+            contract, changes=changes, on=amendment.changed_on, by=by
+        )
+    else:
+        raised = support_filings.Raised()
+    return SupportSaved(sync=sync, raised=raised)
+
+
+@transaction.atomic
+def terminate_support_contract(
+    contract: SupportContract,
+    *,
+    terminated_on: datetime.date | None,
+    category: str,
+    reason: str,
+    note: str,
+    by: User | None,
+    today: datetime.date,
+) -> SupportSaved:
+    """終了を登録する（実際の終了日と事由。予定の終了日は残す。ADR-0017）。"""
+    hosts.validate_termination(
+        contract, terminated_on=terminated_on, category=category, reason=reason, note=note
+    )
+    contract.terminated_on = terminated_on
+    contract.termination_category = category
+    contract.termination_reason = reason
+    contract.termination_note = note.strip()
+    contract.updated_by = by
+    contract.save()
+    sync = filings.sync_support_contracts(contract.host_organization, by=by, today=today)
+    raised = support_filings.on_terminated(contract, by=by)
+    return SupportSaved(sync=sync, raised=raised)
+
+
+@transaction.atomic
+def cancel_support_termination(
+    contract: SupportContract, *, reason: str, by: User | None, today: datetime.date
+) -> SupportSaved:
+    """終了の登録を取り消す（入力の誤りの訂正。管理者だけ。理由は必須）。
+
+    起票した届出タスクは、未着手なら理由つきで取消、対応中・完了などは残す（T28b と同じ考え方）。
+    終了の登録で自動で完了にした更新のタスクは、未着手に戻す。
+    """
+    if not reason.strip():
+        raise ValidationError({"reason": _("Enter the reason.")})
+    terminated_on = contract.terminated_on
+    if terminated_on is None:
+        raise ValidationError(_("The termination is not registered."))
+    hosts.validate_contract_period(
+        contract.host_organization_id,
+        contract.starts_on,
+        contract.ends_on,
+        exclude_pk=contract.pk,
+    )
+    with audit.event(
+        AuditAction.UPDATE, target=contract, actor=by, context={"cancel_termination": reason}
+    ):
+        contract.terminated_on = None
+        contract.termination_category = ""
+        contract.termination_reason = ""
+        contract.termination_note = ""
+        contract.updated_by = by
+        contract.save()
+    raised = support_filings.on_termination_cancelled(
+        contract, terminated_on=terminated_on, reason=reason, by=by
+    )
+    _reopen_renewal_closed_by_termination(contract, reason=reason, by=by)
+    sync = filings.sync_support_contracts(contract.host_organization, by=by, today=today)
+    return SupportSaved(sync=sync, raised=raised)
+
+
+def _reopen_renewal_closed_by_termination(
+    contract: SupportContract, *, reason: str, by: User | None
+) -> None:
+    """終了の登録で自動で完了にした「支援委託契約の更新」のタスクを未着手に戻す。"""
+    filing_type = ContentType.objects.get_for_model(Filing)
+    for filing in Filing.objects.filter(
+        kind=FilingKind.SUPPORT_CONTRACT_RENEWAL,
+        content_type=ContentType.objects.get_for_model(SupportContract),
+        object_id=contract.pk,
+        status=FilingStatus.COMPLETED,
+    ):
+        last = (
+            AuditLog.objects.filter(
+                action=AuditAction.FILING_TRANSITION,
+                content_type=filing_type,
+                object_id=str(filing.pk),
+            )
+            .order_by("-pk")
+            .first()
+        )
+        if last is None or not last.context.get("automatic"):
+            continue
+        if last.context.get("source") != f"hosts.supportcontract:{contract.pk}":
+            continue  # 次の行の登録で完了にしたもの（終了の登録ではない）
+        filings.transition(
+            filing,
+            FilingStatus.NOT_STARTED,
+            by=by,
+            reason=_("The termination of the support contract was cancelled: %(reason)s")
+            % {"reason": reason},
+            context={"automatic": True, "source": f"hosts.supportcontract:{contract.pk}"},
+        )
 
 
 # --- 添付 ------------------------------------------------------------------------

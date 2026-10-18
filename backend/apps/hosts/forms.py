@@ -21,6 +21,8 @@ from apps.hosts.models import (
     OperationCategory,
     SpecifiedSkillField,
     SupportContract,
+    SupportTerminationCategory,
+    SupportTerminationReason,
 )
 from apps.support.record_forms import MultipleFileField
 from services import attachments, corporate_number, hosts
@@ -269,10 +271,22 @@ class SupportContractForm(StyledFormMixin, forms.ModelForm[SupportContract]):
     uploads = MultipleFileField(
         label=_("support entrustment contract"), required=False, help_text=FILES_HELP
     )
+    # 既存の行の委託料・期間を直すとき: 契約の変更（第3-3-1号を起票）か、誤りの訂正か（ADR-0017）
+    is_amendment = forms.BooleanField(
+        label=_("this is a change of the contract (not a correction of a mistake)"),
+        required=False,
+        help_text=_(
+            "When the fee or the period changes, notification tasks (form 3-3-1) are created "
+            "for each worker. Leave unchecked to correct a mistake."
+        ),
+    )
+    amended_on = forms.DateField(
+        label=_("date of the change"), required=False, widget=forms.DateInput
+    )
 
     class Meta:
         model = SupportContract
-        fields = ("concluded_on", "starts_on", "ends_on")
+        fields = ("concluded_on", "starts_on", "ends_on", "monthly_fee")
         widgets = {
             "concluded_on": forms.DateInput,
             "starts_on": forms.DateInput,
@@ -284,11 +298,21 @@ class SupportContractForm(StyledFormMixin, forms.ModelForm[SupportContract]):
         self.instance.host_organization = host
         if self.instance.pk:
             del self.fields["uploads"]  # 契約書の追加は添付の画面で行う
+        else:
+            del self.fields["is_amendment"]
+            del self.fields["amended_on"]
         self.fields["ends_on"].help_text = _(
-            "One row is one period. When the contract is renewed automatically, register the "
-            "renewed period as the next contract. Leave blank if there is no end date."
+            "The planned end date. One row is one period: when the contract is renewed "
+            "automatically, register the renewed period as the next contract (it starts the day "
+            "after this end date). Register an actual termination with “Register the "
+            "termination”. Leave blank if there is no end date."
+        )
+        self.fields["monthly_fee"].help_text = _(
+            "Form 1-25, item 5. The breakdown (annex of form 5-10) is handled later (T37)."
         )
         self.style_fields()
+        if "amended_on" in self.fields:
+            self.enable_when("amended_on", is_amendment="on")
 
     def clean(self) -> dict[str, Any]:
         cleaned = super().clean() or {}
@@ -298,7 +322,44 @@ class SupportContractForm(StyledFormMixin, forms.ModelForm[SupportContract]):
                 cleaned.get("starts_on"),
                 cleaned.get("ends_on"),
                 exclude_pk=self.instance.pk,
+                terminated_on=self.instance.terminated_on,
             )
         except ValidationError as error:
             self.add_error("starts_on", error)
+        if cleaned.get("is_amendment") and not cleaned.get("amended_on"):
+            self.add_error("amended_on", _("Enter the date of the change."))
         return cleaned
+
+
+class SupportTerminationForm(StyledFormMixin, forms.Form):
+    """支援委託契約の終了の登録（第3-3-2号 A。予定の終了日は残す）。"""
+
+    terminated_on = forms.DateField(
+        label=_("terminated on"),
+        widget=forms.DateInput,
+        help_text=_("The actual end date. It must be within the contract period."),
+    )
+    termination_category = forms.ChoiceField(
+        label=_("termination category"),
+        choices=[("", "---------"), *SupportTerminationCategory.choices],
+    )
+    termination_reason = forms.ChoiceField(
+        label=_("termination reason"),
+        choices=[("", "---------"), *SupportTerminationReason.choices],
+        help_text=_(
+            "Expiry: expiry of the period. Host organization: business reasons, breach of "
+            "contract or other. Support organization: revocation of registration, breach of "
+            "contract, business reasons or other."
+        ),
+    )
+    termination_note = forms.CharField(
+        label=_("termination reason (other)"),
+        required=False,
+        max_length=20,
+        help_text=_("Up to 20 characters (written on form 3-3-2)."),
+    )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.style_fields()
+        self.enable_when("termination_note", termination_reason="other")

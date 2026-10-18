@@ -33,6 +33,15 @@ class FilingKind(models.TextChoices):
         # 登録支援機関が出す報告（施行規則 第19条の24の2）。所属機関の届出（第3-7号）ではない
         _("report of a special incident in implementing the support plan (form 4-3)"),
     )
+    # 支援委託契約の届出（所属機関。外国人ごと。T28c、ADR-0017）
+    SUPPORT_CONTRACT_CHANGE = (
+        "support_contract_change",
+        _("notification of change of support entrustment contract (form 3-3-1)"),
+    )
+    SUPPORT_CONTRACT_END_OR_CONCLUSION = (
+        "support_contract_end_or_conclusion",
+        _("notification of termination or conclusion of support entrustment contract (form 3-3-2)"),
+    )
     PERIODIC_HOST = "periodic_host", _("periodic notification (host organization)")
     PERIODIC_SUPPORT_ORGANIZATION = (
         "periodic_support_organization",
@@ -79,6 +88,9 @@ class Trigger(models.TextChoices):
         "incident_recorded",
         _("report to authorities, Hello Work consultation or job change support recorded"),
     )
+    SUPPORT_CONTRACT_CONCLUDED = "support_contract_concluded", _("support contract concluded")
+    SUPPORT_CONTRACT_CHANGED = "support_contract_changed", _("support contract changed")
+    SUPPORT_CONTRACT_TERMINATED = "support_contract_terminated", _("support contract terminated")
     MANUAL = "manual", _("registered manually")
 
 

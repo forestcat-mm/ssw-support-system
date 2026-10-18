@@ -140,7 +140,14 @@ class HostCooperationConfirmationInline(
 class SupportContractForm(forms.ModelForm[SupportContract]):
     class Meta:
         model = SupportContract
-        fields = ("host_organization", "concluded_on", "starts_on", "ends_on", "scope")
+        fields = (
+            "host_organization",
+            "concluded_on",
+            "starts_on",
+            "ends_on",
+            "scope",
+            "monthly_fee",
+        )
 
     def clean(self) -> dict[str, Any]:
         cleaned = super().clean() or {}
@@ -151,6 +158,7 @@ class SupportContractForm(forms.ModelForm[SupportContract]):
                 cleaned.get("starts_on"),
                 cleaned.get("ends_on"),
                 exclude_pk=self.instance.pk,
+                terminated_on=self.instance.terminated_on,
             )
         except forms.ValidationError as error:
             self.add_error("starts_on", error)
@@ -180,7 +188,7 @@ class SupportContractInline(admin.TabularInline[SupportContract, HostOrganizatio
     formset = SupportContractFormSet
     extra = 0
     can_delete = False
-    fields = ("concluded_on", "starts_on", "ends_on", "scope")
+    fields = ("concluded_on", "starts_on", "ends_on", "scope", "monthly_fee")
     show_change_link = True  # 契約書の添付は契約の画面で行う
 
 
@@ -248,7 +256,14 @@ class ContractAttachmentInline(AttachmentInline):
 @admin.register(SupportContract)
 class SupportContractAdmin(NoDeleteAdmin):
     form = SupportContractForm
-    list_display = ("host_organization", "concluded_on", "starts_on", "ends_on", "scope")
+    list_display = (
+        "host_organization",
+        "concluded_on",
+        "starts_on",
+        "ends_on",
+        "terminated_on",
+        "monthly_fee",
+    )
     inlines = [ContractAttachmentInline]
 
 
