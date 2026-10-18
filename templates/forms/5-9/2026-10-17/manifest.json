@@ -15,7 +15,7 @@
     "revision_date": null,
     "revision_date_unknown": true,
     "original_sha256": "601617564016926dfcba0e557a2f9e6d190ac2ad1ec4b1cac2f945d47550588e",
-    "template_sha256": "a2bb70be1c6daf3136897106fc7992757fde445f1b20a01a8f3bcb431bdca651",
-    "adr": "ADR-0009（取得日 2026-10-17）、ADR-0018"
+    "template_sha256": "a17b386e50571f96aeb58578a2dc4b907f6ca1929c5018443fc25fe630cba618",
+    "adr": "ADR-0009（取得日 2026-10-17）、ADR-0018、ADR-0021"
   }
 }

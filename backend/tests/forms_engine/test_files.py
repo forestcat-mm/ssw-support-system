@@ -107,21 +107,31 @@ def test_mapping_targets_of_1_17_are_writable() -> None:
     form_xlsx.check_targets(ORIGINAL_1_17, [item["target"] for item in definition["fields"]])
 
 
-def test_word_template_only_adds_tags_to_the_original(tmp_path: Path) -> None:
-    folder = ROOT / "5-9" / "2026-10-17"
-    original = docx.Document(str(folder / "original.docx"))
-    template = docx.Document(str(folder / "template.docx"))
-    original_text = "\n".join(p.text for p in original.paragraphs)
-    template_text = "\n".join(p.text for p in template.paragraphs)
-    assert form_docx.strip_tags(template_text) == original_text
-    assert "{{ organization_name }}" in template_text
+@pytest.mark.parametrize("form_id", ["5-9", "5-8"])
+def test_word_template_only_adds_tags_to_the_original(tmp_path: Path, form_id: str) -> None:
+    """タグを外した本文は original と同じ（T32-D2: 実施日時の段落だけは空白をまとめて比べる）。"""
+    folder = ROOT / form_id / "2026-10-17"
+    original = [p.text for p in docx.Document(str(folder / "original.docx")).paragraphs]
+    template = [p.text for p in docx.Document(str(folder / "template.docx")).paragraphs]
+    assert len(original) == len(template)
+    date_rows = 0
+    for before, after in zip(original, template, strict=True):
+        stripped = form_docx.strip_tags(after)
+        if "{{ s" in after:  # 実施日時の段落（欄の空白をタグで置き換えた）
+            date_rows += 1
+            assert re.sub(r"\s", "", stripped) == re.sub(r"\s", "", before)
+        else:
+            assert stripped == before
+    assert date_rows == 3
 
     out = tmp_path / "filled.docx"
     form_docx.render(
-        folder / "template.docx", out, {"organization_name": "A&B 登録支援機関", "s1_year": 2026}
+        folder / "template.docx",
+        out,
+        {"organization_name": "A&B 登録支援機関", "s1_year": "２０２６", "s1_month": "１０"},
     )
     filled = "\n".join(p.text for p in docx.Document(str(out)).paragraphs)
-    assert "A&B 登録支援機関" in filled and "2026年" in filled
+    assert "A&B 登録支援機関" in filled and "２０２６年１０月" in filled
     assert "{{" not in filled
 
 
@@ -231,13 +241,16 @@ def test_targets_referenced_by_formulas(
     assert bool(form_xlsx.targets_referenced_by_formulas(path, [target])) is referenced
 
 
-def test_template_5_9_is_reproduced_by_the_tool(tmp_path: Path) -> None:
-    """template.docx は tools/forms/make_5_9_template.py の出力そのまま（手で直していない）。"""
+@pytest.mark.parametrize("form_id", ["5-9", "5-8"])
+def test_briefing_templates_are_reproduced_by_the_tool(tmp_path: Path, form_id: str) -> None:
+    """template.docx は tools/forms/make_briefing_template.py の出力そのもの（手で直さない）。"""
     import subprocess
     import sys
 
-    folder = ROOT / "5-9" / "2026-10-17"
-    tool = Path(settings.REPO_ROOT) / "tools" / "forms" / "make_5_9_template.py"
+    folder = ROOT / form_id / "2026-10-17"
+    tool = Path(settings.REPO_ROOT) / "tools" / "forms" / "make_briefing_template.py"
     out = tmp_path / "template.docx"
-    subprocess.run([sys.executable, str(tool), str(folder / "original.docx"), str(out)], check=True)
+    subprocess.run(
+        [sys.executable, str(tool), form_id, str(folder / "original.docx"), str(out)], check=True
+    )
     assert out.read_bytes() == (folder / "template.docx").read_bytes()

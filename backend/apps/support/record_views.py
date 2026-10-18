@@ -23,6 +23,7 @@ from apps.core.models import Action, Attachment, User
 from apps.core.permissions import ActionRequiredMixin
 from apps.core.web_forms import consume_once_token
 from apps.filings.models import Filing
+from apps.forms_engine.forms import NOT_LOADED, BriefingGenerateForm
 from apps.forms_engine.models import GeneratedDocument
 from apps.support.models import (
     Briefing,
@@ -54,6 +55,10 @@ from services import (
     briefings,
     consultations,
     deliveries,
+    form_checks,
+    form_data_briefing,
+    form_generation,
+    form_templates,
     incident_reports,
     support_interviews,
     support_records,
@@ -821,6 +826,10 @@ class BriefingDetailView(BriefingMixin, RecordTabMixin, WorkerDetailView):
             confirmation_kind=briefings.CONFIRMATION_KINDS[SupportItem(record.kind)],
             files=files,
             can_change_record=open_record,
+            can_generate_form=record.voided_at is None
+            and workers.is_active(self.worker)
+            and authorization.has_action(self.request.user, Action.FORMS_GENERATE),
+            form_id=BRIEFING_FORM_IDS[SupportItem(record.kind)],
             support_subtab="records",
         )
         return {
@@ -1130,3 +1139,84 @@ class DeliveryAttachmentVoidView(DeliveryMixin, RecordFormView):
         return self.render(
             request, worker=worker, delivery=delivery, attachment=attachment, form=form
         )
+
+
+BRIEFING_FORM_IDS = {SupportItem.PRE_GUIDANCE: "5-9", SupportItem.ORIENTATION: "5-8"}
+
+
+class BriefingGenerateView(BriefingMixin, WorkerFormView):
+    """事前ガイダンス・生活オリエンテーションの確認書（第5-9号・第5-8号）の生成（T32、ADR-0021）。
+
+    基準日は記録の実施日。生成前の検査の不足の一覧を出し、警告があるときは確かめた印が要る。
+    """
+
+    required_action = Action.FORMS_GENERATE
+    template_name = "support/briefing_generate.html"
+
+    def page(
+        self,
+        request: HttpRequest,
+        worker: ForeignWorker,
+        briefing: Briefing,
+        form: BriefingGenerateForm,
+        result: form_checks.CheckResult | None,
+    ) -> HttpResponse:
+        return self.render(
+            request,
+            worker=worker,
+            briefing=briefing,
+            form_id=BRIEFING_FORM_IDS[SupportItem(briefing.record.kind)],
+            form=form,
+            result=result,
+            back_url=reverse("workers:support_briefing", args=[worker.pk, briefing.pk]),
+        )
+
+    def check(
+        self, briefing: Briefing, form: BriefingGenerateForm
+    ) -> form_checks.CheckResult | None:
+        try:
+            return form_generation.check(
+                BRIEFING_FORM_IDS[SupportItem(briefing.record.kind)],
+                target=briefing,
+                data=form_data_briefing.build(briefing),
+                basis_on=briefing.record.occurred_on,
+            )
+        except form_templates.FormTemplateError:
+            form.add_error(None, NOT_LOADED)
+            return None
+
+    def get(self, request: HttpRequest, pk: int, briefing_id: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        briefing = self.open_briefing(worker, briefing_id)
+        form = BriefingGenerateForm()
+        return self.page(request, worker, briefing, form, self.check(briefing, form))
+
+    def post(self, request: HttpRequest, pk: int, briefing_id: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        briefing = self.open_briefing(worker, briefing_id)
+        form = BriefingGenerateForm(request.POST)
+        form.is_valid()
+        if not consume_once_token(request):
+            return self.already_submitted(
+                request, reverse("workers:support_briefing", args=[worker.pk, briefing.pk])
+            )
+        assert isinstance(request.user, User)
+        try:
+            document = form_generation.request(
+                BRIEFING_FORM_IDS[SupportItem(briefing.record.kind)],
+                target=briefing,
+                data=form_data_briefing.build(briefing),
+                basis_on=briefing.record.occurred_on,
+                by=request.user,
+                accept_warnings=bool(form.cleaned_data.get("accept_warnings")),
+            )
+        except form_generation.GenerationBlocked as blocked:
+            return self.page(request, worker, briefing, form, blocked.result)
+        except form_templates.FormTemplateError:
+            form.add_error(None, NOT_LOADED)
+            return self.page(request, worker, briefing, form, None)
+        except form_generation.WarningsNotAccepted as pending:
+            form.add_error("accept_warnings", _("Check the warnings before generating."))
+            return self.page(request, worker, briefing, form, pending.result)
+        messages.success(request, _("Requested the generation of the form."))
+        return redirect("forms:document", pk=document.pk)

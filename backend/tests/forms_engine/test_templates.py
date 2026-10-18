@@ -24,8 +24,12 @@ def test_loading_is_idempotent_and_records_the_sources(loaded: None) -> None:
     assert template.mapping.definition["fields"]
     report = form_templates.load_all()
     assert report.created == [] and report.updated == []
-    assert sorted(report.unchanged) == ["1-17 2026-10-17 ja", "5-9 2026-10-17 ja"]
-    assert FormTemplate.objects.count() == 2 and FormMapping.objects.count() == 2
+    assert sorted(report.unchanged) == [
+        "1-17 2026-10-17 ja",
+        "5-8 2026-10-17 ja",
+        "5-9 2026-10-17 ja",
+    ]
+    assert FormTemplate.objects.count() == 3 and FormMapping.objects.count() == 3
 
 
 def test_changed_original_stops_loading(repo_copy: tuple[Path, Path]) -> None:

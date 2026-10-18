@@ -148,6 +148,11 @@ urlpatterns = [
         name="support_briefing_void",
     ),
     path(
+        "<int:pk>/support/briefings/<int:briefing_id>/generate/",
+        record_views.BriefingGenerateView.as_view(),
+        name="support_briefing_generate",
+    ),
+    path(
         "<int:pk>/support/deliveries/",
         record_views.DeliveryListView.as_view(),
         name="support_deliveries",

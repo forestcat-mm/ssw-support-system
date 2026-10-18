@@ -24,10 +24,10 @@ def findings_text(findings: list[form_checks.Finding]) -> str:
 
 
 class Command(BaseCommand):
-    help = "Generate a sample form (1-17 or 5-9) for a foreign worker."
+    help = "Generate a sample form (1-17, 5-9 or 5-8) for a foreign worker."
 
     def add_arguments(self, parser: CommandParser) -> None:
-        parser.add_argument("form_id", choices=["1-17", "5-9"])
+        parser.add_argument("form_id", choices=["1-17", "5-9", "5-8"])
         parser.add_argument("--worker", type=int, required=True)
         parser.add_argument("--basis", type=datetime.date.fromisoformat, default=None)
         parser.add_argument("--accept-warnings", action="store_true")

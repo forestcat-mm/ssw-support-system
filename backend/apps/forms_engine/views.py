@@ -10,12 +10,13 @@ from django.core.exceptions import PermissionDenied
 from django.http import FileResponse, HttpRequest
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
+from django.urls import reverse
 from django.views import View
 
 from apps.core.models import Action, AuditAction
 from apps.core.permissions import ActionRequiredMixin
 from apps.forms_engine.models import GeneratedDocument, GenerationStatus
-from apps.support.models import DeliveryKind, SupportPlanVersion
+from apps.support.models import Briefing, DeliveryKind, SupportPlanVersion
 from services import audit, authorization, form_generation, workers
 
 
@@ -41,10 +42,21 @@ class GeneratedDocumentView(ActionRequiredMixin, View):
         )
         if document.worker is not None:
             audit.record_view(document.worker, context={"generated_document": document.pk})
+        back_url = ""
+        if version is not None and document.worker is not None:
+            back_url = (
+                reverse("workers:support", args=[document.worker.pk])
+                + f"?plan={version.plan_id}&version={version.version}"
+            )
+        elif isinstance(target, Briefing):
+            back_url = reverse("workers:support_briefing", args=[target.worker_id, target.pk])
+        elif document.worker is not None:
+            back_url = reverse("workers:detail", args=[document.worker.pk])
         context: dict[str, Any] = {
             "document": document,
             "worker": document.worker,
             "plan_version": version,
+            "back_url": back_url,
             "can_download": form_generation.can_download_pdf(request.user, document),
             "can_deliver": can_deliver,
             "delivery_kind": DeliveryKind.SUPPORT_PLAN_COPY,

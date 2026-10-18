@@ -7,6 +7,20 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core.web_forms import StyledFormMixin
 
+NOT_LOADED = _("The form is not loaded. Ask an administrator to load the forms (make forms).")
+
+
+class BriefingGenerateForm(StyledFormMixin, forms.Form):
+    """確認書（第5-9号・第5-8号）の生成: 警告を確かめた印だけ（基準日は記録の実施日）。"""
+
+    accept_warnings = forms.BooleanField(
+        label=_("I have checked the warnings and will generate the form anyway."), required=False
+    )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.style_fields()
+
 
 class PlanGenerateForm(StyledFormMixin, forms.Form):
     """支援計画書（第1-17号）の生成: 基準日・Ⅲ欄７の申告・警告を確かめた印。"""

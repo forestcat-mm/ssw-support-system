@@ -1,0 +1,22 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% blocktranslate %}Generate the confirmation (form {{ form_id }}){% endblocktranslate %} | {{ worker }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{{ back_url }}">← {{ worker }}</a></p>
+  <h1>{% blocktranslate %}Generate the confirmation (form {{ form_id }}){% endblocktranslate %}</h1>
+  <p class="caption">{{ briefing.record.get_kind_display }} · {{ briefing.record.occurred_on|date:"Y-m-d" }}</p>
+{% endblock %}
+{% block content %}
+<div class="stack form">
+  {% if result %}{% include "forms_engine/components/findings.html" %}{% endif %}
+  <p class="caption">{% translate "The confirmation has only the dates and times, the name of the organization and the name of the person who explained. The worker signs and dates it by hand." %}</p>
+  <form class="form" method="post" novalidate id="generate-form">
+    {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+    {% include "ui/components/form_errors.html" %}
+    {% if result.warnings and not result.blocking %}<section class="card stack">{% form_field form.accept_warnings %}</section>{% endif %}
+    <div class="form-actions">
+      {% if result and not result.blocking %}<button class="button button--primary" type="submit">{% translate "Generate" %}</button>{% endif %}
+      <a class="button button--neutral" href="{{ back_url }}">{% translate "Cancel" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

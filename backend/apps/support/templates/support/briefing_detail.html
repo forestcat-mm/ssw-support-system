@@ -12,7 +12,10 @@
   <section class="card{% if record.voided_at %} is-voided{% endif %}" id="briefing">
     <div class="card__header">
       <h2 class="card__title">{{ record.get_kind_display }}</h2>
-      {% if can_change_record %}<a class="button button--danger button--small" href="{% url 'workers:support_briefing_void' worker.pk briefing.pk %}">{% translate "Void" %}</a>{% endif %}
+      <div class="cluster">
+        {% if can_generate_form %}<a class="button button--neutral button--small" id="briefing-generate" href="{% url 'workers:support_briefing_generate' worker.pk briefing.pk %}">{% blocktranslate %}Generate the confirmation (form {{ form_id }}){% endblocktranslate %}</a>{% endif %}
+        {% if can_change_record %}<a class="button button--danger button--small" href="{% url 'workers:support_briefing_void' worker.pk briefing.pk %}">{% translate "Void" %}</a>{% endif %}
+      </div>
     </div>
     {% include "support/components/record_fields.html" with details=None %}
     <dl class="fields fields--long-labels" id="briefing-fields">

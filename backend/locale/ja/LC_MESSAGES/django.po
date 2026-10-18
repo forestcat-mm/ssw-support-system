@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-18 18:06+0900\n"
+"POT-Creation-Date: 2026-10-18 18:24+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -2554,6 +2554,15 @@ msgstr "届出タスクを起票しました。"
 msgid "Forms"
 msgstr "帳票"
 
+msgid ""
+"The form is not loaded. Ask an administrator to load the forms (make forms)."
+msgstr ""
+"様式が読み込まれていません。管理者に様式の読み込み（make forms）を依頼してく"
+"ださい。"
+
+msgid "I have checked the warnings and will generate the form anyway."
+msgstr "警告を確かめたうえで生成します。"
+
 msgid "basis date (planned application date)"
 msgstr "基準日（申請予定日）"
 
@@ -2569,9 +2578,6 @@ msgstr ""
 "支援の適正性を確保していることを申告します（Ⅲ欄７: 支援責任者が特定技能所属機"
 "関の役員の配偶者・親族・密接な関係にある者などでないこと、支援責任者・支援担"
 "当者が登録拒否事由に該当しないこと）。"
-
-msgid "I have checked the warnings and will generate the form anyway."
-msgstr "警告を確かめたうえで生成します。"
 
 msgid "common"
 msgstr "共通"
@@ -4108,6 +4114,12 @@ msgstr "交付記録を保存しました。"
 msgid "Voided the delivery record."
 msgstr "交付記録を取り消しました。"
 
+msgid "Check the warnings before generating."
+msgstr "警告を確かめてから生成してください。"
+
+msgid "Requested the generation of the form."
+msgstr "帳票の生成を依頼しました。"
+
 msgid "Attach the signed confirmation"
 msgstr "署名済みの確認書を添付"
 
@@ -4121,6 +4133,10 @@ msgid ""
 msgstr ""
 "この記録は %(day)s に %(by)s が取り消しました。理由: %(reason)s。集計には含め"
 "ません。"
+
+#, python-format
+msgid "Generate the confirmation (form %(form_id)s)"
+msgstr "確認書を作る（第%(form_id)s号）"
 
 msgid "same as the staff in charge"
 msgstr "説明者と同じ"
@@ -4210,6 +4226,17 @@ msgstr "メモ"
 
 msgid "Signed confirmation"
 msgstr "署名済みの確認書"
+
+msgid ""
+"The confirmation has only the dates and times, the name of the organization "
+"and the name of the person who explained. The worker signs and dates it by "
+"hand."
+msgstr ""
+"確認書の欄は、実施日時・所属機関（又は登録支援機関）の名称・説明者の氏名だけ"
+"です。署名と署名日は本人が手で書きます。"
+
+msgid "Generate"
+msgstr "生成する"
 
 msgid "Void a support record"
 msgstr "支援実績の取消"
@@ -4433,9 +4460,6 @@ msgstr "%(host)s・第 %(number)s 版（%(day)s から適用）"
 msgid "Check again"
 msgstr "検査する"
 
-msgid "Generate"
-msgstr "生成する"
-
 msgid ""
 "This row is the reception of a consultation. Its progress and status are on "
 "the consultation page."
@@ -4576,18 +4600,6 @@ msgstr "支援計画の新版を追加"
 #, python-format
 msgid "Added version %(number)s."
 msgstr "第%(number)s版を追加しました。"
-
-msgid ""
-"The form is not loaded. Ask an administrator to load the forms (make forms)."
-msgstr ""
-"様式が読み込まれていません。管理者に様式の読み込み（make forms）を依頼してく"
-"ださい。"
-
-msgid "Check the warnings before generating."
-msgstr "警告を確かめてから生成してください。"
-
-msgid "Requested the generation of the form."
-msgstr "帳票の生成を依頼しました。"
 
 msgid "Enter the reason for voiding."
 msgstr "取り消しの理由を入力してください。"
@@ -5588,6 +5600,26 @@ msgstr ""
 #, python-format
 msgid "There is no record of the %(kind)s."
 msgstr "%(kind)sの記録がありません。"
+
+#, python-format
+msgid ""
+"Items %(numbers)s of the confirmation have sub-items marked neither as "
+"explained nor as not applicable, but the form states that they were "
+"explained."
+msgstr ""
+"確認書の項目 %(numbers)s に、「説明した」「該当なし」のどちらの印も無い細目が"
+"あります。確認書の文は、説明を受けたと述べています。"
+
+#, python-format
+msgid "%(count)s sub-items not printed on the confirmation are not checked."
+msgstr "確認書に載らない細目のうち %(count)s 件が未チェックです。"
+
+msgid ""
+"The record says there is a contract on deposits or penalties, but the "
+"confirmation (item 4 and the last sentence) states that there is none."
+msgstr ""
+"記録では保証金等の契約が「有」ですが、確認書（４と末尾の文）は、契約をしてい"
+"ないと述べています。"
 
 #, python-format
 msgid ""

@@ -1,0 +1,21 @@
+{
+  "form_id": "5-8",
+  "name": "生活オリエンテーションの確認書（参考様式第5-8号）",
+  "valid_from": "2026-10-17",
+  "language": "ja",
+  "owner": "common",
+  "method": "docx-tags",
+  "requires_signed_copy": true,
+  "original": "original.docx",
+  "template": "template.docx",
+  "source": {
+    "url": "https://www.moj.go.jp/isa/content/001340547.docx",
+    "page": "https://www.moj.go.jp/isa/applications/ssw/10_00020.html",
+    "retrieved_on": "2026-10-17",
+    "revision_date": null,
+    "revision_date_unknown": true,
+    "original_sha256": "8d09accfda2a94bbcd9e117cac967ab70e73c443cc4c3e9a014775f2532b5b71",
+    "template_sha256": "938718c89114053f11175141ebad9aa93b81ea7fb08902f1046cd0f341f5ba43",
+    "adr": "ADR-0009（取得日 2026-10-17）、ADR-0018、ADR-0021"
+  }
+}

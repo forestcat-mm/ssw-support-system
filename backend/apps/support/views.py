@@ -12,12 +12,11 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
-from django.utils.translation import gettext_lazy
 
 from apps.contracts.models import EmploymentContract
 from apps.core.models import Action, User
 from apps.core.web_forms import consume_once_token
-from apps.forms_engine.forms import PlanGenerateForm
+from apps.forms_engine.forms import NOT_LOADED, PlanGenerateForm
 from apps.hosts.models import HostOrganization
 from apps.support.display import plan_view
 from apps.support.forms import PlanEditor
@@ -236,11 +235,6 @@ class VersionCreateView(PlanEditView):
                 )
                 return redirect(f"{self.tab_url(worker, plan)}&version={version.version}")
         return self.page(request, editor, **self.context(worker, plan))
-
-
-NOT_LOADED = gettext_lazy(
-    "The form is not loaded. Ask an administrator to load the forms (make forms)."
-)
 
 
 class PlanGenerateView(WorkerFormView):

@@ -31,7 +31,7 @@ from django.utils.translation import gettext as _
 from apps.contracts.models import EmploymentContract, EmploymentContractVersion
 from apps.core.models import AttachmentKind, Organization, Staff
 from apps.hosts.models import HostOrganization, HostSite
-from apps.support.models import Briefing, DeliveryKind, SupportPlanVersion
+from apps.support.models import Briefing, DeliveryKind, DepositContract, SupportPlanVersion
 from apps.workers.models import ApplicationType, ForeignWorker, LatestResidenceRecord
 from services import briefings, contracts, deliveries, hosts
 from services.support_catalog import Method, SupportItem
@@ -310,6 +310,93 @@ def _briefing_record_exists(context: CheckContext, params: Mapping[str, Any]) ->
             Destination(
                 "workers:support_briefing_create", {"pk": context.worker.pk, "kind": kind.value}
             ),
+        )
+    ]
+
+
+def _missing_by_section(briefing: Briefing) -> list[tuple[briefings.ChecklistSection, int]]:
+    """確認書の欄ごとの、説明した・該当なしのどちらの印も無い細目の数。"""
+    marked = set(briefing.checks.values_list("code", flat=True))
+    result = []
+    for section in briefings.checklist_of(briefing).sections:
+        missing = sum(1 for item in section.items if item.code not in marked)
+        if missing:
+            result.append((section, missing))
+    return result
+
+
+@check("briefing_items_explained")
+def _briefing_items_explained(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """確認書の固定の文は、番号の項目を「説明を受け、内容を十分に理解した」と述べる（ADR-0021）。
+
+    その項目（確認書に番号のある欄）の細目に、説明した・該当なしのどちらの印も無いものがあれば、
+    記録と食い違う。
+    """
+    briefing = context.briefing
+    if briefing is None:
+        return []
+    numbers = [
+        str(section.form_number)
+        for section, _missing in _missing_by_section(briefing)
+        if section.form_number is not None
+    ]
+    if not numbers:
+        return []
+    return [
+        Issue(
+            "items_not_explained",
+            _(
+                "Items %(numbers)s of the confirmation have sub-items marked neither as explained "
+                "nor as not applicable, but the form states that they were explained."
+            )
+            % {"numbers": "・".join(numbers)},
+            Destination(
+                "workers:support_briefing", {"pk": context.worker.pk, "briefing_id": briefing.pk}
+            ),
+        )
+    ]
+
+
+@check("briefing_items_off_form")
+def _briefing_items_off_form(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """確認書に番号の無い欄（例: 事前ガイダンスの 1.j）の未チェック（固定の文は述べない）。"""
+    briefing = context.briefing
+    if briefing is None:
+        return []
+    count = sum(
+        missing for section, missing in _missing_by_section(briefing) if section.form_number is None
+    )
+    if not count:
+        return []
+    return [
+        Issue(
+            "items_off_form_missing",
+            _("%(count)s sub-items not printed on the confirmation are not checked.")
+            % {"count": count},
+            Destination(
+                "workers:support_briefing", {"pk": context.worker.pk, "briefing_id": briefing.pk}
+            ),
+        )
+    ]
+
+
+@check("briefing_no_deposit_contract")
+def _briefing_no_deposit_contract(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """第5-9号の 4 と末尾の文は「保証金等の契約をしていない」と述べる（記録が「有」なら食い違う）"""
+    briefing = context.briefing
+    if briefing is None or briefing.deposit_contract != DepositContract.EXISTS:
+        return []
+    return [
+        Issue(
+            "deposit_contract_exists",
+            _(
+                "The record says there is a contract on deposits or penalties, but the "
+                "confirmation (item 4 and the last sentence) states that there is none."
+            ),
+            Destination(
+                "workers:support_briefing", {"pk": context.worker.pk, "briefing_id": briefing.pk}
+            ),
+            strong=True,
         )
     ]
 
