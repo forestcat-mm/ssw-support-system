@@ -105,3 +105,17 @@ def test_template_paths_point_into_the_repository(loaded: None) -> None:
     for template in FormTemplate.objects.all():
         assert form_templates.template_file(template).is_file()
         assert (root / template.original_path).is_file()
+
+
+def test_mapping_that_writes_a_cell_referenced_by_a_formula_stops_loading(
+    repo_copy: tuple[Path, Path],
+) -> None:
+    """書くセルを参照する計算式があれば止める（PDF に古い計算結果が出るため。ADR-0018）。"""
+    _templates, mappings = repo_copy
+    path = mappings / "1-17" / "2026-10-17.json"
+    definition = json.loads(path.read_text(encoding="utf-8"))
+    definition["fields"][0]["target"] = "参考様式第１－１７号!DA673"  # DA670 の式が参照する
+    path.write_text(json.dumps(definition, ensure_ascii=False), encoding="utf-8")
+    with pytest.raises(form_templates.FormTemplateError, match="referenced by formulas"):
+        form_templates.load_all()
+    assert not FormTemplate.objects.filter(form_id="1-17").exists()

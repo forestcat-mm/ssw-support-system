@@ -28,6 +28,7 @@ from django.utils.translation import gettext as _
 
 from apps.core.models import User
 from apps.forms_engine.models import FormMapping, FormMethod, FormOwner, FormTemplate
+from services import form_xlsx
 
 MANIFEST = "manifest.json"
 REQUIRED_KEYS = ("form_id", "name", "valid_from", "language", "owner", "method", "original")
@@ -123,6 +124,10 @@ def _load_one(manifest_path: Path, *, by: User | None, report: LoadReport) -> No
     except json.JSONDecodeError as error:
         raise FormTemplateError(f"{mapping_path}: {error}") from error
 
+    if data["method"] == FormMethod.XLSX_CELLS:
+        _check_xlsx_targets(
+            folder / (data.get("template") or data["original"]), definition, mapping_path
+        )
     valid_from = datetime.date.fromisoformat(data["valid_from"])
     relative = folder.relative_to(templates_root())
     values: dict[str, Any] = {
@@ -204,6 +209,24 @@ def _load_one(manifest_path: Path, *, by: User | None, report: LoadReport) -> No
     mapping.updated_by = by
     mapping.save()
     report.updated.append(key)
+
+
+def _check_xlsx_targets(workbook: Path, definition: dict[str, Any], mapping_path: Path) -> None:
+    """Excel の書き込み先が書けるセルで、ブックの計算式から参照されていないこと（ADR-0018）。
+
+    値を書いたセルを参照する計算式があると、PDF に古い計算結果（キャッシュ）が出るおそれがある。
+    その様式を扱うときは、変換のときの再計算を入れてから、この検査を外す。
+    """
+    targets = [item["target"] for item in definition.get("fields", [])]
+    try:
+        form_xlsx.check_targets(workbook, targets)
+    except form_xlsx.XlsxWriteError as error:
+        raise FormTemplateError(f"{mapping_path}: {error}") from error
+    referenced = form_xlsx.targets_referenced_by_formulas(workbook, targets)
+    if referenced:
+        raise FormTemplateError(
+            f"{mapping_path}: cells referenced by formulas: {', '.join(referenced)}"
+        )
 
 
 @dataclass(frozen=True)

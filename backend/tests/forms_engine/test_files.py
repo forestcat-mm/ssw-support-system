@@ -5,6 +5,7 @@ Excel は openpyxl で保存すると図形などが落ちるため、シート�
 同じで、ほかのファイルはバイト単位で同じことを確かめる。
 """
 
+import json
 import re
 import zipfile
 from pathlib import Path
@@ -100,8 +101,6 @@ def test_cells_that_cannot_be_written(tmp_path: Path, ref: str) -> None:
 
 
 def test_mapping_targets_of_1_17_are_writable() -> None:
-    import json
-
     definition = json.loads(
         (Path(settings.FORM_MAPPINGS_ROOT) / "1-17" / "2026-10-17.json").read_text("utf-8")
     )
@@ -124,3 +123,101 @@ def test_word_template_only_adds_tags_to_the_original(tmp_path: Path) -> None:
     filled = "\n".join(p.text for p in docx.Document(str(out)).paragraphs)
     assert "A&B 登録支援機関" in filled and "2026年" in filled
     assert "{{" not in filled
+
+
+def test_1_17_has_no_formula_referencing_the_written_cells() -> None:
+    """第1-17号の計算式は DA670 の 1 つだけで、書くセルを参照しない（ADR-0018）。"""
+    with zipfile.ZipFile(ORIGINAL_1_17) as archive:
+        sources = {source for source, *_ in form_xlsx.formula_areas(archive)}
+    assert sources == {f"{SHEET}!DA670"}
+    definition = json.loads(
+        (Path(settings.FORM_MAPPINGS_ROOT) / "1-17" / "2026-10-17.json").read_text("utf-8")
+    )
+    targets = [item["target"] for item in definition["fields"]]
+    assert form_xlsx.targets_referenced_by_formulas(ORIGINAL_1_17, targets) == []
+    # DA670 の参照先（AO6・BC667:DA673 など）は見つかる
+    found = form_xlsx.targets_referenced_by_formulas(
+        ORIGINAL_1_17, [f"{SHEET}!AO6", f"{SHEET}!BC670", f"{SHEET}!AO7"]
+    )
+    assert found == [f"{SHEET}!AO6 <- {SHEET}!DA670", f"{SHEET}!BC670 <- {SHEET}!DA670"]
+
+
+def workbook_with(tmp_path: Path, sheet1_cells: str, defined_names: str = "") -> Path:
+    """2 枚のシート（「表」「別 表」）の最小のブック。"""
+    path = tmp_path / "book.xlsx"
+    sheet = (
+        '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+        f"<sheetData>{sheet1_cells}</sheetData></worksheet>"
+    )
+    empty = (
+        '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+        "<sheetData/></worksheet>"
+    )
+    workbook = (
+        '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
+        'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+        '<sheets><sheet name="表" sheetId="1" r:id="rId1"/>'
+        '<sheet name="別 表" sheetId="2" r:id="rId2"/></sheets>'
+        f"<definedNames>{defined_names}</definedNames></workbook>"
+    )
+    rels = (
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/'
+        'relationships/worksheet" Target="worksheets/sheet1.xml"/>'
+        '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/'
+        'relationships/worksheet" Target="worksheets/sheet2.xml"/></Relationships>'
+    )
+    with zipfile.ZipFile(path, "w") as archive:
+        archive.writestr("xl/workbook.xml", workbook)
+        archive.writestr("xl/_rels/workbook.xml.rels", rels)
+        archive.writestr("xl/worksheets/sheet1.xml", sheet)
+        archive.writestr("xl/worksheets/sheet2.xml", empty)
+    return path
+
+
+@pytest.mark.parametrize(
+    ("cells", "names", "target", "referenced"),
+    [
+        ('<row r="1"><c r="A1"/><c r="B1"><f>A1*2</f></c></row>', "", "表!A1", True),
+        ('<row r="1"><c r="B1"><f>SUM($A$1:$A$9)</f></c></row>', "", "表!A5", True),
+        ('<row r="1"><c r="B1"><f>SUM($A$1:$A$9)</f></c></row>', "", "表!A10", False),
+        ('<row r="1"><c r="B1"><f>COUNTA(C:D)</f></c></row>', "", "表!D300", True),
+        ('<row r="1"><c r="B1"><f>SUM(2:3)</f></c></row>', "", "表!Z3", True),
+        ('<row r="1"><c r="B1"><f>\'別 表\'!C3+1</f></c></row>', "", "別 表!C3", True),
+        ('<row r="1"><c r="B1"><f>\'別 表\'!C3+1</f></c></row>', "", "表!C3", False),
+        ('<row r="1"><c r="B1" t="str"><f>"A1"&amp;"x"</f></c></row>', "", "表!A1", False),
+        # 共有の計算式: 親（B1 の A1）が B1:B3 に広がる → A3 も参照される
+        (
+            '<row r="1"><c r="B1"><f t="shared" ref="B1:B3" si="0">A1</f></c></row>'
+            '<row r="2"><c r="B2"><f t="shared" si="0"/></c></row>',
+            "",
+            "表!A3",
+            True,
+        ),
+        ("", '<definedName name="合計">表!$E$1:$E$4</definedName>', "表!E2", True),
+        (
+            "",
+            '<definedName name="_xlnm.Print_Area" localSheetId="0">表!$A$1:$Z$99</definedName>',
+            "表!E2",
+            False,
+        ),
+        ("", '<definedName localSheetId="1" name="範囲">$E$1:$E$4</definedName>', "表!E2", True),
+    ],
+)
+def test_targets_referenced_by_formulas(
+    tmp_path: Path, cells: str, names: str, target: str, referenced: bool
+) -> None:
+    path = workbook_with(tmp_path, cells, names)
+    assert bool(form_xlsx.targets_referenced_by_formulas(path, [target])) is referenced
+
+
+def test_template_5_9_is_reproduced_by_the_tool(tmp_path: Path) -> None:
+    """template.docx は tools/forms/make_5_9_template.py の出力そのまま（手で直していない）。"""
+    import subprocess
+    import sys
+
+    folder = ROOT / "5-9" / "2026-10-17"
+    tool = Path(settings.REPO_ROOT) / "tools" / "forms" / "make_5_9_template.py"
+    out = tmp_path / "template.docx"
+    subprocess.run([sys.executable, str(tool), str(folder / "original.docx"), str(out)], check=True)
+    assert out.read_bytes() == (folder / "template.docx").read_bytes()

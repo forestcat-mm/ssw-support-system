@@ -121,6 +121,87 @@ def _check_cell(sheet_xml: str, ref: str) -> None:
         raise XlsxWriteError(f"{ref} has a formula")
 
 
+# 計算式の中のセル・範囲の参照（シート名つき・列全体・行全体を含む）
+_REF = re.compile(
+    r"(?:(?P<sheet>'(?:[^']|'')+'|[^\s!'\"(),:;+\-*/&=<>^]+)!)?"
+    r"(?:\$?(?P<c1>[A-Z]{1,3})\$?(?P<r1>\d+)(?::\$?(?P<c2>[A-Z]{1,3})\$?(?P<r2>\d+))?"
+    r"|\$?(?P<cc1>[A-Z]{1,3}):\$?(?P<cc2>[A-Z]{1,3})"
+    r"|\$?(?P<rr1>\d+):\$?(?P<rr2>\d+))"
+)
+_MAX_ROW = 1_048_576
+ANY_SHEET = "*"
+_MAX_COLUMN = 16_384
+
+
+def _areas(formula: str, own_sheet: str) -> list[tuple[str, int, int, int, int]]:
+    """計算式が参照する範囲（シート名・列の始め・行の始め・列の終わり・行の終わり）。"""
+    text = re.sub(r'"(?:[^"]|"")*"', "", formula)  # 文字列の定数は除く
+    areas = []
+    for match in _REF.finditer(text):
+        sheet = match.group("sheet")
+        sheet_name = sheet.strip("'").replace("''", "'") if sheet else own_sheet
+        if match.group("c1"):
+            c1, r1 = column_index(match.group("c1")), int(match.group("r1"))
+            c2 = column_index(match.group("c2")) if match.group("c2") else c1
+            r2 = int(match.group("r2")) if match.group("r2") else r1
+        elif match.group("cc1"):
+            c1, c2 = column_index(match.group("cc1")), column_index(match.group("cc2"))
+            r1, r2 = 1, _MAX_ROW
+        else:
+            r1, r2 = int(match.group("rr1")), int(match.group("rr2"))
+            c1, c2 = 1, _MAX_COLUMN
+        areas.append((sheet_name, min(c1, c2), min(r1, r2), max(c1, c2), max(r1, r2)))
+    return areas
+
+
+def formula_areas(archive: zipfile.ZipFile) -> list[tuple[str, str, int, int, int, int]]:
+    """ブックのすべての計算式が参照する範囲（計算式のあるセル・シート名・範囲）。
+
+    共有の計算式（t="shared"）は、親の式の参照を共有の範囲の大きさだけ広げて安全側に見る。
+    名前の定義（_xlnm. で始まる印刷範囲などを除く）も、参照される範囲として含める。
+    """
+    result = []
+    for sheet, path in sheet_paths(archive).items():
+        xml = archive.read(path).decode("utf-8")
+        for match in re.finditer(r'<c r="([A-Z]+\d+)"[^>]*?(?:/>|>(.*?)</c>)', xml, re.S):
+            formula = re.search(r"<f([^>]*)>([^<]*)</f>", match.group(2) or "")
+            if formula is None:
+                continue
+            spread = re.search(r'ref="([A-Z]+)(\d+):([A-Z]+)(\d+)"', formula.group(1))
+            width = height = 0
+            if 't="shared"' in formula.group(1) and spread:
+                width = column_index(spread.group(3)) - column_index(spread.group(1))
+                height = int(spread.group(4)) - int(spread.group(2))
+            for name, c1, r1, c2, r2 in _areas(_unescape(formula.group(2)), sheet):
+                result.append((f"{sheet}!{match.group(1)}", name, c1, r1, c2 + width, r2 + height))
+    workbook = archive.read("xl/workbook.xml").decode("utf-8")
+    for defined in re.finditer(r"<definedName\b([^>]*)>([^<]*)</definedName>", workbook):
+        label = re.search(r'\sname="([^"]*)"', defined.group(1))
+        if label is None or label.group(1).startswith("_xlnm."):
+            continue
+        # シート名の無い参照は、どのシートのセルとも重なりうるものとして見る（安全側）
+        for name, c1, r1, c2, r2 in _areas(_unescape(defined.group(2)), ANY_SHEET):
+            result.append((f"name:{_unescape(label.group(1))}", name, c1, r1, c2, r2))
+    return result
+
+
+def targets_referenced_by_formulas(path: Path, targets: list[str]) -> list[str]:
+    """書き込み先のうち、ブックの計算式（または名前の定義）が参照しているもの。"""
+    with zipfile.ZipFile(path) as archive:
+        areas = formula_areas(archive)
+    found = []
+    for target in targets:
+        sheet, ref = split_target(target)
+        letters, row = split_ref(ref)
+        column = column_index(letters)
+        for source, name, c1, r1, c2, r2 in areas:
+            hit = f"{target} <- {source}"
+            inside = name in (sheet, ANY_SHEET) and c1 <= column <= c2 and r1 <= row <= r2
+            if inside and hit not in found:
+                found.append(hit)
+    return found
+
+
 def _find_cell(sheet_xml: str, ref: str) -> re.Match[str] | None:
     return re.search(rf'<c r="{ref}"(?:\s[^>]*?)?(?:/>|>.*?</c>)', sheet_xml, re.S)
 
