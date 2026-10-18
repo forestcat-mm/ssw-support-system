@@ -29,6 +29,7 @@ def test_loading_is_idempotent_and_records_the_sources(loaded: None) -> None:
         "1-25 2026-10-18 ja",
         "1-4 2026-10-18 ja",
         "1-5 2026-10-18 ja",
+        "1-5 2026-10-18 ja-zh",
         "1-6 2026-10-18 ja",
         "13-1 2026-10-18 ja",
         "13-2 2026-10-18 ja",
@@ -38,11 +39,13 @@ def test_loading_is_idempotent_and_records_the_sources(loaded: None) -> None:
         "5-5 2026-10-18 ja",
         "5-6 2026-10-18 ja",
         "5-8 2026-10-17 ja",
+        "5-8 2026-10-18 ja-zh",
         "5-9 2026-10-17 ja",
+        "5-9 2026-10-18 ja-zh",
         "career-plan 2026-10-18 ja",
         "experience-certificate 2026-10-18 ja",
     ]
-    assert FormTemplate.objects.count() == 16 and FormMapping.objects.count() == 16
+    assert FormTemplate.objects.count() == 19 and FormMapping.objects.count() == 19
 
 
 def test_changed_original_stops_loading(repo_copy: tuple[Path, Path]) -> None:

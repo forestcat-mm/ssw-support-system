@@ -28,6 +28,7 @@ from services import (
     form_checks,
     form_data_1_17,
     form_generation,
+    form_languages,
     form_templates,
     support_plans,
     worker_detail,
@@ -277,6 +278,7 @@ class PlanGenerateView(WorkerFormView):
             version=version,
             form=form,
             result=result,
+            bilingual_notice=form_languages.outdated_notice(worker, self.form_id),
             back_url=f"{back}?plan={version.plan_id}&version={version.version}",
         )
 

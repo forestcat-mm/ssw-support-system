@@ -1,0 +1,24 @@
+{
+  "form_id": "1-5",
+  "name": "特定技能雇用契約書（参考様式第1-5号。日中併記）",
+  "valid_from": "2026-10-18",
+  "language": "ja-zh",
+  "owner": "common",
+  "method": "docx-tags",
+  "requires_signed_copy": true,
+  "original": "original.docx",
+  "converted": "extracted.docx",
+  "converter": "tools/forms/extract_zh_forms.py（入管の中国語の版の 1 ファイルから、この様式の部分を取り出す）",
+  "template": "template.docx",
+  "source": {
+    "url": "https://www.moj.go.jp/isa/content/001339744.docx",
+    "page": "https://www.moj.go.jp/isa/applications/ssw/10_00020.html",
+    "retrieved_on": "2026-10-18",
+    "revision_date": null,
+    "revision_date_unknown": true,
+    "original_sha256": "9f8a6619ed8ff86cac20bfc193d242e77ce24ff9b8786b58ac6c3ad2641ddb37",
+    "converted_sha256": "f243703b3a221ac23a81561dc68ab8b85740093fd28c108d0d23e4c0c9cec016",
+    "template_sha256": "2cbf072cbd3f8b7ef88f2d5011ec50caed5fb5bfd0ab7a2b5aa7e0cede68fd6e",
+    "adr": "ADR-0027（取得日 2026-10-18（Last-Modified 2025-04-01。改正日の記載なし。10 の様式を 1 つにまとめた中国語の版））、ADR-0018"
+  }
+}

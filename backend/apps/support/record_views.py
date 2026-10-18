@@ -21,7 +21,7 @@ from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 
 from apps.contracts.models import EmploymentContract
-from apps.core.models import Action, Attachment, User
+from apps.core.models import Action, Attachment, SupportLanguage, User
 from apps.core.permissions import ActionRequiredMixin
 from apps.core.web_forms import consume_once_token
 from apps.filings.models import Filing
@@ -61,6 +61,7 @@ from services import (
     form_data_briefing,
     form_data_interview,
     form_generation,
+    form_languages,
     form_templates,
     incident_reports,
     interview_answers,
@@ -1031,6 +1032,13 @@ class DeliveryCreateView(RecordFormView):
             document = GeneratedDocument.objects.filter(pk=int(generated), worker=worker).first()
             if document is not None and isinstance(document.target, EmploymentContract):
                 initial["contract"] = document.target.pk  # 自機関の書類は対象の契約（T36）
+            if document is not None:  # 書面の言語は生成物の版の言語（T38-D2）
+                codes = form_languages.delivery_language_codes(document.template.language)
+                initial["languages"] = list(
+                    SupportLanguage.objects.filter(code__in=codes, is_active=True).values_list(
+                        "pk", flat=True
+                    )
+                )
         form = DeliveryForm(worker=worker, kind=self.kind(kind), initial=initial)
         return self.page(request, worker, form)
 
@@ -1194,6 +1202,14 @@ class BriefingGenerateView(BriefingMixin, WorkerFormView):
             back_url=reverse("workers:support_briefing", args=[worker.pk, briefing.pk]),
         )
 
+    def form(self, worker: ForeignWorker, briefing: Briefing, *args: Any) -> BriefingGenerateForm:
+        form_id = BRIEFING_FORM_IDS[SupportItem(briefing.record.kind)]
+        return BriefingGenerateForm(
+            *args,
+            languages=form_languages.choices(form_id),
+            initial={"language": form_languages.default_for(worker, form_id)},
+        )
+
     def check(
         self, briefing: Briefing, form: BriefingGenerateForm
     ) -> form_checks.CheckResult | None:
@@ -1203,6 +1219,7 @@ class BriefingGenerateView(BriefingMixin, WorkerFormView):
                 target=briefing,
                 data=form_data_briefing.build(briefing),
                 basis_on=briefing.record.occurred_on,
+                language=form.chosen_language,
             )
         except form_templates.FormTemplateError:
             form.add_error(None, NOT_LOADED)
@@ -1211,13 +1228,13 @@ class BriefingGenerateView(BriefingMixin, WorkerFormView):
     def get(self, request: HttpRequest, pk: int, briefing_id: int) -> HttpResponse:
         worker = self.worker(request, pk)
         briefing = self.open_briefing(worker, briefing_id)
-        form = BriefingGenerateForm()
+        form = self.form(worker, briefing)
         return self.page(request, worker, briefing, form, self.check(briefing, form))
 
     def post(self, request: HttpRequest, pk: int, briefing_id: int) -> HttpResponse:
         worker = self.worker(request, pk)
         briefing = self.open_briefing(worker, briefing_id)
-        form = BriefingGenerateForm(request.POST)
+        form = self.form(worker, briefing, request.POST)
         form.is_valid()
         if not consume_once_token(request):
             return self.already_submitted(
@@ -1231,6 +1248,7 @@ class BriefingGenerateView(BriefingMixin, WorkerFormView):
                 data=form_data_briefing.build(briefing),
                 basis_on=briefing.record.occurred_on,
                 by=request.user,
+                language=form.chosen_language,
                 accept_warnings=bool(form.cleaned_data.get("accept_warnings")),
             )
         except form_generation.GenerationBlocked as blocked:

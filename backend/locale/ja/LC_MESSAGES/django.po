@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-18 23:17+0900\n"
+"POT-Creation-Date: 2026-10-18 23:49+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -305,6 +305,14 @@ msgstr "第1-4号の末尾に出ます。初期値は受入れ機関の代表者
 
 msgid "I have checked the warnings and will generate the form anyway."
 msgstr "警告を確かめたうえで生成します。"
+
+msgid "language of the form"
+msgstr "様式の言語"
+
+msgid ""
+"The bilingual version is the one distributed by the Immigration Services "
+"Agency."
+msgstr "併記の版は、出入国在留管理庁が配布するものです。"
 
 msgid "expiry of contract period"
 msgstr "契約満了"
@@ -3075,6 +3083,15 @@ msgid "%(counter)s row does not apply"
 msgid_plural "%(counter)s rows do not apply"
 msgstr[0] "当てはまらない行（%(counter)s 行）"
 
+msgid ""
+"The Chinese bilingual version distributed by the Immigration Services Agency "
+"differs from the current Japanese form, so only the Japanese form is "
+"generated. Prepare the copy in the worker's language outside the system."
+msgstr ""
+"出入国在留管理庁が配布する中国語の併記の版は、現行の日本語の様式と内容が違う"
+"ため、日本語の様式だけを作ります。本人の言語の写しは、システムの外で用意して"
+"ください。"
+
 msgid "Cannot generate"
 msgstr "生成できません"
 
@@ -3151,6 +3168,12 @@ msgstr "写しの交付を記録する"
 
 msgid "form version"
 msgstr "様式の版"
+
+msgid "Japanese and Chinese (bilingual)"
+msgstr "日本語と中国語（併記）"
+
+msgid "Japanese"
+msgstr "日本語"
 
 msgid "support plan version"
 msgstr "支援計画の版"
@@ -4147,9 +4170,6 @@ msgstr "本人"
 
 msgid "supervisor at the host organization"
 msgstr "受入れ機関の上司"
-
-msgid "Japanese"
-msgstr "日本語"
 
 msgid "Chinese (Simplified)"
 msgstr "中国語（簡体字）"

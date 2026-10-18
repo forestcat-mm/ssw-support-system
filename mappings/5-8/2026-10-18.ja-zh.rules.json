@@ -1,0 +1,14 @@
+{
+  "form_id": "5-8",
+  "valid_from": "2026-10-18",
+  "language": "ja-zh",
+  "note": "T38 の日中併記の版の規則（ADR-0027）。日本語の版と同じ。T32 の規則（ADR-0021）。確認書の固定の文が述べる事実（説明を受けた・保証金等の契約をしていない）と記録が食い違うものは生成不可。固定の文が述べない事実（時間・費用の合意・確認書に無い欄・4 回以上）は警告。署名済みの添付は生成の後に付けるので unsigned は出さない。",
+  "rules": [
+    {"id": "briefing_record", "type": "check", "name": "briefing_record_exists", "params": {"kind": "orientation"}, "severity": "block"},
+    {"id": "items_explained", "type": "check", "name": "briefing_items_explained", "severity": "block", "requires": "briefing_record"},
+    {"id": "items_off_form", "type": "check", "name": "briefing_items_off_form", "severity": "warn", "requires": "briefing_record"},
+    {"id": "briefing_warnings", "type": "check", "name": "briefing_warnings", "params": {"exclude": ["unsigned", "missing_items", "deposit_contract"]}, "severity": "warn", "requires": "briefing_record"},
+    {"id": "organization_name_required", "type": "required", "key": "briefing.organization_name", "label": "特定技能所属機関（又は登録支援機関）の氏名又は名称", "severity": "block", "requires": "briefing_record", "fix": {"object": "organization", "url": "settings:organization_edit"}},
+    {"id": "explainer_required", "type": "required", "key": "briefing.explainer_name", "label": "説明者の氏名", "severity": "block", "requires": "briefing_record", "fix": {"object": "briefing", "url": "workers:support_briefing"}}
+  ]
+}

@@ -1,0 +1,147 @@
+{
+ "form_id": "5-9",
+ "valid_from": "2026-10-18",
+ "language": "ja-zh",
+ "note": "T38 の日中併記の版（ADR-0027）。欄とデータのキーは日本語の版（T32、ADR-0021）と同じ。値は日本語の行に入れる。",
+ "fields": [
+  {
+   "key": "briefing.organization_name",
+   "target": "organization_name",
+   "format": "text",
+   "label": "特定技能所属機関（又は登録支援機関）の氏名又は名称"
+  },
+  {
+   "key": "briefing.explainer_name",
+   "target": "explainer_name",
+   "format": "text",
+   "label": "説明者の氏名"
+  },
+  {
+   "key": "session1.year",
+   "target": "s1_year",
+   "format": "text",
+   "label": "実施日時 1 行目"
+  },
+  {
+   "key": "session1.month",
+   "target": "s1_month",
+   "format": "text",
+   "label": "実施日時 1 行目"
+  },
+  {
+   "key": "session1.day",
+   "target": "s1_day",
+   "format": "text",
+   "label": "実施日時 1 行目"
+  },
+  {
+   "key": "session1.start_hour",
+   "target": "s1_start_hour",
+   "format": "text",
+   "label": "実施日時 1 行目"
+  },
+  {
+   "key": "session1.start_minute",
+   "target": "s1_start_minute",
+   "format": "text",
+   "label": "実施日時 1 行目"
+  },
+  {
+   "key": "session1.end_hour",
+   "target": "s1_end_hour",
+   "format": "text",
+   "label": "実施日時 1 行目"
+  },
+  {
+   "key": "session1.end_minute",
+   "target": "s1_end_minute",
+   "format": "text",
+   "label": "実施日時 1 行目"
+  },
+  {
+   "key": "session2.year",
+   "target": "s2_year",
+   "format": "text",
+   "label": "実施日時 2 行目"
+  },
+  {
+   "key": "session2.month",
+   "target": "s2_month",
+   "format": "text",
+   "label": "実施日時 2 行目"
+  },
+  {
+   "key": "session2.day",
+   "target": "s2_day",
+   "format": "text",
+   "label": "実施日時 2 行目"
+  },
+  {
+   "key": "session2.start_hour",
+   "target": "s2_start_hour",
+   "format": "text",
+   "label": "実施日時 2 行目"
+  },
+  {
+   "key": "session2.start_minute",
+   "target": "s2_start_minute",
+   "format": "text",
+   "label": "実施日時 2 行目"
+  },
+  {
+   "key": "session2.end_hour",
+   "target": "s2_end_hour",
+   "format": "text",
+   "label": "実施日時 2 行目"
+  },
+  {
+   "key": "session2.end_minute",
+   "target": "s2_end_minute",
+   "format": "text",
+   "label": "実施日時 2 行目"
+  },
+  {
+   "key": "session3.year",
+   "target": "s3_year",
+   "format": "text",
+   "label": "実施日時 3 行目"
+  },
+  {
+   "key": "session3.month",
+   "target": "s3_month",
+   "format": "text",
+   "label": "実施日時 3 行目"
+  },
+  {
+   "key": "session3.day",
+   "target": "s3_day",
+   "format": "text",
+   "label": "実施日時 3 行目"
+  },
+  {
+   "key": "session3.start_hour",
+   "target": "s3_start_hour",
+   "format": "text",
+   "label": "実施日時 3 行目"
+  },
+  {
+   "key": "session3.start_minute",
+   "target": "s3_start_minute",
+   "format": "text",
+   "label": "実施日時 3 行目"
+  },
+  {
+   "key": "session3.end_hour",
+   "target": "s3_end_hour",
+   "format": "text",
+   "label": "実施日時 3 行目"
+  },
+  {
+   "key": "session3.end_minute",
+   "target": "s3_end_minute",
+   "format": "text",
+   "label": "実施日時 3 行目"
+  }
+ ],
+ "rules": []
+}

@@ -7,6 +7,7 @@
 {% endblock %}
 {% block content %}
 <div class="stack form">
+  {% if bilingual_notice %}{% include "forms_engine/components/bilingual_notice.html" %}{% endif %}
   {% if result %}{% include "forms_engine/components/findings.html" %}{% endif %}
   <form class="form" method="post" novalidate id="generate-form">
     {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
@@ -14,6 +15,7 @@
     <section class="card stack">
       {% form_field form.basis_on %}
       {% if form.author %}{% form_field form.author %}{% endif %}
+      {% if form.language %}{% form_field form.language %}{% endif %}
       {% if result.warnings and not result.blocking %}{% form_field form.accept_warnings %}{% endif %}
     </section>
     <div class="form-actions">

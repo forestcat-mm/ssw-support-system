@@ -12,15 +12,37 @@ NOT_LOADED = _("The form is not loaded. Ask an administrator to load the forms (
 
 
 class BriefingGenerateForm(StyledFormMixin, forms.Form):
-    """確認書（第5-9号・第5-8号）の生成: 警告を確かめた印だけ（基準日は記録の実施日）。"""
+    """確認書（第5-9号・第5-8号）の生成: 様式の言語と警告を確かめた印。
 
+    言語は日中併記の版があるときだけ選ぶ（T38）。基準日は記録の実施日。
+    """
+
+    language = forms.ChoiceField(
+        label=_("language of the form"),
+        required=False,
+        help_text=_(
+            "The bilingual version is the one distributed by the Immigration Services Agency."
+        ),
+    )
     accept_warnings = forms.BooleanField(
         label=_("I have checked the warnings and will generate the form anyway."), required=False
     )
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self, *args: Any, languages: list[tuple[str, str]] | None = None, **kwargs: Any
+    ) -> None:
         super().__init__(*args, **kwargs)
+        if languages and len(languages) > 1:
+            self.fields["language"].choices = languages  # type: ignore[attr-defined]
+        else:
+            del self.fields["language"]
         self.style_fields()
+
+    @property
+    def chosen_language(self) -> str:
+        if "language" not in self.fields or not self.is_bound or not self.is_valid():
+            return str(self.initial.get("language") or "ja")
+        return str(self.cleaned_data.get("language") or "ja")
 
 
 class PlanGenerateForm(StyledFormMixin, forms.Form):

@@ -85,7 +85,7 @@ def _read_manifest(path: Path) -> dict[str, Any]:
         raise FormTemplateError(f"{path}: unknown method {data['method']}")
     if data["owner"] not in FormOwner.values:
         raise FormTemplateError(f"{path}: unknown owner {data['owner']}")
-    if path.parent.name != data["valid_from"] or path.parent.parent.name != data["form_id"]:
+    if path.parent.name != version_stem(data) or path.parent.parent.name != data["form_id"]:
         raise FormTemplateError(f"{path}: folder does not match form_id / valid_from")
     if data["method"] == FormMethod.DOCX_TAGS and not data.get("template"):
         raise FormTemplateError(f"{path}: a Word form needs template.docx")
@@ -97,6 +97,16 @@ def _read_manifest(path: Path) -> dict[str, Any]:
     elif not source.get("url"):
         raise FormTemplateError(f"{path}: the source url is required")
     return data
+
+
+def version_stem(data: dict[str, Any]) -> str:
+    """版のフォルダとマッピングのファイルの名前（日本語以外は言語を付ける。T38）。
+
+    例: 2026-10-18（日本語）、2026-10-18.ja-zh（日中併記）。
+    """
+    if data["language"] == "ja":
+        return str(data["valid_from"])
+    return f"{data['valid_from']}.{data['language']}"
 
 
 def _checked_sha(folder: Path, name: str, expected: str | None, label: str) -> str:
@@ -130,7 +140,8 @@ def _load_one(manifest_path: Path, *, by: User | None, report: LoadReport) -> No
     )
     if data.get("converted"):  # 配布が .doc の様式を変換した docx（T34-D1。template の元）
         _checked_sha(folder, data["converted"], source.get("converted_sha256"), "converted")
-    mapping_path = mappings_root() / data["form_id"] / f"{data['valid_from']}.json"
+    stem = version_stem(data)
+    mapping_path = mappings_root() / data["form_id"] / f"{stem}.json"
     if not mapping_path.is_file():
         raise FormTemplateError(f"{mapping_path}: not found")
     mapping_sha = sha256_of(mapping_path)
@@ -143,7 +154,7 @@ def _load_one(manifest_path: Path, *, by: User | None, report: LoadReport) -> No
         raise FormTemplateError(
             f"{mapping_path}: rules belong in the rules file ({mapping_path.stem}.rules.json)"
         )
-    rules_path = mapping_path.with_name(f"{data['valid_from']}.rules.json")
+    rules_path = mapping_path.with_name(f"{stem}.rules.json")
     rules, rules_sha = _read_rules(rules_path, data, definition)
     if data["method"] == FormMethod.XLSX_CELLS:
         _check_xlsx_targets(

@@ -47,6 +47,7 @@ from services import (
     form_data_career,
     form_data_contract,
     form_generation,
+    form_languages,
     form_templates,
     wage_explanations,
 )
@@ -557,6 +558,7 @@ class ContractGenerateView(WorkerFormView):
             form_id=form_id,
             form_name=CONTRACT_FORMS[form_id],
             form=form,
+            bilingual_notice=form_languages.outdated_notice(worker, form_id),
             result=result,
             back_url=back,
         )
@@ -570,6 +572,7 @@ class ContractGenerateView(WorkerFormView):
                 target=version,
                 data=self.data(version, form_id, form),
                 basis_on=form.cleaned_data["basis_on"],
+                language=form.chosen_language,
             )
         except form_templates.FormTemplateError:
             form.add_error(None, NOT_LOADED)
@@ -582,17 +585,26 @@ class ContractGenerateView(WorkerFormView):
         initial = {
             "basis_on": timezone.localdate().isoformat(),
             "author": form_data_contract.default_author(version),
+            "language": form_languages.default_for(worker, form_id),
         }
-        form = ContractGenerateForm(initial, with_author=form_id == "1-4")
+        form = self.form_class(form_id, initial)
         result = self.check(version, form_id, form) if form.is_valid() else None
-        form = ContractGenerateForm(initial=initial, with_author=form_id == "1-4")
+        form = self.form_class(form_id, initial=initial)
         return self.page(request, worker, version, form_id, form, result)
+
+    def form_class(self, form_id: str, *args: Any, **kwargs: Any) -> ContractGenerateForm:
+        return ContractGenerateForm(
+            *args,
+            with_author=form_id == "1-4",
+            languages=form_languages.choices(form_id),
+            **kwargs,
+        )
 
     def post(
         self, request: HttpRequest, pk: int, contract_id: int, number: int, form_id: str
     ) -> HttpResponse:
         worker, version = self.target(request, pk, contract_id, number, form_id)
-        form = ContractGenerateForm(request.POST, with_author=form_id == "1-4")
+        form = self.form_class(form_id, request.POST)
         if not form.is_valid():
             return self.page(request, worker, version, form_id, form, None)
         if request.POST.get("action") != "generate":
@@ -608,6 +620,7 @@ class ContractGenerateView(WorkerFormView):
                 data=self.data(version, form_id, form),
                 basis_on=form.cleaned_data["basis_on"],
                 by=_actor(request),
+                language=form.chosen_language,
                 accept_warnings=bool(form.cleaned_data.get("accept_warnings")),
             )
         except form_generation.GenerationBlocked as blocked:

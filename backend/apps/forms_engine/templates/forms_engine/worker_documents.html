@@ -8,7 +8,7 @@
       <thead><tr><th>{% translate "form" %}</th><th>{% translate "generated at" %}</th><th>{% translate "status" %}</th><th>{% translate "date of signature" %}</th><th>{% translate "files" %}</th></tr></thead>
       <tbody>{% for item in document_rows %}{% with row=item.row document=item.row.document %}
         <tr data-document="{{ document.pk }}" data-state="{{ row.state }}">
-          <td><a href="{% url 'forms:document' document.pk %}">{{ document.template.form_id }} {{ document.template.name }}</a><br><span class="caption">{% translate "form version" %} {{ document.template.valid_from|date:"Y-m-d" }}</span></td>
+          <td><a href="{% url 'forms:document' document.pk %}">{{ document.template.form_id }} {{ document.template.name }}</a><br><span class="caption">{% translate "form version" %} {{ document.template.valid_from|date:"Y-m-d" }}{% if document.template.language == "ja-zh" %} · {% translate "Japanese and Chinese (bilingual)" %}{% endif %}</span></td>
           <td class="mono">{{ document.generated_at|date:"Y-m-d H:i"|default:"—" }}</td>
           <td>
             {% if document.status == "requested" %}{% if row.stale %}<span class="badge badge--overdue">{% translate "taking too long" %}</span><br><span class="caption">{% blocktranslate with minutes=stale_minutes %}Requested more than {{ minutes }} minutes ago. Ask an administrator to check the job worker (qcluster), and generate it again if needed.{% endblocktranslate %}</span>{% else %}<span class="badge badge--open">{% translate "generating" %}</span>{% endif %}

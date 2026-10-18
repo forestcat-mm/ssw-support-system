@@ -307,6 +307,7 @@ def request(
         "form_id": form_id,
         "template_id": template.pk,
         "valid_from": template.valid_from.isoformat(),
+        "language": template.language,  # 様式の版の言語（ja・ja-zh。T38）
         "basis_on": basis_on.isoformat(),
         "before_first_version": selection.before_first_version,
         "data": {key: _jsonable(value) for key, value in data.items()},

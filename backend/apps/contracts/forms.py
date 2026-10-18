@@ -407,12 +407,35 @@ class ContractGenerateForm(StyledFormMixin, forms.Form):
         label=_("I have checked the warnings and will generate the form anyway."), required=False
     )
 
+    language = forms.ChoiceField(
+        label=_("language of the form"),
+        required=False,
+        help_text=_(
+            "The bilingual version is the one distributed by the Immigration Services Agency."
+        ),
+    )
+
     def __init__(
-        self, *args: Any, with_author: bool = False, author_help: Any = None, **kwargs: Any
+        self,
+        *args: Any,
+        with_author: bool = False,
+        author_help: Any = None,
+        languages: list[tuple[str, str]] | None = None,
+        **kwargs: Any,
     ) -> None:
         super().__init__(*args, **kwargs)
         if not with_author:
             del self.fields["author"]
         elif author_help is not None:
             self.fields["author"].help_text = author_help
+        if languages and len(languages) > 1:  # 日中併記の版がある様式だけ（T38）
+            self.fields["language"].choices = languages  # type: ignore[attr-defined]
+        else:
+            del self.fields["language"]
         self.style_fields()
+
+    @property
+    def chosen_language(self) -> str:
+        if "language" not in self.fields or not self.is_bound or not self.is_valid():
+            return str(self.initial.get("language") or "ja")
+        return str(self.cleaned_data.get("language") or "ja")

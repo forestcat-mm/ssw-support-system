@@ -58,7 +58,7 @@ def completed(
     """変換をせずに、完了した生成物の行を作る（署名と回収の試験用）。"""
     at = timezone.make_aware(datetime.datetime.combine(on, datetime.time(10)))
     return GeneratedDocument.objects.create(
-        template=FormTemplate.objects.get(form_id=form_id),
+        template=FormTemplate.objects.get(form_id=form_id, language="ja"),
         target=target or worker,
         worker=worker,
         basis_on=on,
