@@ -78,8 +78,9 @@ make logs           # ログを追う
 make shell          # Django shell
 make psql           # DB に psql で入る
 make filings        # 日次の届出タスクの起票を手で実行する（DATE=YYYY-MM-DD で基準日を指定）
-make forms          # 様式マスタを読み込む（様式やマッピング定義を足したとき）
-docker compose exec web python manage.py generate_sample_form 1-17 --worker <ID>  # 見本の帳票を生成する（開発者向け）
+make forms          # 様式マスタを読み込む（様式・マッピング定義・規則のファイルを足したり直したりしたとき）
+docker compose exec web python manage.py check_form 1-17 --worker <ID>  # 見本の生成前の検査の結果を見る（生成はしない）
+docker compose exec web python manage.py generate_sample_form 1-17 --worker <ID>  # 見本の帳票を生成する（開発者向け。警告があるときは --accept-warnings）
 make lock           # pyproject.toml の変更を uv.lock に反映する（その後 make build）
 ```
 
@@ -134,6 +135,7 @@ backend/
   tests/        pytest（単体・画面）
   e2e/          Playwright の通しのテスト
 templates/forms/ 入管の様式（版ごとのフォルダに original・template・manifest）
-mappings/       様式ごとのマッピング定義（JSON）
+mappings/       様式ごとのマッピング定義（<適用開始日>.json）と生成前の検査の規則（<適用開始日>.rules.json。ADR-0019）
+tools/          開発用の道具（make checks の run_checks.sh、forms/ の template.docx を作るスクリプト）
 docs/           仕様書・タスク・ADR・運用手順・デザイン
 ```

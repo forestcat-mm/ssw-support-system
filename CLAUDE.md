@@ -61,7 +61,8 @@
 │   ├── tests/                 # pytest（単体・画面）
 │   └── e2e/                   # Playwright の通しのテスト（make e2e・make gate2）
 ├── templates/forms/           # 入管配布の Word/Excel テンプレート（版ごとにフォルダ。段階3で作る）
-├── mappings/                  # 様式ごとのマッピング定義 JSON（段階3で作る）
+├── mappings/                  # 様式ごとのマッピング定義 JSON と生成前の検査の規則 *.rules.json（ADR-0019）
+├── tools/                     # 開発用の道具（run_checks.sh〔make checks〕、forms/ の template.docx の作成）
 ├── scripts/                   # 手元用の補助スクリプト（init_env.py など。標準ライブラリのみ）
 ├── docker-compose.yml
 ├── docker-compose.prod.yml    # 本番準備で作る（docs/tasks-phase1.md）
@@ -138,4 +139,5 @@ make gate2     # 段階2の受け入れ確認（DATE=YYYY-MM-DD で基準日。�
 make messages  # UI 文言の抽出とコンパイル（.po と .mo の両方をコミット）
 make filings   # 日次の届出タスクの起票を手で実行（DATE=YYYY-MM-DD で基準日を指定）
 make forms     # 様式マスタ（templates/forms・mappings）を読み込む
+make checks    # lint・test・e2e を順に流し、終了コードと === DONE を .checks/checks.log に書く（GATE2_DATES で gate2 も）
 ```
