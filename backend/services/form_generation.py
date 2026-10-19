@@ -199,20 +199,54 @@ class Fit:
     wrap: bool = False  # 欄の幅で改行する（T35-D11）
 
 
+def pdf_merges(template: FormTemplate) -> list[str]:
+    """PDF に変換する一時の写しでだけ結合する範囲（manifest の pdf_merges。ADR-0032）。"""
+    return [entry["range"] for entry in (template.manifest or {}).get("pdf_merges", [])]
+
+
+def merged_targets(template: FormTemplate) -> set[str]:
+    """一時の結合の範囲の左上の書き込み先（字を小さくしない欄）。"""
+    result = set()
+    for merge in pdf_merges(template):
+        sheet, area = form_xlsx.split_target(merge)
+        result.add(f"{sheet}!{area.split(':')[0]}")
+    return result
+
+
+def text_areas(template: FormTemplate) -> dict[str, str]:
+    """書き込み先 → 字を描く範囲（マッピングの fit_area と、一時の結合の範囲）。"""
+    areas = {
+        item["target"]: item["fit_area"]
+        for item in template.mapping.definition.get("fields", [])
+        if item.get("fit_area")
+    }
+    for merge in pdf_merges(template):
+        sheet, area = form_xlsx.split_target(merge)
+        areas[f"{sheet}!{area.split(':')[0]}"] = area
+    return areas
+
+
 def fits(template: FormTemplate, data: Mapping[str, Any]) -> list[Fit]:
     """fit の欄は 1 行に収まる字の大きさ（T31-D7）、wrap の欄は改行して結合範囲の高さに収まる
     字の大きさ（T35-D11）。wrap の欄は、値があれば字の大きさが元のままでも残す（改行を入れるため）。
+    一時の結合の範囲の左上の欄（pdf_merges）は、字を小さくせず、収まらないときだけ知らせる
+    （修正 1 回目 A6 の案 (e)、ADR-0032）。
     """
     definition = template.mapping.definition
     if template.method != FormMethod.XLSX_CELLS:
         return []
-    items = [item for item in definition.get("fields", []) if item.get("fit") or item.get("wrap")]
+    areas = text_areas(template)
+    fixed = {target for target in areas if target in merged_targets(template)}
+    items = [
+        item
+        for item in definition.get("fields", [])
+        if item.get("fit") or item.get("wrap") or item.get("target") in fixed
+    ]
     values = {item["target"]: field_value(item, data) for item in items}
     wraps = {item["target"] for item in items if item.get("wrap")}
-    targets = [target for target, value in values.items() if value is not None]
+    targets = [target for target, value in values.items() if value not in (None, "")]
     if not targets:
         return []
-    areas = {item["target"]: item["fit_area"] for item in items if item.get("fit_area")}
     fonts = form_xlsx.cell_fonts(form_templates.template_file(template), targets, areas)
     minimum = float(definition.get("fit_min_size", DEFAULT_FIT_MIN_SIZE))
     result = []
@@ -221,7 +255,8 @@ def fits(template: FormTemplate, data: Mapping[str, Any]) -> list[Fit]:
             size, overflow = form_xlsx.wrapped_size(str(values[target]), fonts[target], minimum)
             result.append(Fit(target, size, overflow, wrap=True))
             continue
-        size, overflow = form_xlsx.fitted_size(str(values[target]), fonts[target], minimum)
+        floor = fonts[target].size if target in fixed else minimum
+        size, overflow = form_xlsx.fitted_size(str(values[target]), fonts[target], floor)
         if size < fonts[target].size or overflow:
             result.append(Fit(target, size, overflow))
     return result
@@ -389,11 +424,7 @@ def _render(
     if template.method == FormMethod.XLSX_CELLS:
         filled = workdir / f"{template.form_id}.xlsx"
         if fitted:
-            areas = {
-                item["target"]: item["fit_area"]
-                for item in template.mapping.definition.get("fields", [])
-                if item.get("fit_area")
-            }
+            areas = text_areas(template)
             fonts = form_xlsx.cell_fonts(source, [t for t in fitted if t in values], areas)
             for target, font in fonts.items():
                 size = float(fitted[target]["size"])
@@ -402,6 +433,15 @@ def _render(
                     text = "\n".join(form_xlsx.wrap_lines(text, font, size))
                 values[target] = form_xlsx.SizedText(text, size, font.name, font.charset)
         form_xlsx.write_cells(source, filled, values)
+        merges = pdf_merges(template)
+        if merges:
+            # 保存するブックは公式の構造のまま。変換の直前の一時の写しでだけ結合する（ADR-0032）
+            copy = workdir / "for-pdf" / filled.name
+            copy.parent.mkdir(exist_ok=True)
+            form_xlsx.with_pdf_merges(filled, copy, merges)
+            pdf = form_convert.convert(copy)
+            copy.unlink()
+            return filled, pdf
     else:
         filled = workdir / f"{template.form_id}.docx"
         form_docx.render(source, filled, values)

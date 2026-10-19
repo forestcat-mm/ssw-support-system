@@ -358,6 +358,119 @@ def write_cells(source: Path, destination: Path, values: Mapping[str, object]) -
                 output.writestr(item, data)
 
 
+# --- PDF に変換するための一時の結合（修正 1 回目 A6 の案 (e)、ADR-0032）-----------------------
+# 保存する記入済みのブックは結合しない。変換の直前の一時の写しでだけ、manifest の pdf_merges に
+# 一覧で持つ範囲を結合する。範囲の中に罫線・値・ほかの欄・結合が無いことを、読み込みのときに
+# 確かめる。
+
+
+def _borders(styles_xml: str) -> tuple[list[set[str]], list[int]]:
+    """罫線（borderId ごとに、線のある辺の集合）と、cellXfs ごとの borderId。"""
+    borders_xml = re.search(r"<borders[^>]*>(.*?)</borders>", styles_xml, re.S)
+    borders = []
+    for border in re.findall(
+        r"<border\b[^>]*?(?:/>|>.*?</border>)", borders_xml.group(1) if borders_xml else "", re.S
+    ):
+        sides = {
+            side
+            for side in ("left", "right", "top", "bottom")
+            if re.search(rf'<{side}\b[^>]*\bstyle="(?!none)[^"]+"', border)
+        }
+        borders.append(sides)
+    xfs_xml = re.search(r"<cellXfs[^>]*>(.*?)</cellXfs>", styles_xml, re.S)
+    xf_borders = [
+        int(match.group(1)) if match else 0
+        for match in (
+            re.search(r'borderId="(\d+)"', xf)
+            for xf in re.findall(
+                r"<xf\b[^>]*?(?:/>|>.*?</xf>)", xfs_xml.group(1) if xfs_xml else "", re.S
+            )
+        )
+    ]
+    return borders, xf_borders
+
+
+def _letters(column: int) -> str:
+    letters = ""
+    while column:
+        column, rest = divmod(column - 1, 26)
+        letters = chr(ord("A") + rest) + letters
+    return letters
+
+
+def pdf_merge_errors(path: Path, merges: list[str], targets: list[str]) -> list[str]:
+    """一時の結合の範囲（「シート!O44:BA49」）が結合してよい形かを確かめ、だめな理由を返す。
+
+    範囲の左上は書き込み先で、ほかのセルに値・書き込み先・結合が無く、範囲の内側の境目に罫線が無いこと
+    （外周の罫線は残る）。左上のセルは空であること。
+    """
+    errors: list[str] = []
+    target_set = set(targets)
+    with zipfile.ZipFile(path) as archive:
+        sheets = sheet_paths(archive)
+        borders, xf_borders = _borders(archive.read("xl/styles.xml").decode("utf-8"))
+        for merge in merges:
+            sheet, area = split_target(merge)
+            if sheet not in sheets or ":" not in area:
+                errors.append(f"{merge}: not a range on a sheet")
+                continue
+            xml = archive.read(sheets[sheet]).decode("utf-8")
+            (start_letters, top), (end_letters, bottom) = (split_ref(r) for r in area.split(":"))
+            left, right = column_index(start_letters), column_index(end_letters)
+            if f"{sheet}!{start_letters}{top}" not in target_set:
+                errors.append(f"{merge}: the top-left cell is not a target of the mapping")
+            for m_left, m_top, m_right, m_bottom in merged_ranges(xml):
+                if m_left <= right and left <= m_right and m_top <= bottom and top <= m_bottom:
+                    errors.append(f"{merge}: overlaps a merged range")
+            for row in range(top, bottom + 1):
+                for column in range(left, right + 1):
+                    ref = f"{_letters(column)}{row}"
+                    if (column, row) != (left, top) and f"{sheet}!{ref}" in target_set:
+                        errors.append(f"{merge}: {ref} is another target")
+                    element = _find_cell(xml, ref)
+                    if element is None:
+                        continue
+                    if re.search(r"<(?:v|is|f)\b", element.group(0)):
+                        errors.append(f"{merge}: {ref} has a value")
+                    style = re.search(r'\ss="(\d+)"', element.group(0).split(">", 1)[0])
+                    sides = borders[xf_borders[int(style.group(1))]] if style else set()
+                    inner = {
+                        "left": column > left,
+                        "right": column < right,
+                        "top": row > top,
+                        "bottom": row < bottom,
+                    }
+                    lines = sorted(side for side in sides if inner[side])
+                    if lines:
+                        errors.append(f"{merge}: {ref} has a border inside ({', '.join(lines)})")
+    return errors
+
+
+def with_pdf_merges(source: Path, destination: Path, merges: list[str]) -> None:
+    """source を destination に写し、merges の範囲を結合する（PDF に変換するための一時の写し）。"""
+    by_sheet: dict[str, list[str]] = {}
+    for merge in merges:
+        sheet, area = split_target(merge)
+        by_sheet.setdefault(sheet, []).append(area)
+    with zipfile.ZipFile(source) as archive:
+        paths = sheet_paths(archive)
+        edited: dict[str, bytes] = {}
+        for sheet, areas in by_sheet.items():
+            xml = archive.read(paths[sheet]).decode("utf-8")
+            cells = "".join(f'<mergeCell ref="{area}"/>' for area in areas)
+            match = re.search(r'<mergeCells count="(\d+)">', xml)
+            if match is None:
+                raise XlsxWriteError(f"{sheet}: no mergeCells element")
+            count = int(match.group(1)) + len(areas)
+            xml = (
+                xml[: match.start()] + f'<mergeCells count="{count}">' + cells + xml[match.end() :]
+            )
+            edited[paths[sheet]] = xml.encode("utf-8")
+        with zipfile.ZipFile(destination, "w") as output:
+            for item in archive.infolist():
+                output.writestr(item, edited.get(item.filename, archive.read(item.filename)))
+
+
 # --- 字の大きさ（長い値を欄に収める。T31、ADR-0020）---------------------------------------
 
 MAX_DIGIT_WIDTH_PX = 7  # 既定のフォント（ＭＳ Ｐゴシック 11pt）の数字の幅の近似

@@ -1,7 +1,9 @@
 """書いた値が欄（行・結合範囲）の高さに収まるか（修正 1 回目 A6）。
 
 LibreOffice は行の高さからはみ出した字を切る（Excel は下の空の行に描く）。第1-17号 Ⅱ欄２の住所
-（O44。8.25pt の 1 行に 13pt）がそうだった。
+（O44。8.25pt の 1 行に 13pt）がそうだった。この欄は、PDF に変換する一時の写しでだけ住所の場所を
+結合する（manifest の pdf_merges。修正 1 回目 A6 の案 (e)、ADR-0032）ので、結合した範囲の高さで
+確かめる。
 - Excel の様式（第1-17号・5-5号・5-6号）: マッピングのすべての欄について、書く字の大きさ（字を小さく
   した欄はその大きさ）× 行間 が高さに収まる。値はダミーの全員の値と、各欄の最長の値（200 字）。
 - Word の様式: 差込の位置が高さ固定の行（w:hRule="exact"）に無い（固定でない行は伸びるので
@@ -25,8 +27,7 @@ from tests.forms_engine.conftest import BASE
 pytestmark = pytest.mark.django_db
 
 ROOT = Path(settings.FORM_TEMPLATES_ROOT)
-# 案の選択待ち（.checks/images の A6。選んだらマッピングを直してここから外す）
-AWAITING_A6 = {"参考様式第１－１７号!O44", "参考様式第１－１７号!AO371"}
+MERGED_FOR_PDF = {"参考様式第１－１７号!O44", "参考様式第１－１７号!AO371"}
 LONG = "長" * 200
 
 
@@ -56,7 +57,7 @@ def written_sizes(
     values = form_generation.field_values(template.mapping.definition, data)
     items = {item["target"]: item for item in text_targets(template)}
     targets = [t for t in values if t in items and values[t] not in (None, "")]
-    areas = {t: items[t]["fit_area"] for t in targets if items[t].get("fit_area")}
+    areas = form_generation.text_areas(template)  # fit_area と一時の結合の範囲
     fonts = form_xlsx.cell_fonts(form_templates.template_file(template), targets, areas)
     fitted = {fit.target: fit for fit in form_generation.fits(template, data)}
     result = {}
@@ -78,7 +79,7 @@ def too_tall(sizes: dict[str, tuple[float, float, int]]) -> list[str]:
     return sorted(
         target
         for target, (size, height, lines) in sizes.items()
-        if lines * size * form_xlsx.LINE_SPACING > height + 0.01 and target not in AWAITING_A6
+        if lines * size * form_xlsx.LINE_SPACING > height + 0.01
     )
 
 
@@ -128,12 +129,19 @@ def test_word_tags_are_not_in_fixed_height_rows() -> None:
     assert found == []
 
 
-def test_awaiting_cells_are_the_two_addresses(loaded: None) -> None:
-    """選択待ちの 2 つの欄は、今は 13pt で 8.25〜8.5pt の行に書いている（A6 の原因）。"""
+def test_the_two_addresses_are_merged_only_for_the_pdf(loaded: None) -> None:
+    """結合されていない 1 行の住所の欄（13pt を 8.25〜8.5pt の行に書く）は、一時の結合の範囲の
+    左上で、結合した範囲の高さには標準の 13pt が収まる。字は小さくしない（A6 の案 (e)）。"""
     template = FormTemplate.objects.get(form_id="1-17", language="ja")
-    fonts = form_xlsx.cell_fonts(form_templates.template_file(template), sorted(AWAITING_A6))
-    for font in fonts.values():
-        assert font.size == 13 and font.height_pt < 9 and form_xlsx.height_limit(font) == 6.5
+    assert form_generation.merged_targets(template) == MERGED_FOR_PDF
+    path = form_templates.template_file(template)
+    alone = form_xlsx.cell_fonts(path, sorted(MERGED_FOR_PDF))
+    merged = form_xlsx.cell_fonts(
+        path, sorted(MERGED_FOR_PDF), form_generation.text_areas(template)
+    )
+    for target in MERGED_FOR_PDF:
+        assert alone[target].size == 13 and alone[target].height_pt < 9
+        assert merged[target].height_pt >= 13 * form_xlsx.LINE_SPACING
 
 
 def test_fit_uses_the_row_height_and_the_area(loaded: None) -> None:

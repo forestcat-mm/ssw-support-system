@@ -157,9 +157,16 @@ def _load_one(manifest_path: Path, *, by: User | None, report: LoadReport) -> No
     rules_path = mapping_path.with_name(f"{stem}.rules.json")
     rules, rules_sha = _read_rules(rules_path, data, definition)
     if data["method"] == FormMethod.XLSX_CELLS:
-        _check_xlsx_targets(
-            folder / (data.get("template") or data["original"]), definition, mapping_path
+        workbook = folder / (data.get("template") or data["original"])
+        _check_xlsx_targets(workbook, definition, mapping_path)
+        merges = [entry["range"] for entry in data.get("pdf_merges", [])]
+        errors = form_xlsx.pdf_merge_errors(
+            workbook, merges, [item["target"] for item in definition.get("fields", [])]
         )
+        if errors:  # 一時の結合の範囲（ADR-0032）
+            raise FormTemplateError(f"{manifest_path}: pdf_merges: {'; '.join(errors)}")
+    elif data.get("pdf_merges"):
+        raise FormTemplateError(f"{manifest_path}: pdf_merges is only for Excel forms")
     valid_from = datetime.date.fromisoformat(data["valid_from"])
     relative = folder.relative_to(templates_root())
     values: dict[str, Any] = {
