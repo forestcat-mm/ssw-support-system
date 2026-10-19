@@ -211,7 +211,8 @@ def fits(template: FormTemplate, data: Mapping[str, Any]) -> list[Fit]:
     targets = [target for target, value in values.items() if value is not None]
     if not targets:
         return []
-    fonts = form_xlsx.cell_fonts(form_templates.template_file(template), targets)
+    areas = {item["target"]: item["fit_area"] for item in items if item.get("fit_area")}
+    fonts = form_xlsx.cell_fonts(form_templates.template_file(template), targets, areas)
     minimum = float(definition.get("fit_min_size", DEFAULT_FIT_MIN_SIZE))
     result = []
     for target in targets:
@@ -380,7 +381,12 @@ def _render(
     if template.method == FormMethod.XLSX_CELLS:
         filled = workdir / f"{template.form_id}.xlsx"
         if fitted:
-            fonts = form_xlsx.cell_fonts(source, [t for t in fitted if t in values])
+            areas = {
+                item["target"]: item["fit_area"]
+                for item in template.mapping.definition.get("fields", [])
+                if item.get("fit_area")
+            }
+            fonts = form_xlsx.cell_fonts(source, [t for t in fitted if t in values], areas)
             for target, font in fonts.items():
                 size = float(fitted[target]["size"])
                 text = str(values[target])

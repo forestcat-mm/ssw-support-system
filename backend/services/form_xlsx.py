@@ -49,7 +49,7 @@ class CellFont:
     size: float
     charset: str | None
     width_pt: float
-    height_pt: float = 0.0  # 書き込み先（結合範囲）の高さ（行の高さの合計。wrap で使う）
+    height_pt: float = 0.0  # 書き込み先（結合範囲）の高さ（行の高さの合計。fit と wrap で使う）
 
 
 def column_index(letters: str) -> int:
@@ -423,8 +423,15 @@ def _fonts(styles_xml: str) -> tuple[list[tuple[str, float, str | None]], list[i
     return fonts, xf_fonts
 
 
-def cell_fonts(path: Path, targets: list[str]) -> dict[str, CellFont]:
-    """書き込み先ごとのフォント（セルの書式）と幅（結合範囲の列の幅の合計。pt の近似）。"""
+def cell_fonts(
+    path: Path, targets: list[str], areas: Mapping[str, str] | None = None
+) -> dict[str, CellFont]:
+    """書き込み先ごとのフォント（セルの書式）と幅（結合範囲の列の幅の合計。pt の近似）。
+
+    areas は、結合されていないセルの字が右の空のセルに続けて描かれる範囲（例 "O44:BA44"。
+    マッピングの fit_area。修正 1 回目 A6）。その範囲の幅と高さを使う。
+    """
+    areas = areas or {}
     result: dict[str, CellFont] = {}
     with zipfile.ZipFile(path) as archive:
         sheets = sheet_paths(archive)
@@ -439,6 +446,9 @@ def cell_fonts(path: Path, targets: list[str]) -> dict[str, CellFont]:
             for left, top, end, last in merged_ranges(xml):
                 if (left, top) == (column, row):
                     right, bottom = end, last
+            if target in areas:
+                end_letters, end_row = split_ref(areas[target].split(":")[1])
+                right, bottom = column_index(end_letters), end_row
             widths, default = _column_widths(xml)
             width = sum(_width_pt(widths.get(c, default)) for c in range(column, right + 1))
             heights, default_height = _row_heights(xml)
@@ -460,13 +470,27 @@ def text_em(text: str) -> float:
     )
 
 
+def height_limit(font: CellFont) -> float:
+    """書き込み先（結合範囲）の高さに 1 行が収まる字の大きさの上限（0.5pt 刻み。修正 1 回目 A6）。
+
+    LibreOffice は行の高さからはみ出した字を切る（Excel は下の空の行に描く）。高さが分からない
+    （0）ときは上限を設けない。
+    """
+    if font.height_pt <= 0:
+        return font.size
+    return math.floor(font.height_pt / LINE_SPACING * 2) / 2
+
+
 def fitted_size(text: str, font: CellFont, min_size: float) -> tuple[float, bool]:
-    """1 行で欄に収まる字の大きさ（0.5pt 刻み。元より大きくしない）と、下限でも収まらないか。"""
+    """1 行で欄に収まる字の大きさ（0.5pt 刻み。元より大きくしない）と、下限でも収まらないか。
+
+    幅と、書き込み先の高さ（1 行の高さ = 字の大きさ × LINE_SPACING）の両方を満たす大きさにする。
+    """
     em = text_em(text)
     room = max(font.width_pt - PADDING_PT, 1.0)
-    if em == 0 or em * font.size <= room:
-        return font.size, False
-    size = math.floor(room / em * 2) / 2
+    size = min(font.size, height_limit(font))
+    if em > 0 and em * size > room:
+        size = math.floor(room / em * 2) / 2
     if size < min_size:
         return min_size, True
     return size, False

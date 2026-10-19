@@ -138,7 +138,8 @@ def written_values(form_id: str, data: dict[str, Any]) -> dict[str, object]:
 
 
 def workbook_structure(path: Path) -> dict[str, object]:
-    """制約3: ファイルの一覧・結合セル・入力規則・保護・印刷の設定・名前の定義（T40 で足した）。"""
+    """制約3: ファイルの一覧・結合セル・入力規則・保護・印刷の設定・名前の定義と、書いたシートの
+    ほかのファイル（styles.xml を含む。字の大きさはセルの中に持つ。修正 1 回目 A8）。"""
     with zipfile.ZipFile(path) as archive:
         sheet = archive.read("xl/worksheets/sheet1.xml").decode("utf-8")
         workbook = archive.read("xl/workbook.xml").decode("utf-8")
@@ -156,7 +157,8 @@ def workbook_structure(path: Path) -> dict[str, object]:
             "others": {
                 name: archive.read(name)
                 for name in archive.namelist()
-                if name not in ("xl/worksheets/sheet1.xml", "xl/styles.xml")
+                if name
+                != "xl/worksheets/sheet1.xml"  # styles.xml も同じ（字の大きさはセルの中に持つ）
             },
         }
 

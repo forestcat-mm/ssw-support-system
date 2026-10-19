@@ -119,6 +119,12 @@ def test_generated_from_a_dummy_plan_matches_the_blank_form(seeded: list[Foreign
 
     # 制約3: 図形・印刷の設定・結合セル・入力規則・保護が original と同じ
     assert structure(Path(document.filled_file.path)) == structure(ORIGINAL)
+    # 字を小さくしても styles.xml は書き換えない（字の大きさはセルの中に持つ。修正 1 回目 A8）
+    with (
+        zipfile.ZipFile(document.filled_file.path) as filled_book,
+        zipfile.ZipFile(ORIGINAL) as book,
+    ):
+        assert filled_book.read("xl/styles.xml") == book.read("xl/styles.xml")
 
 
 def test_long_values_are_written_smaller_and_the_size_is_kept(
