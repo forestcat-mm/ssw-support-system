@@ -52,6 +52,7 @@
     </div>
   </main>
 </div>
+{% if time_options %}<datalist id="time-options">{% for option in time_options %}<option value="{{ option }}"></option>{% endfor %}</datalist>{% endif %}
 {% if session_timing %}{# 自動ログアウトの知らせ（forms.js の initSessionNotice。修正 1 回目 J8） #}
 <div class="session-notice" id="session-notice" role="alert" hidden data-idle="{{ session_timing.idle }}" data-warning="{{ session_timing.warning }}" data-absolute="{{ session_timing.absolute }}" data-keepalive="{% url 'accounts:keepalive' %}" data-remaining-template="{% translate 'in {minutes} min {seconds} s' %}">
   {% csrf_token %}

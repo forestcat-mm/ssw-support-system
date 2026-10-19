@@ -702,7 +702,89 @@ a.badge:hover {
 }
 
 .menu__item--danger {
-  color: var(--palette-red-ink);
+  color: var(--button-danger-fg);
+}
+
+/* 日付と時刻の入力（修正 1 回目 B16）: 日付は文字の欄＋「カレンダー」（浮かせたカレンダー。forms.js）、
+   生年月日は年・月・日の選択、時刻は 1 つの欄（直接入れても 5 分刻みの選択から選んでもよい） */
+.date-field {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  align-items: center;
+}
+
+.date-field .input {
+  max-width: 11em;
+}
+
+input[list="time-options"] {
+  max-width: 8em;
+}
+
+.select--date-part {
+  width: auto;
+  display: inline-block;
+  margin-right: var(--space-4);
+}
+
+.calendar {
+  position: fixed;
+  z-index: 30;
+  padding: var(--space-8);
+}
+
+.calendar__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: center;
+  margin-bottom: var(--space-8);
+}
+
+.calendar__select {
+  width: auto;
+}
+
+.calendar__grid {
+  border-collapse: collapse;
+}
+
+.calendar__grid th {
+  font-size: var(--text-caption);
+  font-weight: 500;
+  color: var(--color-graphite);
+  padding: var(--space-4);
+}
+
+.calendar__grid td {
+  padding: 0;
+  text-align: center;
+}
+
+.calendar__grid button {
+  width: 2.4em;
+  height: 2.2em;
+  border: 0;
+  border-radius: var(--radius-input);
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.calendar__grid button:hover,
+.calendar__grid button:focus-visible {
+  background: var(--color-band);
+}
+
+.calendar__grid .calendar__today {
+  outline: 1px solid var(--color-accent);
+}
+
+.calendar__grid button[aria-pressed="true"] {
+  background: var(--button-primary-bg);
+  color: var(--button-primary-fg);
 }
 
 /* 申請の書類の一覧（修正 1 回目 B9）: 状態を先頭の列にし、行の左の線と地の色で分ける。色だけに頼らず

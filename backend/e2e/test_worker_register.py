@@ -17,7 +17,10 @@ def fill_basic(page: Page, *, romaji: str, kanji: str, status: str) -> None:
     page.get_by_label("氏名（ローマ字）").fill(romaji)
     page.get_by_label("氏名（漢字）").fill(kanji)
     page.get_by_label("国籍・地域").select_option(label="中国")
-    page.get_by_label("生年月日").fill("1999-01-02")
+    # 生年月日は年・月・日の選択（修正 1 回目 B16）
+    page.locator("#id_birth_date_year").select_option("1999")
+    page.locator("#id_birth_date_month").select_option("1")
+    page.locator("#id_birth_date_day").select_option("2")
     page.get_by_label("性別").select_option(label="男")
     page.get_by_label("支援言語").select_option(label="中国語（簡体字）")
     page.get_by_label(re.compile(r"^状態")).select_option(label=status)

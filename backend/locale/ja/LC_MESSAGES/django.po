@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 18:50+0900\n"
+"POT-Creation-Date: 2026-10-19 19:05+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -2501,9 +2501,33 @@ msgstr "カタカナで入れてください。"
 msgid "Enter the amount in digits."
 msgstr "金額は数字で入れてください。"
 
+msgid "Enter the date like 2026-07-10, 2026/7/10 or R8.7.10."
+msgstr "日付は 2026-07-10・2026/7/10・R8.7.10 のように入れてください。"
+
+msgid "Enter the time like 09:30 or 930."
+msgstr "時刻は 09:30 や 930 のように入れてください。"
+
+msgctxt "date part"
+msgid "year"
+msgstr "年"
+
+msgctxt "date part"
+msgid "month"
+msgstr "月"
+
+msgctxt "date part"
+msgid "day"
+msgstr "日"
+
 #, python-brace-format
 msgid "Changed to “{value}”."
 msgstr "「{value}」に直しました。"
+
+msgid "Calendar"
+msgstr "カレンダー"
+
+msgid "Today"
+msgstr "今日"
 
 msgid "page background"
 msgstr "ページの背景"

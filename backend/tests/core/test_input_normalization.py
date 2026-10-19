@@ -80,3 +80,59 @@ def test_host_form_saves_the_normalized_postal_code_and_phone() -> None:
     assert form.cleaned_data["postal_code"] == "100-0001"
     assert form.cleaned_data["phone_number"] == "03-000-0000"
     assert form.cleaned_data["name_kana"] == "やまだせいさくしょ"  # カナは外国人の氏名だけ直す
+
+
+@pytest.mark.parametrize(
+    ("kind", "value", "expected"),
+    [
+        ("date", "20260710", "2026-07-10"),
+        ("date", "2026/7/10", "2026-07-10"),
+        ("date", "２０２６年７月１０日", "2026-07-10"),
+        ("date", "R8.7.10", "2026-07-10"),
+        ("date", "令和8年7月10日", "2026-07-10"),
+        ("date", "令和元年5月1日", "2019-05-01"),
+        ("date", "H31.4.30", "2019-04-30"),
+        ("date", "S64.1.7", "1989-01-07"),
+        ("date", "2026-02-30", "2026-02-30"),  # 無い日は直さない（日付の検査で知らせる）
+        ("date", "あした", "あした"),
+        ("time", "930", "09:30"),
+        ("time", "0930", "09:30"),
+        ("time", "9:30", "09:30"),
+        ("time", "9時30分", "09:30"),
+        ("time", "9時", "09:00"),
+        ("time", "２３：５９", "23:59"),
+        ("time", "25:00", "25:00"),
+    ],
+)
+def test_dates_and_times(kind: str, value: str, expected: str) -> None:
+    """日付と時刻の自動の整形（修正 1 回目 B16。forms.js も同じ規則）。"""
+    assert normalize.normalize(kind, value) == expected
+
+
+class DateTimeForm(StyledFormMixin, forms.Form):
+    on = forms.DateField(widget=forms.DateInput)
+    at = forms.TimeField(widget=forms.TimeInput(attrs={"type": "time"}))
+
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        super().__init__(*args, **kwargs)  # type: ignore[arg-type]
+        self.style_fields()
+
+
+def test_date_and_time_fields_accept_the_short_forms() -> None:
+    form = DateTimeForm({"on": "R8.7.10", "at": "930"})
+    assert form.is_valid(), form.errors
+    assert form.cleaned_data["on"].isoformat() == "2026-07-10"
+    assert form.cleaned_data["at"].strftime("%H:%M") == "09:30"
+    date_html, time_html = str(form["on"]), str(form["at"])
+    assert 'type="text"' in date_html and "data-date" in date_html
+    assert 'data-normalize="date"' in date_html and "data-today=" in date_html
+    assert 'type="text"' in time_html and 'list="time-options"' in time_html
+    assert 'type="time"' not in time_html
+
+
+def test_birth_date_is_three_selects() -> None:
+    from apps.workers.forms import WorkerForm
+
+    html = str(WorkerForm()["birth_date"])
+    assert html.count("<select") == 3 and "select--date-part" in html
+    assert 'name="birth_date_year"' in html

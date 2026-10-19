@@ -9,7 +9,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core.forms import allow_formatted_number_input
 from apps.core.models import Staff, User
-from apps.core.web_forms import StyledFormMixin
+from apps.core.web_forms import DateSelectWidget, StyledFormMixin
 from apps.hosts.models import HostOrganization, SpecifiedSkillField
 from apps.workers.models import (
     ForeignWorker,
@@ -163,7 +163,7 @@ class WorkerForm(StyledFormMixin, forms.ModelForm[ForeignWorker]):
             "assigned_staff",
             "status",
         )
-        widgets = {"birth_date": forms.DateInput}
+        widgets = {"birth_date": DateSelectWidget}  # 遠い日付は年・月・日の選択（修正 1 回目 B16）
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)

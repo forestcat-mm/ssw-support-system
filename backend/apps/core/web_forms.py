@@ -6,7 +6,8 @@ from typing import Any
 
 from django import forms
 from django.http import HttpRequest
-from django.utils.translation import gettext_lazy
+from django.utils import timezone
+from django.utils.translation import gettext_lazy, pgettext_lazy
 
 from services import normalize
 
@@ -21,7 +22,30 @@ NORMALIZE_INVALID = {
     "phone": gettext_lazy("A phone number is digits, hyphens and parentheses."),
     "kana": gettext_lazy("Enter it in katakana."),
     "amount": gettext_lazy("Enter the amount in digits."),
+    "date": gettext_lazy("Enter the date like 2026-07-10, 2026/7/10 or R8.7.10."),
+    "time": gettext_lazy("Enter the time like 09:30 or 930."),
 }
+
+
+class DateSelectWidget(forms.SelectDateWidget):
+    """遠い日付（生年月日など）を年・月・日の選択で入れる（修正 1 回目 B16）。
+
+    年は今年から 80 年前まで。
+    """
+
+    def __init__(self, attrs: dict[str, Any] | None = None, years_back: int = 80) -> None:
+        this_year = timezone.localdate().year
+        labels: Any = (  # 表示のときに訳す（遅延の文字）
+            pgettext_lazy("date part", "year"),
+            pgettext_lazy("date part", "month"),
+            pgettext_lazy("date part", "day"),
+        )
+        super().__init__(
+            attrs={**(attrs or {}), "class": "select select--date-part"},
+            years=range(this_year, this_year - years_back - 1, -1),
+            empty_label=labels,
+        )
+
 
 ONCE_SESSION_KEY = "once_tokens"
 ONCE_FIELD = "once_token"
@@ -93,11 +117,42 @@ class StyledFormMixin:
             kind = normalize_kind(name, field)
             if kind:
                 self.normalize_field(name, kind)
-        for field in self.fields.values():
+        for name, field in self.fields.items():
             widget = field.widget
+            if isinstance(widget, DateSelectWidget):
+                continue  # 年・月・日の選択（部品の中でクラスを付けてある）
             if isinstance(widget, forms.DateInput):
-                widget.input_type = "date"
+                # 日付は文字の欄＋自動の整形＋カレンダー（forms.js。修正 1 回目 B16）
+                widget.input_type = "text"
                 widget.format = "%Y-%m-%d"
+                widget.attrs.pop("type", None)
+                widget.attrs.update(
+                    {
+                        "inputmode": "numeric",
+                        "autocomplete": "off",
+                        "placeholder": "2026-07-10",
+                        "data-date": "",
+                        "data-calendar-label": gettext_lazy("Calendar"),
+                        "data-today-label": gettext_lazy("Today"),
+                        "data-close-label": gettext_lazy("Close"),
+                        "data-today": timezone.localdate().isoformat(),
+                    }
+                )
+                self.normalize_field(name, "date")
+            elif isinstance(widget, forms.TimeInput):
+                # 時刻は 1 つの欄で、直接入れても 5 分刻みの選択から選んでもよい（datalist。B16）
+                widget.input_type = "text"
+                widget.format = "%H:%M"
+                widget.attrs.pop("type", None)
+                widget.attrs.update(
+                    {
+                        "inputmode": "numeric",
+                        "autocomplete": "off",
+                        "placeholder": "09:30",
+                        "list": "time-options",
+                    }
+                )
+                self.normalize_field(name, "time")
             if isinstance(widget, forms.MultiWidget):
                 continue  # 部品ごとにクラスを付けてある（HoursMinutesWidget・PresetOrOtherWidget）
             if isinstance(widget, forms.Select):

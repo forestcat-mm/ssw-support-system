@@ -32,6 +32,9 @@ NAV_ITEMS: tuple[NavItem, ...] = (
 )
 
 
+TIME_OPTIONS = [f"{minutes // 60:02d}:{minutes % 60:02d}" for minutes in range(0, 24 * 60, 5)]
+
+
 def ui(request: HttpRequest) -> dict[str, Any]:
     user = getattr(request, "user", None)
     if user is None or not user.is_authenticated:
@@ -53,4 +56,5 @@ def ui(request: HttpRequest) -> dict[str, Any]:
         "nav_items": items,
         "organization_name": organization_display_name(),
         "session_timing": sessions.timing(request.session),  # 自動ログアウトの知らせ（J8）
+        "time_options": TIME_OPTIONS,  # 時刻の欄の 5 分刻みの選択（datalist。修正 1 回目 B16）
     }

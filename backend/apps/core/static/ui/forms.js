@@ -167,6 +167,44 @@ const toKatakana = (value) =>
     .split(/\s+/)
     .filter(Boolean)
     .join("\u3000");
+// 日付と時刻（修正 1 回目 B16。services/normalize.py の _date・_time と同じ規則）
+const ERAS = { 令和: 2019, r: 2019, 平成: 1989, h: 1989, 昭和: 1926, s: 1926 };
+const isoDate = (year, month, day) => {
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
+  return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+};
+const normalizeDate = (v) => {
+  const text = nfkc(v);
+  const value = text.replace(/\s+/g, "").toLowerCase();
+  let parts = value.match(/^(\d{4})(\d{2})(\d{2})$/) || value.match(/^(\d{4})[/\-.年](\d{1,2})[/\-.月](\d{1,2})日?$/);
+  let year;
+  let month;
+  let day;
+  if (parts) {
+    [year, month, day] = parts.slice(1).map(Number);
+  } else {
+    parts = value.match(/^(令和|平成|昭和|[rhs])\.?(\d{1,2}|元)[/\-.年](\d{1,2})[/\-.月](\d{1,2})日?$/);
+    if (!parts) return text;
+    year = ERAS[parts[1]] + (parts[2] === "元" ? 1 : Number(parts[2])) - 1;
+    month = Number(parts[3]);
+    day = Number(parts[4]);
+  }
+  return isoDate(year, month, day) || text;
+};
+const normalizeTime = (v) => {
+  const text = nfkc(v);
+  const value = text.replace(/\s+/g, "");
+  const parts = /^\d{3,4}$/.test(value)
+    ? value.match(/^(\d{1,2})(\d{2})$/)
+    : value.match(/^(\d{1,2})(?:[:.時](\d{1,2})分?|時)?$/);
+  if (!parts) return text;
+  const hour = Number(parts[1]);
+  const minute = Number(parts[2] || 0);
+  if (hour > 23 || minute > 59) return text;
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+};
+const weekdayOf = (iso) => new Date(`${iso}T00:00:00`).toLocaleDateString("ja-JP", { weekday: "long" });
 const NORMALIZERS = {
   corporate_number: (v) => nfkc(v).replace(/[\s\-‐]/g, ""),
   residence_card: (v) => nfkc(v).replace(/[\s\-‐]/g, "").toUpperCase(),
@@ -180,6 +218,8 @@ const NORMALIZERS = {
   email: (v) => nfkc(v),
   kana: toKatakana,
   amount: (v) => nfkc(v).replace(/[\s,円¥￥]/g, ""),
+  date: (v) => normalizeDate(v),
+  time: (v) => normalizeTime(v),
 };
 const corporateCheckDigit = (base) => {
   let total = 0;
@@ -196,6 +236,8 @@ const VALID = {
   phone: (v) => /^[0-9+\-() ]+$/.test(v),
   kana: (v) => /^[\u30a1-\u30fa\u30fc\u30fb\u3000]*$/.test(v),
   amount: (v) => /^[0-9]+$/.test(v),
+  date: (v) => /^\d{4}-\d{2}-\d{2}$/.test(v),
+  time: (v) => /^\d{2}:\d{2}$/.test(v),
 };
 // 押している間に欄を離れた（保存のボタンを押した）ときは、知らせを離した後に出す。先に出すと下の部品が
 // ずれて、押したボタンが離す位置から外れ、クリックにならない
@@ -233,6 +275,8 @@ initializers.push((root) => root.querySelectorAll("[data-normalize]").forEach((i
     const valid = VALID[input.dataset.normalize];
     if (after && valid && !valid(after) && input.dataset.normalizeInvalid) {
       messages.push(input.dataset.normalizeInvalid);
+    } else if (after && input.dataset.normalize === "date") {
+      messages.push(weekdayOf(after)); // 曜日（修正 1 回目 B16）
     }
     const warning = Boolean(after && valid && !valid(after));
     whenReleased(() => {
@@ -294,6 +338,150 @@ const initUnsavedLinks = () => {
     dialog.close();
   });
 };
+
+// 日付のカレンダー（修正 1 回目 B16。input[data-date]）: 欄の横の「カレンダー」で、年・月を選べて「今日」がある
+// カレンダーを浮かせる。日を押すと欄に入れて閉じる。Esc・外を押すと閉じる。今日はサーバーの今日（data-today）。
+initializers.push((root) => root.querySelectorAll("input[data-date]").forEach((input) => {
+  if (input.dataset.dateReady !== undefined) return;
+  input.dataset.dateReady = "";
+  const wrap = document.createElement("span");
+  wrap.className = "date-field";
+  input.parentNode.insertBefore(wrap, input);
+  wrap.appendChild(input);
+  const opener = document.createElement("button");
+  opener.type = "button";
+  opener.className = "button button--neutral button--small";
+  opener.textContent = input.dataset.calendarLabel || "📅";
+  opener.setAttribute("aria-haspopup", "dialog");
+  opener.setAttribute("aria-expanded", "false");
+  wrap.appendChild(opener);
+  const panel = document.createElement("div");
+  panel.className = "popover calendar";
+  panel.hidden = true;
+  panel.setAttribute("role", "dialog");
+  panel.setAttribute("aria-label", input.dataset.calendarLabel || "");
+  wrap.appendChild(panel);
+  const today = input.dataset.today || new Date().toISOString().slice(0, 10);
+  const [todayYear] = today.split("-").map(Number);
+  let shown = { year: todayYear, month: 1 };
+  const select = (values, current, label) => {
+    const element = document.createElement("select");
+    element.className = "select calendar__select";
+    element.setAttribute("aria-label", label);
+    values.forEach(([value, text]) => {
+      const option = document.createElement("option");
+      option.value = String(value);
+      option.textContent = text;
+      option.selected = value === current;
+      element.appendChild(option);
+    });
+    return element;
+  };
+  const pick = (iso) => {
+    input.value = iso;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    input.dispatchEvent(new Event("blur"));
+    close();
+  };
+  const render = () => {
+    const { year, month } = shown;
+    panel.replaceChildren();
+    const head = document.createElement("div");
+    head.className = "calendar__head";
+    const years = [];
+    for (let y = todayYear + 10; y >= todayYear - 100; y -= 1) years.push([y, `${y}年`]);
+    const yearSelect = select(years, year, "年");
+    const monthSelect = select(Array.from({ length: 12 }, (_, i) => [i + 1, `${i + 1}月`]), month, "月");
+    yearSelect.addEventListener("change", () => {
+      shown = { year: Number(yearSelect.value), month };
+      render();
+      panel.querySelector(".calendar__select").focus();
+    });
+    monthSelect.addEventListener("change", () => {
+      shown = { year, month: Number(monthSelect.value) };
+      render();
+      panel.querySelectorAll(".calendar__select")[1].focus();
+    });
+    const todayButton = document.createElement("button");
+    todayButton.type = "button";
+    todayButton.className = "button button--neutral button--small";
+    todayButton.textContent = input.dataset.todayLabel || today;
+    todayButton.addEventListener("click", () => pick(today));
+    const closeButton = document.createElement("button");
+    closeButton.type = "button";
+    closeButton.className = "button button--neutral button--small";
+    closeButton.textContent = input.dataset.closeLabel || "×";
+    closeButton.addEventListener("click", () => close());
+    head.append(yearSelect, monthSelect, todayButton, closeButton);
+    const grid = document.createElement("table");
+    grid.className = "calendar__grid";
+    const names = document.createElement("tr");
+    for (let i = 0; i < 7; i += 1) {
+      const th = document.createElement("th");
+      th.textContent = new Date(Date.UTC(2024, 8, 1 + i)).toLocaleDateString("ja-JP", { weekday: "short", timeZone: "UTC" });
+      names.appendChild(th);
+    }
+    grid.appendChild(names);
+    const first = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
+    const days = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    let row = document.createElement("tr");
+    for (let i = 0; i < first; i += 1) row.appendChild(document.createElement("td"));
+    for (let day = 1; day <= days; day += 1) {
+      const iso = isoDate(year, month, day);
+      const cell = document.createElement("td");
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = String(day);
+      button.dataset.date = iso;
+      if (iso === input.value) button.setAttribute("aria-pressed", "true");
+      if (iso === today) button.classList.add("calendar__today");
+      button.addEventListener("click", () => pick(iso));
+      cell.appendChild(button);
+      row.appendChild(cell);
+      if ((first + day) % 7 === 0) {
+        grid.appendChild(row);
+        row = document.createElement("tr");
+      }
+    }
+    if (row.children.length) grid.appendChild(row);
+    panel.append(head, grid);
+  };
+  const place = () => {
+    const box = wrap.getBoundingClientRect();
+    const width = panel.offsetWidth;
+    panel.style.left = `${Math.max(8, Math.min(box.left, window.innerWidth - width - 8))}px`;
+    const below = box.bottom + 4;
+    panel.style.top = `${below + panel.offsetHeight > window.innerHeight - 8 ? Math.max(8, box.top - panel.offsetHeight - 4) : below}px`;
+  };
+  const open = () => {
+    const value = normalizeDate(input.value);
+    const base = /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : today;
+    const [year, month] = base.split("-").map(Number);
+    shown = { year, month };
+    render();
+    panel.hidden = false;
+    opener.setAttribute("aria-expanded", "true");
+    place();
+    (panel.querySelector('[aria-pressed="true"]') || panel.querySelector(".calendar__today") || panel.querySelector("select")).focus();
+  };
+  const close = () => {
+    if (panel.hidden) return;
+    panel.hidden = true;
+    opener.setAttribute("aria-expanded", "false");
+  };
+  opener.addEventListener("click", () => (panel.hidden ? open() : close()));
+  panel.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    event.preventDefault();
+    close();
+    opener.focus();
+  });
+  document.addEventListener("click", (event) => {
+    if (!panel.hidden && event.target instanceof Node && !wrap.contains(event.target)) close();
+  });
+  window.addEventListener("scroll", () => !panel.hidden && place(), true);
+}));
 
 // 委託料の内訳（修正 1 回目 B11）: 支援委託契約の画面の委託料の欄の「内訳」で、内訳の行をモーダルに開く。
 // 行はフォームの中に置いたまま（保存は契約と一緒に 1 回）。合計が委託料と合わないときは入力中に知らせ、
