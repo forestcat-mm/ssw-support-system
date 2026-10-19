@@ -1,10 +1,11 @@
 {
   "form_id": "career-plan",
   "valid_from": "2026-10-18",
-  "note": "T36 の規則（ADR-0025）。契約の受入れ機関×分野（事業所）のプランが無いと生成不可。様式の行を超えるレベル・水産加工業の区分で転職できる範囲が空は警告。",
+  "note": "T36 の規則（ADR-0025）。契約の受入れ機関×分野（事業所）のプランが無いと生成不可。様式の行を超えるレベル・水産加工業の区分で転職できる範囲が空は警告。年数が数字でない（移行で読み取れなかった元の文字）レベルも警告（修正 1 回目 J6）。",
   "rules": [
     {"id": "plan_exists", "type": "check", "name": "career_plan_exists", "severity": "block"},
     {"id": "levels_fit", "type": "check", "name": "career_plan_levels_fit", "severity": "warn", "requires": "plan_exists"},
-    {"id": "transfer_scope", "type": "check", "name": "career_plan_transfer_scope", "severity": "warn", "requires": "plan_exists"}
+    {"id": "transfer_scope", "type": "check", "name": "career_plan_transfer_scope", "severity": "warn", "requires": "plan_exists"},
+    {"id": "years_numeric", "type": "check", "name": "career_plan_years_numeric", "severity": "warn", "requires": "plan_exists"}
   ]
 }

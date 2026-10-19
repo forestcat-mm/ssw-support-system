@@ -1007,7 +1007,8 @@ def seed_career_plans(ctx: SeedContext) -> None:
     levels = [
         career_plans.LevelInput(
             name="レベル1",
-            years="1〜2年目",
+            years_from=1,
+            years_to=2,
             duties=f"製造ラインの基本作業（指示を受けて行う）{DUMMY_MARK}",
             requirements="特定技能1号の評価試験の合格",
             position="一般",
@@ -1015,7 +1016,8 @@ def seed_career_plans(ctx: SeedContext) -> None:
         ),
         career_plans.LevelInput(
             name="レベル2",
-            years="3〜4年目",
+            years_from=3,
+            years_to=4,
             duties=f"工程の段取り・後輩の指導{DUMMY_MARK}",
             requirements="衛生管理の社内研修の修了",
             position="ライン長補佐",
@@ -1023,7 +1025,8 @@ def seed_career_plans(ctx: SeedContext) -> None:
         ),
         career_plans.LevelInput(
             name="レベル3",
-            years="5年目以降",
+            years_from=5,
+            years_to=None,
             duties=f"工程の管理（特定技能2号の業務）{DUMMY_MARK}",
             requirements="特定技能2号の評価試験の合格・2年以上の工程管理の実務経験",
             position="ライン長",

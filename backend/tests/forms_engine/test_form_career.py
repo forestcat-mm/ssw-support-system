@@ -7,6 +7,7 @@
 """
 
 import datetime
+import importlib
 import json
 import subprocess
 import sys
@@ -51,7 +52,8 @@ def levels(count: int = 2) -> list[career_plans.LevelInput]:
     return [
         career_plans.LevelInput(
             name=f"レベル{n}",
-            years=f"{n}年目",
+            years_from=n,
+            years_to=n,
             duties=f"業務{n}",
             requirements=f"資格{n}",
             position=f"地位{n}",
@@ -142,8 +144,13 @@ def test_plan_versions_and_levels_are_kept(food: Any) -> None:
     assert career_plans.version_on(first.plan, datetime.date(2026, 8, 31)) == first
     assert career_plans.version_on(first.plan, BASIS) == second
     first.career_route = "直す"
+    first.save()  # 使う前は直せる（修正 1 回目 J1）
+    career_plans.mark_used(first)
+    first.career_route = "もう一度直す"
     with pytest.raises(CareerPlanImmutableError):
         first.save()
+    with pytest.raises(CareerPlanImmutableError):
+        first.levels.first().delete()  # type: ignore[union-attr]
     assert (
         AuditLog.objects.filter(
             action=AuditAction.CREATE, content_type__model="careerplanversion"
@@ -176,6 +183,126 @@ def test_site_plan_overrides_the_field_plan(food: Any) -> None:
     assert career_plans.plan_for(food, BASIS) == general.plan
     own = career_plans.create_plan(host, site.field, site, plan_input(), by=None)
     assert career_plans.plan_for(food, BASIS) == own.plan
+
+
+def test_unused_versions_can_be_edited_until_used(loaded: None, food: Any) -> None:
+    """生成にも交付にも使っていない版は直せる。生成・交付で使った日時が入ると固定（J1）。"""
+    host = food.host_organization
+    first = career_plans.create_plan(
+        host, food.versions.get().site.field, None, plan_input(), by=None
+    )
+    edited = career_plans.edit_version(
+        first,
+        plan_input(career_route="作業員 → 班長", levels=levels(3)),
+        by=None,
+    )
+    assert edited.version == 1 and edited.career_route == "作業員 → 班長"
+    assert edited.levels.count() == 3
+    assert AuditLog.objects.filter(
+        action=AuditAction.UPDATE, content_type__model="careerplanversion"
+    ).exists()
+    assert (
+        AuditLog.objects.filter(
+            action=AuditAction.DELETE, content_type__model="careerplanlevel"
+        ).count()
+        == 2
+    )
+    second = career_plans.add_version(
+        first.plan,
+        plan_input(applies_from=datetime.date(2026, 9, 1), change_reason="処遇の見直し"),
+        by=None,
+    )
+    with pytest.raises(ValidationError) as error:  # 次の版の適用開始日より後にはできない
+        career_plans.edit_version(
+            first, plan_input(applies_from=datetime.date(2026, 10, 1)), by=None
+        )
+    assert "applies_from" in error.value.message_dict
+    with pytest.raises(ValidationError) as error:  # 2 版目以降は変更理由が要る
+        career_plans.edit_version(second, plan_input(applies_from=BASIS), by=None)
+    assert "change_reason" in error.value.message_dict
+    document = generate(food, "career-plan")  # 基準日に適用されるのは第 2 版
+    assert json.loads(document.snapshot)["data"]["p.plan_version_id"] == second.pk
+    second.refresh_from_db()
+    first.refresh_from_db()
+    assert second.used_at is not None and first.used_at is None
+    with pytest.raises(ValidationError):
+        career_plans.edit_version(
+            second, plan_input(applies_from=BASIS, change_reason="直す"), by=None
+        )
+    # 交付記録で使った版も固定する（交付日に適用されていた版）
+    deliveries.create_delivery(
+        food.worker,
+        DeliveryInput(
+            kind=DeliveryKind.CAREER_UP_PLAN,
+            delivered_on=datetime.date(2026, 3, 1),
+            method="hand",
+            delivered_by="organization",
+            explained=True,
+            contract=food,
+        ),
+        by=None,
+        today=BASIS,
+    )
+    first.refresh_from_db()
+    assert first.used_at is not None
+
+
+def test_years_are_two_numbers(food: Any) -> None:
+    """習熟の目安の年数は「◯年目から◯年目まで」（終わりが空なら「◯年目以降」。J6）。"""
+    level = career_plans.LevelInput
+    assert career_plans.years_text(level("L", 1, 2, "d")) == "1〜2年目"
+    assert career_plans.years_text(level("L", 5, None, "d")) == "5年目以降"
+    assert career_plans.years_text(level("L", 3, 3, "d")) == "3年目"
+    assert career_plans.years_text(level("L", None, None, "d", years_legacy="入社後すぐ")) == (
+        "入社後すぐ"
+    )
+    host = food.host_organization
+    with pytest.raises(ValidationError) as error:
+        career_plans.create_plan(
+            host,
+            food.versions.get().site.field,
+            None,
+            plan_input(levels=[level("L", 3, 2, "d")]),
+            by=None,
+        )
+    assert "levels" in error.value.message_dict
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("1〜2年目", (1, 2)),
+        ("1～2年目", (1, 2)),
+        ("１－２年目", (1, 2)),
+        ("1年目から2年目まで", (1, 2)),
+        ("1年目〜2年目", (1, 2)),
+        ("5年目以降", (5, None)),
+        ("5年目～", (5, None)),
+        ("3年目", (3, 3)),
+        ("2〜1年目", None),
+        ("入社後すぐ", None),
+        ("", None),
+    ],
+)
+def test_migration_reads_the_old_years_text(
+    text: str, expected: tuple[int, int | None] | None
+) -> None:
+    migration = importlib.import_module("apps.hosts.migrations.0009_career_plan_drafts_and_years")
+    assert migration.parse_years(text) == expected
+
+
+def test_old_years_text_is_warned_before_generation(loaded: None, food: Any) -> None:
+    version = career_plans.create_plan(
+        food.host_organization, food.versions.get().site.field, None, plan_input(), by=None
+    )
+    level = version.levels.order_by("order").first()
+    assert level is not None
+    level.years_from, level.years_to, level.years_legacy = None, None, "入社後すぐ"
+    level.save()  # 移行で読み取れなかった行（使う前の版なので直せる）
+    data = form_data_career.build_career_plan(food, BASIS)
+    assert data["p.l1_years"] == "入社後すぐ"
+    result = form_generation.check("career-plan", target=food, data=data, basis_on=BASIS)
+    assert "career_plan_years_text" in [f.code for f in result.warnings]
 
 
 # --- 生成 ------------------------------------------------------------------------------------
@@ -342,12 +469,13 @@ def test_plan_screens_and_generation_from_the_contract_tab(loaded: None, food: A
         "levels-TOTAL_FORMS": "1",
         "levels-INITIAL_FORMS": "0",
         "levels-0-name": "レベル1",
-        "levels-0-years": "1〜2年目",
+        "levels-0-years_from": "1",
+        "levels-0-years_to": "2",
         "levels-0-duties": "製造ラインの作業",
     }
     response = client.post(url, post)
     version = CareerPlanVersion.objects.get()
-    assert response["Location"] == f"/hosts/{host.pk}/career-plans/{version.plan_id}/"
+    assert response["Location"] == f"/hosts/{host.pk}/career-plans/{version.plan_id}/?version=1"
     shown = client.get(response["Location"]).content.decode()
     assert "製造ラインの作業" in shown and 'id="career-plan-new-version"' in shown
     new_version = client.get(f"/hosts/{host.pk}/career-plans/{version.plan_id}/versions/new/")
@@ -377,3 +505,39 @@ def test_plan_screens_and_generation_from_the_contract_tab(loaded: None, food: A
     )
     assert form.context["form"].initial["contract"] == food.pk
     assert "consented" in form.context["form"].fields
+
+
+def test_draft_version_screen(loaded: None, food: Any) -> None:
+    """使っていない版は詳細に「下書き」と「編集」が出て、直せる。使った後は 403（J1）。"""
+    version = career_plans.create_plan(
+        food.host_organization, food.versions.get().site.field, None, plan_input(), by=None
+    )
+    host = food.host_organization
+    client = verified_client(make_user("tanto36", roles=("support_staff",)))
+    detail = client.get(f"/hosts/{host.pk}/career-plans/{version.plan_id}/").content.decode()
+    assert 'data-state="draft"' in detail and 'id="career-plan-edit"' in detail
+    url = f"/hosts/{host.pk}/career-plans/{version.plan_id}/versions/1/edit/"
+    page = client.get(url)
+    assert page.status_code == 200
+    assert "change_reason" not in page.context["form"].fields  # 第 1 版
+    assert page.context["levels"].initial[0]["years_from"] == 1
+    post = {
+        page.context["once_field"]: page.context["once_token"],
+        "applies_from": "2026-01-01",
+        "career_route": "作業員 → 班長 → ライン長",
+        "levels-TOTAL_FORMS": "1",
+        "levels-INITIAL_FORMS": "0",
+        "levels-0-name": "レベル1",
+        "levels-0-years_from": "1",
+        "levels-0-years_to": "",
+        "levels-0-duties": "製造ラインの作業",
+    }
+    response = client.post(url, post)
+    assert response.status_code == 302
+    version.refresh_from_db()
+    assert version.career_route == "作業員 → 班長 → ライン長"
+    assert career_plans.years_text(version.levels.get()) == "1年目以降"
+    generate(food, "career-plan")
+    detail = client.get(f"/hosts/{host.pk}/career-plans/{version.plan_id}/").content.decode()
+    assert 'data-state="used"' in detail and 'id="career-plan-edit"' not in detail
+    assert client.get(url).status_code == 403

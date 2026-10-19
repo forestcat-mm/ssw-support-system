@@ -42,7 +42,14 @@ class CareerPlanForm(StyledFormMixin, forms.Form):
         ),
     )
 
-    def __init__(self, *args: Any, host: HostOrganization, new_plan: bool, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        *args: Any,
+        host: HostOrganization,
+        new_plan: bool,
+        first_version: bool = False,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(*args, **kwargs)
         if new_plan:
             del self.fields["change_reason"]
@@ -54,7 +61,10 @@ class CareerPlanForm(StyledFormMixin, forms.Form):
         else:
             del self.fields["field"]
             del self.fields["site"]
-            self.fields["change_reason"].required = True
+            if first_version:
+                del self.fields["change_reason"]  # 第 1 版を直すとき（下書き）
+            else:
+                self.fields["change_reason"].required = True
         self.style_fields()
 
 
@@ -62,9 +72,15 @@ class LevelForm(StyledFormMixin, forms.Form):
     name = forms.CharField(
         label=pgettext_lazy("career plan", "level"), max_length=50, help_text=_("Example: level 1.")
     )
-    years = forms.CharField(
-        label=_("years as a guide"), max_length=50, help_text=_("Example: 1st to 2nd year.")
+    # 習熟の目安の年数は「◯年目から◯年目まで」（終わりが空なら「◯年目以降」。修正 1 回目 J6）
+    years_from = forms.IntegerField(label=_("from year (years as a guide)"), min_value=1)
+    years_to = forms.IntegerField(
+        label=_("to year"),
+        min_value=1,
+        required=False,
+        help_text=_("Leave blank for “from year … onward”."),
     )
+    years_legacy = forms.CharField(widget=forms.HiddenInput, required=False)
     duties = forms.CharField(label=_("duties"), widget=forms.Textarea(attrs={"rows": 2}))
     requirements = forms.CharField(
         label=_("experience, results, qualifications and tests"),
@@ -81,6 +97,14 @@ class LevelForm(StyledFormMixin, forms.Form):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.style_fields()
+        legacy = self.initial.get("years_legacy") or ""
+        if legacy and not self.initial.get("years_from"):
+            # 移行で読み取れなかった元の文字を見せて、数字で入れ直してもらう
+            self.fields["years_from"].help_text = _(
+                "The old text “%(text)s” could not be read as numbers. Enter the years as numbers."
+            ) % {"text": legacy}
+        for name in ("years_from", "years_to"):
+            self.fields[name].widget.attrs["class"] += " input--narrow"
 
 
 LevelFormSet = forms.formset_factory(LevelForm, extra=0, can_delete=True)
@@ -90,7 +114,8 @@ def levels_of(formset: forms.BaseFormSet[Any]) -> list[career_plans.LevelInput]:
     return [
         career_plans.LevelInput(
             name=form.cleaned_data["name"],
-            years=form.cleaned_data["years"],
+            years_from=form.cleaned_data["years_from"],
+            years_to=form.cleaned_data.get("years_to"),
             duties=form.cleaned_data["duties"],
             requirements=form.cleaned_data.get("requirements") or "",
             position=form.cleaned_data.get("position") or "",

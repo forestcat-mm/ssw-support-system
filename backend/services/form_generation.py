@@ -36,6 +36,7 @@ from pypdf import PdfReader
 from apps.contracts.models import EmploymentContract, EmploymentContractVersion
 from apps.core.models import Action, AuditAction, User
 from apps.forms_engine.models import FormMethod, FormTemplate, GeneratedDocument, GenerationStatus
+from apps.hosts.models import CareerPlanVersion
 from apps.support.models import Briefing, PeriodicInterview, SupportPlanVersion
 from apps.workers.models import ForeignWorker
 from services import (
@@ -332,6 +333,13 @@ def request(
             created_by=by,
             updated_by=by,
         )
+        if form_id == "career-plan":
+            # 生成に使ったキャリアアッププランの版は、これ以後は直せない（修正 1 回目 J1）
+            from services import career_plans  # 循環を避ける
+
+            used = data.get("p.plan_version_id")
+            if isinstance(used, int):
+                career_plans.mark_used(CareerPlanVersion.objects.filter(pk=used).first())
     if settings.JOBS_INLINE:
         jobs.enqueue("services.form_generation.run", document.pk)  # テストではその場で
     else:

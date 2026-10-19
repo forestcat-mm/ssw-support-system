@@ -61,7 +61,7 @@ def build_career_plan(contract: EmploymentContract, made_on: datetime.date) -> d
             treatment = "　".join(part for part in (level.position, level.treatment) if part)
             data |= {
                 f"l{row}_name": level.name,
-                f"l{row}_years": level.years,
+                f"l{row}_years": career_plans.years_text(level),
                 f"l{row}_duties": level.duties,
                 f"l{row}_requirements": requirements,
                 f"l{row}_treatment": treatment,

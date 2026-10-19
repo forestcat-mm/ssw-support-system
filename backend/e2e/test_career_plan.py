@@ -58,11 +58,24 @@ def test_create_generate_and_deliver_the_career_plan(
     page.locator("#id_career_route").fill("作業員 → ライン長補佐 → ライン長")
     page.locator("#level-rows").get_by_role("button", name="レベルを追加").click()
     page.locator("#id_levels-0-name").fill("レベル1")
-    page.locator("#id_levels-0-years").fill("1〜2年目")
+    # 年数は「◯年目から◯年目まで」の 2 つの数字（修正 1 回目 J6）
+    page.locator("#id_levels-0-years_from").fill("1")
+    page.locator("#id_levels-0-years_to").fill("2")
     page.locator("#id_levels-0-duties").fill("製造ラインの基本作業")
     assert page.evaluate("document.documentElement.scrollWidth") <= width
     page.get_by_role("button", name="保存する").click()
     expect(page.locator("#career-plan-levels")).to_contain_text("製造ラインの基本作業")
+    expect(page.locator("#career-plan-levels")).to_contain_text("1〜2年目")
+
+    # 使う前の版は下書きとして直せる（修正 1 回目 J1）
+    expect(page.locator("#career-plan-state")).to_have_attribute("data-state", "draft")
+    page.locator("#career-plan-edit").click()
+    expect(page.get_by_role("heading", level=1)).to_have_text("キャリアアッププランの第 1 版を直す")
+    expect(page.locator("#id_levels-0-years_from")).to_have_value("1")
+    page.locator("#id_levels-0-years_to").fill("")
+    page.get_by_role("button", name="保存する").click()
+    expect(page.locator("#career-plan-levels")).to_contain_text("1年目以降")
+    assert page.evaluate("document.documentElement.scrollWidth") <= width
 
     # 契約タブから生成
     page.goto(f"{base}/workers/{contract.worker_id}/contracts/")
@@ -73,6 +86,12 @@ def test_create_generate_and_deliver_the_career_plan(
     page.get_by_role("button", name="生成する").click()
     expect(page.locator("#document-status")).to_have_text("生成しました。")
     assert page.evaluate("document.documentElement.scrollWidth") <= width
+    plan_page = page.url
+    page.goto(f"{base}/hosts/{contract.host_organization_id}/#career-plans")
+    page.locator("#career-plans ul a").first.click()
+    expect(page.locator("#career-plan-state")).to_have_attribute("data-state", "used")
+    expect(page.locator("#career-plan-edit")).to_have_count(0)  # 生成に使った版は固定
+    page.goto(plan_page)
 
     # 生成物から交付記録を作る（契約が入っている）
     page.locator("#document-deliver").click()

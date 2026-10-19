@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 16:21+0900\n"
+"POT-Creation-Date: 2026-10-19 16:46+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -3428,17 +3428,28 @@ msgstr "レベルの名前"
 msgid "Example: level 1."
 msgstr "例: レベル1"
 
-msgid "years as a guide"
-msgstr "習熟の目安となる年数"
+msgid "from year (years as a guide)"
+msgstr "習熟の目安の年数（◯年目から）"
 
-msgid "Example: 1st to 2nd year."
-msgstr "例: 1〜2年目"
+msgid "to year"
+msgstr "◯年目まで"
+
+msgid "Leave blank for “from year … onward”."
+msgstr "空なら「◯年目以降」になります。"
 
 msgid "experience, results, qualifications and tests"
 msgstr "レベルアップに必要な経験・実績、資格・検定"
 
 msgid "treatment such as wages"
 msgstr "賃金をはじめとする処遇"
+
+#, python-format
+msgid ""
+"The old text “%(text)s” could not be read as numbers. Enter the years as "
+"numbers."
+msgstr ""
+"元の文字「%(text)s」を数字に読み取れませんでした。年数を数字で入れ直してくだ"
+"さい。"
 
 #, python-format
 msgid "Saved the career-up plan (version %(n)d)."
@@ -3869,6 +3880,9 @@ msgstr "同じ受入れ機関のほかの支援委託契約と期間が重なっ
 msgid "career-up plans"
 msgstr "キャリアアッププラン"
 
+msgid "first used at"
+msgstr "初めて使った日時"
+
 msgid "career-up plan version"
 msgstr "キャリアアッププランの版"
 
@@ -3878,11 +3892,29 @@ msgstr "キャリアアッププランの版"
 msgid "order"
 msgstr "並び順"
 
+msgid "from year"
+msgstr "◯年目から"
+
+msgid "years as a guide (old text)"
+msgstr "習熟の目安の年数（元の文字）"
+
 msgid "career-up plan level"
 msgstr "キャリアアッププランのレベル"
 
 msgid "career-up plan levels"
 msgstr "キャリアアッププランのレベル"
+
+#, python-format
+msgid "year %(start)d onward"
+msgstr "%(start)d年目以降"
+
+#, python-format
+msgid "year %(start)d"
+msgstr "%(start)d年目"
+
+#, python-format
+msgid "years %(start)d to %(end)d"
+msgstr "%(start)d〜%(end)d年目"
 
 msgid "occasionally"
 msgstr "随時"
@@ -3902,6 +3934,23 @@ msgstr "キャリアアッププラン"
 msgid "all sites"
 msgstr "すべての事業所"
 
+msgid "draft (not used yet)"
+msgstr "下書き（まだ使っていない）"
+
+#, python-format
+msgid "fixed (used on %(day)s)"
+msgstr "固定（%(day)s に使用）"
+
+msgid "years as a guide"
+msgstr "習熟の目安となる年数"
+
+msgid "enter the years as numbers"
+msgstr "年数を数字で入れ直す"
+
+#, python-format
+msgid "Edit version %(number)s of the career-up plan"
+msgstr "キャリアアッププランの第 %(number)s 版を直す"
+
 msgid "Add a new version of the career-up plan"
 msgstr "キャリアアッププランの新しい版を作る"
 
@@ -3915,6 +3964,14 @@ msgid ""
 msgstr ""
 "雇用契約を締結する前に書面を交付して説明します（飲食料品製造業分野）。様式は"
 "任意で、内容は運用要領の 4 つの例に沿います。"
+
+msgid ""
+"This version has not been used for a generated form or a delivery yet, so it "
+"can be corrected. Once it is used, it is fixed and changes need a new "
+"version."
+msgstr ""
+"この版はまだ生成にも交付記録にも使っていないので、直せます。一度使うと固定に"
+"なり、変えるときは新しい版を足します。"
 
 msgid "Levels"
 msgstr "レベル"
@@ -6136,6 +6193,10 @@ msgid ""
 "The date must be on or after the date of the previous version (%(day)s)."
 msgstr "前の版の適用開始日（%(day)s）以後の日にしてください。"
 
+#, python-format
+msgid "The date must be on or before the date of the next version (%(day)s)."
+msgstr "次の版の適用開始日（%(day)s）以前の日にしてください。"
+
 msgid "Enter the date."
 msgstr "日付を入れてください。"
 
@@ -6148,6 +6209,16 @@ msgstr "レベルを 1 つ以上入れてください。"
 #, python-format
 msgid "Level %(n)d: enter the name, the years and the duties."
 msgstr "%(n)d 行目のレベル: レベル・目安の年数・業務内容を入れてください。"
+
+#, python-format
+msgid "Level %(n)d: the last year must be the same as or after the first year."
+msgstr "レベル %(n)d: 「◯年目まで」は「◯年目から」と同じか後にしてください。"
+
+msgid ""
+"This version has been used for a generated form or a delivery and cannot be "
+"changed."
+msgstr ""
+"この版は生成か交付記録に使ったので、直せません。新しい版を足してください。"
 
 msgid "Enter the organization the case was handed over to."
 msgstr "引継ぎ先を入力してください。"
@@ -6846,6 +6917,14 @@ msgid ""
 msgstr ""
 "プランのレベルは %(count)d 行ですが、様式の行は %(limit)d 行です。超えた行は"
 "出ません。任意の様式の別紙に書いてください。"
+
+#, python-format
+msgid ""
+"The years of %(levels)s are old text. Enter the years as numbers in the plan "
+"(until then the text is printed as it is)."
+msgstr ""
+"%(levels)s の年数が元の文字のままです。プランで年数を数字で入れ直してください"
+"（それまでは元の文字をそのまま書きます）。"
 
 msgid ""
 "The contract is in the seafood processing category, but the plan does not "

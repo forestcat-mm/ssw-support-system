@@ -409,7 +409,7 @@ class SupportContract(TrackedModel):
 
 
 class CareerPlanImmutableError(Exception):
-    """キャリアアッププランの版とレベルは作成後に変更・削除できない。"""
+    """生成・交付に使ったキャリアアッププランの版とレベルは変更・削除できない（修正 1 回目 J1）。"""
 
 
 class CareerPlan(TrackedModel):
@@ -463,20 +463,27 @@ class CareerPlan(TrackedModel):
 
 
 class _CareerPlanRow(TrackedModel):
+    """版とレベルの共通部分。版を生成・交付に使った後は変えない（使う前は下書きとして直せる。J1）。"""
+
     class Meta:
         abstract = True
 
+    def is_locked(self) -> bool:
+        raise NotImplementedError
+
     def save(self, *args: object, **kwargs: object) -> None:
-        if not self._state.adding:
+        if not self._state.adding and self.is_locked():
             raise CareerPlanImmutableError(f"{self._meta.label} rows cannot be changed")
         super().save(*args, **kwargs)  # type: ignore[arg-type]
 
     def delete(self, *args: object, **kwargs: object) -> tuple[int, dict[str, int]]:
-        raise CareerPlanImmutableError(f"{self._meta.label} rows cannot be deleted")
+        if self.is_locked():
+            raise CareerPlanImmutableError(f"{self._meta.label} rows cannot be deleted")
+        return super().delete(*args, **kwargs)  # type: ignore[arg-type]
 
 
 class CareerPlanVersion(_CareerPlanRow):
-    """プランの版（追記だけ。交付したものを再現できる）。"""
+    """プランの版。生成・交付に使った版は固定（交付したものを再現できる）。使う前は直せる（J1）。"""
 
     plan = models.ForeignKey(
         CareerPlan,
@@ -496,6 +503,8 @@ class CareerPlanVersion(_CareerPlanRow):
             "worker can change jobs (in principle the same category), explained for consent."
         ),
     )
+    # 生成の依頼・交付記録で初めて使った日時。入っている版は直せない（修正 1 回目 J1、ADR-0029）
+    used_at = models.DateTimeField(_("first used at"), null=True, blank=True, editable=False)
 
     class Meta:
         verbose_name = _("career-up plan version")
@@ -507,6 +516,11 @@ class CareerPlanVersion(_CareerPlanRow):
 
     def __str__(self) -> str:
         return f"{self.plan} v{self.version}"
+
+    def is_locked(self) -> bool:
+        if getattr(self, "_marking_used", False):
+            return False  # 使った日時を入れる保存（services.career_plans.mark_used）
+        return CareerPlanVersion.objects.filter(pk=self.pk, used_at__isnull=False).exists()
 
 
 class CareerPlanLevel(_CareerPlanRow):
@@ -520,9 +534,11 @@ class CareerPlanLevel(_CareerPlanRow):
     )
     order = models.PositiveSmallIntegerField(_("order"))
     name = models.CharField(pgettext_lazy("career plan", "level"), max_length=50)
-    years = models.CharField(
-        _("years as a guide"), max_length=50, help_text=_("Example: 1st to 2nd year.")
-    )
+    # 習熟の目安の年数は「◯年目から◯年目まで」（終わりが空なら「◯年目以降」。修正 1 回目 J6）
+    years_from = models.PositiveSmallIntegerField(_("from year"), null=True, blank=True)
+    years_to = models.PositiveSmallIntegerField(_("to year"), null=True, blank=True)
+    # 移行で数字に読み取れなかった元の文字（数字で入れ直すまで残す。新しい行では使わない）
+    years_legacy = models.CharField(_("years as a guide (old text)"), max_length=50, blank=True)
     duties = models.TextField(_("duties"))
     requirements = models.TextField(_("experience, results, qualifications and tests"), blank=True)
     position = models.CharField(_("position"), max_length=100, blank=True)
@@ -535,6 +551,21 @@ class CareerPlanLevel(_CareerPlanRow):
 
     def __str__(self) -> str:
         return f"{self.version}: {self.name}"
+
+    def is_locked(self) -> bool:
+        return CareerPlanVersion.objects.filter(pk=self.version_id, used_at__isnull=False).exists()
+
+    @property
+    def years_label(self) -> str:
+        """画面に出す年数（数字が無い移行前の行は元の文字）。"""
+        start, end = self.years_from, self.years_to
+        if start is None:
+            return self.years_legacy
+        if end is None:
+            return _("year %(start)d onward") % {"start": start}
+        if end == start:
+            return _("year %(start)d") % {"start": start}
+        return _("years %(start)d to %(end)d") % {"start": start, "end": end}
 
 
 class FeeTiming(models.TextChoices):

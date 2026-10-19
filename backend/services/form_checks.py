@@ -1005,6 +1005,36 @@ def _career_plan_levels_fit(context: CheckContext, params: Mapping[str, Any]) ->
     ]
 
 
+@check("career_plan_years_numeric")
+def _career_plan_years_numeric(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """レベルの年数が数字でない（移行で読み取れなかった元の文字のまま。修正 1 回目 J6）。"""
+    from services import career_plans  # 循環を避ける
+
+    contract = context.contract
+    version = career_plans.plan_version_for(contract, context.basis_on) if contract else None
+    if version is None:
+        return []
+    names = [
+        level.name for level in version.levels.order_by("order", "pk") if level.years_from is None
+    ]
+    if not names:
+        return []
+    return [
+        Issue(
+            "career_plan_years_text",
+            _(
+                "The years of %(levels)s are old text. Enter the years as numbers in the plan "
+                "(until then the text is printed as it is)."
+            )
+            % {"levels": "、".join(names)},
+            Destination(
+                "hosts:career_plan",
+                {"pk": version.plan.host_organization_id, "plan_id": version.plan_id},
+            ),
+        )
+    ]
+
+
 @check("career_plan_transfer_scope")
 def _career_plan_transfer_scope(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
     """水産加工業の区分の契約で、プランの「転職できる範囲」が空（協議会の定め。T36-D5）。"""

@@ -250,6 +250,12 @@ def create_delivery(
             updated_by=by,
         )
         delivery.save()
+        if data.kind == DeliveryKind.CAREER_UP_PLAN and data.contract is not None:
+            # 交付したキャリアアッププランの版（交付日に適用）は、これ以後は直せない
+            # （修正 1 回目 J1）
+            from services import career_plans  # 循環を避ける
+
+            career_plans.mark_used(career_plans.plan_version_for(data.contract, data.delivered_on))
         delivery.languages.set(data.languages)
         for file in uploads:
             attachments.create_attachment(

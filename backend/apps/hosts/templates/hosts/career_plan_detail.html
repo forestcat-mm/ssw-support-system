@@ -9,7 +9,9 @@
 <div class="stack">
   {% if can_manage %}<div class="cluster"><a class="button button--primary" id="career-plan-new-version" href="{% url 'hosts:career_plan_version_create' host.pk plan.pk %}">{% translate "Add a new version" %}</a></div>{% endif %}
   <section class="card" id="career-plan-version">
-    <div class="card__header"><h2 class="card__title">{% blocktranslate with number=version.version day=version.applies_from|date:"Y-m-d" %}Version {{ number }} (applies from {{ day }}){% endblocktranslate %}</h2></div>
+    <div class="card__header"><h2 class="card__title">{% blocktranslate with number=version.version day=version.applies_from|date:"Y-m-d" %}Version {{ number }} (applies from {{ day }}){% endblocktranslate %}</h2>
+      {% if editable %}<span class="badge badge--open" id="career-plan-state" data-state="draft">{% translate "draft (not used yet)" %}</span>{% if can_manage %}<a class="button button--neutral button--small" id="career-plan-edit" href="{% url 'hosts:career_plan_version_edit' host.pk plan.pk version.version %}">{% translate "Edit" %}</a>{% endif %}{% else %}<span class="badge badge--not-yet" id="career-plan-state" data-state="used">{% blocktranslate with day=version.used_at|date:"Y-m-d" %}fixed (used on {{ day }}){% endblocktranslate %}</span>{% endif %}
+    </div>
     <dl class="fields fields--long-labels">
       <dt>{% translate "expected career route" %}</dt><dd>{{ version.career_route|linebreaksbr }}</dd>
       <dt>{% translate "scope of job changes" %}</dt><dd>{{ version.transfer_scope|default:"—"|linebreaksbr }}</dd>
@@ -18,13 +20,13 @@
     <div class="table-scroll">
       <table class="table" id="career-plan-levels">
         <thead><tr><th>{% translate "level" context "career plan" %}</th><th>{% translate "years as a guide" %}</th><th>{% translate "duties" %}</th><th>{% translate "experience, results, qualifications and tests" %}</th><th>{% translate "position" %}</th><th>{% translate "treatment such as wages" %}</th></tr></thead>
-        <tbody>{% for level in levels %}<tr><td>{{ level.name }}</td><td>{{ level.years }}</td><td>{{ level.duties|linebreaksbr }}</td><td>{{ level.requirements|default:"—"|linebreaksbr }}</td><td>{{ level.position|default:"—" }}</td><td>{{ level.treatment|default:"—"|linebreaksbr }}</td></tr>{% endfor %}</tbody>
+        <tbody>{% for level in levels %}<tr><td>{{ level.name }}</td><td>{{ level.years_label }}{% if level.years_from is None %} <span class="badge badge--within-7" data-years-text>{% translate "enter the years as numbers" %}</span>{% endif %}</td><td>{{ level.duties|linebreaksbr }}</td><td>{{ level.requirements|default:"—"|linebreaksbr }}</td><td>{{ level.position|default:"—" }}</td><td>{{ level.treatment|default:"—"|linebreaksbr }}</td></tr>{% endfor %}</tbody>
       </table>
     </div>
   </section>
   <section class="card" id="career-plan-versions">
     <div class="card__header"><h2 class="card__title">{% translate "Versions" %}</h2></div>
-    <ul class="stack" style="list-style: none; padding: 0; margin: 0">{% for item in versions %}<li>{% if item.pk == version.pk %}{{ item.version }}{% else %}<a href="?version={{ item.version }}">{{ item.version }}</a>{% endif %} <span class="caption mono">{{ item.applies_from|date:"Y-m-d" }}</span> {{ item.change_reason }}</li>{% endfor %}</ul>
+    <ul class="stack" style="list-style: none; padding: 0; margin: 0">{% for item in versions %}<li>{% if item.pk == version.pk %}{{ item.version }}{% else %}<a href="?version={{ item.version }}">{{ item.version }}</a>{% endif %} <span class="caption mono">{{ item.applies_from|date:"Y-m-d" }}</span> {{ item.change_reason }}{% if not item.used_at %} <span class="caption">{% translate "draft (not used yet)" %}</span>{% endif %}</li>{% endfor %}</ul>
   </section>
 </div>
 {% endblock %}

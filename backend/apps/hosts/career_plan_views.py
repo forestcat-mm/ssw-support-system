@@ -1,6 +1,7 @@
 """キャリアアッププランの業務画面（受入れ機関の詳細から開く。T36、ADR-0025）。
 
-作成・新しい版は hosts.manage。表示は hosts.view。版は作った後に変えない。
+作成・新しい版・使っていない版の直しは hosts.manage。表示は hosts.view。生成・交付に使った版は
+変えない（修正 1 回目 J1、ADR-0029）。
 """
 
 from __future__ import annotations
@@ -9,7 +10,7 @@ from dataclasses import asdict
 from typing import Any
 
 from django.contrib import messages
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
@@ -22,7 +23,7 @@ from apps.core.permissions import ActionRequiredMixin
 from apps.core.web_forms import consume_once_token
 from apps.hosts.career_plan_forms import CareerPlanForm, LevelFormSet, levels_of
 from apps.hosts.edit_views import HostFormView
-from apps.hosts.models import CareerPlan, HostOrganization
+from apps.hosts.models import CareerPlan, CareerPlanVersion, HostOrganization
 from services import audit, authorization, career_plans
 
 
@@ -31,16 +32,22 @@ def plan_url(plan: CareerPlan) -> str:
 
 
 class CareerPlanEditView(HostFormView):
-    """プランを作る（plan_id なし）・新しい版を足す（前の版を写して開く）。"""
+    """プランを作る（plan_id なし）・新しい版を足す（前の版を写して開く）・使っていない版を直す
+    （number あり。修正 1 回目 J1）。"""
 
     template_name = "hosts/career_plan_form.html"
 
     def target(
-        self, request: HttpRequest, pk: int, plan_id: int | None
-    ) -> tuple[HostOrganization, CareerPlan | None]:
+        self, request: HttpRequest, pk: int, plan_id: int | None, number: int | None = None
+    ) -> tuple[HostOrganization, CareerPlan | None, CareerPlanVersion | None]:
         host = self.host(request, pk)
         plan = get_object_or_404(host.career_plans, pk=plan_id) if plan_id is not None else None
-        return host, plan
+        editing = None
+        if plan is not None and number is not None:
+            editing = get_object_or_404(plan.versions, version=number)
+            if not career_plans.is_editable(editing):
+                raise PermissionDenied
+        return host, plan, editing
 
     def page(
         self,
@@ -49,27 +56,46 @@ class CareerPlanEditView(HostFormView):
         plan: CareerPlan | None,
         form: CareerPlanForm,
         levels: Any,
+        editing: CareerPlanVersion | None = None,
     ) -> HttpResponse:
         back = plan_url(plan) if plan else reverse("hosts:detail", args=[host.pk]) + "#career-plans"
-        return self.render(request, host=host, plan=plan, form=form, levels=levels, back=back)
+        if editing is not None:
+            back += f"?version={editing.version}"
+        return self.render(
+            request, host=host, plan=plan, form=form, levels=levels, back=back, editing=editing
+        )
 
-    def get(self, request: HttpRequest, pk: int, plan_id: int | None = None) -> HttpResponse:
-        host, plan = self.target(request, pk, plan_id)
+    def get(
+        self, request: HttpRequest, pk: int, plan_id: int | None = None, number: int | None = None
+    ) -> HttpResponse:
+        host, plan, editing = self.target(request, pk, plan_id, number)
         initial: dict[str, Any] = {}
         rows: list[dict[str, Any]] = [{}]
-        latest = career_plans.latest_version(plan) if plan else None
-        if latest is not None:
-            data = career_plans.initial_from(latest)
+        source = editing or (career_plans.latest_version(plan) if plan else None)
+        if source is not None:
+            data = career_plans.initial_from(source)
             initial = {"career_route": data.career_route, "transfer_scope": data.transfer_scope}
             rows = [asdict(level) for level in data.levels]
-        form = CareerPlanForm(initial=initial, host=host, new_plan=plan is None)
-        return self.page(request, host, plan, form, LevelFormSet(prefix="levels", initial=rows))
+        if editing is not None:
+            initial |= {
+                "applies_from": editing.applies_from.isoformat(),
+                "change_reason": editing.change_reason,
+            }
+        form = CareerPlanForm(
+            initial=initial, host=host, new_plan=plan is None, first_version=_first(editing)
+        )
+        levels = LevelFormSet(prefix="levels", initial=rows)
+        return self.page(request, host, plan, form, levels, editing)
 
-    def post(self, request: HttpRequest, pk: int, plan_id: int | None = None) -> HttpResponse:
-        host, plan = self.target(request, pk, plan_id)
+    def post(
+        self, request: HttpRequest, pk: int, plan_id: int | None = None, number: int | None = None
+    ) -> HttpResponse:
+        host, plan, editing = self.target(request, pk, plan_id, number)
         if not consume_once_token(request):
             return self.already_submitted(request, reverse("hosts:detail", args=[host.pk]))
-        form = CareerPlanForm(request.POST, host=host, new_plan=plan is None)
+        form = CareerPlanForm(
+            request.POST, host=host, new_plan=plan is None, first_version=_first(editing)
+        )
         levels = LevelFormSet(request.POST, prefix="levels")
         if form.is_valid() and levels.is_valid():
             data = career_plans.VersionInput(
@@ -90,18 +116,28 @@ class CareerPlanEditView(HostFormView):
                         data,
                         by=actor,
                     )
+                elif editing is not None:
+                    version = career_plans.edit_version(editing, data, by=actor)
                 else:
                     version = career_plans.add_version(plan, data, by=actor)
             except ValidationError as error:
-                for key, messages_ in error.message_dict.items():
-                    form.add_error(key if key in form.fields else None, messages_)
+                if hasattr(error, "error_dict"):
+                    for key, messages_ in error.message_dict.items():
+                        form.add_error(key if key in form.fields else None, messages_)
+                else:
+                    form.add_error(None, error)
             else:
                 messages.success(
                     request,
                     _("Saved the career-up plan (version %(n)d).") % {"n": version.version},
                 )
-                return redirect(plan_url(version.plan))
-        return self.page(request, host, plan, form, levels)
+                return redirect(plan_url(version.plan) + f"?version={version.version}")
+        return self.page(request, host, plan, form, levels, editing)
+
+
+def _first(editing: CareerPlanVersion | None) -> bool:
+    """直している版が第 1 版か（第 1 版は変更理由が要らない）。"""
+    return editing is not None and editing.version == 1
 
 
 class CareerPlanDetailView(ActionRequiredMixin, View):
@@ -127,6 +163,7 @@ class CareerPlanDetailView(ActionRequiredMixin, View):
                 "versions": versions,
                 "version": version,
                 "levels": list(version.levels.order_by("order", "pk")),
+                "editable": career_plans.is_editable(version),
                 "can_manage": authorization.has_action(request.user, Action.HOSTS_MANAGE),
             },
         )

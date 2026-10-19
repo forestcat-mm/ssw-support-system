@@ -2,7 +2,7 @@
 {% block title %}{% translate "Career-up plan" %} | {{ host.name }}{% endblock %}
 {% block page_header %}
   <p class="caption"><a href="{{ back }}">← {{ host.name }}</a></p>
-  <h1>{% if plan %}{% translate "Add a new version of the career-up plan" %}{% else %}{% translate "Create a career-up plan" %}{% endif %}</h1>
+  <h1>{% if editing %}{% blocktranslate with number=editing.version %}Edit version {{ number }} of the career-up plan{% endblocktranslate %}{% elif plan %}{% translate "Add a new version of the career-up plan" %}{% else %}{% translate "Create a career-up plan" %}{% endif %}</h1>
   {% if plan %}<p class="caption">{{ plan.field.name }}{% if plan.site %} · {{ plan.site.name }}{% endif %}</p>{% endif %}
 {% endblock %}
 {% block content %}
@@ -11,6 +11,7 @@
   {% include "ui/components/form_errors.html" %}
   <section class="card stack">
     <p class="caption">{% translate "Give the plan in writing and explain it before the employment contract is concluded (food manufacturing field). The format is free; the content follows the four examples of the guidelines." %}</p>
+    {% if editing %}<p class="message message--warning" id="career-plan-draft-note">{% translate "This version has not been used for a generated form or a delivery yet, so it can be corrected. Once it is used, it is fixed and changes need a new version." %}</p>{% endif %}
     {% for field in form %}{% form_field field %}{% endfor %}
   </section>
   {% include "support/components/formset_rows.html" with formset=levels id="level-rows" title=_("Levels") add_label=_("Add a level") %}

@@ -26,6 +26,11 @@ urlpatterns = [
         name="career_plan_version_create",
     ),
     path(
+        "<int:pk>/career-plans/<int:plan_id>/versions/<int:number>/edit/",
+        career_plan_views.CareerPlanEditView.as_view(),
+        name="career_plan_version_edit",
+    ),
+    path(
         "<int:pk>/consultation-records/",
         ConsultationRecordView.as_view(),
         name="consultation_records",
