@@ -34,6 +34,7 @@ from apps.workers.models import (
     ResidenceRecord,
     WorkerAddress,
     WorkerContact,
+    WorkerStatus,
 )
 from services import (
     audit,
@@ -384,7 +385,13 @@ class RecordCreateView(WorkerFormView):
     def get(self, request: HttpRequest, pk: int, kind: str) -> HttpResponse:
         worker = self.worker(request, pk)
         form = self.form(worker, kind)
-        return self.render(request, worker=worker, form=form, title=RECORD_TITLES[kind])
+        return self.render(
+            request,
+            worker=worker,
+            form=form,
+            title=RECORD_TITLES[kind],
+            pre_entry_note=kind == "residence" and worker.status == WorkerStatus.PRE_ENTRY,
+        )
 
     def post(self, request: HttpRequest, pk: int, kind: str) -> HttpResponse:
         worker = self.worker(request, pk)
@@ -393,7 +400,13 @@ class RecordCreateView(WorkerFormView):
         if not consume_once_token(request):
             return self.already_submitted(request, detail)
         if not form.is_valid():
-            return self.render(request, worker=worker, form=form, title=RECORD_TITLES[kind])
+            return self.render(
+                request,
+                worker=worker,
+                form=form,
+                title=RECORD_TITLES[kind],
+                pre_entry_note=kind == "residence" and worker.status == WorkerStatus.PRE_ENTRY,
+            )
         workers.add_record(worker, form.save(commit=False), by=_actor(request))
         messages.success(request, _("Added: %(what)s") % {"what": RECORD_TITLES[kind]})
         return redirect(f"{detail}#{kind}")

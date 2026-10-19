@@ -256,7 +256,7 @@ class PassportRecordForm(HistoryRecordForm):
 class WorkerAddressForm(HistoryRecordForm):
     class Meta:
         model = WorkerAddress
-        fields = ("effective_from", "postal_code", "address")
+        fields = ("postal_code", "address", "effective_from")
         widgets = {"effective_from": forms.DateInput}
 
 
@@ -264,7 +264,6 @@ class WorkerContactForm(HistoryRecordForm):
     class Meta:
         model = WorkerContact
         fields = (
-            "effective_from",
             "phone",
             "email",
             "emergency_name",
@@ -272,6 +271,7 @@ class WorkerContactForm(HistoryRecordForm):
             "emergency_phone",
             "home_country_address",
             "home_country_phone",
+            "effective_from",
         )
         widgets = {"effective_from": forms.DateInput}
 

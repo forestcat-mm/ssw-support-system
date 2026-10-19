@@ -28,6 +28,7 @@ from apps.contracts.models import (
 )
 from apps.filings.models import FilingStatus
 from apps.workers.models import (
+    ApplicationType,
     ForeignWorker,
     HistoryRecord,
     LatestPassportRecord,
@@ -79,12 +80,21 @@ def _latest_record(latest_model: type[models.Model], worker: ForeignWorker) -> A
     return getattr(latest, "record", None)
 
 
+def is_certificate_of_eligibility(record: ResidenceRecord) -> bool:
+    """在留資格認定証明書の行（入国前。期限は認定証明書の有効期限。修正 1 回目 B5）。"""
+    return record.application_type == ApplicationType.CERTIFICATE_OF_ELIGIBILITY
+
+
 def basic_info(worker: ForeignWorker) -> BasicInfo:
     residence: ResidenceRecord | None = _latest_record(LatestResidenceRecord, worker)
     passport: PassportRecord | None = _latest_record(LatestPassportRecord, worker)
     return BasicInfo(
         residence=residence,
-        residence_deadline=deadlines.residence_expiry(residence.expires_on) if residence else None,
+        residence_deadline=(
+            deadlines.residence_expiry(residence.expires_on)
+            if residence is not None and not is_certificate_of_eligibility(residence)
+            else None
+        ),
         passport=passport,
         passport_deadline=deadlines.passport_expiry(passport.expires_on) if passport else None,
         address=_latest_record(LatestWorkerAddress, worker),
@@ -355,6 +365,6 @@ def history(worker: ForeignWorker) -> list[HistoryEntry]:
             for name in ("phone", "email", "emergency_name", "emergency_phone")
             if getattr(contact, name)
         ]
-        entries.append(HistoryEntry("contact", contact, contact.effective_from, "", details))
+        entries.append(HistoryEntry("contact", contact, contact.effective_on, "", details))
     entries.sort(key=lambda entry: (entry.on, entry.record.created_at), reverse=True)
     return entries

@@ -16,8 +16,10 @@
     <details class="card form-section" id="section-{{ key }}"{% if section.is_bound and section.has_changed or section.errors %} open{% endif %}>
       <summary><h2>{{ label }}</h2></summary>
       <div class="stack">
+        <p class="caption">{% translate "Optional. If you enter this section, the fields marked “required if entered” are required." %}</p>
+        {% if key == "residence" %}{% include "workers/components/pre_entry_note.html" %}{% endif %}
         {% include "ui/components/form_errors.html" with form=section %}
-        {% for field in section %}{% form_field field %}{% endfor %}
+        {% for field in section %}{% form_field field conditional=True %}{% endfor %}
       </div>
     </details>
   {% endfor %}

@@ -9,6 +9,7 @@
   {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
   {% include "ui/components/form_errors.html" %}
   <section class="card stack">
+    {% if pre_entry_note %}{% include "workers/components/pre_entry_note.html" %}{% endif %}
     {% for field in form %}{% form_field field %}{% endfor %}
   </section>
   <div class="form-actions">

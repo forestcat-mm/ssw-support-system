@@ -22,7 +22,7 @@ from django.db.models.functions import Replace, Upper
 from apps.contracts.models import EmploymentContract, EmploymentContractVersion
 from apps.core.models import User
 from apps.hosts.models import SpecifiedSkillField
-from apps.workers.models import ForeignWorker, WorkerStatus
+from apps.workers.models import ApplicationType, ForeignWorker, WorkerStatus
 from services import authorization, deadlines, workers
 
 # 既定で一覧に出す状態（離職・帰国は状態で絞り込んだときだけ出す）
@@ -147,6 +147,7 @@ def list_workers(user: User, query: WorkerListQuery, today: date) -> WorkerList:
     contracts = _current_contract(today)
     annotated = queryset.annotate(
         expires_on=F("latest_residence__record__expires_on"),
+        application_type=F("latest_residence__record__application_type"),
         current_contract_id=Subquery(contracts.values("pk")[:1]),
         host_id=Subquery(contracts.values("host_organization_id")[:1]),
         host_name=Subquery(contracts.values("host_organization__name")[:1]),
@@ -168,6 +169,10 @@ def list_workers(user: User, query: WorkerListQuery, today: date) -> WorkerList:
     counts: Counter[deadlines.Level] = Counter()
     for worker in annotated:
         expires_on: date | None = worker.expires_on
+        # 在留資格認定証明書の行の期限は、認定証明書の有効期限で在留期限ではない（修正 1 回目 B5）
+        before_entry = worker.application_type == ApplicationType.CERTIFICATE_OF_ELIGIBILITY
+        if before_entry:
+            expires_on = None
         deadline = deadlines.residence_expiry(expires_on) if expires_on else None
         level = deadlines.assess(deadline, today).level if deadline else None
         if level is not None:

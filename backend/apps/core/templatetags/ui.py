@@ -116,15 +116,18 @@ def worker_status(status: str, label: str, deactivated: bool = False) -> dict[st
 
 
 @register.inclusion_tag("ui/components/form_field.html")
-def form_field(bound: Any) -> dict[str, Any]:
-    """入力欄 1 つ（ラベル・必須の印・入力欄・補足・項目のエラー）。"""
+def form_field(bound: Any, conditional: bool = False) -> dict[str, Any]:
+    """入力欄 1 つ（ラベル・必須の印・入力欄・補足・項目のエラー）。
+
+    conditional は任意の区画の欄（区画に入れる場合だけ必須。印は「入れる場合は必須」。B5）。
+    """
     if bound.errors:
         described = f"{bound.auto_id}-error"
         bound.field.widget.attrs["aria-invalid"] = "true"
         bound.field.widget.attrs["aria-describedby"] = described
     elif bound.help_text:
         bound.field.widget.attrs["aria-describedby"] = f"{bound.auto_id}-help"
-    return {"field": bound}
+    return {"field": bound, "conditional": conditional}
 
 
 @register.simple_tag

@@ -23,7 +23,7 @@
     <dl class="fields">
       <dt>{% translate "residence card number" %}</dt><dd class="mono" data-decrypted="card_number">{{ record.card_number|default:"—" }}</dd>
       <dt>{% translate "status of residence" %}</dt><dd>{{ record.get_status_of_residence_display }}</dd>
-      <dt>{% translate "period of stay expires on" %}</dt><dd>{% due_date info.residence_deadline %}</dd>
+      {% if record.application_type == "coe" %}<dt>{% translate "certificate of eligibility valid until" %}</dt><dd class="mono" id="coe-valid-until">{{ record.expires_on|date:"Y-m-d" }}</dd>{% else %}<dt>{% translate "period of stay expires on" %}</dt><dd>{% due_date info.residence_deadline %}</dd>{% endif %}
       <dt>{% translate "permitted on" %}</dt><dd class="mono">{{ record.permitted_on|date:"Y-m-d" }}</dd>
       <dt>{% translate "application type" %}</dt><dd>{{ record.get_application_type_display }}</dd>
     </dl>
@@ -55,6 +55,7 @@
       <dt>{% translate "emergency contact phone" %}</dt><dd class="mono">{{ record.emergency_phone|default:"—" }}</dd>
       <dt>{% translate "home country address" %}</dt><dd>{{ record.home_country_address|default:"—" }}</dd>
       <dt>{% translate "home country phone" %}</dt><dd class="mono">{{ record.home_country_phone|default:"—" }}</dd>
+      <dt>{% translate "effective from" %}</dt><dd id="contact-effective-from">{% if record.effective_from %}<span class="mono">{{ record.effective_from|date:"Y-m-d" }}</span>{% else %}{% blocktranslate with day=record.created_at|date:"Y-m-d" %}No date (registered on {{ day }}){% endblocktranslate %}{% endif %}</dd>
       {% else %}
       <dt>{% translate "contact" %}</dt><dd><span class="muted">{% translate "Not registered." %}</span></dd>
       {% endif %}{% endwith %}

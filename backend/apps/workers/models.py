@@ -5,12 +5,16 @@ worker_addresses / contacts）。
 正しい行を足す。最新行は DB ビュー（Latest* モデル）で取る。
 """
 
+import datetime
+
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.constraints import ExclusionConstraint
 from django.contrib.postgres.fields import RangeOperators
 from django.db import models
 from django.db.models import Q
+from django.db.models.functions import Coalesce, TruncDate
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.fields import BlindIndexField, EncryptedCharField
@@ -292,15 +296,27 @@ class WorkerContact(HistoryRecord, ConfirmedValue):
     emergency_phone = models.CharField(_("emergency contact phone"), max_length=30, blank=True)
     home_country_address = models.CharField(_("home country address"), max_length=255, blank=True)
     home_country_phone = models.CharField(_("home country phone"), max_length=30, blank=True)
-    effective_from = models.DateField(_("effective from"))
+    # 空でもよい（本国の住所・連絡先など、いつからか分からないもの。修正 1 回目 B6）。空の行は
+    # 登録した日を適用開始日とみなして並べる（最新行のビューも同じ）
+    effective_from = models.DateField(
+        _("effective from"),
+        null=True,
+        blank=True,
+        help_text=_("Leave blank if unknown; the date of registration is used for ordering."),
+    )
 
     class Meta:
         verbose_name = _("contact")
         verbose_name_plural = _("contacts")
-        ordering = ["-effective_from", "-pk"]
+        ordering = [Coalesce("effective_from", TruncDate("created_at")).desc(), "-pk"]
 
     def __str__(self) -> str:
-        return f"{self.worker}: {self.effective_from}~"
+        return f"{self.worker}: {self.effective_on}~"
+
+    @property
+    def effective_on(self) -> datetime.date:
+        """並び順の日付（適用開始日。空なら登録した日）。"""
+        return self.effective_from or timezone.localdate(self.created_at)
 
 
 # --- 最新行（DB ビュー。migrations/0002 で作成。読み取り専用） -----------------------------

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 15:24+0900\n"
+"POT-Creation-Date: 2026-10-19 15:31+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -2190,6 +2190,9 @@ msgstr "法令上の期限: %(day)s"
 
 msgid "not assigned"
 msgstr "未割当"
+
+msgid "required if entered"
+msgstr "入れる場合は必須"
 
 msgid "required field"
 msgstr "必須"
@@ -5587,6 +5590,9 @@ msgstr "母国の住所"
 msgid "home country phone"
 msgstr "母国の電話番号"
 
+msgid "Leave blank if unknown; the date of registration is used for ordering."
+msgstr "分からなければ空にします（並び順は登録した日で決まります）。"
+
 msgid "contact"
 msgstr "連絡先"
 
@@ -5607,6 +5613,18 @@ msgstr ""
 "無効化のときに取り消した在留情報・旅券と、取消にした届出タスクは戻りません。"
 "新しい行として登録し直してください（日付で起票される届出タスクは翌朝の日次の"
 "起票で起票し直されます）。"
+
+msgid ""
+"Before entry: do not add a row before the certificate of eligibility is "
+"issued. After it is issued, choose “Certificate of Eligibility” as the "
+"application type and Specified Skilled Worker (i) as the status, and enter "
+"the validity of the certificate (three months from issue) as the expiry "
+"date. The field is decided by the site of the employment contract."
+msgstr ""
+"入国前の人: 在留資格認定証明書の交付の前は、行を作りません。交付の後は、申請"
+"種別を「在留資格認定証明書」、在留資格を「特定技能1号」にし、期限の欄に認定証"
+"明書の有効期間（交付から 3 か月）を入れます。分野は雇用契約の事業所から決まり"
+"ます。"
 
 msgid "(scheduled)"
 msgstr "（予定）"
@@ -5650,6 +5668,9 @@ msgstr "本人の情報"
 msgid "Residence (latest)"
 msgstr "在留情報（最新）"
 
+msgid "certificate of eligibility valid until"
+msgstr "在留資格認定証明書の有効期限"
+
 msgid "Passport (latest)"
 msgstr "旅券（最新）"
 
@@ -5668,6 +5689,10 @@ msgstr "連絡先を追加"
 #, python-format
 msgid "from %(day)s"
 msgstr "%(day)s から"
+
+#, python-format
+msgid "No date (registered on %(day)s)"
+msgstr "適用開始日なし（登録 %(day)s）"
 
 msgid "Health check documents"
 msgstr "健康診断の書類"
@@ -5787,6 +5812,11 @@ msgstr "氏名、在留カード番号・旅券番号"
 
 msgid "Register a foreign worker"
 msgstr "外国人の登録"
+
+msgid ""
+"Optional. If you enter this section, the fields marked “required if entered” "
+"are required."
+msgstr "任意の区画です。入れる場合は、「入れる場合は必須」の欄を入れます。"
 
 msgid "Void a record"
 msgstr "履歴の取消"
