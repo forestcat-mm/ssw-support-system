@@ -27,6 +27,7 @@ from apps.support.models import (
     DeliveryMethod,
     DepositContract,
     ForeignFees,
+    InterpreterKind,
     RecordMethod,
     ReportDestination,
     WorkerGuidance,
@@ -888,7 +889,7 @@ class BriefingForm(StyledFormMixin, forms.Form):
         required=False,
         help_text=_("Required for online guidance (video call)."),
     )
-    staff = StaffChoiceField(label=_("explained by"), queryset=Staff.objects.none())
+    staff = StaffChoiceField(label=_("explained by (staff)"), queryset=Staff.objects.none())
     place = forms.CharField(
         label=_("place"),
         max_length=200,
@@ -900,11 +901,22 @@ class BriefingForm(StyledFormMixin, forms.Form):
         required=False,
         widget=forms.CheckboxSelectMultiple,
     )
+    interpreter_kind = forms.ChoiceField(
+        label=_("interpretation"),
+        choices=InterpreterKind.choices,
+        widget=forms.RadioSelect,
+        required=False,
+    )
     interpreter = forms.CharField(
         label=_("interpreter (name and affiliation)"),
         max_length=200,
         required=False,
         help_text=_("Only when someone other than the staff in charge interpreted."),
+    )
+    interpreter_language = forms.ModelChoiceField(
+        label=_("language of the interpreter"),
+        queryset=SupportLanguage.objects.none(),
+        required=False,
     )
     legal_info_provider = forms.CharField(
         label=_("explained legal protection (name and affiliation)"),
@@ -974,7 +986,9 @@ class BriefingForm(StyledFormMixin, forms.Form):
         "staff",
         "place",
         "languages",
+        "interpreter_kind",
         "interpreter",
+        "interpreter_language",
         "legal_info_provider",
         "continuing_employment",
     )
@@ -1001,6 +1015,9 @@ class BriefingForm(StyledFormMixin, forms.Form):
         self.fields["languages"].queryset = SupportLanguage.objects.filter(  # type: ignore[attr-defined]
             is_active=True
         )
+        self.fields["interpreter_language"].queryset = SupportLanguage.objects.filter(  # type: ignore[attr-defined]
+            is_active=True
+        )
         for item in checklist.items:
             self.fields[_check_name(item.code)] = forms.ChoiceField(
                 label=item.label, choices=CHECK_CHOICES, required=False, widget=forms.RadioSelect
@@ -1009,6 +1026,8 @@ class BriefingForm(StyledFormMixin, forms.Form):
                 label=_("reason for not applicable"), max_length=200, required=False
             )
         self.style_fields()
+        for name in ("interpreter", "interpreter_language"):
+            self.enable_when(name, interpreter_kind=InterpreterKind.OTHER)
 
     @property
     def is_guidance(self) -> bool:
@@ -1080,6 +1099,7 @@ class BriefingEditor:
             "staff": worker.assigned_staff_id,
             "languages": [language.pk] if language and language.is_active else [],
             "body_language": support_records.body_language_for(worker),
+            "interpreter_kind": InterpreterKind.NONE,
         }
         self.form = BriefingForm(data, files, kind=kind, checklist=self.checklist, initial=initial)
         self.sessions = SessionFormSet(
@@ -1113,6 +1133,9 @@ class BriefingEditor:
             place=data["place"],
             languages=list(data.get("languages") or []),
             interpreter=data.get("interpreter") or "",
+            interpreter_kind=data.get("interpreter_kind")
+            or (InterpreterKind.OTHER if data.get("interpreter") else InterpreterKind.NONE),
+            interpreter_language=data.get("interpreter_language"),
             legal_info_provider=data.get("legal_info_provider") or "",
             continuing_employment=bool(data.get("continuing_employment")),
             identity_confirmed=bool(data.get("identity_confirmed")),

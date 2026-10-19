@@ -833,6 +833,14 @@ class CheckStatus(models.TextChoices):
     NOT_APPLICABLE = "not_applicable", _("not applicable")
 
 
+class InterpreterKind(models.TextChoices):
+    """事前ガイダンス・生活オリエンテーションの通訳（修正 1 回目 B7）。"""
+
+    NONE = "none", _("no interpreter")
+    STAFF = "staff", _("the staff in charge interpreted")
+    OTHER = "other", _("someone else interpreted")
+
+
 class Briefing(TrackedModel):
     """事前ガイダンス・生活オリエンテーション。支援実績の 1 行（種別 1 か 4）と 1 対 1。
 
@@ -860,6 +868,19 @@ class Briefing(TrackedModel):
     place = models.CharField(_("place"), max_length=200)
     interpreter = models.CharField(
         _("interpreter (name and affiliation)"), max_length=200, blank=True
+    )
+    # 通訳（なし・担当者・担当者以外。担当者以外は氏名・所属と言語。修正 1 回目 B7）。空は
+    # この欄を足す前の記録（通訳者の氏名があれば「担当者以外」、無ければ「なし」とみなす）
+    interpreter_kind = models.CharField(
+        _("interpretation"), max_length=16, choices=InterpreterKind.choices, blank=True
+    )
+    interpreter_language = models.ForeignKey(
+        SupportLanguage,
+        verbose_name=_("language of the interpreter"),
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
     )
     legal_info_provider = models.CharField(
         _("explained legal protection (name and affiliation)"),
@@ -902,6 +923,13 @@ class Briefing(TrackedModel):
 
     def __str__(self) -> str:
         return f"{self.worker}: {self.record.get_kind_display()} ({self.record.occurred_on})"
+
+    @property
+    def interpretation(self) -> str:
+        """通訳の種類（欄を足す前の記録は、通訳者の氏名の有無で決める。修正 1 回目 B7）。"""
+        if self.interpreter_kind:
+            return self.interpreter_kind
+        return InterpreterKind.OTHER if self.interpreter else InterpreterKind.NONE
 
 
 class BriefingSession(ImmutableRow):

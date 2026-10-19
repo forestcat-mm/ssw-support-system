@@ -38,6 +38,12 @@ def test_record_orientation_with_warnings_and_sign(
     expect(page.get_by_role("heading", level=1)).to_have_text("記録: 生活オリエンテーション")
 
     page.get_by_label("場所").fill("受入れ機関の会議室")
+    # 通訳は 3 択。「別の人が通訳した」のときだけ氏名・所属と言語を入れる（修正 1 回目 B7）
+    expect(page.get_by_role("radio", name="通訳なし")).to_be_checked()
+    expect(page.locator("#id_interpreter")).to_be_disabled()
+    page.get_by_role("radio", name="別の人が通訳した").check()
+    page.locator("#id_interpreter").fill("王 芳（外部の通訳）")
+    page.locator("#id_interpreter_language").select_option(index=1)
     fill_session(page, 0, "2026-10-01", "09:00", "12:00")
     page.get_by_role("button", name="実施日時を追加").click()
     fill_session(page, 1, "2026-10-02", "09:00", "12:00")
@@ -54,6 +60,9 @@ def test_record_orientation_with_warnings_and_sign(
     page.get_by_role("button", name="保存する").click()
 
     expect(page.get_by_text("支援実績を保存しました。")).to_be_visible()
+    expect(page.locator("#briefing-interpretation")).to_contain_text(
+        "別の人が通訳した: 王 芳（外部の通訳）"
+    )
     warnings = page.locator("#briefing-warnings")
     expect(warnings).to_contain_text("必要な 8 時間以上を満たしていません。")
     expect(warnings).to_contain_text("未チェックの必須項目が 1 件あります。")

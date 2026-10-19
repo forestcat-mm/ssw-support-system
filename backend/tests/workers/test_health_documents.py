@@ -48,6 +48,7 @@ def worker(assigned: Any) -> Any:
 
 def add(worker: Any, **kwargs: Any) -> Attachment:
     kwargs.setdefault("retention_until", None)
+    kwargs.setdefault("examined_on", TODAY)
     created = worker_documents.add_documents(
         worker, kwargs.pop("kind", "health_check_record"), [pdf()], by=None, today=TODAY, **kwargs
     )
@@ -93,13 +94,14 @@ def test_add_documents_validates(worker: Any) -> None:
         worker_documents.add_documents(
             worker, "support_record", [], retention_until=date(2026, 10, 16), by=None, today=TODAY
         )
-    assert set(error.value.error_dict) == {"kind", "retention_until", "files"}
+    assert set(error.value.error_dict) == {"kind", "retention_until", "files", "examined_on"}
     with pytest.raises(ValidationError) as error:
         worker_documents.add_documents(
             worker,
             "health_check_record",
             [SimpleUploadedFile("memo.txt", b"x", content_type="text/plain")],
             retention_until=None,
+            examined_on=TODAY,
             by=None,
             today=TODAY,
         )
@@ -258,6 +260,7 @@ def test_upload_and_void_on_screen_do_not_show_the_name(worker: Any) -> None:
             "once_token": page.context["once_token"],
             "kind": "health_declaration",
             "uploads": [pdf()],
+            "examined_on": "2026-10-01",
             "retention_until": "2027-03-31",
         },
         follow=True,

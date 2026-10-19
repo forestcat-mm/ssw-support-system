@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 15:31+0900\n"
+"POT-Creation-Date: 2026-10-19 15:51+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -1219,6 +1219,9 @@ msgstr "要配慮"
 
 msgid "keep until (guide)"
 msgstr "保持期限の目安"
+
+msgid "examined on"
+msgstr "受診日"
 
 msgid "voided at"
 msgstr "取消日時"
@@ -3127,6 +3130,12 @@ msgctxt "application set"
 msgid "attached"
 msgstr "添付済み"
 
+msgid "examined too long before the application"
+msgstr "受診が古い（申請に使える期間の外）"
+
+msgid "examination date not entered"
+msgstr "受診日が未入力"
+
 msgctxt "application set"
 msgid "not attached"
 msgstr "未添付"
@@ -4512,11 +4521,26 @@ msgstr "説明した"
 msgid "not applicable"
 msgstr "該当なし"
 
+msgid "no interpreter"
+msgstr "通訳なし"
+
+msgid "the staff in charge interpreted"
+msgstr "説明した担当者が通訳した"
+
+msgid "someone else interpreted"
+msgstr "別の人が通訳した"
+
 msgid "checklist version"
 msgstr "チェックリストの版"
 
 msgid "interpreter (name and affiliation)"
 msgstr "通訳人の氏名・所属"
+
+msgid "interpretation"
+msgstr "通訳"
+
+msgid "language of the interpreter"
+msgstr "通訳の言語"
 
 msgid "explained legal protection (name and affiliation)"
 msgstr "法的保護に関する情報提供の実施者（氏名・所属）"
@@ -4758,8 +4782,8 @@ msgstr "本人確認をした"
 msgid "Required for online guidance (video call)."
 msgstr "オンライン（テレビ電話等）で行うときは必須。"
 
-msgid "explained by"
-msgstr "説明者"
+msgid "explained by (staff)"
+msgstr "説明した担当者"
 
 msgid "Example: meeting room of the host organization / online (our office)."
 msgstr "例: 受入れ機関の会議室／オンライン（自機関の事務所）"
@@ -5430,6 +5454,13 @@ msgid ""
 msgstr "PDF・PNG・JPEG、1 つ 10 MB まで。日本語訳も一緒に添付する。"
 
 msgid ""
+"The date of the health check. Only the date and the files are kept; the "
+"findings are not entered (sensitive personal information)."
+msgstr ""
+"健康診断を受けた日です。日付とファイルだけを持ち、結果の内容は入れません（要"
+"配慮個人情報）。"
+
+msgid ""
 "Optional. A guide for when to delete it, decided in operation. It is not "
 "deleted automatically."
 msgstr "任意。運用で決める削除時期の目安。自動では削除しない。"
@@ -5877,6 +5908,12 @@ msgstr "ほかの実施日時と重なっています。"
 
 msgid "Select a valid choice."
 msgstr "選択肢から選んでください。"
+
+msgid "Enter the name and affiliation of the interpreter."
+msgstr "通訳した人の氏名と所属を入れてください。"
+
+msgid "Select the language of the interpreter."
+msgstr "通訳の言語を選んでください。"
 
 msgid "Enter the reason why it is not applicable."
 msgstr "該当なしの理由を入力してください。"
@@ -7266,6 +7303,9 @@ msgstr "旅券"
 
 msgid "The date cannot be in the past."
 msgstr "過去の日付にはできません。"
+
+msgid "Enter the date of the health check."
+msgstr "受診日を入れてください。"
 
 #, python-format
 msgid ""

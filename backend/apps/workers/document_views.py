@@ -40,6 +40,14 @@ class HealthDocumentForm(StyledFormMixin, forms.Form):
             "PDF, PNG or JPEG, up to 10 MB each. Attach the Japanese translation together."
         ),
     )
+    examined_on = forms.DateField(
+        label=gettext_lazy("examined on"),
+        widget=forms.DateInput,
+        help_text=gettext_lazy(
+            "The date of the health check. Only the date and the files are kept; the findings are "
+            "not entered (sensitive personal information)."
+        ),
+    )
     retention_until = forms.DateField(
         label=gettext_lazy("keep until (guide)"),
         required=False,
@@ -86,6 +94,7 @@ class HealthDocumentAddView(WorkerFormView):
                     form.cleaned_data["kind"],
                     form.cleaned_data["uploads"],
                     retention_until=form.cleaned_data["retention_until"],
+                    examined_on=form.cleaned_data["examined_on"],
                     by=_actor(request),
                 )
             except ValidationError as error:

@@ -40,9 +40,10 @@ def add_documents(
     *,
     retention_until: datetime.date | None,
     by: User | None,
+    examined_on: datetime.date | None = None,
     today: datetime.date | None = None,
 ) -> list[Attachment]:
-    """健康診断の書類を添付する（1 回に同じ種別の複数のファイル）。"""
+    """健康診断の書類を添付する（1 回に同じ種別の複数のファイル。受診日は必須。修正 1 回目 B8）。"""
     today = today or timezone.localdate()
     errors: dict[str, list[ValidationError]] = {}
 
@@ -55,6 +56,10 @@ def add_documents(
         add("kind", _("Select a valid choice."), "invalid_choice")
     if retention_until is not None and retention_until < today:
         add("retention_until", _("The date cannot be in the past."), "past")
+    if examined_on is None:
+        add("examined_on", _("Enter the date of the health check."), "required")
+    elif examined_on > today:
+        add("examined_on", _("The date cannot be in the future."), "future")
     files = list(files)
     if not files:
         add("files", _("Select a file."), "required")
@@ -74,9 +79,9 @@ def add_documents(
             attachment = attachments.create_attachment(
                 target=worker, kind=AttachmentKind(kind), file=file, created_by=by
             )
-            if retention_until is not None:
-                attachment.retention_until = retention_until
-                attachment.save(update_fields=["retention_until", "updated_at"])
+            attachment.retention_until = retention_until
+            attachment.examined_on = examined_on
+            attachment.save(update_fields=["retention_until", "examined_on", "updated_at"])
             created.append(attachment)
         return created
 

@@ -503,12 +503,14 @@ def test_row_status_follows_generation_and_attachments(loaded: None) -> None:
     assert found["chg_t1-8-1"].status == application_sets.Status.MISSING  # 健康診断個人票
     data = form_data_application.build("3-1", contract, BASIS, author="代表取締役　山田 太郎")
     form_generation.request("3-1", target=contract, data=data, basis_on=BASIS, by=None)
-    create_attachment(
+    health = create_attachment(
         target=worker,
         kind=AttachmentKind.HEALTH_CHECK_RECORD,
         file=pdf("secret-health.pdf"),
         created_by=None,
     )
+    health.examined_on = BASIS  # 受診日（修正 1 回目 B8）
+    health.save()
     membership = HostMembership.objects.get()
     membership.valid_until = datetime.date(2026, 9, 30)
     membership.save()
@@ -551,3 +553,36 @@ def test_generation_screen_keeps_a_changed_author(loaded: None) -> None:
     )
     document = GeneratedDocument.objects.get(template__form_id="1-25")
     assert json.loads(document.snapshot)["data"]["a.author"] == "　人事部長　田中 一郎"
+
+
+# --- 健康診断の受診の時期（修正 1 回目 B8。運用要領 本体 印刷16頁）----------------------------
+
+
+@pytest.mark.parametrize(
+    ("set_id", "examined_on", "status"),
+    [
+        ("coe", datetime.date(2026, 8, 1), application_sets.Status.ATTACHED),  # 3 か月以内
+        ("coe", datetime.date(2026, 7, 1), application_sets.Status.OUT_OF_PERIOD),
+        ("chg", datetime.date(2026, 7, 1), application_sets.Status.ATTACHED),  # 1 年以内
+        ("chg", datetime.date(2025, 10, 1), application_sets.Status.OUT_OF_PERIOD),
+        ("coe", None, application_sets.Status.DATE_MISSING),
+    ],
+)
+def test_health_check_period_depends_on_the_application(
+    loaded: None, set_id: str, examined_on: datetime.date | None, status: str
+) -> None:
+    contract = make_case()
+    attachment = create_attachment(
+        target=contract.worker, kind=AttachmentKind.HEALTH_CHECK_RECORD, file=pdf(), created_by=None
+    )
+    if examined_on is not None:
+        attachment.examined_on = examined_on
+        attachment.save()
+    rows = {
+        state.row["id"]: state
+        for state in application_sets.overview(contract.worker, set_id, BASIS).rows
+    }
+    row_id = "coe_t1-9-1" if set_id == "coe" else "chg_t1-8-1"
+    assert rows[row_id].status == status
+    ext_rows = application_sets.overview(contract.worker, "ext", BASIS).rows
+    assert not any(s.row["how"].get("attachment") == "health_check" for s in ext_rows)

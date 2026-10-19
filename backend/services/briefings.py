@@ -41,6 +41,7 @@ from apps.support.models import (
     Counterpart,
     DepositContract,
     ForeignFees,
+    InterpreterKind,
     RecordMethod,
     SupportPlanItem,
 )
@@ -218,6 +219,8 @@ class BriefingInput:
     body: str = ""
     body_language: str = BodyLanguage.JA
     interpreter: str = ""
+    interpreter_kind: str = ""  # InterpreterKind（空は以前の形。修正 1 回目 B7）
+    interpreter_language: SupportLanguage | None = None
     legal_info_provider: str = ""
     continuing_employment: bool = False
     identity_confirmed: bool = False
@@ -289,6 +292,20 @@ def _check_sessions(errors: _Errors, sessions: list[SessionInput], today: dateti
                 _("This overlaps another date and time."),
                 "overlap",
             )
+
+
+def _check_interpreter(errors: _Errors, data: BriefingInput) -> None:
+    """担当者以外が通訳したときは、通訳者の氏名・所属と言語が要る（修正 1 回目 B7）。"""
+    if data.interpreter_kind and data.interpreter_kind not in InterpreterKind.values:
+        errors.add("interpreter_kind", _("Select a valid choice."), "invalid_choice")
+    if data.interpreter_kind != InterpreterKind.OTHER:
+        return
+    if not data.interpreter.strip():
+        errors.add(
+            "interpreter", _("Enter the name and affiliation of the interpreter."), "required"
+        )
+    if data.interpreter_language is None:
+        errors.add("interpreter_language", _("Select the language of the interpreter."), "required")
 
 
 def _check_items(errors: _Errors, checklist: Checklist, checks: dict[str, CheckInput]) -> None:
@@ -392,6 +409,7 @@ def validate(
         errors.add("kind", _("This kind of support cannot be recorded here."), "kind")
         errors.raise_if_any()
     _check_sessions(errors, data.sessions, today)
+    _check_interpreter(errors, data)
     if not data.sessions:
         errors.raise_if_any()
     record = _record_input(data)
@@ -475,7 +493,17 @@ def create_briefing(
             worker=worker,
             checklist_version=checklist.version,
             place=data.place.strip(),
-            interpreter=data.interpreter.strip(),
+            interpreter=(
+                data.interpreter.strip()
+                if data.interpreter_kind in ("", InterpreterKind.OTHER)
+                else ""
+            ),
+            interpreter_kind=data.interpreter_kind,
+            interpreter_language=(
+                data.interpreter_language
+                if data.interpreter_kind == InterpreterKind.OTHER
+                else None
+            ),
             legal_info_provider="" if is_guidance else data.legal_info_provider.strip(),
             continuing_employment=data.continuing_employment,
             identity_confirmed=is_guidance and online and data.identity_confirmed,

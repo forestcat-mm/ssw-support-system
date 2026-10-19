@@ -26,6 +26,8 @@
             {% elif state.status == "not_generated" %}<span class="badge badge--overdue">{% translate "not generated" %}</span>
             {% elif state.status == "attached" %}<span class="badge badge--not-yet">{% translate "attached" context "application set" %}</span>
             {% elif state.status == "expired" %}<span class="badge badge--overdue">{% translate "expired" %}</span>
+            {% elif state.status == "out_of_period" %}<span class="badge badge--within-7">{% translate "examined too long before the application" %}</span>
+            {% elif state.status == "date_missing" %}<span class="badge badge--within-7">{% translate "examination date not entered" %}</span>
             {% elif state.status == "missing" %}<span class="badge badge--overdue">{% translate "not attached" context "application set" %}</span>
             {% elif state.status == "alternative" %}<span class="muted">{% translate "for organizations with a track record (not judged in the system)" %}</span>
             {% elif state.status == "unknown" %}<span class="muted">{% translate "cannot be judged" %}</span>

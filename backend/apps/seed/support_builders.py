@@ -538,6 +538,9 @@ def seed_health_documents(ctx: SeedContext) -> None:
                 kind,
                 [_pdf(f"dummy_{kind}.pdf")],
                 retention_until=ctx.days(365),
+                examined_on=ctx.days(
+                    -20
+                ),  # 受診日（認定は 3 か月、変更は 1 年以内。修正 1 回目 B8）
                 by=None,
                 today=ctx.base,
             )

@@ -28,7 +28,12 @@ def worker(support_staff: User) -> ForeignWorker:
 def document(worker: ForeignWorker) -> Attachment:
     file = SimpleUploadedFile(FILENAME, PDF_BYTES, content_type="application/pdf")
     return worker_documents.add_documents(
-        worker, "health_check_record", [file], retention_until=date(2027, 3, 31), by=None
+        worker,
+        "health_check_record",
+        [file],
+        retention_until=date(2027, 3, 31),
+        examined_on=date(2026, 10, 1),
+        by=None,
     )[0]
 
 

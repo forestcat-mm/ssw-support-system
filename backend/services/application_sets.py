@@ -34,7 +34,7 @@ from apps.workers.models import (
     LatestResidenceRecord,
     StatusOfResidence,
 )
-from services import contracts, form_signatures, hosts, support_plans
+from services import contracts, deadlines, form_signatures, hosts, support_plans
 
 SET_IDS = ("coe", "chg", "ext")
 INDUSTRIAL = "industrial_products"
@@ -54,6 +54,9 @@ class Status(enum.StrEnum):
     OUTSIDE = "outside"  # システムの外で用意する
     ALTERNATIVE = "alternative"  # 実績のある機関の代わりの書類（システムでは判断しない）
     UNKNOWN = "unknown"  # 基準日の雇用契約が無いので判断できない
+    # 健康診断の受診が申請に使える時期の外・受診日が未登録（警告。修正 1 回目 B8）
+    OUT_OF_PERIOD = "out_of_period"
+    DATE_MISSING = "date_missing"
 
 
 DONE = frozenset({Status.GENERATED, Status.ATTACHED, Status.OUTSIDE, Status.ALTERNATIVE})
@@ -127,6 +130,7 @@ class Facts:
     full_support: bool | None
     organization: Organization | None
     documents: dict[str, GeneratedDocument] = field(default_factory=dict)
+    set_id: str = ""  # 申請の種類（健康診断の受診の時期が申請の種類で違う）
 
 
 def facts_for(worker: ForeignWorker, on: datetime.date) -> Facts:
@@ -257,6 +261,17 @@ def _generated(row: dict[str, Any], applicable: bool | None, facts: Facts) -> Ro
     )
 
 
+# 健康診断の受診が申請に使える時期（運用要領 本体 印刷16頁【留意事項】。修正 1 回目 B8）:
+# 認定は申請の日から遡って 3 か月以内、変更は 1 年以内（日本の医療機関。システムでは確かめない）。
+# 更新は健康診断が要らない
+HEALTH_CHECK_MONTHS = {"coe": 3, "chg": 12}
+
+
+def health_check_earliest(set_id: str, on: datetime.date) -> datetime.date | None:
+    months = HEALTH_CHECK_MONTHS.get(set_id)
+    return deadlines.add_months(on, -months) if months else None
+
+
 def _attachment_state(row: dict[str, Any], applicable: bool | None, facts: Facts) -> RowState:
     kind = row["how"]["attachment"]
     worker, contract, version = facts.worker, facts.contract, facts.version
@@ -280,7 +295,13 @@ def _attachment_state(row: dict[str, Any], applicable: bool | None, facts: Facts
         url = reverse("workers:detail", args=[worker.pk]) + "#health-documents"
         if latest is None:
             return RowState(row, applicable, Status.MISSING, action_url=url)
-        return RowState(row, applicable, Status.ATTACHED, timezone_date(latest.created_at), url)
+        if latest.examined_on is None:
+            return RowState(row, applicable, Status.DATE_MISSING, action_url=url)
+        detail = latest.examined_on.isoformat()
+        earliest = health_check_earliest(facts.set_id, facts.on)
+        if earliest is not None and latest.examined_on < earliest:
+            return RowState(row, applicable, Status.OUT_OF_PERIOD, detail, url)
+        return RowState(row, applicable, Status.ATTACHED, detail, url)
     if kind == "own_council_certificate":
         organization = facts.organization
         url = reverse("settings:organization_edit")
@@ -360,6 +381,7 @@ class Overview:
 def overview(worker: ForeignWorker, set_id: str, on: datetime.date) -> Overview:
     found = definition(set_id, on)
     facts = facts_for(worker, on)
+    facts.set_id = set_id
     states = [state_of(row, facts) for row in found.rows]
     return Overview(
         definition=found,

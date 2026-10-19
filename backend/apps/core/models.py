@@ -181,6 +181,8 @@ class Attachment(TrackedModel):
     # 要配慮（種別から保存のたびに決める）と保持期限の目安（運用で決める削除時期。T23）
     is_sensitive = models.BooleanField(_("sensitive"), default=False, editable=False)
     retention_until = models.DateField(_("keep until (guide)"), null=True, blank=True)
+    # 健康診断の書類の受診日（申請に使える時期の確かめ。修正 1 回目 B8。中身〔所見〕は持たない）
+    examined_on = models.DateField(_("examined on"), null=True, blank=True)
     # 取消（誤った添付。ファイルは削除せず、打ち消して残す。T18）
     voided_at = models.DateTimeField(_("voided at"), null=True, blank=True, editable=False)
     voided_by = models.ForeignKey(

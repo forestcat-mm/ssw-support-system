@@ -20,7 +20,7 @@
     {% include "support/components/record_fields.html" with details=None %}
     <dl class="fields fields--long-labels" id="briefing-fields">
       <dt>{% translate "place" %}</dt><dd>{{ briefing.place }}</dd>
-      <dt>{% translate "interpreter (name and affiliation)" %}</dt><dd>{{ briefing.interpreter|default:"—" }}</dd>
+      <dt>{% translate "interpretation" %}</dt><dd id="briefing-interpretation" data-kind="{{ briefing.interpretation }}">{% if briefing.interpretation == "other" %}{% translate "someone else interpreted" %}: {{ briefing.interpreter|default:"—" }}{% if briefing.interpreter_language %}（{{ briefing.interpreter_language.name }}）{% endif %}{% elif briefing.interpretation == "staff" %}{% translate "the staff in charge interpreted" %}{% else %}{% translate "no interpreter" %}{% endif %}</dd>
       {% if record.kind == "orientation" %}<dt>{% translate "explained legal protection (name and affiliation)" %}</dt><dd>{{ briefing.legal_info_provider|default:_("same as the staff in charge") }}</dd>{% endif %}
       {% if record.method == "online" and record.kind == "pre_guidance" %}<dt>{% translate "identity of the worker confirmed" %}</dt><dd>{% if briefing.identity_confirmed %}{% translate "yes" %}{% else %}{% translate "no" %}{% endif %}</dd>{% endif %}
       <dt>{% translate "continuing at the same organization without a change in living environment" %}</dt><dd>{% if briefing.continuing_employment %}{% translate "yes" %}{% else %}{% translate "no" %}{% endif %}</dd>
