@@ -6,6 +6,7 @@ from apps.contracts.forms import VersionForm
 from apps.core.web_forms import (
     FilteredCheckboxSelectMultiple,
     HoursMinutesField,
+    HoursMinutesWidget,
     PresetOrOtherField,
 )
 from apps.hosts.forms import HostSiteForm
@@ -41,9 +42,10 @@ def test_contract_categories_are_filtered_by_site() -> None:
 def test_hours_and_minutes_are_stored_as_minutes() -> None:
     field_ = HoursMinutesField()
     assert field_.clean(["7", "45"]) == 465
-    assert field_.widget.decompress(465) == [7, 45]
+    widget = HoursMinutesWidget()
+    assert widget.decompress(465) == [7, 45]
     # 以前の形（分の 1 つの値）でも受ける
-    assert field_.widget.value_from_datadict({"x": "480"}, {}, "x") == [8, 0]
+    assert widget.value_from_datadict({"x": "480"}, {}, "x") == [8, 0]
     assert HoursMinutesField(required=False).clean(["", ""]) is None
 
 
