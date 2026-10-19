@@ -157,7 +157,8 @@ make up        # docker compose up -d
 make migrate   # python manage.py migrate
 make admin     # 管理者ロールのユーザーを作る（superuser は使わない）
 make seed      # python manage.py seed_dummy  （外国人31人・受入れ機関4社。作成済みなら何もしない）
-make seed-reset  # ダミーデータを消して作り直す（DATE=YYYY-MM-DD で基準日）。ダミーの外国人に手で足した記録も消える
+make seed-reset  # ダミーデータを消して作り直す（DATE=YYYY-MM-DD で基準日）。ダミーの外国人に手で足した記録・テストシナリオの記録も消える
+make seed-scenario  # 手動のテストシナリオの本線（王 麗娜さん）の記録（UNTIL=N で節 1〜N、DOCS=1 で生成物も、RESET=1 で作り直す）
 make check-quick T=tests/core  # 直すたびに: lint と、指定したテスト（slow を除く）
 make test      # 単体テストの全部を並列で（-n auto・--reuse-db。slow を含む）
 make test-lf   # 前回落ちたテストだけ

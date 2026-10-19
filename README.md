@@ -49,7 +49,18 @@ make seed                     # 外国人31人・受入れ機関4社など（作
 make seed-docs                # 生成物の場面（署名待ち・署名済み・回収のタスク・警告つき。seed の後に。T39）
 make seed-reset               # ダミーだけを消して作り直す
 make seed DATE=2026-10-16     # 基準日を指定する（同じ基準日なら同じ内容）
+make seed-scenario            # 手動のテストシナリオの本線（王 麗娜さん）の記録（seed の後に。節 1〜8）
+make seed-scenario UNTIL=5    # 節 1〜5 が終わった状態（UNTIL=N）
+make seed-scenario DOCS=1     # 節 6 などの生成物と署名済みの添付も作る（PDF の変換があるので遅い）
+make seed-scenario RESET=1    # シナリオの記録だけを消して作り直す（ダミーデータは消さない）
 ```
+
+**テストシナリオの本線**（`make seed-scenario`）: Claude Docs「段階3 通しの手動テストシナリオ」の値で、さくら台フーズ株式会社と王 麗娜さん（WANG LINA）の記録を節ごとに作る（`backend/apps/seed/scenario.py`）。
+- わざと誤る手順（個人事業主の法人番号・内訳の合計の誤り・取り消す公的手続の行）は作らず、直した後の正しい状態だけを作る。節 9（変更・終了・取消）は画面で試す手順なので作らない。
+- 担当者は `dummy_tanto`。作成済みなら何もしない。
+- 画面で作った同じ受入れ機関（法人番号 7123456789012）や同じ外国人があると、消さずに止める。
+- `make seed-reset` はシナリオの記録も消す（ダミーの担当者を参照するため）。
+- 値はあるが今の作りに欄が無いもの・値に無いが必須なので入れたものは、コマンドの出力と [`docs/dummy-data.md`](docs/dummy-data.md) の「テストシナリオの本線」に書いてある。
 
 ダミーの担当者 `dummy_tanto`（佐藤 花子）・`dummy_tanto2`（鈴木 次郎）でログインするには、`docker compose exec web python manage.py changepassword dummy_tanto` のようにパスワードを設定する（パスワードを一度も設定していないユーザーには再設定のリンクを送らないので、最初はこのコマンドで設定する）。内容の詳細と、外国人の番号ごとの場面は [`docs/dummy-data.md`](docs/dummy-data.md)。
 
