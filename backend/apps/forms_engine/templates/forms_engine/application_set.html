@@ -13,7 +13,7 @@
     {% if not overview.facts.contract %}<p class="message message--warning" id="application-set-no-contract">{% translate "There is no employment contract on the basis date, so rows that depend on the host organization cannot be judged." %}</p>{% endif %}
     <p id="application-set-open">{% blocktranslate count counter=overview.open_count %}{{ counter }} required document is not ready.{% plural %}{{ counter }} required documents are not ready.{% endblocktranslate %}</p>
     <div class="table-scroll"><table class="table table--list" id="application-set-rows">
-      <thead><tr><th>{% translate "table" %}</th><th>{% translate "document" %}</th><th>{% translate "form" %}</th><th>{% translate "required" %}</th><th>{% translate "status" %}</th></tr></thead>
+      <thead><tr><th>{% translate "table" %}</th><th>{% translate "document" %}</th><th>{% translate "form" %}</th><th>{% translate "required" context "application set" %}</th><th>{% translate "status" %}</th></tr></thead>
       <tbody>{% for state in overview.rows %}{% with row=state.row %}
         <tr data-row="{{ row.id }}" data-status="{{ state.status }}">
           <td>{{ row.table }} {{ row.number }}</td>
@@ -24,9 +24,9 @@
             {% if state.status == "generated" %}<span class="badge badge--not-yet">{% translate "generated" %}</span>
             {% elif state.status == "other_target" %}<span class="badge badge--within-7">{% translate "generated for another contract or version" %}</span>
             {% elif state.status == "not_generated" %}<span class="badge badge--overdue">{% translate "not generated" %}</span>
-            {% elif state.status == "attached" %}<span class="badge badge--not-yet">{% translate "attached" %}</span>
+            {% elif state.status == "attached" %}<span class="badge badge--not-yet">{% translate "attached" context "application set" %}</span>
             {% elif state.status == "expired" %}<span class="badge badge--overdue">{% translate "expired" %}</span>
-            {% elif state.status == "missing" %}<span class="badge badge--overdue">{% translate "not attached" %}</span>
+            {% elif state.status == "missing" %}<span class="badge badge--overdue">{% translate "not attached" context "application set" %}</span>
             {% elif state.status == "alternative" %}<span class="muted">{% translate "for organizations with a track record (not judged in the system)" %}</span>
             {% elif state.status == "unknown" %}<span class="muted">{% translate "cannot be judged" %}</span>
             {% else %}<span class="muted">{% translate "prepared outside the system" %}</span>{% endif %}

@@ -5,6 +5,7 @@ from typing import Any
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 
 from apps.contracts.models import EmploymentContract
 from apps.core.models import Staff, User
@@ -204,7 +205,7 @@ class ManualFilingForm(StyledFormMixin, forms.Form):
         label=_("kind"), choices=[(k.value, k.label) for k in filings.MANUAL_KINDS]
     )
     basis_on = forms.DateField(
-        label=_("basis date"),
+        label=pgettext_lazy("filing", "basis date"),
         widget=forms.DateInput,
         help_text=_("The date the event occurred."),
     )

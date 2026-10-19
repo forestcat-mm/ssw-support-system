@@ -16,6 +16,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 
 from apps.core.fields import EncryptedCharField
 from apps.core.models import Attachment, PrivateFileField, TrackedModel
@@ -153,7 +154,7 @@ class GeneratedDocument(TrackedModel):
         blank=True,
         related_name="generated_documents",
     )
-    basis_on = models.DateField(_("basis date"))
+    basis_on = models.DateField(pgettext_lazy("generated document", "basis date"))
     # 基準日に適用される版が無く、最も古い版（改正日不明）を使った印
     revision_unknown = models.BooleanField(_("revision date unknown"), default=False)
     # データのスナップショット（JSON を暗号化。長さの上限なし）

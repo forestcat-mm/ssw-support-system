@@ -17,7 +17,7 @@
     </dl>
     <div class="table-scroll">
       <table class="table" id="career-plan-levels">
-        <thead><tr><th>{% translate "level" %}</th><th>{% translate "years as a guide" %}</th><th>{% translate "duties" %}</th><th>{% translate "experience, results, qualifications and tests" %}</th><th>{% translate "position" %}</th><th>{% translate "treatment such as wages" %}</th></tr></thead>
+        <thead><tr><th>{% translate "level" context "career plan" %}</th><th>{% translate "years as a guide" %}</th><th>{% translate "duties" %}</th><th>{% translate "experience, results, qualifications and tests" %}</th><th>{% translate "position" %}</th><th>{% translate "treatment such as wages" %}</th></tr></thead>
         <tbody>{% for level in levels %}<tr><td>{{ level.name }}</td><td>{{ level.years }}</td><td>{{ level.duties|linebreaksbr }}</td><td>{{ level.requirements|default:"—"|linebreaksbr }}</td><td>{{ level.position|default:"—" }}</td><td>{{ level.treatment|default:"—"|linebreaksbr }}</td></tr>{% endfor %}</tbody>
       </table>
     </div>

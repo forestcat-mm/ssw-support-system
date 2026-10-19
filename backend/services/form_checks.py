@@ -919,8 +919,8 @@ def _interview_answers_present(context: CheckContext, params: Mapping[str, Any])
         Issue(
             "interview_answers_missing",
             _(
-                "The interview has no answers to the questions (a record made before T35). The "
-                "questions, (6) and section 4 are left blank."
+                "The interview has no answers to the questions (a record made before the "
+                "questions were added). The questions, (6) and section 4 are left blank."
             ),
             _interview_destination(context),
         )

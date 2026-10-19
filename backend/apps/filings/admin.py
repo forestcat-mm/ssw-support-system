@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.utils.html import format_html, format_html_join
 from django.utils.safestring import SafeString
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 
 from apps.contracts.models import EmploymentContract
 from apps.core.admin import TRACKED_READONLY_FIELDS, TrackedModelAdmin
@@ -278,7 +279,7 @@ class FilingAdmin(TrackedModelAdmin[Filing]):
     def filer(self, obj: Filing) -> str:
         return str(FILER_LABELS[filings.definition(obj.kind).filer])
 
-    @admin.display(description=_("level"))
+    @admin.display(description=pgettext_lazy("deadline", "level"))
     def level(self, obj: Filing) -> str:
         if obj.status not in filings.OPEN_STATUSES:
             return "-"
@@ -288,7 +289,10 @@ class FilingAdmin(TrackedModelAdmin[Filing]):
     @admin.display(description=_("trigger details"))
     def trigger_summary(self, obj: Filing) -> SafeString | str:
         details = obj.trigger_details or {}
-        rows = [(_("required"), f["item"], f["message"]) for f in details.get("required", [])]
+        rows = [
+            (pgettext_lazy("filing", "required"), f["item"], f["message"])
+            for f in details.get("required", [])
+        ]
         rows += [(_("needs review"), f["item"], f["message"]) for f in details.get("review", [])]
         if not rows:
             return "-"

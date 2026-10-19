@@ -396,12 +396,12 @@ class EmploymentContractVersion(TrackedModel):
     # 窓口（Ⅸ４・５）。T34 までは 1 つの文で持っていた（下の 2 つ。古い版の値として残す）。
     # T34 からは様式の欄（部署名・担当者職氏名・連絡先）ごとに持つ（T34-D4、ADR-0023）。
     treatment_explanation_contact = models.TextField(
-        _("contact for explanation of treatment differences (until T34)"),
+        _("contact for explanation of treatment differences (old single text)"),
         blank=True,
         help_text=_("Department, title and name of the person in charge, contact."),
     )
     consultation_contact = models.TextField(
-        _("contact for employment management consultation (until T34)"),
+        _("contact for employment management consultation (old single text)"),
         blank=True,
         help_text=_("Department, title and name of the person in charge, contact."),
     )

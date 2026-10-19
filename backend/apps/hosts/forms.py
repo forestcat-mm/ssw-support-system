@@ -309,7 +309,8 @@ class SupportContractForm(StyledFormMixin, forms.ModelForm[SupportContract]):
             "termination”. Leave blank if there is no end date."
         )
         self.fields["monthly_fee"].help_text = _(
-            "Form 1-25, item 5. The breakdown (annex of form 5-10) is handled later (T37)."
+            "Form 1-25, item 5 and form 5-10, article 2. Enter the breakdown (annex of form "
+            "5-10) as the fee breakdown."
         )
         self.style_fields()
         if "amended_on" in self.fields:

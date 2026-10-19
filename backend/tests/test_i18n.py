@@ -107,3 +107,87 @@ def test_po_is_up_to_date_with_sources(tmp_path: Path, settings: object) -> None
         missing = set(parse_po(fresh)) - set(parse_po(po))
         stale = set(parse_po(po)) - set(parse_po(fresh))
         assert (missing, stale) == (set(), set()), "make messages を実行して .po をコミットする"
+
+
+# --- 開発中の文言・ボタンの言葉・同じ文言の別の意味（修正 1 回目 A1・A2・D2）-------------------
+
+TASK_NUMBER = re.compile(r"(?<![A-Za-z0-9])T\d+[a-z]?(?![0-9])")
+TEMPLATE_COMMENT = re.compile(r"\{#.*?#\}|\{% comment %\}.*?\{% endcomment %\}", re.S)
+# 画面ごとに意味の違う英語の文言。使うときは必ず文脈（pgettext）を付ける
+AMBIGUOUS_MSGIDS = {"level", "required", "attached", "not attached", "basis date"}
+
+
+def po_entries(path: Path) -> list[tuple[str | None, str, str]]:
+    """.po を [(msgctxt, msgid, msgstr)] に読む（複数形は先頭の形だけ）。"""
+    entries: list[tuple[str | None, str, str]] = []
+    context: list[str] | None = None
+    msgid: list[str] | None = None
+    msgstr: list[str] | None = None
+    current: list[str] | None = None
+
+    def flush() -> None:
+        if msgid is not None and "".join(msgid):
+            entries.append(
+                ("".join(context) if context else None, "".join(msgid), "".join(msgstr or []))
+            )
+
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.startswith("msgctxt "):
+            flush()
+            context, msgid, msgstr = [_unquote(line[8:])], None, None
+            current = context
+        elif line.startswith("msgid "):
+            if msgid is not None:
+                flush()
+                context = None
+            msgid, msgstr = [_unquote(line[6:])], None
+            current = msgid
+        elif line.startswith("msgid_plural ") or (line.startswith("msgstr[") and msgstr):
+            current = None
+        elif line.startswith("msgstr ") or line.startswith("msgstr[0] "):
+            msgstr = [_unquote(line.split(" ", 1)[1])]
+            current = msgstr
+        elif line.startswith('"') and current is not None:
+            current.append(_unquote(line))
+        elif not line.strip():
+            flush()
+            context, msgid, msgstr, current = None, None, None, None
+    flush()
+    return entries
+
+
+@pytest.mark.parametrize("po", PO_FILES, ids=str)
+def test_ui_text_has_no_task_numbers(po: Path) -> None:
+    """画面の文言に開発中のタスクの番号（T37 など）を出さない。"""
+    found = [
+        text
+        for _c, msgid, msgstr in po_entries(po)
+        for text in (msgid, msgstr)
+        if TASK_NUMBER.search(text)
+    ]
+    assert found == []
+
+
+def test_templates_have_no_task_numbers() -> None:
+    templates = sorted(Path(settings.BASE_DIR, "apps").glob("*/templates/**/*.html"))
+    assert templates
+    found = []
+    for path in templates:
+        text = TEMPLATE_COMMENT.sub("", path.read_text(encoding="utf-8"))
+        found += [f"{path.name}: {m.group(0)}" for m in TASK_NUMBER.finditer(text)]
+    assert found == []
+
+
+@pytest.mark.parametrize("po", PO_FILES, ids=str)
+def test_add_buttons_say_tsuika(po: Path) -> None:
+    """行を足すボタンは「〜を追加」にそろえる（「〜を足す」にしない）。"""
+    assert [msgstr for _c, _i, msgstr in po_entries(po) if msgstr.endswith("を足す")] == []
+
+
+@pytest.mark.parametrize("po", PO_FILES, ids=str)
+def test_ambiguous_msgids_always_have_a_context(po: Path) -> None:
+    """意味の違う使い方がある文言は、どこでも文脈を付ける（訳の取り違えを防ぐ）。"""
+    entries = po_entries(po)
+    assert [i for c, i, _s in entries if i in AMBIGUOUS_MSGIDS and c is None] == []
+    contexts = {(c, i) for c, i, _s in entries if i in AMBIGUOUS_MSGIDS}
+    assert ("career plan", "level") in contexts and ("generated document", "basis date") in contexts

@@ -56,7 +56,7 @@ def test_create_generate_and_deliver_the_career_plan(
     page.locator("#id_field").select_option(label="飲食料品製造業分野")
     page.locator("#id_applies_from").fill("2026-01-01")
     page.locator("#id_career_route").fill("作業員 → ライン長補佐 → ライン長")
-    page.locator("#level-rows").get_by_role("button", name="レベルを足す").click()
+    page.locator("#level-rows").get_by_role("button", name="レベルを追加").click()
     page.locator("#id_levels-0-name").fill("レベル1")
     page.locator("#id_levels-0-years").fill("1〜2年目")
     page.locator("#id_levels-0-duties").fill("製造ラインの基本作業")

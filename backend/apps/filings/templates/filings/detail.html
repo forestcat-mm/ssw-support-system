@@ -15,7 +15,7 @@
         <dt>{% translate "trigger" %}</dt><dd>{{ filing.get_trigger_display }}</dd>
         {% if completed_interview %}<dt>{% translate "periodic interview" %}</dt><dd><a href="{% url 'workers:support_interview' completed_interview.worker_id completed_interview.pk %}">{{ completed_interview.basis_on|date:"Y-m-d" }}</a></dd>{% endif %}
         {% for source in interview_sources %}<dt>{% translate "source periodic interview" %}</dt><dd data-interview-source="{{ source.interview.pk }}"><a href="{% url 'workers:support_interview' source.interview.worker_id source.interview.pk %}">{{ source.interview.basis_on|date:"Y-m-d" }}</a> <span class="caption">{% for reason in source.reasons %}{% if reason == "nonconformity" %}{% translate "non-conformity with the standards" %}{% else %}{% translate "report needed" %}{% endif %}{% if not forloop.last %}・{% endif %}{% endfor %}</span></dd>{% endfor %}
-        <dt>{% translate "basis date" %}</dt><dd class="mono">{{ filing.basis_on|date:"Y-m-d" }}</dd>
+        <dt>{% translate "basis date" context "filing" %}</dt><dd class="mono">{{ filing.basis_on|date:"Y-m-d" }}</dd>
         {% if filing.opens_on %}<dt>{% translate "opens on" %}</dt><dd class="mono">{{ filing.opens_on|date:"Y-m-d" }}</dd>{% endif %}
         <dt>{% translate "due date" %}</dt><dd>{% due_date row.deadline badge=row.is_open %}</dd>
         {% if row.deadline.adjusted %}<dt>{% translate "legal due date" %}</dt><dd class="mono">{{ filing.due_on|date:"Y-m-d" }}</dd>{% endif %}

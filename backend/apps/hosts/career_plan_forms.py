@@ -6,6 +6,7 @@ from typing import Any
 
 from django import forms
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 
 from apps.core.web_forms import StyledFormMixin
 from apps.hosts.models import HostOrganization, HostSite, SpecifiedSkillField
@@ -58,7 +59,9 @@ class CareerPlanForm(StyledFormMixin, forms.Form):
 
 
 class LevelForm(StyledFormMixin, forms.Form):
-    name = forms.CharField(label=_("level"), max_length=50, help_text=_("Example: level 1."))
+    name = forms.CharField(
+        label=pgettext_lazy("career plan", "level"), max_length=50, help_text=_("Example: level 1.")
+    )
     years = forms.CharField(
         label=_("years as a guide"), max_length=50, help_text=_("Example: 1st to 2nd year.")
     )

@@ -28,7 +28,7 @@
       <dt>{% translate "language of the form" %}</dt><dd id="document-language" data-language="{{ document.template.language }}">{% if document.template.language == "ja-zh" %}{% translate "Japanese and Chinese (bilingual)" %}{% else %}{% translate "Japanese" %}{% endif %}</dd>
       {% if plan_version %}<dt>{% translate "support plan version" %}</dt><dd>{% blocktranslate with number=plan_version.version day=plan_version.applies_from|date:"Y-m-d" %}Version {{ number }} (applies from {{ day }}){% endblocktranslate %}</dd>{% endif %}
       {% if contract_version %}<dt>{% translate "employment contract version" %}</dt><dd>{% blocktranslate with number=contract_version.version day=contract_version.changed_on|date:"Y-m-d" %}Version {{ number }} (changed on {{ day }}){% endblocktranslate %}</dd>{% endif %}
-      <dt>{% translate "basis date" %}</dt><dd class="mono">{{ document.basis_on|date:"Y-m-d" }}</dd>
+      <dt>{% translate "basis date" context "generated document" %}</dt><dd class="mono">{{ document.basis_on|date:"Y-m-d" }}</dd>
       <dt>{% translate "requested by" %}</dt><dd>{{ document.created_by.get_username|default:"—" }} · {{ document.created_at|date:"Y-m-d H:i" }}</dd>
       <dt>{% translate "generated at" %}</dt><dd>{{ document.generated_at|date:"Y-m-d H:i"|default:"—" }}</dd>
       <dt>{% translate "pages" %}</dt><dd>{{ document.page_count|default:"—" }}</dd>

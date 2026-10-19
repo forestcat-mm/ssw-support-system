@@ -16,6 +16,7 @@ from django.db import models
 from django.db.models import F, Func, Q
 from django.db.models.functions import Least
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 
 from apps.core.models import Attachment, TrackedModel
 from services import corporate_number
@@ -518,7 +519,7 @@ class CareerPlanLevel(_CareerPlanRow):
         related_name="levels",
     )
     order = models.PositiveSmallIntegerField(_("order"))
-    name = models.CharField(_("level"), max_length=50)
+    name = models.CharField(pgettext_lazy("career plan", "level"), max_length=50)
     years = models.CharField(
         _("years as a guide"), max_length=50, help_text=_("Example: 1st to 2nd year.")
     )

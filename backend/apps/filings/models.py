@@ -12,6 +12,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 
 from apps.core.models import Staff, TrackedModel
 from apps.workers.models import ForeignWorker
@@ -125,7 +126,7 @@ class Filing(TrackedModel):
 
     # 期限（T10 の Deadline）
     deadline_kind = models.CharField(_("deadline kind"), max_length=40)
-    basis_on = models.DateField(_("basis date"))
+    basis_on = models.DateField(pgettext_lazy("filing", "basis date"))
     opens_on = models.DateField(_("opens on"), null=True, blank=True)
     due_on = models.DateField(_("legal due date"))
     unadjusted_due_on = models.DateField(_("due date (before holiday adjustment)"))

@@ -39,7 +39,7 @@ def test_record_orientation_with_warnings_and_sign(
 
     page.get_by_label("場所").fill("受入れ機関の会議室")
     fill_session(page, 0, "2026-10-01", "09:00", "12:00")
-    page.get_by_role("button", name="実施日時を足す").click()
+    page.get_by_role("button", name="実施日時を追加").click()
     fill_session(page, 1, "2026-10-02", "09:00", "12:00")
 
     # 細目はすべて「説明した」にし、1 つを「該当なし」、1 つを未チェックのまま残す

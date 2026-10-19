@@ -75,7 +75,7 @@ def test_fee_breakdown_generation_and_application_list(
     page.locator("#id_fees-0-name").fill("義務的支援の委託料")
     page.locator("#id_fees-0-amount").fill("25000")
     page.locator("#id_fees-0-timing").select_option(label="定期")
-    page.locator("#fee-rows").get_by_role("button", name="項目を足す").click()
+    page.locator("#fee-rows").get_by_role("button", name="項目を追加").click()
     page.locator("#id_fees-1-name").fill("通訳")
     page.locator("#id_fees-1-amount").fill("5000")
     page.locator("#id_fees-1-timing").select_option(label="随時")

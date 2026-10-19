@@ -80,7 +80,7 @@ def test_register_change_and_terminate_a_contract(
     page.locator("#id_wage_closing_day").fill("毎月末日")
     page.locator("#id_wage_payment_day").fill("翌月25日")
     page.locator("#id_payment_method").select_option("bank_transfer")
-    page.get_by_role("button", name="手当を足す").click()
+    page.get_by_role("button", name="手当を追加").click()
     page.locator("#id_allowances-0-name").fill("住宅手当")
     page.locator("#id_allowances-0-amount").fill("10000")
     no_horizontal_scroll(page, width)

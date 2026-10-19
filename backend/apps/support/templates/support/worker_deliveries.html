@@ -27,7 +27,7 @@
           <td>{{ delivery.get_kind_display }}{% if delivery.title %} <span class="caption">（{{ delivery.title }}）</span>{% endif %}{% if notes %} <span class="badge badge--within-7" data-warnings="{{ notes|length }}">{% blocktranslate count counter=notes|length %}{{ counter }} note{% plural %}{{ counter }} notes{% endblocktranslate %}</span>{% endif %}</td>
           <td>{{ delivery.get_method_display }}</td>
           <td>{% if delivery.contract %}{{ delivery.contract.host_organization }}{% else %}<span class="muted">—</span>{% endif %}</td>
-          <td data-receipt="{{ receipt|yesno:'true,false' }}">{% if receipt %}{% translate "attached" %}{% else %}<span class="muted">{% translate "not attached" %}</span>{% endif %}</td>
+          <td data-receipt="{{ receipt|yesno:'true,false' }}">{% if receipt %}{% translate "attached" context "delivery receipt" %}{% else %}<span class="muted">{% translate "not attached" context "delivery receipt" %}</span>{% endif %}</td>
           <td>{% if delivery.voided_at %}<span class="truncate-line truncate-line--wide" title="{{ delivery.void_reason }}"><span class="truncate">{{ delivery.voided_at|date:"Y-m-d" }} {{ delivery.void_reason }}</span></span>{% elif can_manage_support %}<a class="button button--danger button--small" href="{% url 'workers:support_delivery_void' worker.pk delivery.pk %}">{% translate "Void" %}</a>{% endif %}</td>
         </tr>{% endfor %}</tbody>
     </table>

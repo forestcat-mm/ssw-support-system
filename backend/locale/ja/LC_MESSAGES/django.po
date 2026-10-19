@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-18 23:49+0900\n"
+"POT-Creation-Date: 2026-10-19 14:49+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -710,14 +710,14 @@ msgstr "定期健康診断の間隔"
 msgid "e.g. every year"
 msgstr "例: 1年ごと"
 
-msgid "contact for explanation of treatment differences (until T34)"
-msgstr "待遇の相違の説明の窓口（T34 までの 1 つの文）"
+msgid "contact for explanation of treatment differences (old single text)"
+msgstr "待遇の相違の説明の窓口（旧い 1 つの文の欄）"
 
 msgid "Department, title and name of the person in charge, contact."
 msgstr "部署名、担当者職氏名、連絡先。"
 
-msgid "contact for employment management consultation (until T34)"
-msgstr "雇用管理の相談窓口（T34 までの 1 つの文）"
+msgid "contact for employment management consultation (old single text)"
+msgstr "雇用管理の相談窓口（旧い 1 つの文の欄）"
 
 msgid "treatment differences contact: department"
 msgstr "待遇の相違の説明の窓口: 部署名"
@@ -949,19 +949,19 @@ msgid "Shifts"
 msgstr "交代制の勤務時間"
 
 msgid "Add a shift"
-msgstr "勤務時間を足す"
+msgstr "勤務時間を追加"
 
 msgid "Allowances (annex 1)"
 msgstr "諸手当（別紙1）"
 
 msgid "Add an allowance"
-msgstr "手当を足す"
+msgstr "手当を追加"
 
 msgid "Deductions (annex 1)"
 msgstr "賃金支払時に控除する項目（別紙1）"
 
 msgid "Add a deduction"
-msgstr "控除を足す"
+msgstr "控除を追加"
 
 #, python-format
 msgid "Documents of version %(number)s (reference)"
@@ -2229,6 +2229,7 @@ msgstr ""
 msgid "Deadline levels"
 msgstr "警告レベル"
 
+msgctxt "deadline"
 msgid "level"
 msgstr "警告レベル（残り日数）"
 
@@ -2469,6 +2470,7 @@ msgstr "期限"
 msgid "trigger details"
 msgstr "事由の詳細"
 
+msgctxt "filing"
 msgid "required"
 msgstr "届出が必要"
 
@@ -2529,6 +2531,7 @@ msgstr "理由"
 msgid "Required when the task is not required, cancelled, or reopened."
 msgstr "対応不要・取消、または完了を取り消すときは必須。"
 
+msgctxt "filing"
 msgid "basis date"
 msgstr "起算日"
 
@@ -2967,6 +2970,10 @@ msgstr "依頼"
 msgid "failed"
 msgstr "失敗"
 
+msgctxt "generated document"
+msgid "basis date"
+msgstr "基準日"
+
 msgid "data snapshot"
 msgstr "データのスナップショット"
 
@@ -3036,6 +3043,10 @@ msgstr "書類"
 msgid "form"
 msgstr "様式"
 
+msgctxt "application set"
+msgid "required"
+msgstr "要否"
+
 msgid "points to note"
 msgstr "留意事項"
 
@@ -3048,11 +3059,13 @@ msgstr "ほかの契約・版で生成済み"
 msgid "not generated"
 msgstr "未生成"
 
+msgctxt "application set"
 msgid "attached"
-msgstr "あり"
+msgstr "添付済み"
 
+msgctxt "application set"
 msgid "not attached"
-msgstr "なし"
+msgstr "未添付"
 
 msgid "for organizations with a track record (not judged in the system)"
 msgstr "実績のある機関の書類（システムでは判断しない）"
@@ -3256,6 +3269,10 @@ msgid ""
 msgstr ""
 "水産加工業の区分（2027年4月1日から）: 転職できる範囲（原則として同一の業務区"
 "分内に限ること等）。説明して同意を得ます。"
+
+msgctxt "career plan"
+msgid "level"
+msgstr "レベルの名前"
 
 msgid "Example: level 1."
 msgstr "例: レベル1"
@@ -3524,8 +3541,11 @@ msgstr ""
 "了を登録」で登録します。終了日が無ければ空にします。"
 
 msgid ""
-"Form 1-25, item 5. The breakdown (annex of form 5-10) is handled later (T37)."
-msgstr "第1-25号の第5欄。内訳（第5-10号の別紙）は後で扱います（T37）。"
+"Form 1-25, item 5 and form 5-10, article 2. Enter the breakdown (annex of "
+"form 5-10) as the fee breakdown."
+msgstr ""
+"第1-25号の第5欄・第5-10号の第2条。内訳（第5-10号の別紙）は「委託料の内訳」で"
+"入れます。"
 
 msgid "Enter the date of the change."
 msgstr "変更日を入れてください。"
@@ -3749,7 +3769,7 @@ msgid "Levels"
 msgstr "レベル"
 
 msgid "Add a level"
-msgstr "レベルを足す"
+msgstr "レベルを追加"
 
 msgid "previous file"
 msgstr "前のファイル"
@@ -3903,7 +3923,7 @@ msgid "Items"
 msgstr "項目"
 
 msgid "Add an item"
-msgstr "項目を足す"
+msgstr "項目を追加"
 
 msgid "Dummy data (development)"
 msgstr "ダミーデータ（開発用）"
@@ -4877,7 +4897,7 @@ msgid "How, where and by whom"
 msgstr "方法・場所・説明者"
 
 msgid "Add a date and time"
-msgstr "実施日時を足す"
+msgstr "実施日時を追加"
 
 #, python-format
 msgid ""
@@ -4919,7 +4939,7 @@ msgid "Fees paid"
 msgstr "支払った費用"
 
 msgid "Add a fee"
-msgstr "費用を足す"
+msgstr "費用を追加"
 
 msgid "Notes"
 msgstr "メモ"
@@ -4961,8 +4981,10 @@ msgstr "計画なし"
 msgid "Questions of the report (3. Results of the interview)"
 msgstr "報告書の質問（３ 面談結果）"
 
-msgid "There are no answers to the questions (a record made before T35)."
-msgstr "質問の回答はありません（T35 より前の記録）。"
+msgid ""
+"There are no answers to the questions (a record made before the questions "
+"were added)."
+msgstr "質問の回答はありません（質問の回答を記録できるようになる前の記録）。"
 
 msgid "Set all to no problem"
 msgstr "すべて「問題無」にする"
@@ -5234,6 +5256,14 @@ msgstr "署名済みの控え"
 
 msgid "void"
 msgstr "取り消す"
+
+msgctxt "delivery receipt"
+msgid "attached"
+msgstr "あり"
+
+msgctxt "delivery receipt"
+msgid "not attached"
+msgstr "なし"
 
 msgid "No documents have been recorded as given yet."
 msgstr "まだ交付の記録はありません。"
@@ -6551,11 +6581,11 @@ msgid "There is no record of the periodic interview."
 msgstr "定期面談の記録がありません。"
 
 msgid ""
-"The interview has no answers to the questions (a record made before T35). "
-"The questions, (6) and section 4 are left blank."
+"The interview has no answers to the questions (a record made before the "
+"questions were added). The questions, (6) and section 4 are left blank."
 msgstr ""
-"この面談には質問の回答がありません（T35 より前の記録）。質問・⑥・４ の欄は空"
-"のままです。"
+"この面談には質問の回答がありません（質問の回答を記録できるようになる前の記"
+"録）。質問・⑥・４ の欄は空のままです。"
 
 #, python-format
 msgid ""
