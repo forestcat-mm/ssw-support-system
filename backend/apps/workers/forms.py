@@ -155,6 +155,7 @@ class WorkerForm(StyledFormMixin, forms.ModelForm[ForeignWorker]):
             "name_romaji",
             "name_kanji",
             "name_native",
+            "name_kana",
             "nationality",
             "birth_date",
             "sex",
@@ -172,6 +173,9 @@ class WorkerForm(StyledFormMixin, forms.ModelForm[ForeignWorker]):
         staff_field.queryset = Staff.objects.filter(is_active=True).order_by("name_kana", "name")
         if self.instance.pk is not None and not self.is_bound:
             self.initial["loaded_updated_at"] = self.instance.updated_at.isoformat()
+
+    def clean_name_kana(self) -> str:
+        return workers.clean_name_kana(self.cleaned_data.get("name_kana") or "")
 
     def clean_loaded_updated_at(self) -> datetime.datetime | None:
         value = self.cleaned_data.get("loaded_updated_at") or ""

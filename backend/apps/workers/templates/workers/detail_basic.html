@@ -7,6 +7,7 @@
       <dt>{% translate "name (romaji)" %}</dt><dd>{{ worker.name_romaji }}</dd>
       <dt>{% translate "name (kanji)" %}</dt><dd>{{ worker.name_kanji|default:"—" }}</dd>
       <dt>{% translate "name (native script)" %}</dt><dd{% if native_lang %} lang="{{ native_lang }}"{% endif %}>{{ worker.name_native|default:"—" }}</dd>
+      <dt>{% translate "name (katakana)" %}</dt><dd id="worker-name-kana">{{ worker.name_kana|default:"—" }}</dd>
       <dt>{% translate "nationality or region" %}</dt><dd>{{ worker.nationality.name }}</dd>
       <dt>{% translate "date of birth" %}</dt><dd class="mono">{{ worker.birth_date|date:"Y-m-d" }}</dd>
       <dt>{% translate "sex" %}</dt><dd>{{ worker.get_sex_display }}</dd>

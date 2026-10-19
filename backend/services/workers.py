@@ -7,6 +7,8 @@
 from __future__ import annotations
 
 import datetime
+import re
+import unicodedata
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from datetime import date
@@ -307,3 +309,25 @@ def reactivate(worker: ForeignWorker, *, by: User | None, reason: str) -> None:
                 "updated_at",
             ]
         )
+
+
+# --- 氏名のカナ（修正 1 回目 A4、ADR-0028）----------------------------------------------
+
+KANA = re.compile(r"^[\u30a1-\u30fa\u30fc\u30fb\u3000]*$")
+
+
+def to_katakana(value: str) -> str:
+    """半角カナ → 全角、ひらがな → カタカナ、空白は全角 1 つにそろえる（前後の空白は外す）。"""
+    text = unicodedata.normalize("NFKC", value)
+    text = "".join(chr(ord(c) + 0x60) if "\u3041" <= c <= "\u3096" else c for c in text)
+    return "\u3000".join(text.split())
+
+
+def clean_name_kana(value: str) -> str:
+    kana = to_katakana(value)
+    if not KANA.match(kana):
+        raise ValidationError(
+            _("Enter the name in katakana (spaces between the family and given names are OK)."),
+            code="kana",
+        )
+    return kana

@@ -190,6 +190,9 @@ def seed_staff(ctx: SeedContext) -> None:
         staff.languages.set(SupportLanguage.objects.filter(code__in=["ja", "zh-hans"]))
         ctx.keep(staff)
         ctx.staff.append(staff)
+        if manager:
+            office.support_manager = staff  # 第1-17号 Ⅲ欄７（修正 1 回目 A5）
+            office.save(update_fields=["support_manager", "updated_at"])
 
 
 # --- 受入れ機関 ------------------------------------------------------------------

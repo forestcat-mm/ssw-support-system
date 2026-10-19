@@ -317,6 +317,15 @@ class Office(TrackedModel):
     address = models.CharField(_("address"), max_length=255)
     phone_number = models.CharField(_("phone number"), max_length=20, blank=True)
     is_active = models.BooleanField(_("active"), default=True)
+    # 第1-17号 Ⅲ欄７の支援責任者（この事務所の、支援責任者の印のある有効な担当者。修正 1 回目 A5）
+    support_manager = models.ForeignKey(
+        "Staff",
+        verbose_name=_("support manager"),
+        on_delete=models.SET_NULL,  # 担当者は無効化で残すので、消えるのはダミーの作り直しのときだけ
+        null=True,
+        blank=True,
+        related_name="+",
+    )
 
     class Meta:
         verbose_name = _("office")

@@ -73,6 +73,13 @@ class ForeignWorker(TrackedModel, ConfirmedValue):
     name_romaji = models.CharField(_("name (romaji)"), max_length=100)
     name_kanji = models.CharField(_("name (kanji)"), max_length=100, blank=True)
     name_native = models.CharField(_("name (native script)"), max_length=100, blank=True)
+    # カナ（任意。仕様書の氏名3表記の外。検索と画面の読みのため。修正 1 回目 A4、ADR-0028）
+    name_kana = models.CharField(
+        _("name (katakana)"),
+        max_length=100,
+        blank=True,
+        help_text=_("Optional. Katakana; hiragana is converted to katakana."),
+    )
     nationality = models.ForeignKey(
         Country, verbose_name=_("nationality or region"), on_delete=models.PROTECT, related_name="+"
     )

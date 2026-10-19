@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 15:08+0900\n"
+"POT-Creation-Date: 2026-10-19 15:17+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -1281,6 +1281,9 @@ msgstr "自機関"
 msgid "active"
 msgstr "有効"
 
+msgid "support manager"
+msgstr "支援責任者"
+
 msgid "office"
 msgstr "事務所"
 
@@ -1328,9 +1331,6 @@ msgstr "氏名（カナ）"
 
 msgid "position"
 msgstr "役職"
-
-msgid "support manager"
-msgstr "支援責任者"
 
 msgid "support staff"
 msgstr "支援担当者"
@@ -1581,6 +1581,15 @@ msgstr "この担当者がログインに使うユーザー（任意）。"
 #, python-format
 msgid "Allowed: %(extensions)s, up to %(size)s MB."
 msgstr "使えるファイル: %(extensions)s（%(size)s MB まで）"
+
+msgid ""
+"Printed as the support manager in form 1-17 (section III, item 7) for "
+"workers whose staff member belongs to this office. Staff members of this "
+"office marked as support managers can be chosen (register the office first)."
+msgstr ""
+"担当者がこの事務所に所属する外国人の第1-17号（Ⅲ欄７）に、支援責任者として書き"
+"ます。この事務所の、支援責任者の印のある担当者から選べます（事務所を登録して"
+"から選びます）。"
 
 msgid "All users"
 msgstr "すべての操作者"
@@ -5450,6 +5459,12 @@ msgstr "離職"
 msgid "returned home"
 msgstr "帰国"
 
+msgid "name (katakana)"
+msgstr "氏名（カナ）"
+
+msgid "Optional. Katakana; hiragana is converted to katakana."
+msgstr "任意。カタカナで入れます（ひらがなはカタカナに直します）。"
+
 msgid "date of birth"
 msgstr "生年月日"
 
@@ -6511,8 +6526,13 @@ msgid ""
 msgstr ""
 "担当者の事務所が決まっていないため、支援を行う事務所（Ⅲ欄６）が空になります。"
 
-msgid "There is no support manager for the support office."
-msgstr "支援を行う事務所に支援責任者がいません。"
+#, python-format
+msgid ""
+"The support manager of the support office (%(office)s) is not chosen. Choose "
+"it on the office screen."
+msgstr ""
+"支援を行う事務所（%(office)s）の支援責任者が選ばれていません。事務所の画面で"
+"選んでください。"
 
 #, python-format
 msgid ""
@@ -6894,6 +6914,11 @@ msgstr ""
 "関係行政機関への通報が未了の理由を入れてください（通報不要と判断した場合を含"
 "む）。"
 
+msgid ""
+"Choose an active staff member of this office who is marked as a support "
+"manager."
+msgstr "この事務所の、支援責任者の印のある有効な担当者を選んでください。"
+
 msgid "Enter a passport number of 6 to 12 letters and digits."
 msgstr "旅券番号は英数字 6〜12 桁で入力してください。"
 
@@ -7231,3 +7256,8 @@ msgstr "この外国人は無効化されていません。"
 
 msgid "Enter the reason for cancelling the deactivation."
 msgstr "無効化を外す理由を入力してください。"
+
+msgid ""
+"Enter the name in katakana (spaces between the family and given names are "
+"OK)."
+msgstr "氏名はカタカナで入れてください（姓と名の間の空白は入れられます）。"

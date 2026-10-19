@@ -29,7 +29,11 @@ def worker() -> ForeignWorker:
     today = timezone.localdate()
     make_organization(name_kana="さんぷるとうろくしえんきかん", support_start_planned_on=today)
     office = make_office()
-    make_staff(office=office, name="山田 一郎", position="支援責任者", is_support_manager=True)
+    manager = make_staff(
+        office=office, name="山田 一郎", position="支援責任者", is_support_manager=True
+    )
+    office.support_manager = manager  # 事務所の支援責任者（修正 1 回目 A5）
+    office.save()
     staff = make_staff(office=office, name="佐藤 花子", position="支援担当")
     worker = make_worker(assigned_staff=staff)
     staff.languages.set([worker.support_language])  # 支援言語に対応する担当者

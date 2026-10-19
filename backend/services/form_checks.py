@@ -573,12 +573,16 @@ def _organization_for_plan(context: CheckContext, params: Mapping[str, Any]) -> 
                 destination,
             )
         )
-    if not managers:
+    if not managers and office is not None:
         issues.append(
             Issue(
                 "manager_missing",
-                _("There is no support manager for the support office."),
-                Destination("settings:staff"),
+                _(
+                    "The support manager of the support office (%(office)s) is not chosen. "
+                    "Choose it on the office screen."
+                )
+                % {"office": office.name},
+                Destination("settings:office_edit", {"pk": office.pk}),
             )
         )
     elif len(managers) > 1:

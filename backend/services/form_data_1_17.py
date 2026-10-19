@@ -15,7 +15,7 @@ import datetime
 import re
 from typing import Any
 
-from apps.core.models import Organization, Staff, SupportLanguage
+from apps.core.models import Office, Organization, Staff, SupportLanguage
 from apps.support.models import (
     CheckMethod,
     ContactMethod,
@@ -26,7 +26,7 @@ from apps.support.models import (
     SupportPlanVersion,
 )
 from apps.workers.models import ForeignWorker, Sex
-from services import hosts, support_plans
+from services import hosts, organization, support_plans
 from services.support_catalog import ROWS, Method, SupportItem
 
 ERASE = "　"  # 印刷済みの選択肢を消すときに書く全角空白（丸で囲む代わり。T31-D3）
@@ -65,14 +65,13 @@ def staff_label(staff: Staff | None) -> str:
     return f"{staff.name}（{staff.position}）" if staff.position else staff.name
 
 
-def office_and_managers(worker: ForeignWorker) -> tuple[Any, list[Staff]]:
-    """Ⅲ欄６の事務所（担当者の事務所）と、Ⅲ欄７の支援責任者（その事務所の。T31-D13）。"""
+def office_and_managers(worker: ForeignWorker) -> tuple[Office | None, list[Staff]]:
+    """Ⅲ欄６の事務所（担当者の事務所）と、Ⅲ欄７の支援責任者（その事務所で選んだ人。T31-D13、
+    修正 1 回目 A5）。担当者がいなければ事務所も支援責任者も無い（ほかの事務所から選ばない）。"""
     staff = worker.assigned_staff
     office = staff.office if staff is not None else None
-    managers = Staff.objects.filter(is_support_manager=True).order_by("pk")
-    if office is not None:
-        managers = managers.filter(office=office)
-    return office, list(managers)
+    manager = organization.support_manager(office)
+    return office, [manager] if manager is not None else []
 
 
 def supported_worker_count(worker: ForeignWorker, on: datetime.date) -> int:

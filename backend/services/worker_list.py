@@ -72,8 +72,9 @@ class WorkerList:
 
 
 def normalize_name(value: str) -> str:
-    """氏名の比較用（全角→半角、大文字、空白を除く）。"""
-    return "".join(unicodedata.normalize("NFKC", value).upper().split())
+    """氏名の比較用（全角→半角、大文字、空白を除く。ひらがなはカタカナにする。修正 1 回目 A4）。"""
+    text = "".join(unicodedata.normalize("NFKC", value).upper().split())
+    return "".join(chr(ord(c) + 0x60) if "\u3041" <= c <= "\u3096" else c for c in text)
 
 
 def _compact(field_name: str) -> Replace:
@@ -89,12 +90,13 @@ def _matches_text(queryset: QuerySet[ForeignWorker], text: str) -> QuerySet[Fore
     if not needle:
         return queryset
     by_name = Q(romaji_compact__contains=needle) | Q(kanji_compact__contains=needle)
-    by_name |= Q(native_compact__contains=needle)
+    by_name |= Q(native_compact__contains=needle) | Q(kana_compact__contains=needle)
     by_number = Q(pk__in=workers.worker_ids_by_document_number(text))
     return queryset.annotate(
         romaji_compact=_compact("name_romaji"),
         kanji_compact=_compact("name_kanji"),
         native_compact=_compact("name_native"),
+        kana_compact=_compact("name_kana"),
     ).filter(by_name | by_number)
 
 
