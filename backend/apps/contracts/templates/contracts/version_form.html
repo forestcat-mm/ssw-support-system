@@ -5,12 +5,34 @@
   <h1>{% if contract %}{% blocktranslate with name=contract.host_organization.name %}Add a new version: {{ name }}{% endblocktranslate %}{% else %}{% translate "Register an employment contract" %}{% endif %}</h1>
 {% endblock %}
 {% block content %}
+{% if not contract and condition_templates %}
+<form class="filter-bar card" method="get" id="condition-template-select">
+  <div class="form-row">
+    <label class="form-row__label" for="id_template">{% translate "employment condition template" %}</label>
+    <select name="template" id="id_template" class="select">
+      <option value="">{% translate "(do not use a template)" %}</option>
+      {% regroup condition_templates by host_organization as groups %}{% for group in groups %}<optgroup label="{{ group.grouper.name }}">{% for item in group.list %}<option value="{{ item.pk }}"{% if editor.template and editor.template.pk == item.pk %} selected{% endif %}>{{ item.name }}</option>{% endfor %}</optgroup>{% endfor %}
+    </select>
+    <span class="form-row__help">{% translate "The values of the template are filled in. The items marked in the template are left blank to enter for this worker." %}</span>
+  </div>
+  <div class="form-actions"><button class="button button--neutral" type="submit">{% translate "Fill in from the template" %}</button></div>
+</form>
+{% endif %}
 <form class="form" method="post" novalidate id="version-form" data-keepalive="{% url 'accounts:keepalive' %}">
   {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+  {% if editor.template %}<input type="hidden" name="template" value="{{ editor.template.pk }}">{% endif %}
   {% include "ui/components/form_errors.html" with form=editor.form %}
   <div class="stack">
     <p class="caption">{% if previous %}{% blocktranslate with number=previous.version %}The values of version {{ number }} are copied. Change only what changed and enter the date and reason of the change. A version without any change cannot be saved. Notifications are created from the changes.{% endblocktranslate %}{% else %}{% translate "Items follow the employment conditions (reference form 1-6). The host organization (employer) is the one of the selected site." %}{% endif %}</p>
-    {% for title, fields in editor.form.sections %}{% if fields %}
+    {% if editor.template %}
+    <section class="card stack" id="template-marked">
+      <h2>{% blocktranslate with name=editor.template.name %}Items to enter for this worker (template: {{ name }}){% endblocktranslate %}</h2>
+      <p class="caption">{% translate "The other items are filled in from the template. Check them and change them if needed." %}</p>
+      {% for name in editor.marked %}{% with field=editor.form|bound_field:name %}{% form_field field %}{% endwith %}{% endfor %}
+      {% if editor.marked_details %}<p class="message message--warning" id="template-marked-details">{% blocktranslate with rows=editor.marked_details|join:"、" %}Enter the rows below for this worker: {{ rows }}.{% endblocktranslate %}</p>{% endif %}
+    </section>
+    {% endif %}
+    {% for title, fields in editor.form|sections_without:editor.marked %}{% if fields or forloop.counter == 5 or forloop.counter == 8 %}
     <section class="card stack" id="section-{{ forloop.counter }}">
       <h2>{{ title }}</h2>
       {% for field in fields %}{% form_field field %}{% endfor %}

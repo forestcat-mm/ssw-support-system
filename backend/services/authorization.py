@@ -148,6 +148,13 @@ DJANGO_PERMISSION_ACTIONS: dict[str, Action] = {
             change=Action.CONTRACTS_MANAGE,
         ).items()
     },
+    # 雇用条件のひな形（T41）: 見るのは契約を見る人、作る・直すのは受入れ機関を管理する人
+    **_model_permissions(
+        "contracts.employmentconditiontemplate",
+        view=Action.CONTRACTS_VIEW,
+        add=Action.HOSTS_MANAGE,
+        change=Action.HOSTS_MANAGE,
+    ),
     **{
         perm: action
         for model in (

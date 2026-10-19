@@ -281,9 +281,10 @@ class VersionForm(StyledFormMixin, forms.ModelForm[EmploymentContractVersion]):
             if name in self.fields:
                 self.enable_when(name, **conditions)
 
-    def sections(self) -> list[tuple[Any, list[Any]]]:
+    def sections(self, exclude: Any = ()) -> list[tuple[Any, list[Any]]]:
+        """欄の節（exclude の欄は除く。ひな形の印の欄は先頭にまとめて出す。T41）。"""
         return [
-            (title, [self[name] for name in names if name in self.fields])
+            (title, [self[name] for name in names if name in self.fields and name not in exclude])
             for title, names in SECTIONS
         ]
 
@@ -476,3 +477,66 @@ class ContractGenerateForm(StyledFormMixin, forms.Form):
         if "language" not in self.fields or not self.is_bound or not self.is_valid():
             return str(self.initial.get("language") or "ja")
         return str(self.cleaned_data.get("language") or "ja")
+
+
+# --- 雇用条件のひな形（T41、ADR-0034）--------------------------------------------------------
+
+DETAIL_LABELS = {
+    "shifts": _("Shifts"),
+    "allowances": _("Allowances (annex 1)"),
+    "deductions": _("Deductions (annex 1)"),
+}
+
+
+class ConditionTemplateForm(VersionForm):
+    """雇用条件のひな形の版の欄（版の入力と同じ欄で、全部任意。契約ごとの日付の欄は無い）。
+
+    モデルの検査はしない（版ではないため。版の検査は契約の登録で services.contracts が行う）。
+    """
+
+    def __init__(self, *args: Any, host: Any, **kwargs: Any) -> None:
+        super().__init__(*args, contract=None, **kwargs)
+        for name in ("changed_on", "signed_on"):
+            self.fields.pop(name, None)
+        current = self.initial.get("site")
+        sites = (
+            HostSite.objects.filter(host_organization=host)
+            .filter(Q(is_active=True) | Q(pk=current))
+            .select_related("host_organization")
+            .order_by("pk")
+        )
+        site_field = self.fields["site"]
+        assert isinstance(site_field, forms.ModelChoiceField)
+        site_field.queryset = sites
+        site_field.choices = [
+            ("", "---------"),
+            *[(s.pk, f"{s.name}（{s.address}）") for s in sites],
+        ]
+        site_field.help_text = ""
+        category_field = self.fields["categories"]
+        assert isinstance(category_field, forms.ModelMultipleChoiceField)
+        category_field.queryset = OperationCategory.objects.filter(sites__in=sites).distinct()
+        for field in self.fields.values():
+            field.required = False
+
+    def _post_clean(self) -> None:
+        """版のモデルの検査をしない（ひな形は一部の項目だけのことがある）。"""
+
+
+class ConditionTemplateMetaForm(StyledFormMixin, forms.Form):
+    """ひな形の名前・使うか・外国人ごとに入れる項目の印。"""
+
+    name = forms.CharField(label=_("name of the template"), max_length=100)
+    is_active = forms.BooleanField(label=_("in use"), required=False, initial=True)
+    marked = forms.MultipleChoiceField(
+        label=_("items entered for each worker"),
+        required=False,
+        widget=forms.MultipleHiddenInput,
+    )
+
+    def __init__(self, *args: Any, names: list[str], **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        marked = self.fields["marked"]
+        assert isinstance(marked, forms.MultipleChoiceField)
+        marked.choices = [(name, name) for name in [*names, *DETAIL_LABELS]]
+        self.style_fields()

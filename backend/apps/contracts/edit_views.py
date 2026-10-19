@@ -21,6 +21,7 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy, ngettext
 
 from apps.contracts.forms import (
+    DETAIL_LABELS,
     AllowanceFormSet,
     ContractGenerateForm,
     DeductionFormSet,
@@ -31,7 +32,12 @@ from apps.contracts.forms import (
     WageExplanationForm,
     rows_of,
 )
-from apps.contracts.models import EmploymentContract, EmploymentContractVersion, WageUnit
+from apps.contracts.models import (
+    EmploymentConditionTemplate,
+    EmploymentContract,
+    EmploymentContractVersion,
+    WageUnit,
+)
 from apps.core.models import Action, Attachment, User
 from apps.core.web_forms import consume_once_token
 from apps.forms_engine.forms import NOT_LOADED
@@ -41,6 +47,7 @@ from apps.workers.views import WorkerFormView
 from services import (
     attachments,
     authorization,
+    condition_templates,
     contracts,
     form_checks,
     form_data_application,
@@ -90,9 +97,14 @@ class VersionEditor:
         *,
         contract: EmploymentContract | None,
         previous: EmploymentContractVersion | None,
+        template: EmploymentConditionTemplate | None = None,
     ) -> None:
         initial = contracts.initial_from(previous) if previous is not None else {}
         rows = contracts.detail_initial(previous) if previous is not None else {}
+        self.template = template if previous is None else None
+        if self.template is not None:
+            # 雇用条件のひな形の値（印の無い項目だけ。T41-D2）
+            initial, rows = condition_templates.initial_for(self.template)
         self.form = VersionForm(data, initial=initial, contract=contract)
         self.shifts = ShiftFormSet(data, prefix="shifts", initial=rows.get("shifts"))
         self.allowances = AllowanceFormSet(
@@ -101,6 +113,19 @@ class VersionEditor:
         self.deductions = DeductionFormSet(
             data, prefix="deductions", initial=rows.get("deductions")
         )
+
+    @property
+    def marked(self) -> list[str]:
+        """ひな形で外国人ごとに入れる項目（画面の先頭にまとめる）。"""
+        if self.template is None:
+            return []
+        return [name for name in self.template.marked if name in self.form.fields]
+
+    @property
+    def marked_details(self) -> list[str]:
+        if self.template is None:
+            return []
+        return [str(DETAIL_LABELS[kind]) for kind in self.template.marked if kind in DETAIL_LABELS]
 
     def is_valid(self) -> bool:
         results = [
@@ -173,19 +198,32 @@ class VersionCreateView(ContractFormView):
             previous=previous,
             previous_attachments=list(previous.attachments.all()) if previous else [],
             editor=editor,
+            condition_templates=condition_templates.available() if contract is None else [],
             back=tab_url(worker, contract),
         )
 
+    def condition_template(
+        self, contract: EmploymentContract | None, value: str | None
+    ) -> EmploymentConditionTemplate | None:
+        """契約の登録で選んだ雇用条件のひな形（使うものだけ。2 版目以降は使わない。T41-D7）。"""
+        if contract is not None or not value or not value.isdigit():
+            return None
+        return next((t for t in condition_templates.available() if t.pk == int(value)), None)
+
     def get(self, request: HttpRequest, pk: int, contract_id: int | None = None) -> HttpResponse:
         worker, contract, previous = self.target(request, pk, contract_id)
-        editor = VersionEditor(contract=contract, previous=previous)
+        template = self.condition_template(contract, request.GET.get("template"))
+        editor = VersionEditor(contract=contract, previous=previous, template=template)
         return self.page(request, worker, contract, previous, editor)
 
     def post(self, request: HttpRequest, pk: int, contract_id: int | None = None) -> HttpResponse:
         worker, contract, previous = self.target(request, pk, contract_id)
         if not consume_once_token(request):
             return self.already_submitted(request, tab_url(worker, contract))
-        editor = VersionEditor(request.POST, contract=contract, previous=previous)
+        template = self.condition_template(contract, request.POST.get("template"))
+        editor = VersionEditor(
+            request.POST, contract=contract, previous=previous, template=template
+        )
         if editor.is_valid():
             version = editor.form.save(commit=False)
             try:

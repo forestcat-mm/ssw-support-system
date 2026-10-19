@@ -22,6 +22,7 @@ from django.db import models, transaction
 
 from apps.contracts.models import (
     ContractWageExplanation,
+    EmploymentConditionTemplate,
     EmploymentContract,
     EmploymentContractAllowance,
     EmploymentContractDeduction,
@@ -81,6 +82,7 @@ from apps.workers.models import (
 )
 from services import (
     career_plans,
+    condition_templates,
     contracts,
     corporate_number,
     deadlines,
@@ -1055,6 +1057,43 @@ def seed_career_plans(ctx: SeedContext) -> None:
             ctx.keep(level)
 
 
+def seed_condition_templates(ctx: SeedContext) -> None:
+    """雇用条件のひな形（T41-D8）: 1 社目（サンプル精機工業。工業）の本社工場の 1 件。
+
+    基本給・契約期間・入国予定日・雇入れ時の健康診断の日・業務の内容は外国人ごとに入れる印を付ける。
+    外国人・契約・届出は作らない（ほかの場面は変わらない）。値は契約の版と同じ作り方で、乱数は
+    別の文脈のものを使う（ctx.rng を進めると、後の場面の値が変わるため）。
+    """
+    host = ctx.hosts[0]
+    site = host.sites.order_by("pk").first()
+    assert site is not None
+    values = _version_values(SeedContext(base=ctx.base), site, WorkerSpec("VN", 365), ctx.base)
+    marked = ["base_wage", "starts_on", "ends_on", "expected_entry_on", "hiring_health_check_on"]
+    marked.append("duties")
+    for name in ("changed_on", "signed_on", "starts_on", "ends_on", "base_wage"):
+        values.pop(name)
+    values.pop("hourly_equivalent")  # 基本給から計算する（外国人ごと）
+    payload = condition_templates.values_from(values, values)
+    payload["categories"] = [category.pk for category in site.categories.order_by("pk")[:1]]
+    allowance = {"name": "皆勤手当", "amount": 5000, "calculation_method": ""}
+    template = EmploymentConditionTemplate(
+        host_organization=host, name=f"製造ライン 正社員{DUMMY_MARK}"
+    )
+    condition_templates.save_template(
+        template,
+        values=payload,
+        details={
+            "shifts": [],
+            "allowances": [allowance | {"fixed_overtime_hours": None}],
+            "deductions": [{"kind": "housing", "name": "", "amount": 25000}],
+        },
+        marked=marked,
+        allowed=[*payload, *marked],
+        by=None,
+    )
+    ctx.keep(template)
+
+
 STEPS: tuple[Step, ...] = (
     seed_organization,
     seed_staff,
@@ -1063,6 +1102,7 @@ STEPS: tuple[Step, ...] = (
     seed_contracts,
     seed_transfer,
     seed_career_plans,
+    seed_condition_templates,  # 雇用条件のひな形（T41）
     support_builders.seed_support,  # 段階2（支援計画・実績・相談・ガイダンス・交付・要配慮添付）
     seed_uncertified_host,  # 加入証明なしの場面（T39）
     seed_filings,
@@ -1096,6 +1136,7 @@ DELETE_ORDER: tuple[type[models.Model], ...] = (
     EmploymentContractDeduction,
     EmploymentContractVersion,
     EmploymentContract,
+    EmploymentConditionTemplate,
     ResidenceRecord,
     PassportRecord,
     WorkerAddress,
@@ -1152,6 +1193,10 @@ def delete_rows(by_model: dict[type[models.Model], list[int]]) -> int:
     # 届出タスクを参照しているため）。手で足した記録も、その外国人のものなら消える
     deleted_support = support_builders.delete_support_data(by_model.get(ForeignWorker, []))
     deleted_support += support_builders.delete_host_documents(by_model.get(HostOrganization, []))
+    # 画面で足した雇用条件のひな形も、その受入れ機関のものなら消す（T41）
+    deleted_support += EmploymentConditionTemplate.objects.filter(
+        host_organization_id__in=by_model.get(HostOrganization, [])
+    ).delete()[0]
     targets = [(ContentType.objects.get_for_model(model), ids) for model, ids in by_model.items()]
     filings_query = models.Q(worker_id__in=by_model.get(ForeignWorker, []))
     for content_type, ids in targets:

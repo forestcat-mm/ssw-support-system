@@ -9,7 +9,12 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from pytest_django.fixtures import Settings
 
-from apps.contracts.models import EmploymentContract, EmploymentContractVersion
+from apps.contracts.forms import VersionForm
+from apps.contracts.models import (
+    EmploymentConditionTemplate,
+    EmploymentContract,
+    EmploymentContractVersion,
+)
 from apps.filings.models import Filing, FilingKind
 from apps.hosts.models import HostOrganization, HostSite
 from apps.seed.context import DUMMY_USERNAME
@@ -20,7 +25,7 @@ from apps.workers.models import (
     PassportRecord,
     ResidenceRecord,
 )
-from services import contracts, corporate_number, passport, residence_card
+from services import condition_templates, contracts, corporate_number, passport, residence_card
 from tests.core.factories import make_organization
 from tests.hosts.factories import make_host
 from tests.workers.factories import make_worker
@@ -263,3 +268,29 @@ def test_reset_removes_generated_documents_of_dummy_workers() -> None:
     assert not GeneratedDocument.objects.filter(pk=document.pk).exists()
     assert not GeneratedDocumentSignature.objects.exists()
     assert GeneratedDocument.objects.filter(pk=kept.pk).exists()  # ダミーでない外国人の分は残る
+
+
+def test_condition_template_of_the_first_host_fills_a_valid_version() -> None:
+    """雇用条件のひな形（T41-D8）: 1 社目に 1 件。印の項目を入れれば、今の検査を通る版になる。"""
+    _seed("--date", BASE.isoformat())
+    template = EmploymentConditionTemplate.objects.get()
+    assert template.host_organization.name.endswith("サンプル精機工業株式会社")
+    assert "base_wage" in template.marked and "base_wage" not in template.values
+    assert template.values["wage_closing_day"] == "毎月末日"
+    initial, rows = condition_templates.initial_for(template)
+    assert "duties" not in initial and rows["deductions"][0]["amount"] == 25000
+    form = VersionForm(
+        {
+            **{
+                key: value for key, value in initial.items() if not isinstance(value, bool) or value
+            },
+            "starts_on": "2026-11-01",
+            "ends_on": "2027-10-31",
+            "base_wage": "230000",
+            "duties": "製造工程の作業（ダミー）",
+            "hourly_equivalent": str(round(230000 * 60 / 9800)),
+        }
+    )
+    assert form.is_valid(), form.errors
+    _seed("--reset", "--date", BASE.isoformat())
+    assert EmploymentConditionTemplate.objects.count() == 1

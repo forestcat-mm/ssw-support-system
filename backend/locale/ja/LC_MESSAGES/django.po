@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 22:52+0900\n"
+"POT-Creation-Date: 2026-10-19 23:06+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -337,6 +337,24 @@ msgid ""
 "The bilingual version is the one distributed by the Immigration Services "
 "Agency."
 msgstr "併記の版は、出入国在留管理庁が配布するものです。"
+
+msgid "Shifts"
+msgstr "交代制の勤務時間"
+
+msgid "Allowances (annex 1)"
+msgstr "諸手当（別紙1）"
+
+msgid "Deductions (annex 1)"
+msgstr "賃金支払時に控除する項目（別紙1）"
+
+msgid "name of the template"
+msgstr "ひな形の名前"
+
+msgid "in use"
+msgstr "使う"
+
+msgid "items entered for each worker"
+msgstr "外国人ごとに入れる項目"
 
 msgid "expiry of contract period"
 msgstr "契約満了"
@@ -897,6 +915,21 @@ msgstr "報酬の説明"
 msgid "wage explanations"
 msgstr "報酬の説明"
 
+msgid "values"
+msgstr "値"
+
+msgid "detail rows"
+msgstr "明細の行"
+
+msgid "employment condition template"
+msgstr "雇用条件のひな形"
+
+msgid "employment condition templates"
+msgstr "雇用条件のひな形"
+
+msgid "Saved the template."
+msgstr "ひな形を保存しました。"
+
 msgid "Void an attachment"
 msgstr "添付の取消"
 
@@ -922,6 +955,39 @@ msgstr "取り消す"
 msgid "Cancel"
 msgstr "キャンセル"
 
+msgid "Edit the employment condition template"
+msgstr "雇用条件のひな形を編集"
+
+msgid "Add an employment condition template"
+msgstr "雇用条件のひな形を追加"
+
+msgid ""
+"The items are the same as the employment contract (reference form 1-6). All "
+"items are optional. Mark the items entered for each worker (such as the "
+"wage): when a contract is registered with this template, the other items are "
+"filled in and the marked items are left blank to enter. Changing the "
+"template does not change the contracts already registered."
+msgstr ""
+"項目は雇用契約（参考様式第1-6号）と同じで、すべて任意です。給与など外国人ごと"
+"に入れる項目に印を付けてください。このひな形で契約を登録すると、印の無い項目"
+"に値が入り、印の付いた項目は空のまま入れる形になります。ひな形を直しても、登"
+"録済みの契約は変わりません。"
+
+msgid "entered for each worker"
+msgstr "外国人ごとに入れる"
+
+msgid "Add a shift"
+msgstr "勤務時間を追加"
+
+msgid "Add an allowance"
+msgstr "手当を追加"
+
+msgid "Add a deduction"
+msgstr "控除を追加"
+
+msgid "Save"
+msgstr "保存する"
+
 #, python-format
 msgid "Generate the %(name)s"
 msgstr "%(name)sを作る"
@@ -943,6 +1009,19 @@ msgstr "雇用契約を登録"
 msgid "Add a new version: %(name)s"
 msgstr "新しい版を追加: %(name)s"
 
+msgid "(do not use a template)"
+msgstr "（ひな形を使わない）"
+
+msgid ""
+"The values of the template are filled in. The items marked in the template "
+"are left blank to enter for this worker."
+msgstr ""
+"ひな形の値が入ります。ひな形で印の付いた項目は空のままなので、この外国人の値"
+"を入れてください。"
+
+msgid "Fill in from the template"
+msgstr "ひな形から入れる"
+
 #, python-format
 msgid ""
 "The values of version %(number)s are copied. Change only what changed and "
@@ -960,23 +1039,18 @@ msgstr ""
 "項目は雇用条件書（参考様式第1-6号）の順です。雇用主の受入れ機関は、選んだ事業"
 "所の受入れ機関になります。"
 
-msgid "Shifts"
-msgstr "交代制の勤務時間"
+#, python-format
+msgid "Items to enter for this worker (template: %(name)s)"
+msgstr "この外国人ごとに入れる項目（ひな形: %(name)s）"
 
-msgid "Add a shift"
-msgstr "勤務時間を追加"
+msgid ""
+"The other items are filled in from the template. Check them and change them "
+"if needed."
+msgstr "ほかの項目はひな形から入れました。確かめて、必要なら直してください。"
 
-msgid "Allowances (annex 1)"
-msgstr "諸手当（別紙1）"
-
-msgid "Add an allowance"
-msgstr "手当を追加"
-
-msgid "Deductions (annex 1)"
-msgstr "賃金支払時に控除する項目（別紙1）"
-
-msgid "Add a deduction"
-msgstr "控除を追加"
+#, python-format
+msgid "Enter the rows below for this worker: %(rows)s."
+msgstr "次の行は、下の欄でこの外国人の分を入れてください: %(rows)s。"
 
 #, python-format
 msgid "Documents of version %(number)s (reference)"
@@ -988,9 +1062,6 @@ msgid ""
 msgstr ""
 "根拠資料は写しません。引き続き使う資料は、保存した後に新しい版に添付し直しま"
 "す。"
-
-msgid "Save"
-msgstr "保存する"
 
 msgid "Wage explanation (form 1-4)"
 msgstr "報酬の説明（第1-4号）"
@@ -4279,6 +4350,23 @@ msgstr "キャリアアッププラン"
 msgid "No career-up plans are registered."
 msgstr "キャリアアッププランは登録されていません。"
 
+msgid "Employment condition templates"
+msgstr "雇用条件のひな形"
+
+msgid "Add a template"
+msgstr "ひな形を追加"
+
+#, python-format
+msgid "%(counter)s item entered for each worker"
+msgid_plural "%(counter)s items entered for each worker"
+msgstr[0] "外国人ごとに入れる項目 %(counter)s 件"
+
+msgid "not in use"
+msgstr "使わない"
+
+msgid "No employment condition templates are registered."
+msgstr "雇用条件のひな形は登録されていません。"
+
 msgid "Consultation records (form 5-4)"
 msgstr "相談記録書（第5-4号）"
 
@@ -6440,6 +6528,15 @@ msgid ""
 "changed."
 msgstr ""
 "この版は生成か交付記録に使ったので、直せません。新しい版を足してください。"
+
+msgid "Unknown items are marked."
+msgstr "項目に無いものに印が付いています。"
+
+msgid "Select a site of the host organization of the template."
+msgstr "ひな形の受入れ機関の事業所を選んでください。"
+
+msgid "A template with this name already exists."
+msgstr "同じ名前のひな形があります。"
 
 msgid "Enter the organization the case was handed over to."
 msgstr "引継ぎ先を入力してください。"

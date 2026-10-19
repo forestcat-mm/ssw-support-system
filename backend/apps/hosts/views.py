@@ -9,7 +9,7 @@ from django.views.generic import TemplateView
 from apps.core.models import Action, User
 from apps.core.permissions import ActionRequiredMixin
 from apps.hosts.models import HostOrganization
-from services import audit, authorization, career_plans, host_detail
+from services import audit, authorization, career_plans, condition_templates, host_detail
 
 
 class HostListView(ActionRequiredMixin, TemplateView):
@@ -64,6 +64,11 @@ class HostDetailView(ActionRequiredMixin, TemplateView):
             can_reopen=authorization.has_action(user, Action.CONTRACTS_REOPEN),
         )
         context["career_plans"] = career_plans.plans_of(host)  # キャリアアッププラン（T36）
+        # 雇用条件のひな形（T41。報酬などの契約の値を含むので、契約を見る権限も要る）
+        can_see_templates = authorization.has_action(user, Action.CONTRACTS_VIEW)
+        context["can_see_templates"] = can_see_templates
+        if can_see_templates:
+            context["condition_templates"] = condition_templates.of_host(host)
         # 相談記録書（第5-4号。複数の外国人の個人情報を含むので、外国人の閲覧の権限も要る。T35）
         can_generate = with_workers and authorization.has_action(user, Action.FORMS_GENERATE)
         context["can_generate_consultations"] = can_generate

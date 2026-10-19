@@ -109,6 +109,15 @@
     {% else %}<p class="muted">{% translate "No career-up plans are registered." %}</p>{% endif %}
   </section>
 
+  {% if can_see_templates %}
+  <section class="card" id="condition-templates">
+    <div class="card__header"><h2 class="card__title">{% translate "Employment condition templates" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" id="condition-template-create" href="{% url 'hosts:condition_template_create' host.pk %}">{% translate "Add a template" %}</a>{% endif %}</div>
+    {% if condition_templates %}
+    <ul class="stack" style="list-style: none; padding: 0; margin: 0">{% for item in condition_templates %}<li data-template="{{ item.pk }}">{% if can_manage %}<a href="{% url 'hosts:condition_template_edit' host.pk item.pk %}">{{ item.name }}</a>{% else %}{{ item.name }}{% endif %} <span class="caption">{% blocktranslate count counter=item.marked|length %}{{ counter }} item entered for each worker{% plural %}{{ counter }} items entered for each worker{% endblocktranslate %}{% if not item.is_active %} · {% translate "not in use" %}{% endif %}</span></li>{% endfor %}</ul>
+    {% else %}<p class="muted">{% translate "No employment condition templates are registered." %}</p>{% endif %}
+  </section>
+  {% endif %}
+
   {% if can_generate_consultations %}
   <section class="card" id="consultation-records">
     <div class="card__header"><h2 class="card__title">{% translate "Consultation records (form 5-4)" %}</h2><a class="button button--neutral button--small" href="{% url 'hosts:consultation_records' host.pk %}">{% translate "Generate the consultation records" %}</a></div>

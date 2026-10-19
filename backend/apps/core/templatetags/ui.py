@@ -161,3 +161,15 @@ def active_attachments(attachments: Any) -> list[Any]:
 def get_item(mapping: Any, key: Any) -> Any:
     """辞書の値（無ければ None）。行の ID ごとの結果を表の行で引く（T42）。"""
     return mapping.get(key) if hasattr(mapping, "get") else None
+
+
+@register.filter
+def bound_field(form: Any, name: str) -> Any:
+    """フォームの欄（名前で引く。ひな形の印の欄を先頭にまとめる。T41）。"""
+    return form[name]
+
+
+@register.filter
+def sections_without(form: Any, names: Any) -> Any:
+    """版のフォームの節（names の欄を除く。T41）。"""
+    return form.sections(exclude=set(names or ()))

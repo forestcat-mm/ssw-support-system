@@ -1,0 +1,40 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% if template.pk %}{% translate "Edit the employment condition template" %}{% else %}{% translate "Add an employment condition template" %}{% endif %} | {{ host.name }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{{ back }}">← {{ host.name }}</a></p>
+  <h1>{% if template.pk %}{% translate "Edit the employment condition template" %}{% else %}{% translate "Add an employment condition template" %}{% endif %}</h1>
+{% endblock %}
+{% block content %}
+<form class="form" method="post" novalidate id="condition-template-form" data-keepalive="{% url 'accounts:keepalive' %}">
+  {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+  {% include "ui/components/form_errors.html" with form=editor.form %}
+  {% include "ui/components/form_errors.html" with form=editor.meta %}
+  <div class="stack">
+    <p class="caption">{% translate "The items are the same as the employment contract (reference form 1-6). All items are optional. Mark the items entered for each worker (such as the wage): when a contract is registered with this template, the other items are filled in and the marked items are left blank to enter. Changing the template does not change the contracts already registered." %}</p>
+    <section class="card stack" id="template-meta">
+      {% form_field editor.meta.name %}
+      {% form_field editor.meta.is_active %}
+    </section>
+    {% for title, fields in editor.form.sections %}{% if fields %}
+    <section class="card stack" id="section-{{ forloop.counter }}">
+      <h2>{{ title }}</h2>
+      {% for field in fields %}<div class="template-field{% if field.name in marked %} template-field--marked{% endif %}" data-field="{{ field.name }}">
+        {% form_field field %}
+        <label class="caption template-field__mark"><input type="checkbox" name="marked" value="{{ field.name }}"{% if field.name in marked %} checked{% endif %}> {% translate "entered for each worker" %}</label>
+      </div>{% endfor %}
+      {% if forloop.counter == 5 %}{% include "support/components/formset_rows.html" with formset=editor.shifts id="shift-rows" title=_("Shifts") add_label=_("Add a shift") nested=True %}<label class="caption template-field__mark"><input type="checkbox" name="marked" value="shifts"{% if "shifts" in marked %} checked{% endif %}> {% translate "entered for each worker" %}（{% translate "Shifts" %}）</label>{% endif %}
+      {% if forloop.counter == 8 %}
+        {% include "support/components/formset_rows.html" with formset=editor.allowances id="allowance-rows" title=_("Allowances (annex 1)") add_label=_("Add an allowance") nested=True %}
+        <label class="caption template-field__mark"><input type="checkbox" name="marked" value="allowances"{% if "allowances" in marked %} checked{% endif %}> {% translate "entered for each worker" %}（{% translate "Allowances (annex 1)" %}）</label>
+        {% include "support/components/formset_rows.html" with formset=editor.deductions id="deduction-rows" title=_("Deductions (annex 1)") add_label=_("Add a deduction") nested=True %}
+        <label class="caption template-field__mark"><input type="checkbox" name="marked" value="deductions"{% if "deductions" in marked %} checked{% endif %}> {% translate "entered for each worker" %}（{% translate "Deductions (annex 1)" %}）</label>
+      {% endif %}
+    </section>
+    {% endif %}{% endfor %}
+  </div>
+  <div class="form-actions">
+    <button class="button button--primary" type="submit">{% translate "Save" %}</button>
+    <a class="button button--neutral" href="{{ back }}">{% translate "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

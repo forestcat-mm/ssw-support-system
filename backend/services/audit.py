@@ -70,6 +70,7 @@ AUDITED_MODELS: frozenset[str] = frozenset(
         "contracts.employmentcontractallowance",
         "contracts.employmentcontractdeduction",
         "contracts.contractwageexplanation",
+        "contracts.employmentconditiontemplate",  # 雇用条件のひな形（T41）
         "filings.filing",
         # 支援計画（版とその中身は作成だけ。変更・削除はモデルが拒否する）
         "support.supportplan",
@@ -127,6 +128,7 @@ VIEW_AUDITED_MODELS: frozenset[str] = frozenset(
         "contracts.employmentcontractallowance",
         "contracts.employmentcontractdeduction",
         "contracts.contractwageexplanation",
+        "contracts.employmentconditiontemplate",
         "filings.filing",
     }
 )

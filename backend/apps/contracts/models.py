@@ -670,3 +670,42 @@ class ContractWageExplanation(TrackedModel):
 
     def __str__(self) -> str:
         return f"{self.version}"
+
+
+class EmploymentConditionTemplate(TrackedModel):
+    """受入れ機関ごとの雇用条件のひな形（T41、ADR-0034）。
+
+    版の入力（第1-6号の項目と、交代制・手当・控除の行）の値を JSON で持つ。
+    契約の登録の画面で選ぶと、印（marked）の無い項目に値が入り、印の付いた項目
+    （給与など外国人ごとに変える項目）だけを入れる。
+    値を写すだけで版とは結ばない（ひな形を直しても、作成済みの版は変わらない）。
+    消さずに「使わない」にする。
+    """
+
+    host_organization = models.ForeignKey(
+        HostOrganization,
+        verbose_name=_("host organization"),
+        on_delete=models.PROTECT,
+        related_name="condition_templates",
+    )
+    name = models.CharField(_("name"), max_length=100)
+    # 版の項目の値（VersionForm の項目の名前 → 値。日付は ISO、時刻は HH:MM、事業所・区分は ID）
+    values = models.JSONField(_("values"), default=dict, blank=True)
+    # 明細の行（shifts・allowances・deductions → 行の値の一覧）
+    details = models.JSONField(_("detail rows"), default=dict, blank=True)
+    # 外国人ごとに入れる項目（項目の名前。明細の行は shifts・allowances・deductions）
+    marked = models.JSONField(_("items entered for each worker"), default=list, blank=True)
+    is_active = models.BooleanField(_("in use"), default=True)
+
+    class Meta:
+        verbose_name = _("employment condition template")
+        verbose_name_plural = _("employment condition templates")
+        ordering = ["host_organization", "name", "pk"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["host_organization", "name"], name="contracts_condition_template_unique"
+            )
+        ]
+
+    def __str__(self) -> str:
+        return self.name
