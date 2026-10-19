@@ -87,6 +87,15 @@ def test_register_and_edit_a_host_and_see_the_deadlines(
         page.locator("#id_address").fill(address)
         page.locator("#id_industry_code").fill(code)
         page.locator("#id_field").select_option(str(field(skill_field).pk))
+        # 分野の区分だけが見える（修正 1 回目 B1）
+        other_code = (
+            "food_manufacturing_general"
+            if skill_field == "industrial_products"
+            else "machine_metal_processing"
+        )
+        expect(
+            page.locator(f'input[name="categories"][value="{category(other_code).pk}"]')
+        ).to_be_hidden()
         page.locator(f'input[name="categories"][value="{category(category_code).pk}"]').check()
         no_horizontal_scroll(page, width)
         page.get_by_role("button", name="保存する").click()

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 15:17+0900\n"
+"POT-Creation-Date: 2026-10-19 15:24+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -262,6 +262,30 @@ msgstr "業務区分"
 msgid "Select from the categories registered for the site."
 msgstr "事業所に登録した業務区分から選びます。"
 
+msgid "daily working hours"
+msgstr "１日の所定労働時間"
+
+msgid "weekly working hours"
+msgstr "１週の所定労働時間"
+
+msgid "monthly working hours"
+msgstr "１か月の所定労働時間"
+
+msgid "Average per month over a year if it varies by month."
+msgstr "月によって異なる場合は、1 年間の 1 か月平均です。"
+
+msgid "annual working hours"
+msgstr "１年の所定労働時間"
+
+msgid "wage closing day"
+msgstr "賃金締切日"
+
+msgid "other"
+msgstr "その他"
+
+msgid "wage payment day"
+msgstr "賃金支払日"
+
 msgid "Leave blank to use the start date (version 1)."
 msgstr "空なら契約の開始日にします（第1版）。"
 
@@ -325,9 +349,6 @@ msgstr "会社都合"
 
 msgid "change of job"
 msgstr "転職"
-
-msgid "other"
-msgstr "その他"
 
 msgid "starts on"
 msgstr "開始日"
@@ -647,14 +668,8 @@ msgstr "割増賃金率：法定外休日（％）"
 msgid "late-night premium (%)"
 msgstr "割増賃金率：深夜（％）"
 
-msgid "wage closing day"
-msgstr "賃金締切日"
-
 msgid "e.g. end of month, 15th"
 msgstr "例: 毎月末日、毎月15日"
-
-msgid "wage payment day"
-msgstr "賃金支払日"
 
 msgid "e.g. 25th of the following month"
 msgstr "例: 翌月25日"
@@ -2178,6 +2193,14 @@ msgstr "未割当"
 
 msgid "required field"
 msgstr "必須"
+
+msgctxt "duration"
+msgid "hours"
+msgstr "時間"
+
+msgctxt "duration"
+msgid "minutes"
+msgstr "分"
 
 msgid "Back"
 msgstr "戻る"

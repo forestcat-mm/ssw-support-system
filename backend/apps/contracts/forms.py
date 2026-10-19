@@ -20,10 +20,20 @@ from apps.contracts.models import (
     EmploymentContractVersion,
     TerminationReason,
 )
-from apps.core.web_forms import StyledFormMixin
+from apps.core.web_forms import (
+    FilteredCheckboxSelectMultiple,
+    HoursMinutesField,
+    PresetOrOtherField,
+    StyledFormMixin,
+)
 from apps.hosts.models import HostSite, OperationCategory
 from apps.support.record_forms import MultipleFileField
 from services import contracts
+
+# 賃金の締切日・支払日の定番（第1-6号Ⅶ４・５は「毎月　日」。修正 1 回目 B4）
+DAYS = ("末日", "5日", "10日", "15日", "20日", "25日")
+CLOSING_DAYS = [(f"毎月{day}", f"毎月{day}") for day in DAYS]
+PAYMENT_DAYS = [(f"{month}{day}", f"{month}{day}") for month in ("当月", "翌月") for day in DAYS]
 
 SECTIONS: tuple[tuple[Any, tuple[str, ...]], ...] = (
     (_("Change"), ("changed_on", "change_reason", "signed_on")),
@@ -177,8 +187,24 @@ class VersionForm(StyledFormMixin, forms.ModelForm[EmploymentContractVersion]):
     categories = forms.ModelMultipleChoiceField(
         label=_("operation categories"),
         queryset=OperationCategory.objects.none(),
-        widget=forms.CheckboxSelectMultiple,
+        widget=FilteredCheckboxSelectMultiple(source="id_site"),
         help_text=_("Select from the categories registered for the site."),
+    )
+    # 所定労働時間は「時間」と「分」で入れる（保存は分のまま。修正 1 回目 B3）
+    daily_working_minutes = HoursMinutesField(label=_("daily working hours"))
+    weekly_working_minutes = HoursMinutesField(label=_("weekly working hours"))
+    monthly_working_minutes = HoursMinutesField(
+        label=_("monthly working hours"),
+        required=False,
+        help_text=_("Average per month over a year if it varies by month."),
+    )
+    annual_working_minutes = HoursMinutesField(label=_("annual working hours"), required=False)
+    # 締切日・支払日は定番の選択肢とその他（修正 1 回目 B4）
+    wage_closing_day = PresetOrOtherField(
+        CLOSING_DAYS, max_length=30, label=_("wage closing day"), other_label=_("other")
+    )
+    wage_payment_day = PresetOrOtherField(
+        PAYMENT_DAYS, max_length=30, label=_("wage payment day"), other_label=_("other")
     )
 
     class Meta:
@@ -238,6 +264,15 @@ class VersionForm(StyledFormMixin, forms.ModelForm[EmploymentContractVersion]):
         category_field = self.fields["categories"]
         assert isinstance(category_field, forms.ModelMultipleChoiceField)
         category_field.queryset = OperationCategory.objects.filter(sites__in=sites).distinct()
+        # 事業所を選ぶと、その事業所の区分だけを見せる（forms.js。修正 1 回目 B2）
+        widget = category_field.widget
+        assert isinstance(widget, FilteredCheckboxSelectMultiple)
+        widget.source = self["site"].auto_id
+        site_ids: dict[str, list[str]] = {}
+        for site in sites.prefetch_related("categories"):
+            for category in site.categories.all():
+                site_ids.setdefault(str(category.pk), []).append(str(site.pk))
+        widget.filter_values = site_ids
         self.fields["signed_on"].help_text = _(
             "Date of conclusion (version 1) or of the agreement to the change."
         )
@@ -254,6 +289,8 @@ class VersionForm(StyledFormMixin, forms.ModelForm[EmploymentContractVersion]):
 
 
 class ShiftForm(StyledFormMixin, forms.ModelForm[EmploymentContractShift]):
+    daily_working_minutes = HoursMinutesField(label=_("daily working hours"))
+
     class Meta:
         model = EmploymentContractShift
         fields = ("start_time", "end_time", "applies_to", "daily_working_minutes")

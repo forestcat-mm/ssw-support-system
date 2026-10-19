@@ -12,7 +12,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core.forms import allow_formatted_number_input
 from apps.core.models import AttachmentKind
-from apps.core.web_forms import StyledFormMixin
+from apps.core.web_forms import FilteredCheckboxSelectMultiple, StyledFormMixin
 from apps.hosts.models import (
     FeeTiming,
     HostCooperationConfirmation,
@@ -95,7 +95,7 @@ class HostSiteForm(StyledFormMixin, forms.ModelForm[HostSite]):
     categories = forms.ModelMultipleChoiceField(
         label=_("operation categories"),
         queryset=OperationCategory.objects.none(),
-        widget=forms.CheckboxSelectMultiple,
+        widget=FilteredCheckboxSelectMultiple(source="id_field"),
         help_text=_("Select the categories of the site's field. More than one can be selected."),
     )
 
@@ -136,6 +136,13 @@ class HostSiteForm(StyledFormMixin, forms.ModelForm[HostSite]):
             .order_by("field__sort_order", "sort_order", "code")
         )
         self.fields["categories"].label_from_instance = _category_label  # type: ignore[attr-defined]
+        # 分野を選ぶと、その分野の区分だけを見せる（forms.js。修正 1 回目 B1）
+        widget = self.fields["categories"].widget
+        assert isinstance(widget, FilteredCheckboxSelectMultiple)
+        widget.filter_values = {
+            str(category.pk): [str(category.field_id)]
+            for category in self.fields["categories"].queryset  # type: ignore[attr-defined]
+        }
         if selected:
             self.initial.setdefault("categories", selected)
         field_queryset = SpecifiedSkillField.objects.filter(is_active=True)

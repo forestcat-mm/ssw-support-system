@@ -69,16 +69,22 @@ def test_register_change_and_terminate_a_contract(
     page.locator("#id_duties").fill("機械金属加工の作業")
     page.locator("#id_start_time").fill("08:30")
     page.locator("#id_end_time").fill("17:30")
-    page.locator("#id_daily_working_minutes").fill("480")
+    # 所定労働時間は時間と分（修正 1 回目 B3）
+    page.locator("#id_daily_working_minutes_0").fill("8")
+    page.locator("#id_daily_working_minutes_1").fill("0")
     page.locator("#id_break_minutes").fill("60")
-    page.locator("#id_weekly_working_minutes").fill("2400")
+    page.locator("#id_weekly_working_minutes_0").fill("40")
+    page.locator("#id_weekly_working_minutes_1").fill("0")
     page.locator("#id_weekly_working_days").fill("5")
     page.locator("#id_annual_holidays").fill("120")
     page.locator("#id_paid_leave_days").fill("10")
     page.locator("#id_wage_type").select_option("monthly")
     page.locator("#id_base_wage").fill("220000")
-    page.locator("#id_wage_closing_day").fill("毎月末日")
-    page.locator("#id_wage_payment_day").fill("翌月25日")
+    # 締切日・支払日は定番の選択肢（修正 1 回目 B4）。その他を選ぶと文字の欄が出る
+    page.locator("#id_wage_closing_day_0").select_option("毎月末日")
+    expect(page.locator("#id_wage_closing_day_1")).to_be_hidden()
+    page.locator("#id_wage_payment_day_0").select_option("__other__")
+    page.locator("#id_wage_payment_day_1").fill("翌々月10日")
     page.locator("#id_payment_method").select_option("bank_transfer")
     page.get_by_role("button", name="手当を追加").click()
     page.locator("#id_allowances-0-name").fill("住宅手当")
@@ -88,6 +94,9 @@ def test_register_change_and_terminate_a_contract(
     expect(page.get_by_text("雇用契約を保存しました（第 1 版）。")).to_be_visible()
     contract = EmploymentContract.objects.get(worker=worker)
     assert contract.host_organization == site.host_organization
+    first = contract.versions.get()
+    assert (first.daily_working_minutes, first.weekly_working_minutes) == (480, 2400)
+    assert (first.wage_closing_day, first.wage_payment_day) == ("毎月末日", "翌々月10日")
 
     # 新しい版（基本給の減額 → 変更届出）。前の版の値と手当が写っている
     page.get_by_role("link", name="新しい版を追加").click()

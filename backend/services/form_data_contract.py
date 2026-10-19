@@ -13,6 +13,7 @@
 from __future__ import annotations
 
 import datetime
+import re
 from collections.abc import Iterable
 from typing import Any
 
@@ -175,6 +176,21 @@ def _rows(prefix: str, rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+# 「毎月◯日」「当月◯日」は印刷済みの「□　毎月　　　日、　□　毎月　　　日」の 1 つ目に入れ、
+# ほか（翌月・その他）は印刷済みの文を値で置き換える（T34-D4。修正 1 回目 B4）
+MONTHLY_DAY = re.compile(r"^(?:毎月|当月)(末日|(\d{1,2})日)$")
+
+
+def wage_day_text(value: str) -> str:
+    if not value:
+        return ""
+    found = MONTHLY_DAY.match(value)
+    if found is None:
+        return f"■{SP}{value}"
+    day = "末日" if found.group(2) is None else f"{int(found.group(2))}日"
+    return f"■{SP}毎月{day.rjust(4, SP)}、{SP}□{SP}毎月{SP * 3}日"
+
+
 def build_1_6(version: EmploymentContractVersion) -> dict[str, Any]:
     contract = version.contract
     host = contract.host_organization
@@ -242,8 +258,8 @@ def build_1_6(version: EmploymentContractVersion) -> dict[str, Any]:
         "rate_holiday_non_statutory": version.holiday_rate_non_statutory,
         "rate_night": version.night_rate,
         # 印刷済みの「□　毎月　日、□　毎月　日」を値で置き換える（T34-D4）
-        "wage_closing_day": f"■{SP}{version.wage_closing_day}" if version.wage_closing_day else "",
-        "wage_payment_day": f"■{SP}{version.wage_payment_day}" if version.wage_payment_day else "",
+        "wage_closing_day": wage_day_text(version.wage_closing_day),
+        "wage_payment_day": wage_day_text(version.wage_payment_day),
         "payment_bank": version.payment_method == "bank_transfer",
         "payment_cash": version.payment_method == "cash",
         "deduction_agreement_no": not version.has_deduction_agreement,

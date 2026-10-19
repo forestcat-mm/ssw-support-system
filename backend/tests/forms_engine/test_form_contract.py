@@ -309,7 +309,11 @@ def test_contract_data_uses_full_width_numbers_and_replaces_printed_text(loaded:
     assert values["start_h"] == "　８" and values["start_mi"] == "３０"
     assert values["wage_monthly"] == "■" and values["wage_hourly"] == "□"
     assert values["wage_monthly_amount"] == "２２０，０００".rjust(7, "　")
-    assert values["wage_closing_day"] == "■　毎月末日"  # 印刷済みの「□　毎月　日」を置き換える
+    # 「毎月◯日」は印刷済みの「□　毎月　　　日、…」の 1 つ目に入れる（修正 1 回目 B4）
+    assert values["wage_closing_day"] == "■　毎月　　末日、　□　毎月　　　日"
+    # 翌月払いは様式に欄が無いので、印刷済みの文を値で置き換える（T34-D4）
+    assert values["wage_payment_day"] == "■　翌月２５日"
+    assert form_data_contract.wage_day_text("当月20日") == "■　毎月　20日、　□　毎月　　　日"
     assert values["national_holidays"] == "　" * 8  # 国民の祝日が休日でない（T34-D8）
     assert values["renewal_limit"] == "無"
     assert str(values["check_interval"]).startswith("１年")  # 「（その後　ごとに実施）」と重ねない

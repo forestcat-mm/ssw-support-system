@@ -1,0 +1,1 @@
+{% load i18n %}<span class="cluster hours-minutes">{% with widget.subwidgets as parts %}{% include parts.0.template_name with widget=parts.0 %}<span>{% translate "hours" context "duration" %}</span>{% include parts.1.template_name with widget=parts.1 %}<span>{% translate "minutes" context "duration" %}</span>{% endwith %}</span>

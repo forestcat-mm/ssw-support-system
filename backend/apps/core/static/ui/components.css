@@ -822,3 +822,20 @@ a.badge:hover {
 .message--strong {
   font-weight: 600;
 }
+
+/* 時間と分・定番の選択肢とその他（修正 1 回目 B3・B4） */
+.input--narrow {
+  width: 6em;
+  max-width: 6em;
+}
+
+.hours-minutes,
+.preset-or-other {
+  align-items: center;
+}
+
+.preset-or-other .select,
+.preset-or-other .input {
+  width: auto;
+  max-width: 100%;
+}

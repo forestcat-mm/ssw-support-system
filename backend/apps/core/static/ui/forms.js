@@ -109,3 +109,44 @@ document.querySelectorAll("[data-set-radios]").forEach((button) => {
     scope.closest("form")?.dispatchEvent(new Event("change"));
   });
 });
+
+// 選択肢の絞り込み（修正 1 回目 B1・B2）: data-filter-source の欄で選んだ値を data-filter-values に
+// 含むチェックボックスだけを見せ、隠したものは外す（保存の検査はサーバーで行う）。
+(() => {
+  const groups = new Map();
+  document.querySelectorAll("input[data-filter-source]").forEach((input) => {
+    const id = input.dataset.filterSource;
+    if (!groups.has(id)) groups.set(id, []);
+    groups.get(id).push(input);
+  });
+  groups.forEach((inputs, id) => {
+    const source = document.getElementById(id);
+    if (!source) return;
+    const apply = () => {
+      const value = source.value;
+      inputs.forEach((input) => {
+        const values = (input.dataset.filterValues || "").split(" ").filter(Boolean);
+        const show = !value || values.includes(value);
+        const row = input.closest("div") || input.parentElement;
+        row.hidden = !show;
+        if (!show) input.checked = false;
+      });
+    };
+    source.addEventListener("change", apply);
+    apply();
+  });
+})();
+
+// 定番の選択肢と「その他（自由入力）」（修正 1 回目 B4）: その他のときだけ文字の欄を見せる。
+document.querySelectorAll("[data-preset-or-other]").forEach((group) => {
+  const select = group.querySelector("select");
+  const text = group.querySelector("input");
+  if (!select || !text) return;
+  const apply = () => {
+    const other = select.value === "__other__";
+    text.hidden = !other;
+    if (!other) text.value = "";
+  };
+  select.addEventListener("change", apply);
+  apply();
+});
