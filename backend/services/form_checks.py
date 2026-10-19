@@ -44,7 +44,7 @@ from apps.support.models import (
     PeriodicInterview,
     SupportPlanVersion,
 )
-from apps.workers.models import ApplicationType, ForeignWorker, LatestResidenceRecord
+from apps.workers.models import ForeignWorker, LatestResidenceRecord, WorkerStatus
 from services import briefings, contracts, deliveries, hosts
 from services.support_catalog import Method, SupportItem, form_row_name
 
@@ -276,15 +276,23 @@ def _membership_certificate(context: CheckContext, params: Mapping[str, Any]) ->
 
 @check("residence_valid_on_basis")
 def _residence_valid_on_basis(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
-    """在留期限が基準日（申請日）より後（入国前の在留資格認定証明書の行は在留期限ではないので見ない）。"""
+    """在留期限が基準日（申請日）より後（入国前の在留資格認定証明書の行は在留期限ではないので見ない）。
+
+    入国前の外国人は、在留資格認定証明書の交付申請のときには在留情報がまだ無い（認定証明書は申請の
+    結果）ので、行が無くても止めない（手動のテストシナリオの節 6 で分かった）。
+    """
+    from services import worker_detail  # 循環を避ける
+
     destination = Destination("workers:history", {"pk": context.worker.pk})
     latest = (
         LatestResidenceRecord.objects.select_related("record").filter(worker=context.worker).first()
     )
     if latest is None:
+        if context.worker.status == WorkerStatus.PRE_ENTRY:
+            return []
         return [Issue("residence_missing", _("No residence record is registered."), destination)]
     record = latest.record
-    if record.application_type == ApplicationType.CERTIFICATE_OF_ELIGIBILITY:
+    if worker_detail.is_certificate_of_eligibility(record):
         return []
     if record.expires_on > context.basis_on:
         return []

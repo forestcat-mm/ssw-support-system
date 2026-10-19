@@ -81,8 +81,14 @@ def _latest_record(latest_model: type[models.Model], worker: ForeignWorker) -> A
 
 
 def is_certificate_of_eligibility(record: ResidenceRecord) -> bool:
-    """在留資格認定証明書の行（入国前。期限は認定証明書の有効期限。修正 1 回目 B5）。"""
-    return record.application_type == ApplicationType.CERTIFICATE_OF_ELIGIBILITY
+    """在留資格認定証明書の行（入国前。期限は認定証明書の有効期限。修正 1 回目 B5）。
+
+    認定証明書で入国して在留カードの番号がある行（上陸の許可で交付された在留カード）は含めない。
+    """
+    return (
+        record.application_type == ApplicationType.CERTIFICATE_OF_ELIGIBILITY
+        and not record.card_number
+    )
 
 
 def basic_info(worker: ForeignWorker) -> BasicInfo:
