@@ -11,7 +11,7 @@ from collections.abc import Callable
 import pytest
 from django.core.management import call_command
 from django.urls import get_resolver, reverse
-from playwright.sync_api import Page
+from playwright.sync_api import Dialog, Page
 from pytest_django.live_server_helper import LiveServer
 
 from apps.core.models import User
@@ -94,3 +94,23 @@ def answer_all_no(page: Page) -> None:
     for scope in ("#interview-self-answers", "#interview-supervisor-answers"):
         page.locator(scope).get_by_role("button", name="すべて「問題無」にする").click()
     page.locator('input[name="nonconformity-exists"][value="no"]').check()
+
+
+@pytest.fixture(autouse=True)
+def leave_unsaved_pages(request: pytest.FixtureRequest) -> None:
+    """保存していない変更のブラウザの確かめ（beforeunload。修正 1 回目 B17）は「移動する」で閉じる。
+
+    テストは入力の途中で別の画面に移ることがある。確かめの文言はブラウザが決めるので、ここでは出たことだけ
+    を受け流す（出ること自体は e2e/test_unsaved_changes.py で確かめる）。ほかのダイアログは閉じる。
+    """
+    if "page" not in request.fixturenames:
+        return
+    page: Page = request.getfixturevalue("page")
+
+    def handle(dialog: Dialog) -> None:
+        if dialog.type == "beforeunload":
+            dialog.accept()
+        else:
+            dialog.dismiss()
+
+    page.on("dialog", handle)

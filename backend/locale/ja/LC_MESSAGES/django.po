@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 16:14+0900\n"
+"POT-Creation-Date: 2026-10-19 16:21+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -2210,6 +2210,21 @@ msgstr "メニュー"
 msgid "Close"
 msgstr "閉じる"
 
+msgid "Leave without saving?"
+msgstr "保存せずに移動しますか"
+
+msgid ""
+"The changes on this page have not been saved. If you leave, they will be "
+"lost."
+msgstr ""
+"この画面の変更はまだ保存していません。移動すると、入力した内容は消えます。"
+
+msgid "Leave without saving"
+msgstr "保存せずに移動"
+
+msgid "Stay on this page"
+msgstr "このページに残る"
+
 msgid "filer"
 msgstr "届出主体"
 
@@ -2435,6 +2450,31 @@ msgstr "回復用コードでログインしました。残りは %(count)d 個�
 
 msgid "The code is incorrect."
 msgstr "コードが正しくありません。"
+
+msgid "The corporate number is 13 digits and the check digit must match."
+msgstr "法人番号は 13 桁で、検査用数字（先頭の 1 桁）が合う必要があります。"
+
+msgid "A residence card number is 2 letters, 8 digits and 2 letters."
+msgstr "在留カード番号は英字 2 桁・数字 8 桁・英字 2 桁です。"
+
+msgid "A postal code is 7 digits."
+msgstr "郵便番号は 7 桁です。"
+
+msgid "Check the email address."
+msgstr "メールアドレスを確かめてください。"
+
+msgid "A phone number is digits, hyphens and parentheses."
+msgstr "電話番号は数字・ハイフン・かっこで入れてください。"
+
+msgid "Enter it in katakana."
+msgstr "カタカナで入れてください。"
+
+msgid "Enter the amount in digits."
+msgstr "金額は数字で入れてください。"
+
+#, python-brace-format
+msgid "Changed to “{value}”."
+msgstr "「{value}」に直しました。"
 
 msgid "page background"
 msgstr "ページの背景"

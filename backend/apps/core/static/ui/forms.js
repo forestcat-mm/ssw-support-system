@@ -154,6 +154,145 @@ initializers.push((root) => root.querySelectorAll("[data-preset-or-other]").forE
   apply();
 }));
 
+// 入力中の正規化（修正 1 回目 B13。[data-normalize]。保存のときは services/normalize.py が同じ規則で直す）:
+// 欄を離れたときに直し、直したときと形式が合わないときは欄の下に知らせる（保存の検査はサーバーで行う）。
+const DASHES = /[‐‑‒–—―−ー－]/g;
+const nfkc = (value) => String(value || "").normalize("NFKC").trim();
+const toKatakana = (value) =>
+  String(value || "")
+    .normalize("NFKC")
+    .replace(/[\u3041-\u3096]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 0x60))
+    .split(/\s+/)
+    .filter(Boolean)
+    .join("\u3000");
+const NORMALIZERS = {
+  corporate_number: (v) => nfkc(v).replace(/[\s\-‐]/g, ""),
+  residence_card: (v) => nfkc(v).replace(/[\s\-‐]/g, "").toUpperCase(),
+  passport: (v) => nfkc(v).replace(/[\s\-‐]/g, "").toUpperCase(),
+  postal: (v) => {
+    const text = nfkc(v);
+    const digits = text.replace(DASHES, "-").replace(/[\s〒\-]/g, "");
+    return /^[0-9]{7}$/.test(digits) ? `${digits.slice(0, 3)}-${digits.slice(3)}` : text;
+  },
+  phone: (v) => nfkc(v).replace(DASHES, "-"),
+  email: (v) => nfkc(v),
+  kana: toKatakana,
+  amount: (v) => nfkc(v).replace(/[\s,円¥￥]/g, ""),
+};
+const corporateCheckDigit = (base) => {
+  let total = 0;
+  Array.from(base).reverse().forEach((digit, index) => {
+    total += Number(digit) * (index % 2 === 0 ? 1 : 2);
+  });
+  return 9 - (total % 9);
+};
+const VALID = {
+  corporate_number: (v) => /^[0-9]{13}$/.test(v) && Number(v[0]) === corporateCheckDigit(v.slice(1)),
+  residence_card: (v) => /^[A-Z]{2}[0-9]{8}[A-Z]{2}$/.test(v),
+  postal: (v) => /^[0-9]{3}-[0-9]{4}$/.test(v),
+  email: (v) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v),
+  phone: (v) => /^[0-9+\-() ]+$/.test(v),
+  kana: (v) => /^[\u30a1-\u30fa\u30fc\u30fb\u3000]*$/.test(v),
+  amount: (v) => /^[0-9]+$/.test(v),
+};
+// 押している間に欄を離れた（保存のボタンを押した）ときは、知らせを離した後に出す。先に出すと下の部品が
+// ずれて、押したボタンが離す位置から外れ、クリックにならない
+let pointerIsDown = false;
+const afterPointer = [];
+document.addEventListener("pointerdown", () => {
+  pointerIsDown = true;
+}, true);
+document.addEventListener("pointerup", () => {
+  pointerIsDown = false;
+  window.setTimeout(() => afterPointer.splice(0).forEach((show) => show()), 0);
+}, true);
+const whenReleased = (show) => (pointerIsDown ? afterPointer.push(show) : show());
+initializers.push((root) => root.querySelectorAll("[data-normalize]").forEach((input) => {
+  const normalize = NORMALIZERS[input.dataset.normalize];
+  if (!normalize || input.dataset.normalizeReady) return;
+  input.dataset.normalizeReady = "true";
+  const note = document.createElement("span");
+  note.className = "form-row__note";
+  note.id = `${input.id}-note`;
+  note.setAttribute("aria-live", "polite");
+  note.hidden = true;
+  input.insertAdjacentElement("afterend", note);
+  input.addEventListener("blur", () => {
+    const before = input.value;
+    const after = normalize(before);
+    const messages = [];
+    if (after !== before && after !== before.trim()) {
+      messages.push((input.dataset.normalizeDone || "").replace("{value}", after));
+    }
+    if (after !== before) {
+      input.value = after;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    const valid = VALID[input.dataset.normalize];
+    if (after && valid && !valid(after) && input.dataset.normalizeInvalid) {
+      messages.push(input.dataset.normalizeInvalid);
+    }
+    const warning = Boolean(after && valid && !valid(after));
+    whenReleased(() => {
+      note.textContent = messages.join(" ");
+      note.hidden = messages.length === 0;
+      note.classList.toggle("form-row__note--warning", warning);
+    });
+  });
+}));
+
+// 保存していない変更（修正 1 回目 B17）: 入力のフォーム（form.form の POST。data-unsaved="off" は除く）の欄が
+// 変わったら、画面の中のリンクで移るときは確かめのダイアログ（#unsaved-dialog）、閉じる・再読み込み・戻るときは
+// ブラウザの確かめ（beforeunload）を出す。保存のボタンでの送信では出さない。
+const trackedForms = new Set();
+const isDirty = () => Array.from(trackedForms).some((form) => form.isConnected && form.dataset.dirty === "true");
+initializers.push((root) => root.querySelectorAll("form.form").forEach((form) => {
+  if (form.method.toLowerCase() !== "post" || form.dataset.unsaved === "off" || trackedForms.has(form)) return;
+  trackedForms.add(form);
+  const mark = () => {
+    form.dataset.dirty = "true";
+  };
+  form.addEventListener("input", mark);
+  form.addEventListener("change", mark);
+  form.addEventListener("submit", () => {
+    form.dataset.dirty = "false";
+  });
+}));
+window.addEventListener("beforeunload", (event) => {
+  if (!isDirty()) return;
+  event.preventDefault();
+  event.returnValue = "";
+});
+const initUnsavedLinks = () => {
+  const dialog = document.getElementById("unsaved-dialog");
+  if (!dialog) return;
+  let target = null;
+  document.addEventListener("click", (event) => {
+    const link = event.target instanceof Element ? event.target.closest("a[href]") : null;
+    if (!link || event.defaultPrevented || !isDirty()) return;
+    if (link.hasAttribute("data-modal") || link.hasAttribute("data-modal-close") || link.hasAttribute("download")) return;
+    if (link.target && link.target !== "_self") return;
+    const url = new URL(link.href, window.location.href);
+    if (url.origin !== window.location.origin) return;
+    if (url.pathname === window.location.pathname && url.search === window.location.search && url.hash) return;
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    target = url.href;
+    dialog.showModal();
+  });
+  dialog.querySelector("[data-unsaved-leave]")?.addEventListener("click", () => {
+    trackedForms.forEach((form) => {
+      form.dataset.dirty = "false";
+    });
+    dialog.close();
+    if (target) window.location.assign(target);
+  });
+  dialog.querySelector("[data-unsaved-stay]")?.addEventListener("click", () => {
+    target = null;
+    dialog.close();
+  });
+};
+
 // 委託料の内訳（修正 1 回目 B11）: 支援委託契約の画面の委託料の欄の「内訳」で、内訳の行をモーダルに開く。
 // 行はフォームの中に置いたまま（保存は契約と一緒に 1 回）。合計が委託料と合わないときは入力中に知らせ、
 // 合わないまま閉じると「委託料を内訳の合計に直す」「戻って内訳を直す」を選ぶ。委託料が空なら合計を入れる。
@@ -337,3 +476,4 @@ const initModal = () => {
 const initAll = (root) => initializers.forEach((init) => init(root));
 initAll(document);
 initModal();
+initUnsavedLinks();

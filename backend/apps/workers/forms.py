@@ -168,6 +168,7 @@ class WorkerForm(StyledFormMixin, forms.ModelForm[ForeignWorker]):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.style_fields()
+        self.normalize_field("name_kana", "kana")  # 外国人の氏名のカナはカタカナ（修正 1 回目 A4）
         staff_field = self.fields["assigned_staff"]
         assert isinstance(staff_field, forms.ModelChoiceField)
         staff_field.queryset = Staff.objects.filter(is_active=True).order_by("name_kana", "name")
@@ -242,6 +243,7 @@ class PassportRecordForm(HistoryRecordForm):
         self.fields["number"].widget.attrs.update(
             {"class": "input mono", "autocomplete": "off", "spellcheck": "false"}
         )
+        self.normalize_field("number", "passport")
 
     def clean(self) -> dict[str, Any]:
         cleaned = super().clean() or {}

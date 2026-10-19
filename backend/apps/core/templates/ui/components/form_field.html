@@ -3,7 +3,7 @@
   {% if field.help_text %}<span class="form-row__help" id="{{ field.auto_id }}-help">{{ field.help_text }}</span>{% endif %}
   {% if field.errors %}<span class="form-row__error" id="{{ field.auto_id }}-error">{% for error in field.errors %}{{ error }}{% if not forloop.last %} {% endif %}{% endfor %}</span>{% endif %}
 </div>{% else %}<div class="form-row{% if field.errors %} form-row--error{% endif %}">
-  <label class="form-row__label" for="{{ field.auto_id }}">{{ field.label }}{% if field.field.required %} <span class="form-row__required">{% if conditional %}{% translate "required if entered" %}{% else %}{% translate "required field" %}{% endif %}</span>{% endif %}</label>
+  <label class="form-row__label{% if field.field.required %} form-row__label--required{% endif %}" for="{{ field.auto_id }}">{{ field.label }}{% if field.field.required %} <span class="form-row__required">{% if conditional %}{% translate "required if entered" %}{% else %}{% translate "required field" %}{% endif %}</span>{% endif %}</label>
   {{ field }}
   {% if field.help_text %}<span class="form-row__help" id="{{ field.auto_id }}-help">{{ field.help_text }}</span>{% endif %}
   {% if field.errors %}<span class="form-row__error" id="{{ field.auto_id }}-error">{% for error in field.errors %}{{ error }}{% if not forloop.last %} {% endif %}{% endfor %}</span>{% endif %}

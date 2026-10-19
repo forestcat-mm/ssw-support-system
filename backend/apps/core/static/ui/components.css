@@ -450,6 +450,24 @@ a.badge:hover {
   font-size: var(--text-caption);
 }
 
+/* 必須の欄（「入れる場合は必須」も）のラベルは太字（修正 1 回目 B14。「必須」の印も残す） */
+.form-row__label--required {
+  font-weight: 700;
+}
+
+/* 入力中の正規化の知らせ（forms.js。修正 1 回目 B13） */
+.form-row__note {
+  font-size: var(--text-caption);
+  color: var(--color-graphite);
+}
+
+.form-row__note--warning {
+  background: var(--level-within-7-bg);
+  color: var(--level-within-7-fg);
+  border-radius: var(--radius-input);
+  padding: var(--space-4) var(--space-8);
+}
+
 .form-row__help {
   font-size: var(--text-caption);
   color: var(--color-graphite);
@@ -706,6 +724,10 @@ a.badge:hover {
 
 .modal__body {
   padding: var(--space-16);
+}
+
+.modal--small {
+  width: min(480px, calc(100vw - 32px));
 }
 
 .modal__body .card {

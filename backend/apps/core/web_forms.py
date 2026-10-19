@@ -6,19 +6,93 @@ from typing import Any
 
 from django import forms
 from django.http import HttpRequest
+from django.utils.translation import gettext_lazy
+
+from services import normalize
+
+# 入力中の形式の知らせ（forms.js。保存のときの検査は各サービスで行う）
+NORMALIZE_INVALID = {
+    "corporate_number": gettext_lazy(
+        "The corporate number is 13 digits and the check digit must match."
+    ),
+    "residence_card": gettext_lazy("A residence card number is 2 letters, 8 digits and 2 letters."),
+    "postal": gettext_lazy("A postal code is 7 digits."),
+    "email": gettext_lazy("Check the email address."),
+    "phone": gettext_lazy("A phone number is digits, hyphens and parentheses."),
+    "kana": gettext_lazy("Enter it in katakana."),
+    "amount": gettext_lazy("Enter the amount in digits."),
+}
 
 ONCE_SESSION_KEY = "once_tokens"
 ONCE_FIELD = "once_token"
 ONCE_KEEP = 50  # 開いたままのフォームの数の上限（古いものから捨てる）
 
 
+# 入力の正規化の種類を欄の名前から決める（修正 1 回目 B13。services/normalize.py）。カナは
+# 外国人の氏名のカナだけ（WorkerForm。ほかのカナの欄はふりがなをひらがなで入れることがある）
+AMOUNT_SUFFIXES = ("wage", "fee", "amount", "amount_jpy", "_equivalent")
+
+
+def normalize_kind(name: str, field: forms.Field) -> str:
+    if name == "corporate_number":
+        return "corporate_number"
+    if name == "card_number":
+        return "residence_card"
+    if name.endswith("postal_code"):
+        return "postal"
+    if "phone" in name:
+        return "phone"
+    if isinstance(field, forms.EmailField):
+        return "email"
+    if isinstance(field, forms.IntegerField) and name.endswith(AMOUNT_SUFFIXES):
+        return "amount"
+    return ""
+
+
 class StyledFormMixin:
-    """入力欄に部品のクラス（input / select / textarea）を付け、日付は日付の入力欄にする。"""
+    """入力欄に部品のクラス（input / select / textarea）を付け、日付は日付の入力欄にする。
+
+    番号・郵便番号・電話番号・メール・カナ・金額の欄は、保存のときに services.normalize で直し、
+    入力中は forms.js が同じ規則で直して欄の下に知らせる（修正 1 回目 B13）。
+    """
 
     fields: dict[str, forms.Field]
     add_prefix: Callable[[str], str]
+    data: Any
+    is_bound: bool
+
+    def normalize_field(self, name: str, kind: str) -> None:
+        """欄 name を種類 kind で正規化する（名前から決まらない欄。旅券番号など）。"""
+        field = self.fields[name]
+        kinds: dict[str, str] = self.__dict__.setdefault("normalized_fields", {})
+        kinds[name] = kind
+        field.widget.attrs.update(
+            {
+                "data-normalize": kind,
+                "data-normalize-done": gettext_lazy("Changed to “{value}”."),
+                "data-normalize-invalid": NORMALIZE_INVALID.get(kind, ""),
+            }
+        )
+        if kind == "amount" and isinstance(field.widget, forms.NumberInput):
+            field.widget.input_type = "text"  # 全角・カンマも受けてから直す
+            field.widget.attrs["inputmode"] = "numeric"
+
+    def _clean_fields(self) -> None:
+        kinds: dict[str, str] = self.__dict__.get("normalized_fields", {})
+        if kinds and self.is_bound:
+            data = self.data.copy()
+            for name, kind in kinds.items():
+                key = self.add_prefix(name)
+                if isinstance(data.get(key), str):
+                    data[key] = normalize.normalize(kind, data[key])
+            self.data = data
+        super()._clean_fields()  # type: ignore[misc]
 
     def style_fields(self) -> None:
+        for name, field in self.fields.items():
+            kind = normalize_kind(name, field)
+            if kind:
+                self.normalize_field(name, kind)
         for field in self.fields.values():
             widget = field.widget
             if isinstance(widget, forms.DateInput):

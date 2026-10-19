@@ -57,5 +57,16 @@
   <div class="modal__header"><h2 class="modal__title" id="modal-title" data-modal-title></h2><button class="button button--neutral button--small" type="button" data-modal-close>{% translate "Close" %}</button></div>
   <div class="modal__body" data-modal-body></div>
 </dialog>
+{# 保存していない変更の確かめ（forms.js の initUnsavedLinks。修正 1 回目 B17） #}
+<dialog class="modal modal--small" id="unsaved-dialog" aria-labelledby="unsaved-dialog-title">
+  <div class="modal__body stack">
+    <h2 class="modal__title" id="unsaved-dialog-title">{% translate "Leave without saving?" %}</h2>
+    <p>{% translate "The changes on this page have not been saved. If you leave, they will be lost." %}</p>
+    <div class="form-actions">
+      <button class="button button--danger" type="button" data-unsaved-leave>{% translate "Leave without saving" %}</button>
+      <button class="button button--neutral" type="button" data-unsaved-stay autofocus>{% translate "Stay on this page" %}</button>
+    </div>
+  </div>
+</dialog>
 </body>
 </html>

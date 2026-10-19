@@ -11,7 +11,7 @@
   {% if hosts %}
   <section class="card">
     <div class="form-row">
-      <label class="form-row__label" for="plan-host">{% translate "host organization" %} <span class="form-row__required">{% translate "required field" %}</span></label>
+      <label class="form-row__label form-row__label--required" for="plan-host">{% translate "host organization" %} <span class="form-row__required">{% translate "required field" %}</span></label>
       <select class="select" id="plan-host" name="host">
         {% for host in hosts %}<option value="{{ host.pk }}"{% if host == selected_host %} selected{% endif %}>{{ host.name }}</option>{% endfor %}
       </select>
