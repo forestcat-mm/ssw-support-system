@@ -12,7 +12,7 @@
   <section class="card{% if record.voided_at %} is-voided{% endif %}" id="support-record">
     <div class="card__header">
       <h2 class="card__title">{{ record.get_kind_display }}</h2>
-      {% if can_change_record and not record.interview_id and not record.consultation and not record.briefing %}<a class="button button--danger button--small" href="{% url 'workers:support_record_void' worker.pk record.pk %}">{% translate "Void" %}</a>{% endif %}
+      {% if can_change_record and not record.interview_id and not record.consultation and not record.briefing %}<div class="actions"><details class="menu"><summary class="button button--neutral button--small" aria-label="{% translate "Other actions" %}" title="{% translate "Other actions" %}">…</summary><ul class="popover menu__list"><li><a class="menu__item menu__item--danger" href="{% url 'workers:support_record_void' worker.pk record.pk %}">{% translate "Void" %}</a></li></ul></details></div>{% endif %}
     </div>
     {% include "support/components/record_fields.html" %}
     <h3 style="margin-top: var(--space-16)">{% translate "details" %}</h3>

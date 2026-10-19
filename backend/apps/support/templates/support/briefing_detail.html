@@ -12,9 +12,9 @@
   <section class="card{% if record.voided_at %} is-voided{% endif %}" id="briefing">
     <div class="card__header">
       <h2 class="card__title">{{ record.get_kind_display }}</h2>
-      <div class="cluster">
+      <div class="actions">
         {% if can_generate_form %}<a class="button button--neutral button--small" id="briefing-generate" href="{% url 'workers:support_briefing_generate' worker.pk briefing.pk %}">{% blocktranslate %}Generate the confirmation (form {{ form_id }}){% endblocktranslate %}</a>{% endif %}
-        {% if can_change_record %}<a class="button button--danger button--small" href="{% url 'workers:support_briefing_void' worker.pk briefing.pk %}">{% translate "Void" %}</a>{% endif %}
+        {% if can_change_record %}<details class="menu"><summary class="button button--neutral button--small" aria-label="{% translate "Other actions" %}" title="{% translate "Other actions" %}">…</summary><ul class="popover menu__list"><li><a class="menu__item menu__item--danger" href="{% url 'workers:support_briefing_void' worker.pk briefing.pk %}">{% translate "Void" %}</a></li></ul></details>{% endif %}
       </div>
     </div>
     {% include "support/components/record_fields.html" with details=None %}

@@ -25,13 +25,25 @@
 
   {% with version=view.version contract=view.contract %}
   {% if can_manage_contracts or can_reopen %}
-  <div class="cluster" id="contract-actions">
+  {# 主な操作 1 つと「…」のメニュー（危ない操作はメニューの中の赤字。修正 1 回目 B15） #}
+  <div class="actions" id="contract-actions">
     {% if can_manage_contracts and not contract.terminated_on %}
       <a class="button button--primary" href="{% url 'workers:contract_version_create' worker.pk contract.pk %}">{% translate "Add a new version" %}</a>
-      <a class="button button--neutral" href="{% url 'workers:contract_terminate' worker.pk contract.pk %}">{% translate "Register the termination" %}</a>
+    {% elif can_manage_contracts %}
+      <a class="button button--neutral" href="{% url 'workers:contract_attach' worker.pk contract.pk version.version %}">{% translate "Attach documents" %}</a>
     {% endif %}
-    {% if can_manage_contracts %}<a class="button button--neutral" href="{% url 'workers:contract_attach' worker.pk contract.pk version.version %}">{% translate "Attach documents" %}</a>{% endif %}
-    {% if can_reopen and contract.terminated_on %}<a class="button button--neutral" href="{% url 'workers:contract_reopen' worker.pk contract.pk %}">{% translate "Cancel the termination" %}</a>{% endif %}
+    {% if can_manage_contracts and not contract.terminated_on or can_reopen and contract.terminated_on %}
+    <details class="menu">
+      <summary class="button button--neutral" aria-label="{% translate "Other actions" %}" title="{% translate "Other actions" %}">…</summary>
+      <ul class="popover menu__list">
+        {% if can_manage_contracts and not contract.terminated_on %}
+          <li><a class="menu__item" href="{% url 'workers:contract_attach' worker.pk contract.pk version.version %}">{% translate "Attach documents" %}</a></li>
+          <li><a class="menu__item menu__item--danger" href="{% url 'workers:contract_terminate' worker.pk contract.pk %}">{% translate "Register the termination" %}</a></li>
+        {% endif %}
+        {% if can_reopen and contract.terminated_on %}<li><a class="menu__item menu__item--danger" href="{% url 'workers:contract_reopen' worker.pk contract.pk %}">{% translate "Cancel the termination" %}</a></li>{% endif %}
+      </ul>
+    </details>
+    {% endif %}
   </div>
   {% endif %}
   {% if conversion_warning or conversion_terms_missing %}

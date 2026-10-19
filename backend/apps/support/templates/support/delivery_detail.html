@@ -12,7 +12,7 @@
   <section class="card{% if delivery.voided_at %} is-voided{% endif %}" id="delivery">
     <div class="card__header">
       <h2 class="card__title">{{ delivery.get_kind_display }}</h2>
-      {% if can_change_delivery %}<a class="button button--danger button--small" href="{% url 'workers:support_delivery_void' worker.pk delivery.pk %}">{% translate "Void" %}</a>{% endif %}
+      {% if can_change_delivery %}<div class="actions"><details class="menu"><summary class="button button--neutral button--small" aria-label="{% translate "Other actions" %}" title="{% translate "Other actions" %}">…</summary><ul class="popover menu__list"><li><a class="menu__item menu__item--danger" href="{% url 'workers:support_delivery_void' worker.pk delivery.pk %}">{% translate "Void" %}</a></li></ul></details></div>{% endif %}
     </div>
     {% include "support/components/delivery_fields.html" %}
     {% if delivery.note %}<p class="record-body">{{ delivery.note|linebreaksbr }}</p>{% endif %}

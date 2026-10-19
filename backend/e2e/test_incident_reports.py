@@ -9,7 +9,7 @@ from playwright.sync_api import Page, expect
 
 from apps.core.models import User
 from apps.workers.models import ForeignWorker
-from e2e.conftest import SignIn
+from e2e.conftest import SignIn, menu_action
 from services import deadlines
 from tests.contracts.factories import make_contract, site_with_categories
 from tests.core.factories import make_staff
@@ -57,7 +57,7 @@ def test_report_raises_and_void_cancels_the_form_4_3_task(
 
     page.goto(f"{base}/workers/{worker.pk}/support/records/")
     page.locator("#support-records").get_by_role("link", name="相談").first.click()
-    page.get_by_role("link", name="取り消す").click()
+    menu_action(page, "取り消す")
     page.get_by_label("取り消しの理由").fill("別の人の相談")
     page.get_by_role("button", name="取り消す").click()
     expect(

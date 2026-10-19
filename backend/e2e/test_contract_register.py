@@ -14,7 +14,7 @@ from apps.contracts.models import EmploymentContract
 from apps.core.models import User
 from apps.filings.models import Filing, FilingKind, FilingStatus
 from apps.workers.models import ForeignWorker
-from e2e.conftest import SignIn
+from e2e.conftest import SignIn, menu_action
 from tests.contracts.factories import site_with_categories
 from tests.hosts.factories import category
 from tests.workers.factories import make_worker
@@ -113,7 +113,7 @@ def test_register_change_and_terminate_a_contract(
     no_horizontal_scroll(page, width)
 
     # 終了の登録（会社都合 → 終了届出と受入れ困難届出）
-    page.get_by_role("link", name="終了を登録").click()
+    menu_action(page, "終了を登録", "#contract-actions")
     page.locator("#id_terminated_on").fill("2026-10-15")
     page.locator("#id_termination_reason").select_option("company")
     page.get_by_role("button", name="終了を登録").click()
@@ -124,13 +124,15 @@ def test_register_change_and_terminate_a_contract(
         FilingKind.CONTRACT_TERMINATION,
         FilingKind.ACCEPTANCE_DIFFICULTY,
     } <= kinds
-    expect(page.get_by_role("link", name="終了を取り消す")).to_have_count(0)  # 管理者だけ
+    expect(page.get_by_role("link", name="終了を取り消す", include_hidden=True)).to_have_count(
+        0
+    )  # 管理者だけ
 
     # 管理者が理由つきで終了を取り消す
     page.context.clear_cookies()
     sign_in(administrator)
     page.goto(f"{base}/workers/{worker.pk}/contracts/?contract={contract.pk}")
-    page.get_by_role("link", name="終了を取り消す").click()
+    menu_action(page, "終了を取り消す", "#contract-actions")
     page.locator("#id_reason").fill("別の契約に登録した")
     page.get_by_role("button", name="終了を取り消す").click()
     expect(page.get_by_text("終了を取り消しました。")).to_be_visible()

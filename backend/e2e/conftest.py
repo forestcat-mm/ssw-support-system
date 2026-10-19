@@ -114,3 +114,17 @@ def leave_unsaved_pages(request: pytest.FixtureRequest) -> None:
             dialog.dismiss()
 
     page.on("dialog", handle)
+
+
+def menu_action(page: Page, name: str, scope: str = "body") -> None:
+    """操作の「…」のメニューを開いて、項目のリンクを押す（修正 1 回目 B15）。
+
+    scope の中で、その項目を持つメニューを開く（メニューは押した後に閉じる）。
+    """
+    menu = (
+        page.locator(f"{scope} details.menu")
+        .filter(has=page.get_by_role("link", name=name, exact=True, include_hidden=True))
+        .first
+    )
+    menu.locator("summary").click()
+    menu.get_by_role("link", name=name, exact=True).click()

@@ -10,7 +10,7 @@
   <section class="card{% if interview.voided_at %} is-voided{% endif %}" id="periodic-interview">
     <div class="card__header">
       <h2 class="card__title">{% blocktranslate with day=interview.basis_on|date:"Y-m-d" %}Periodic interview ({{ day }}){% endblocktranslate %}</h2>
-      {% if can_void_interview %}<a class="button button--danger button--small" href="{% url 'workers:support_interview_void' worker.pk interview.pk %}">{% translate "Void" %}</a>{% endif %}
+      {% if can_void_interview %}<div class="actions"><details class="menu"><summary class="button button--neutral button--small" aria-label="{% translate "Other actions" %}" title="{% translate "Other actions" %}">…</summary><ul class="popover menu__list"><li><a class="menu__item menu__item--danger" href="{% url 'workers:support_interview_void' worker.pk interview.pk %}">{% translate "Void" %}</a></li></ul></details></div>{% endif %}
     </div>
     {% include "support/components/interview_fields.html" with show_tasks=True %}
     {% if can_generate_reports %}<div class="cluster"><a class="button button--neutral button--small" id="interview-generate" href="{% url 'workers:support_interview_generate' worker.pk interview.pk %}">{% translate "Generate the interview reports (forms 5-5 and 5-6)" %}</a></div>{% endif %}

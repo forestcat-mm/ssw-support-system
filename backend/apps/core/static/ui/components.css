@@ -654,6 +654,57 @@ a.badge:hover {
   padding: var(--space-12);
 }
 
+/* 操作（修正 1 回目 B15）: 主な操作 1 つのボタンと、ほかの操作の「…」のメニュー（危ない操作はメニューの中の
+   赤字）。メニューは <details> なので、JS が無くても開け閉めでき、開くと下に並ぶ。JS があれば画面に浮かせ
+   （表の横の送りに切られない）、外を押す・Esc で閉じる（forms.js の initMenus） */
+.actions {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--space-8);
+  align-items: center;
+}
+
+.menu > summary {
+  list-style: none;
+  cursor: pointer;
+  min-width: 2.5em;
+  justify-content: center;
+}
+
+.menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.menu__list {
+  margin: var(--space-4) 0 0;
+  padding: var(--space-4) 0;
+  list-style: none;
+  min-width: 12em;
+}
+
+.menu[data-menu-ready] > .menu__list {
+  position: fixed;
+  z-index: 30;
+  margin: 0;
+}
+
+.menu__item {
+  display: block;
+  padding: var(--space-8) var(--space-12);
+  color: var(--color-ink);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.menu__item:hover,
+.menu__item:focus-visible {
+  background: var(--color-band);
+}
+
+.menu__item--danger {
+  color: var(--palette-red-ink);
+}
+
 /* 申請の書類の一覧（修正 1 回目 B9）: 状態を先頭の列にし、行の左の線と地の色で分ける。色だけに頼らず
    状態の文字を必ず出す */
 .application-set__row td:first-child {

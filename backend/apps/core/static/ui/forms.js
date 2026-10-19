@@ -549,6 +549,44 @@ const initSessionNotice = () => {
   window.setInterval(tick, 1000);
 };
 
+// 操作の「…」のメニュー（修正 1 回目 B15。details.menu）: 開いたらボタンの下に浮かせる（画面の右の端からは
+// はみ出さない）。メニューの外を押す・Esc・ほかのメニューを開くと閉じる。キーボードでは summary で開け閉めし、
+// Tab で項目に移る。
+initializers.push((root) => root.querySelectorAll("details.menu").forEach((menu) => {
+  const summary = menu.querySelector("summary");
+  const list = menu.querySelector(".menu__list");
+  if (!summary || !list || menu.dataset.menuReady !== undefined) return;
+  menu.dataset.menuReady = "";
+  const place = () => {
+    const box = summary.getBoundingClientRect();
+    const width = list.offsetWidth;
+    const left = Math.max(8, Math.min(box.right - width, window.innerWidth - width - 8));
+    const below = box.bottom + 4;
+    const top = below + list.offsetHeight > window.innerHeight - 8 ? Math.max(8, box.top - list.offsetHeight - 4) : below;
+    list.style.left = `${left}px`;
+    list.style.top = `${top}px`;
+  };
+  menu.addEventListener("toggle", () => {
+    if (!menu.open) return;
+    document.querySelectorAll("details.menu[open]").forEach((other) => {
+      if (other !== menu) other.open = false;
+    });
+    place();
+  });
+  window.addEventListener("scroll", () => menu.open && place(), true);
+  window.addEventListener("resize", () => menu.open && place());
+  menu.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || !menu.open) return;
+    menu.open = false;
+    summary.focus();
+  });
+}));
+document.addEventListener("click", (event) => {
+  document.querySelectorAll("details.menu[open]").forEach((menu) => {
+    if (!(event.target instanceof Node) || !menu.contains(event.target)) menu.open = false;
+  });
+});
+
 const initAll = (root) => initializers.forEach((init) => init(root));
 initAll(document);
 initModal();

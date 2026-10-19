@@ -13,7 +13,7 @@ from playwright.sync_api import Page, Request, expect
 from apps.core.models import User
 from apps.filings.models import Filing, FilingKind, FilingStatus
 from apps.hosts.models import SupportContract
-from e2e.conftest import SignIn
+from e2e.conftest import SignIn, menu_action
 from tests.contracts.factories import make_contract, site_with_categories
 from tests.workers.factories import add_residence, make_worker
 
@@ -60,9 +60,7 @@ def test_terminate_the_support_contract_and_cancel(
     sign_in(support_staff)
     base = page.url.rstrip("/")
     page.goto(f"{base}/hosts/{host.pk}/")
-    page.locator(f'#support-contracts tr[data-contract="{contract.pk}"]').get_by_role(
-        "link", name="終了を登録"
-    ).click()
+    menu_action(page, "終了を登録", f'#support-contracts tr[data-contract="{contract.pk}"]')
     page.locator("#id_terminated_on").fill("2026-09-30")
     page.locator("#id_termination_category").select_option("host")
     page.locator("#id_termination_reason").select_option("other")
@@ -82,7 +80,7 @@ def test_terminate_the_support_contract_and_cancel(
     page.context.clear_cookies()
     sign_in(administrator)
     page.goto(f"{base}/hosts/{host.pk}/")
-    page.locator("#support-contracts").get_by_role("link", name="終了を取り消す").click()
+    menu_action(page, "終了を取り消す", "#support-contracts")
     page.locator("#id_reason").fill("別の契約に登録した")
     page.get_by_role("button", name="終了を取り消す").click()
     expect(page.get_by_text("終了を取り消しました。")).to_be_visible()
