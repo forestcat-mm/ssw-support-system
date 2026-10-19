@@ -77,7 +77,7 @@ def test_only_the_copy_for_the_pdf_is_merged(
     seeded: list[ForeignWorker], monkeypatch: pytest.MonkeyPatch
 ) -> None:
     template = form_templates.select_template("1-17", BASE).template
-    assert form_generation.pdf_merges(template) == [f"{SHEET}!O44:BA49", f"{SHEET}!AO371:BB381"]
+    assert form_generation.pdf_merges(template) == [f"{SHEET}!O44:BA49"]
     converted: list[list[tuple[int, int, int, int]]] = []
     real_convert = form_convert.convert
 
@@ -97,7 +97,7 @@ def test_only_the_copy_for_the_pdf_is_merged(
     assert saved == merges_of(original)  # 保存するブックは公式の構造のまま
     address = (form_xlsx.column_index("O"), 44, form_xlsx.column_index("BA"), 49)
     assert address in converted[0] and address not in saved
-    assert len(converted[0]) == len(saved) + 2
+    assert len(converted[0]) == len(saved) + 1
     snapshot: dict[str, Any] = json.loads(document.snapshot)
     assert f"{SHEET}!O44" not in snapshot["fitted"]  # 13pt のまま（字を小さくしない）
 

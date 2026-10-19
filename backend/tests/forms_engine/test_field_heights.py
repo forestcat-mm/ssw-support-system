@@ -27,7 +27,10 @@ from tests.forms_engine.conftest import BASE
 pytestmark = pytest.mark.django_db
 
 ROOT = Path(settings.FORM_TEMPLATES_ROOT)
-MERGED_FOR_PDF = {"参考様式第１－１７号!O44", "参考様式第１－１７号!AO371"}
+MERGED_FOR_PDF = {"参考様式第１－１７号!O44"}
+# いつも空の欄: Ⅳ４ の委託先の住所（結合されていない 1 行）。委託が有の行は全部委託の計画では
+# 生成不可（plan_not_outsourced）で、委託が無ければ空を書く。最長の値の確かめから外す（ADR-0032）
+ALWAYS_EMPTY = {"参考様式第１－１７号!AO371"}
 LONG = "長" * 200
 
 
@@ -79,7 +82,7 @@ def too_tall(sizes: dict[str, tuple[float, float, int]]) -> list[str]:
     return sorted(
         target
         for target, (size, height, lines) in sizes.items()
-        if lines * size * form_xlsx.LINE_SPACING > height + 0.01
+        if lines * size * form_xlsx.LINE_SPACING > height + 0.01 and target not in ALWAYS_EMPTY
     )
 
 
@@ -129,9 +132,9 @@ def test_word_tags_are_not_in_fixed_height_rows() -> None:
     assert found == []
 
 
-def test_the_two_addresses_are_merged_only_for_the_pdf(loaded: None) -> None:
-    """結合されていない 1 行の住所の欄（13pt を 8.25〜8.5pt の行に書く）は、一時の結合の範囲の
-    左上で、結合した範囲の高さには標準の 13pt が収まる。字は小さくしない（A6 の案 (e)）。"""
+def test_the_address_is_merged_only_for_the_pdf(loaded: None) -> None:
+    """Ⅱ２ の住所（13pt を 8.25pt の 1 行に書く）は一時の結合の範囲の左上で、結合した範囲の高さには
+    標準の 13pt が収まる。字は小さくしない（A6 の案 (e)）。"""
     template = FormTemplate.objects.get(form_id="1-17", language="ja")
     assert form_generation.merged_targets(template) == MERGED_FOR_PDF
     path = form_templates.template_file(template)
@@ -142,6 +145,19 @@ def test_the_two_addresses_are_merged_only_for_the_pdf(loaded: None) -> None:
     for target in MERGED_FOR_PDF:
         assert alone[target].size == 13 and alone[target].height_pt < 9
         assert merged[target].height_pt >= 13 * form_xlsx.LINE_SPACING
+
+
+def test_the_outsourced_address_of_iv_4_is_always_empty(loaded: None) -> None:
+    """Ⅳ４ の委託先の住所（AO371）は結合しない。
+
+    委託が有の行は生成不可で、委託が無ければ空を書く。
+    """
+    template = FormTemplate.objects.get(form_id="1-17", language="ja")
+    rules = {rule.get("name"): rule.get("severity") for rule in template.mapping.rules}
+    assert rules["plan_not_outsourced"] == "block"
+    item = next(i for i in template.mapping.definition["fields"] if i["target"] in ALWAYS_EMPTY)
+    assert item["key"] == "plan.4.main.address"
+    assert not ALWAYS_EMPTY & form_generation.merged_targets(template)
 
 
 def test_fit_uses_the_row_height_and_the_area(loaded: None) -> None:
