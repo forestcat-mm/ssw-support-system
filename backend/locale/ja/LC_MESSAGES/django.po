@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 23:06+0900\n"
+"POT-Creation-Date: 2026-10-19 23:31+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -335,8 +335,11 @@ msgstr "様式の言語"
 
 msgid ""
 "The bilingual version is the one distributed by the Immigration Services "
-"Agency."
-msgstr "併記の版は、出入国在留管理庁が配布するものです。"
+"Agency. The Chinese translation is self-made and generated as a separate "
+"document."
+msgstr ""
+"日中併記の版は入管が配布するものです。中国語の訳文は自作で、日本語の様式とは"
+"別の書類として作ります。"
 
 msgid "Shifts"
 msgstr "交代制の勤務時間"
@@ -3104,6 +3107,11 @@ msgstr ""
 "ださい。"
 
 msgid ""
+"The bilingual version is the one distributed by the Immigration Services "
+"Agency."
+msgstr "併記の版は、出入国在留管理庁が配布するものです。"
+
+msgid ""
 "We declare that the support is ensured to be proper (section III-7: the "
 "support manager is not a relative or close associate of the host's officers, "
 "and neither the manager nor the staff fall under the grounds for refusing "
@@ -3112,6 +3120,10 @@ msgstr ""
 "支援の適正性を確保していることを申告します（Ⅲ欄７: 支援責任者が特定技能所属機"
 "関の役員の配偶者・親族・密接な関係にある者などでないこと、支援責任者・支援担"
 "当者が登録拒否事由に該当しないこと）。"
+
+msgid ""
+"The Chinese translation is self-made and generated as a separate document."
+msgstr "中国語の訳文は自作で、日本語の様式とは別の書類として作ります。"
 
 msgid "date of signature"
 msgstr "署名日"
@@ -3464,12 +3476,14 @@ msgstr "大きさ"
 
 msgid ""
 "The Chinese bilingual version distributed by the Immigration Services Agency "
-"differs from the current Japanese form, so only the Japanese form is "
-"generated. Prepare the copy in the worker's language outside the system."
+"differs from the current Japanese form, so it is not used. To give the "
+"worker a copy in Chinese, generate the self-made Chinese translation "
+"separately by choosing it as the language of the form (the translation is "
+"checked by a person)."
 msgstr ""
-"出入国在留管理庁が配布する中国語の併記の版は、現行の日本語の様式と内容が違う"
-"ため、日本語の様式だけを作ります。本人の言語の写しは、システムの外で用意して"
-"ください。"
+"入管が配布する中国語の併記の版は現行の日本語の版と内容が違うため使いません。"
+"中国語の写しを渡すときは、「様式の言語」で自作の中国語の訳文を選んで別に作っ"
+"てください（訳は人が確かめます）。"
 
 msgid "Cannot generate"
 msgstr "生成できません"
@@ -3545,6 +3559,9 @@ msgstr "様式の版"
 msgid "Japanese and Chinese (bilingual)"
 msgstr "日本語と中国語（併記）"
 
+msgid "Chinese (simplified) translation (self-made)"
+msgstr "中国語（簡体字）の訳文（自作）"
+
 msgid "Japanese"
 msgstr "日本語"
 
@@ -3585,6 +3602,9 @@ msgstr "生成した PDF"
 
 msgid "uploaded file"
 msgstr "アップロードしたファイル"
+
+msgid "Chinese translation (self-made)"
+msgstr "中国語の訳文（自作）"
 
 msgid ""
 "The documents are put in one PDF in the order of the list of documents to "
@@ -7130,6 +7150,15 @@ msgstr ""
 "す。"
 
 #, python-format
+msgid ""
+"%(count)s value has no registered translation and is printed in Japanese."
+msgid_plural ""
+"%(count)s values have no registered translation and are printed in Japanese."
+msgstr[0] ""
+"訳が登録されていない値が %(count)s 件あり、日本語のまま出ます（氏名・住所など"
+"は数えません）。"
+
+#, python-format
 msgid "\"%(label)s\" does not fit in its field even at %(size)s pt."
 msgstr "「%(label)s」は %(size)s pt でも欄に収まりません。"
 
@@ -7548,6 +7577,11 @@ msgid ""
 msgstr ""
 "PDF・画像として読めない（壊れている・パスワード付き・透過のある PNG）ため綴じ"
 "ません。"
+
+msgid ""
+"The worker's support language is Chinese, but the Chinese translation of "
+"this form is not generated."
+msgstr "支援言語が中国語ですが、この様式の中国語の訳文を作っていません。"
 
 #, python-format
 msgid ""

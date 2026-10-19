@@ -39,6 +39,7 @@ from services import (
     audit,
     authorization,
     form_generation,
+    form_languages,
     form_signatures,
     pdf_pages,
 )
@@ -55,6 +56,7 @@ class Source(enum.StrEnum):
     SIGNED = "signed"  # 署名済みのスキャン
     ATTACHMENT = "attachment"  # 添付
     UPLOAD = "upload"  # その場でアップロードしたシステムの外の書類
+    TRANSLATION = "translation"  # 自作の訳文の版の PDF（日本語の様式の直後。T43-D1）
 
 
 class Warn(enum.StrEnum):
@@ -70,6 +72,7 @@ class Warn(enum.StrEnum):
     NOT_ALLOWED = "not_allowed"
     UNREADABLE = "unreadable"
     OVER_LIMIT = "over_limit"
+    TRANSLATION_MISSING = "translation_missing"
 
 
 WARNING_TEXTS: Mapping[str, Any] = {
@@ -93,6 +96,10 @@ WARNING_TEXTS: Mapping[str, Any] = {
     Warn.UNREADABLE: gettext_lazy(
         "The file cannot be read as a PDF or an image (broken, password-protected, or a "
         "transparent PNG), so it is not included."
+    ),
+    Warn.TRANSLATION_MISSING: gettext_lazy(
+        "The worker's support language is Chinese, but the Chinese translation of this form is "
+        "not generated."
     ),
     Warn.OVER_LIMIT: gettext_lazy(
         "The total size is over the limit of the online application system "
@@ -263,6 +270,32 @@ def _document_parts(document: GeneratedDocument, user: AnyUser, entry: Entry) ->
     ]
 
 
+def _translation_parts(
+    document: GeneratedDocument, overview: Overview, user: AnyUser, entry: Entry
+) -> list[Part]:
+    """日本語の様式の直後に綴じる訳文（同じ対象の最新。無く、支援言語が中国語なら警告。T43）。"""
+    translation = application_sets.translation_of(document, overview.facts)
+    if translation is None:
+        worker = overview.facts.worker
+        if form_languages.is_chinese(worker) and form_languages.outdated_notice(
+            worker, document.template.form_id
+        ):
+            entry.warnings.append(Warn.TRANSLATION_MISSING)
+        return []
+    if not form_generation.can_download_pdf(user, translation):
+        entry.warnings.append(Warn.NOT_ALLOWED)
+        return []
+    return [
+        Part(
+            Source.TRANSLATION,
+            translation.pk,
+            translation.pdf_file.size if translation.pdf_file else 0,
+            False,
+            _file_reader(translation.pdf_file),
+        )
+    ]
+
+
 def _attachment_part(attachment: Attachment, user: AnyUser, entry: Entry, source: Source) -> Part:
     part = Part(
         source,
@@ -314,6 +347,7 @@ def outline(
                 continue
             bound_documents[document.pk] = entry.row_id
             entry.parts = _document_parts(document, user, entry)
+            entry.parts += _translation_parts(document, overview, user, entry)
             continue
         if state.status in (Status.ATTACHED, *STATUS_NOTES):
             entry.parts = [

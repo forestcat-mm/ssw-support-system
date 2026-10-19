@@ -232,7 +232,7 @@ def test_reset_removes_generated_documents_of_dummy_workers() -> None:
         pk__in=SeedObject.objects.filter(content_type__model="foreignworker").values("object_id")
     ).order_by("pk")[14]
     version = dummy.support_plans.get().versions.order_by("-version").first()
-    template = FormTemplate.objects.get(form_id="1-17")
+    template = FormTemplate.objects.get(form_id="1-17", language="ja")
     document = GeneratedDocument.objects.create(
         template=template,
         target=version,

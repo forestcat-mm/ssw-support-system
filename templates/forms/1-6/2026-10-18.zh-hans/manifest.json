@@ -1,0 +1,32 @@
+{
+  "form_id": "1-6",
+  "name": "雇用条件書（参考様式第1-6号）の訳文（中国語・簡体字。自作）",
+  "valid_from": "2026-10-18",
+  "language": "zh-hans",
+  "owner": "common",
+  "method": "docx-tags",
+  "requires_signed_copy": false,
+  "original": "original.docx",
+  "template": "template.docx",
+  "translation": {
+    "of_language": "ja",
+    "table": "tools/forms/translations/1-6.zh-hans.json",
+    "values": "backend/services/data/translations/zh-hans.json"
+  },
+  "source": {
+    "self_made": true,
+    "tool": "tools/forms/make_translation_templates.py",
+    "url": "",
+    "page": "",
+    "retrieved_on": "2026-10-18",
+    "revision_date": null,
+    "revision_date_unknown": true,
+    "original_sha256": "1db8bf41cceb0a74edea24b2695b1549b412215189735bf173b52205d186a27a",
+    "template_sha256": "892f7d62d83d16c39e29e0bfb0468782900db9d0e177f4d5b1784d0bbe320e51",
+    "translation_of": {
+      "url": "https://www.moj.go.jp/isa/content/001472154.docx",
+      "original_sha256": "0706326a557648bacc7fd4ae8d05985849d3060af770a568c69a533897c6096c"
+    },
+    "adr": "ADR-0035（中国語の訳文。自作。訳は人の確認待ち）"
+  }
+}

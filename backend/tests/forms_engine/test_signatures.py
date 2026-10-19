@@ -274,7 +274,7 @@ def test_documents_tab_signature_and_download(worker: Any) -> None:
 
 def test_stale_requests_are_shown(worker: Any) -> None:
     document = GeneratedDocument.objects.create(
-        template=FormTemplate.objects.get(form_id="1-17"),
+        template=FormTemplate.objects.get(form_id="1-17", language="ja"),
         target=worker,
         worker=worker,
         basis_on=GENERATED_ON,

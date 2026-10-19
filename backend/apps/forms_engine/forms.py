@@ -64,10 +64,27 @@ class PlanGenerateForm(StyledFormMixin, forms.Form):
     accept_warnings = forms.BooleanField(
         label=_("I have checked the warnings and will generate the form anyway."), required=False
     )
+    language = forms.ChoiceField(
+        label=_("language of the form"),
+        required=False,
+        help_text=_("The Chinese translation is self-made and generated as a separate document."),
+    )
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self, *args: Any, languages: list[tuple[str, str]] | None = None, **kwargs: Any
+    ) -> None:
         super().__init__(*args, **kwargs)
+        if languages and len(languages) > 1:  # 訳文の版がある様式だけ（T43）
+            self.fields["language"].choices = languages  # type: ignore[attr-defined]
+        else:
+            del self.fields["language"]
         self.style_fields()
+
+    @property
+    def chosen_language(self) -> str:
+        if "language" not in self.fields or not self.is_bound or not self.is_valid():
+            return str(self.initial.get("language") or "ja")
+        return str(self.cleaned_data.get("language") or "ja")
 
 
 class SignatureForm(StyledFormMixin, forms.Form):

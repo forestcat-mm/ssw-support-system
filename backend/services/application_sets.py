@@ -34,7 +34,7 @@ from apps.workers.models import (
     LatestResidenceRecord,
     StatusOfResidence,
 )
-from services import contracts, deadlines, form_signatures, hosts, support_plans
+from services import contracts, deadlines, form_languages, form_signatures, hosts, support_plans
 
 SET_IDS = ("coe", "chg", "ext")
 INDUSTRIAL = "industrial_products"
@@ -150,6 +150,8 @@ class Facts:
     organization: Organization | None
     documents: dict[str, GeneratedDocument] = field(default_factory=dict)
     requested: dict[str, GeneratedDocument] = field(default_factory=dict)  # 生成中（最新の依頼）
+    # 自作の訳文の版の生成物（様式 ID ごとの新しい順。生成の有無には数えない。T43）
+    translations: dict[str, list[GeneratedDocument]] = field(default_factory=dict)
     set_id: str = ""  # 申請の種類（健康診断の受診の時期が申請の種類で違う）
 
 
@@ -161,16 +163,21 @@ def facts_for(worker: ForeignWorker, on: datetime.date) -> Facts:
         support = hosts.active_contract(contract.host_organization, on)
         full_support = support is not None and support.scope == SupportScope.FULL
     documents: dict[str, GeneratedDocument] = {}
+    translations: dict[str, list[GeneratedDocument]] = {}
     queryset = (
         GeneratedDocument.objects.filter(worker=worker, status=GenerationStatus.COMPLETED)
         .select_related("template", "content_type")
         .order_by("-generated_at", "-pk")
     )
     for document in queryset:
+        if document.template.language in form_languages.TRANSLATIONS:
+            translations.setdefault(document.template.form_id, []).append(document)
+            continue
         documents.setdefault(document.template.form_id, document)
     requested: dict[str, GeneratedDocument] = {}
     for document in (
         GeneratedDocument.objects.filter(worker=worker, status=GenerationStatus.REQUESTED)
+        .exclude(template__language__in=form_languages.TRANSLATIONS)
         .select_related("template")
         .order_by("-created_at", "-pk")
     ):
@@ -184,6 +191,7 @@ def facts_for(worker: ForeignWorker, on: datetime.date) -> Facts:
         organization=Organization.objects.first(),
         documents=documents,
         requested=requested,
+        translations=translations,
     )
 
 
@@ -439,6 +447,18 @@ def row_attachments(row: dict[str, Any], facts: Facts) -> list[Attachment]:
     return list(
         version.attachments.filter(kind=kind, voided_at__isnull=True).order_by("created_at", "pk")
     )
+
+
+def translation_of(document: GeneratedDocument, facts: Facts) -> GeneratedDocument | None:
+    """日本語の版の生成物と同じ対象の、最新の訳文の版の生成物（T43。統合 PDF で直後に綴じる）。"""
+    for translation in facts.translations.get(document.template.form_id, []):
+        same = (
+            translation.content_type_id == document.content_type_id
+            and translation.object_id == document.object_id
+        )
+        if same:
+            return translation
+    return None
 
 
 def timezone_date(value: datetime.datetime) -> str:

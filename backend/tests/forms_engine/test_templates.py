@@ -17,7 +17,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_loading_is_idempotent_and_records_the_sources(loaded: None) -> None:
-    template = FormTemplate.objects.get(form_id="1-17")
+    template = FormTemplate.objects.get(form_id="1-17", language="ja")
     assert template.valid_from == datetime.date(2026, 10, 17)  # ADR-0007 の取得日
     assert template.revision_unknown
     assert template.original_sha256.startswith("e5d6e4a6")
@@ -26,11 +26,13 @@ def test_loading_is_idempotent_and_records_the_sources(loaded: None) -> None:
     assert report.created == [] and report.updated == []
     assert sorted(report.unchanged) == [
         "1-17 2026-10-17 ja",
+        "1-17 2026-10-17 zh-hans",
         "1-25 2026-10-18 ja",
         "1-4 2026-10-18 ja",
         "1-5 2026-10-18 ja",
         "1-5 2026-10-18 ja-zh",
         "1-6 2026-10-18 ja",
+        "1-6 2026-10-18 zh-hans",
         "13-1 2026-10-18 ja",
         "13-2 2026-10-18 ja",
         "3-1 2026-10-18 ja",
@@ -45,7 +47,7 @@ def test_loading_is_idempotent_and_records_the_sources(loaded: None) -> None:
         "career-plan 2026-10-18 ja",
         "experience-certificate 2026-10-18 ja",
     ]
-    assert FormTemplate.objects.count() == 19 and FormMapping.objects.count() == 19
+    assert FormTemplate.objects.count() == 21 and FormMapping.objects.count() == 21
 
 
 def test_changed_original_stops_loading(repo_copy: tuple[Path, Path]) -> None:
@@ -74,7 +76,7 @@ def test_mapping_changes_only_until_a_document_is_generated(
     path.write_text(json.dumps(definition, ensure_ascii=False), encoding="utf-8")
     assert form_templates.load_all().updated == ["1-17 2026-10-17 ja"]
 
-    template = FormTemplate.objects.get(form_id="1-17")
+    template = FormTemplate.objects.get(form_id="1-17", language="ja")
     worker = make_worker()
     GeneratedDocument.objects.create(
         template=template,
@@ -90,7 +92,7 @@ def test_mapping_changes_only_until_a_document_is_generated(
 
 
 def test_select_template_uses_the_oldest_version_before_the_first_one(loaded: None) -> None:
-    newer = FormTemplate.objects.get(form_id="1-17")
+    newer = FormTemplate.objects.get(form_id="1-17", language="ja")
     newer.pk = None
     newer.valid_from = datetime.date(2027, 4, 1)
     newer.revision_unknown = False

@@ -1,0 +1,38 @@
+{
+  "form_id": "1-17",
+  "name": "1号特定技能外国人支援計画書（参考様式第1-17号）の訳文（中国語・簡体字。自作）",
+  "valid_from": "2026-10-17",
+  "language": "zh-hans",
+  "owner": "common",
+  "method": "xlsx-cells",
+  "requires_signed_copy": false,
+  "original": "original.xlsx",
+  "template": null,
+  "pdf_merges": [
+    {
+      "range": "参考様式第１－１７号!O44:BA49",
+      "field": "Ⅱ ２ 住所",
+      "note": "〒の行の下の住所の場所（結合されていない 6 行）。PDF に変換する一時の写しでだけ結合する（修正 1 回目 A6 の案 (e)、ADR-0032）"
+    }
+  ],
+  "translation": {
+    "of_language": "ja",
+    "table": "tools/forms/translations/1-17.zh-hans.json",
+    "values": "backend/services/data/translations/zh-hans.json"
+  },
+  "source": {
+    "self_made": true,
+    "tool": "tools/forms/make_translation_templates.py",
+    "url": "",
+    "page": "",
+    "retrieved_on": "2026-10-17",
+    "revision_date": null,
+    "revision_date_unknown": true,
+    "original_sha256": "ce3483db9f277253f073190258bf513f272611a248f5ea820692cb7af4fabd31",
+    "translation_of": {
+      "url": "https://www.moj.go.jp/isa/content/001459168.xlsx",
+      "original_sha256": "e5d6e4a65a6117b7bb8a1668d56712b3119e74baf19e150d253a8a7e79e68c81"
+    },
+    "adr": "ADR-0035（中国語の訳文。自作。訳は人の確認待ち）"
+  }
+}

@@ -199,7 +199,7 @@ def test_changing_the_rules_data_changes_the_result_without_code(
 ) -> None:
     _templates, mappings = repo_copy
     worker_1, worker_15 = seeded[0], seeded[14]
-    mapping = FormMapping.objects.get(template__form_id="1-17")
+    mapping = FormMapping.objects.get(template__form_id="1-17", template__language="ja")
     # 生成履歴がある版でも、規則のファイルは置き換えられる
     GeneratedDocument.objects.create(
         template=mapping.template, target=worker_1, worker=worker_1, basis_on=BASE, snapshot="{}"
@@ -244,7 +244,7 @@ def test_generated_document_keeps_the_rules_sha_and_the_accepted_warnings(
     document = form_generation.request(
         "1-17", target=target, data=data, basis_on=BASE, by=None, accept_warnings=True
     )
-    mapping = FormMapping.objects.get(template__form_id="1-17")
+    mapping = FormMapping.objects.get(template__form_id="1-17", template__language="ja")
     assert document.rules_sha256 == mapping.rules_sha256 != ""
     assert [item["code"] for item in document.findings] == ["career_plan_missing"]
     assert document.findings[0]["destination"] == {

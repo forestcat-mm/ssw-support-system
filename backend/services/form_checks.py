@@ -28,6 +28,7 @@ from typing import Any
 from django.db import models
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
 
 from apps.contracts.models import (
     ConversionChange,
@@ -620,6 +621,28 @@ def _propriety_declared(context: CheckContext, params: Mapping[str, Any]) -> lis
                 "The declaration that the support is ensured to be proper (section III-7) is "
                 "not made, so it is left blank."
             ),
+            None,
+        )
+    ]
+
+
+@check("untranslated_values")
+def _untranslated_values(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """訳文の版で、訳の表に無い日本語の値（日本語のまま出す。T43-D5）。"""
+    from services import form_translations  # 循環を避ける
+
+    keys = context.data.get(form_translations.UNTRANSLATED) or []
+    if not keys:
+        return []
+    return [
+        Issue(
+            "untranslated_values",
+            ngettext(
+                "%(count)s value has no registered translation and is printed in Japanese.",
+                "%(count)s values have no registered translation and are printed in Japanese.",
+                len(keys),
+            )
+            % {"count": len(keys)},
             None,
         )
     ]

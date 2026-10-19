@@ -449,7 +449,8 @@ class ContractGenerateForm(StyledFormMixin, forms.Form):
         label=_("language of the form"),
         required=False,
         help_text=_(
-            "The bilingual version is the one distributed by the Immigration Services Agency."
+            "The bilingual version is the one distributed by the Immigration Services Agency. "
+            "The Chinese translation is self-made and generated as a separate document."
         ),
     )
 

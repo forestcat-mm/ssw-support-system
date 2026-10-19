@@ -292,23 +292,31 @@ class PlanGenerateView(WorkerFormView):
                 target=version,
                 data=self.data(version, form),
                 basis_on=form.cleaned_data["basis_on"],
+                language=form.chosen_language,
             )
         except form_templates.FormTemplateError:
             form.add_error(None, NOT_LOADED)
             return None
 
+    def form_class(self, *args: Any, **kwargs: Any) -> PlanGenerateForm:
+        return PlanGenerateForm(*args, languages=form_languages.choices(self.form_id), **kwargs)
+
     def get(self, request: HttpRequest, pk: int, plan_id: int, number: int) -> HttpResponse:
         worker, version = self.target(request, pk, plan_id, number)
-        form = PlanGenerateForm({"basis_on": timezone.localdate().isoformat()})
+        initial = {
+            "basis_on": timezone.localdate().isoformat(),
+            "language": form_languages.default_for(worker, self.form_id),
+        }
+        form = self.form_class(initial)
         result = self.check(version, form) if form.is_valid() else None
         if result is None:
             return self.page(request, worker, version, form, None)
-        form = PlanGenerateForm(initial={"basis_on": timezone.localdate()})
+        form = self.form_class(initial=initial)
         return self.page(request, worker, version, form, result)
 
     def post(self, request: HttpRequest, pk: int, plan_id: int, number: int) -> HttpResponse:
         worker, version = self.target(request, pk, plan_id, number)
-        form = PlanGenerateForm(request.POST)
+        form = self.form_class(request.POST)
         if not form.is_valid():
             return self.page(request, worker, version, form, None)
         if request.POST.get("action") != "generate":
@@ -323,6 +331,7 @@ class PlanGenerateView(WorkerFormView):
                 data=self.data(version, form),
                 basis_on=form.cleaned_data["basis_on"],
                 by=request.user,
+                language=form.chosen_language,
                 accept_warnings=bool(form.cleaned_data.get("accept_warnings")),
             )
         except form_generation.GenerationBlocked as blocked:

@@ -100,7 +100,7 @@ def test_generated_from_a_dummy_plan_matches_the_blank_form(seeded: list[Foreign
     assert isinstance(document.target, SupportPlanVersion)
     snapshot = json.loads(document.snapshot)
     data = snapshot["data"]
-    template = FormTemplate.objects.get(form_id="1-17")
+    template = FormTemplate.objects.get(form_id="1-17", language="ja")
     values = form_generation.field_values(template.mapping.definition, data)
     assert len(values) > 100
 
@@ -368,7 +368,7 @@ def test_default_plan_fits_every_field_of_the_form(seeded: list[ForeignWorker]) 
         assert isinstance(target, SupportPlanVersion)
         result = form_generation.check("1-17", target=target, data=data, basis_on=BASE)
         assert not [f for f in result.findings if f.code == "text_overflow"], number
-        template = FormTemplate.objects.get(form_id="1-17")
+        template = FormTemplate.objects.get(form_id="1-17", language="ja")
         assert not [fit for fit in form_generation.fits(template, data) if fit.overflow]
 
 

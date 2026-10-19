@@ -146,7 +146,7 @@ def test_bilingual_versions_are_loaded_with_their_language(loaded: None) -> None
         assert template.manifest["source"]["url"].endswith("001339744.docx")
     assert form_templates.version_stem({"valid_from": "2026-10-18", "language": "ja-zh"}) == FOLDER
     assert form_languages.available("5-9") == ["ja", "ja-zh"]
-    assert form_languages.available("1-6") == ["ja"]
+    assert form_languages.available("1-6") == ["ja", "zh-hans"]  # 自作の訳文（T43）
 
 
 def test_wrong_folder_of_a_bilingual_version_stops_loading(repo_copy: tuple[Path, Path]) -> None:
@@ -213,7 +213,8 @@ def test_generation_screens_offer_the_language_and_the_notice(worker: Any) -> No
     page_1_6 = client.get(
         f"/workers/{worker.pk}/contracts/{contract.pk}/versions/{version.version}/generate/1-6/"
     ).content.decode()
-    assert 'id="bilingual-notice"' in page_1_6 and 'name="language"' not in page_1_6
+    # 第1-6号は併記の版を使わず、自作の訳文を別に作れる（初期値は日本語。T43）
+    assert 'id="bilingual-notice"' in page_1_6 and 'value="zh-hans"' in page_1_6
     page_1_5 = client.get(
         f"/workers/{worker.pk}/contracts/{contract.pk}/versions/{version.version}/generate/1-5/"
     )

@@ -1,0 +1,3052 @@
+{
+  "form_id": "1-17",
+  "valid_from": "2026-10-17",
+  "note": "T31 の全欄（ADR-0020）。tools/forms/make_1_17_mapping.py の出力で、手で直さない。Ⅱ欄３・４は全部委託では書かない（注意２）。署名日・本人の署名は手で書く。 中国語（簡体字）の訳文の版（自作。T43、ADR-0035）: 日本語の版のマッピングの写しで、印刷済みの文に差し込む文だけを訳す（tools/forms/make_translation_templates.py が作る）。",
+  "fit_min_size": 6,
+  "fields": [
+    {
+      "key": "plan.created_on",
+      "target": "参考様式第１－１７号!BE13",
+      "format": "year",
+      "label": "作成日"
+    },
+    {
+      "key": "plan.created_on",
+      "target": "参考様式第１－１７号!BJ13",
+      "format": "month",
+      "label": "作成日"
+    },
+    {
+      "key": "plan.created_on",
+      "target": "参考様式第１－１７号!BM13",
+      "format": "day",
+      "label": "作成日"
+    },
+    {
+      "key": "worker.name_romaji",
+      "target": "参考様式第１－１７号!O18",
+      "format": "text",
+      "label": "Ⅰ 支援対象者 １ 氏名",
+      "fit": true
+    },
+    {
+      "key": "worker.sex",
+      "target": "参考様式第１－１７号!BC18",
+      "format": "text",
+      "label": "Ⅰ 支援対象者 ２ 性別"
+    },
+    {
+      "key": "worker.birth_date",
+      "target": "参考様式第１－１７号!Q26",
+      "format": "year",
+      "label": "Ⅰ 支援対象者 ３ 生年月日"
+    },
+    {
+      "key": "worker.birth_date",
+      "target": "参考様式第１－１７号!V26",
+      "format": "month",
+      "label": "Ⅰ 支援対象者 ３ 生年月日"
+    },
+    {
+      "key": "worker.birth_date",
+      "target": "参考様式第１－１７号!Z26",
+      "format": "day",
+      "label": "Ⅰ 支援対象者 ３ 生年月日"
+    },
+    {
+      "key": "worker.nationality",
+      "target": "参考様式第１－１７号!BC26",
+      "format": "text",
+      "label": "Ⅰ 支援対象者 ４ 国籍・地域",
+      "fit": true
+    },
+    {
+      "key": "host.name_kana",
+      "target": "参考様式第１－１７号!O34",
+      "format": "text",
+      "label": "Ⅱ １ ふりがな",
+      "fit": true
+    },
+    {
+      "key": "host.name",
+      "target": "参考様式第１－１７号!O37",
+      "format": "text",
+      "label": "Ⅱ １ 氏名又は名称",
+      "fit": true
+    },
+    {
+      "key": "host.postal_first",
+      "target": "参考様式第１－１７号!P42",
+      "format": "text",
+      "label": "Ⅱ ２ 郵便番号"
+    },
+    {
+      "key": "host.postal_last",
+      "target": "参考様式第１－１７号!V42",
+      "format": "text",
+      "label": "Ⅱ ２ 郵便番号"
+    },
+    {
+      "key": "host.address",
+      "target": "参考様式第１－１７号!O44",
+      "format": "text",
+      "label": "Ⅱ ２ 住所"
+    },
+    {
+      "target": "参考様式第１－１７号!BB42",
+      "format": "template",
+      "template": "（电话　{phone}）",
+      "keys": {
+        "phone": {
+          "key": "host.phone"
+        }
+      },
+      "label": "Ⅱ ２ 電話",
+      "fit": true
+    },
+    {
+      "key": "organization.registration_first",
+      "target": "参考様式第１－１７号!O82",
+      "format": "text",
+      "label": "Ⅲ １ 登録番号"
+    },
+    {
+      "key": "organization.registration_last",
+      "target": "参考様式第１－１７号!AB82",
+      "format": "text",
+      "label": "Ⅲ １ 登録番号"
+    },
+    {
+      "key": "organization.support_start_planned_on",
+      "target": "参考様式第１－１７号!BB82",
+      "format": "year",
+      "label": "Ⅲ ２ 登録年月日（支援業務を開始する予定年月日）"
+    },
+    {
+      "key": "organization.support_start_planned_on",
+      "target": "参考様式第１－１７号!BH82",
+      "format": "month",
+      "label": "Ⅲ ２ 登録年月日（支援業務を開始する予定年月日）"
+    },
+    {
+      "key": "organization.support_start_planned_on",
+      "target": "参考様式第１－１７号!BL82",
+      "format": "day",
+      "label": "Ⅲ ２ 登録年月日（支援業務を開始する予定年月日）"
+    },
+    {
+      "key": "organization.name_kana",
+      "target": "参考様式第１－１７号!O90",
+      "format": "text",
+      "label": "Ⅲ ３ ふりがな",
+      "fit": true
+    },
+    {
+      "key": "organization.name",
+      "target": "参考様式第１－１７号!O93",
+      "format": "text",
+      "label": "Ⅲ ３ 氏名又は名称",
+      "fit": true
+    },
+    {
+      "key": "organization.postal_first",
+      "target": "参考様式第１－１７号!P98",
+      "format": "text",
+      "label": "Ⅲ ４ 郵便番号"
+    },
+    {
+      "key": "organization.postal_last",
+      "target": "参考様式第１－１７号!V98",
+      "format": "text",
+      "label": "Ⅲ ４ 郵便番号"
+    },
+    {
+      "key": "organization.address",
+      "target": "参考様式第１－１７号!O100",
+      "format": "text",
+      "label": "Ⅲ ４ 住所",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!BB103",
+      "format": "template",
+      "template": "（电话　{phone}）",
+      "keys": {
+        "phone": {
+          "key": "organization.phone"
+        }
+      },
+      "label": "Ⅲ ４ 電話",
+      "fit": true
+    },
+    {
+      "key": "organization.representative_name_kana",
+      "target": "参考様式第１－１７号!O106",
+      "format": "text",
+      "label": "Ⅲ ５ 代表者 ふりがな",
+      "fit": true
+    },
+    {
+      "key": "organization.representative_name",
+      "target": "参考様式第１－１７号!O109",
+      "format": "text",
+      "label": "Ⅲ ５ 代表者の氏名",
+      "fit": true
+    },
+    {
+      "key": "office.postal_first",
+      "target": "参考様式第１－１７号!P122",
+      "format": "text",
+      "label": "Ⅲ ６ 郵便番号"
+    },
+    {
+      "key": "office.postal_last",
+      "target": "参考様式第１－１７号!V122",
+      "format": "text",
+      "label": "Ⅲ ６ 郵便番号"
+    },
+    {
+      "key": "office.address",
+      "target": "参考様式第１－１７号!O124",
+      "format": "text",
+      "label": "Ⅲ ６ 支援を行う事務所の所在地",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!BB127",
+      "format": "template",
+      "template": "（电话　{phone}）",
+      "keys": {
+        "phone": {
+          "key": "office.phone"
+        }
+      },
+      "label": "Ⅲ ６ 電話",
+      "fit": true
+    },
+    {
+      "key": "manager.name_kana",
+      "target": "参考様式第１－１７号!AI130",
+      "format": "text",
+      "label": "Ⅲ ７ 支援責任者 ふりがな",
+      "fit": true
+    },
+    {
+      "key": "manager.name",
+      "target": "参考様式第１－１７号!AI133",
+      "format": "text",
+      "label": "Ⅲ ７ 支援責任者 氏名",
+      "fit": true
+    },
+    {
+      "key": "manager.position",
+      "target": "参考様式第１－１７号!BE130",
+      "format": "text",
+      "label": "Ⅲ ７ 支援責任者 役職",
+      "fit": true
+    },
+    {
+      "key": "organization.worker_count",
+      "target": "参考様式第１－１７号!AC138",
+      "format": "number",
+      "label": "Ⅲ ７ 支援を行っている1号特定技能外国人数"
+    },
+    {
+      "key": "organization.staff_count",
+      "target": "参考様式第１－１７号!AC146",
+      "format": "number",
+      "label": "Ⅲ ７ 支援担当者数"
+    },
+    {
+      "key": "declaration.propriety",
+      "target": "参考様式第１－１７号!AZ148",
+      "format": "text",
+      "label": "Ⅲ ７ 支援の適正性を確保していることの有無"
+    },
+    {
+      "key": "declaration.propriety_no",
+      "target": "参考様式第１－１７号!BF148",
+      "format": "text",
+      "label": "Ⅲ ７ 支援の適正性を確保していることの有無（無）"
+    },
+    {
+      "key": "plan.1.main.planned_yes",
+      "target": "参考様式第１－１７号!S188",
+      "format": "check",
+      "label": "Ⅳ１　事前ガイダンスの提供 実施予定（有）"
+    },
+    {
+      "key": "plan.1.main.planned_no",
+      "target": "参考様式第１－１７号!S191",
+      "format": "check",
+      "label": "Ⅳ１　事前ガイダンスの提供 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T188",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.1.main.yes_note"
+        }
+      },
+      "label": "Ⅳ１　事前ガイダンスの提供 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T191",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.1.main.no_note"
+        }
+      },
+      "label": "Ⅳ１　事前ガイダンスの提供 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.1.main.outsourced",
+      "target": "参考様式第１－１７号!AC161",
+      "format": "text",
+      "label": "Ⅳ１　事前ガイダンスの提供 委託の有無"
+    },
+    {
+      "key": "plan.1.main.staff",
+      "target": "参考様式第１－１７号!AG161",
+      "format": "text",
+      "label": "Ⅳ１　事前ガイダンスの提供 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.1.main.address",
+      "target": "参考様式第１－１７号!AO163",
+      "format": "text",
+      "label": "Ⅳ１　事前ガイダンスの提供 委託先の住所"
+    },
+    {
+      "key": "plan.1.main.method.in_person",
+      "target": "参考様式第１－１７号!BC161",
+      "format": "check",
+      "label": "Ⅳ１　事前ガイダンスの提供 実施方法（対面）"
+    },
+    {
+      "key": "plan.1.main.method.video_call",
+      "target": "参考様式第１－１７号!BC163",
+      "format": "check",
+      "label": "Ⅳ１　事前ガイダンスの提供 実施方法（テレビ電話装置）"
+    },
+    {
+      "key": "plan.1.main.method.other",
+      "target": "参考様式第１－１７号!BC165",
+      "format": "check",
+      "label": "Ⅳ１　事前ガイダンスの提供 実施方法（その他）"
+    },
+    {
+      "target": "参考様式第１－１７号!BD165",
+      "format": "template",
+      "template": "其他（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.1.main.method_note.other"
+        }
+      },
+      "label": "Ⅳ１　事前ガイダンスの提供 実施方法（その他）",
+      "fit": true
+    },
+    {
+      "key": "plan.1.main.note",
+      "target": "参考様式第１－１７号!BC182",
+      "format": "text",
+      "label": "Ⅳ１　事前ガイダンスの提供 支援内容ごとに異なる場合"
+    },
+    {
+      "key": "plan.1.free.planned_yes",
+      "target": "参考様式第１－１７号!S225",
+      "format": "check",
+      "label": "Ⅳ１　事前ガイダンスの提供（自由記入） 実施予定（有）"
+    },
+    {
+      "key": "plan.1.free.planned_no",
+      "target": "参考様式第１－１７号!S228",
+      "format": "check",
+      "label": "Ⅳ１　事前ガイダンスの提供（自由記入） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T225",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.1.free.yes_note"
+        }
+      },
+      "label": "Ⅳ１　事前ガイダンスの提供（自由記入） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T228",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.1.free.no_note"
+        }
+      },
+      "label": "Ⅳ１　事前ガイダンスの提供（自由記入） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.1.free.outsourced",
+      "target": "参考様式第１－１７号!AC225",
+      "format": "text",
+      "label": "Ⅳ１　事前ガイダンスの提供（自由記入） 委託の有無"
+    },
+    {
+      "key": "plan.1.free.staff",
+      "target": "参考様式第１－１７号!AG225",
+      "format": "text",
+      "label": "Ⅳ１　事前ガイダンスの提供（自由記入） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.1.free.address",
+      "target": "参考様式第１－１７号!AO225",
+      "format": "text",
+      "label": "Ⅳ１　事前ガイダンスの提供（自由記入） 委託先の住所"
+    },
+    {
+      "key": "plan.1.free.method_text",
+      "target": "参考様式第１－１７号!BC225",
+      "format": "text",
+      "label": "Ⅳ１　事前ガイダンスの提供（自由記入） 実施方法"
+    },
+    {
+      "key": "plan.1.free.content",
+      "target": "参考様式第１－１７号!G227",
+      "format": "text",
+      "label": "Ⅳ１　事前ガイダンスの提供（自由記入） 内容"
+    },
+    {
+      "key": "plan.2.a.planned_yes",
+      "target": "参考様式第１－１７号!S244",
+      "format": "check",
+      "label": "Ⅳ２　出入国する際の送迎（ａ） 実施予定（有）"
+    },
+    {
+      "key": "plan.2.a.planned_no",
+      "target": "参考様式第１－１７号!S247",
+      "format": "check",
+      "label": "Ⅳ２　出入国する際の送迎（ａ） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T244",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.2.a.yes_note"
+        }
+      },
+      "label": "Ⅳ２　出入国する際の送迎（ａ） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T247",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.2.a.no_note"
+        }
+      },
+      "label": "Ⅳ２　出入国する際の送迎（ａ） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.2.a.outsourced",
+      "target": "参考様式第１－１７号!AC244",
+      "format": "text",
+      "label": "Ⅳ２　出入国する際の送迎（ａ） 委託の有無"
+    },
+    {
+      "key": "plan.2.a.staff",
+      "target": "参考様式第１－１７号!AG244",
+      "format": "text",
+      "label": "Ⅳ２　出入国する際の送迎（ａ） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.2.a.address",
+      "target": "参考様式第１－１７号!AO246",
+      "format": "text",
+      "label": "Ⅳ２　出入国する際の送迎（ａ） 委託先の住所"
+    },
+    {
+      "key": "plan.2.a.method.arrival_airport",
+      "target": "参考様式第１－１７号!BC244",
+      "format": "check",
+      "label": "Ⅳ２　出入国する際の送迎（ａ） 実施方法（出迎え空港）"
+    },
+    {
+      "key": "plan.2.a.method.transport",
+      "target": "参考様式第１－１７号!BC248",
+      "format": "check",
+      "label": "Ⅳ２　出入国する際の送迎（ａ） 実施方法（送迎方法）"
+    },
+    {
+      "target": "参考様式第１－１７号!BE246",
+      "format": "template",
+      "template": "{n}",
+      "keys": {
+        "n": {
+          "key": "plan.2.a.method_note.arrival_airport"
+        }
+      },
+      "label": "Ⅳ２　出入国する際の送迎（ａ） 実施方法（出迎え空港）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!BD248",
+      "format": "template",
+      "template": "接送方法（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.2.a.method_note.transport"
+        }
+      },
+      "label": "Ⅳ２　出入国する際の送迎（ａ） 実施方法（送迎方法）",
+      "fit": true
+    },
+    {
+      "key": "plan.2.b.planned_yes",
+      "target": "参考様式第１－１７号!S250",
+      "format": "check",
+      "label": "Ⅳ２　出入国する際の送迎（ｂ） 実施予定（有）"
+    },
+    {
+      "key": "plan.2.b.planned_no",
+      "target": "参考様式第１－１７号!S253",
+      "format": "check",
+      "label": "Ⅳ２　出入国する際の送迎（ｂ） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T250",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.2.b.yes_note"
+        }
+      },
+      "label": "Ⅳ２　出入国する際の送迎（ｂ） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T253",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.2.b.no_note"
+        }
+      },
+      "label": "Ⅳ２　出入国する際の送迎（ｂ） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.2.b.outsourced",
+      "target": "参考様式第１－１７号!AC250",
+      "format": "text",
+      "label": "Ⅳ２　出入国する際の送迎（ｂ） 委託の有無"
+    },
+    {
+      "key": "plan.2.b.staff",
+      "target": "参考様式第１－１７号!AG250",
+      "format": "text",
+      "label": "Ⅳ２　出入国する際の送迎（ｂ） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.2.b.address",
+      "target": "参考様式第１－１７号!AO252",
+      "format": "text",
+      "label": "Ⅳ２　出入国する際の送迎（ｂ） 委託先の住所"
+    },
+    {
+      "key": "plan.2.b.method.departure_airport",
+      "target": "参考様式第１－１７号!BC250",
+      "format": "check",
+      "label": "Ⅳ２　出入国する際の送迎（ｂ） 実施方法（出国予定空港）"
+    },
+    {
+      "key": "plan.2.b.method.transport",
+      "target": "参考様式第１－１７号!BC254",
+      "format": "check",
+      "label": "Ⅳ２　出入国する際の送迎（ｂ） 実施方法（送迎方法）"
+    },
+    {
+      "target": "参考様式第１－１７号!BE252",
+      "format": "template",
+      "template": "{n}",
+      "keys": {
+        "n": {
+          "key": "plan.2.b.method_note.departure_airport"
+        }
+      },
+      "label": "Ⅳ２　出入国する際の送迎（ｂ） 実施方法（出国予定空港）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!BD254",
+      "format": "template",
+      "template": "接送方法（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.2.b.method_note.transport"
+        }
+      },
+      "label": "Ⅳ２　出入国する際の送迎（ｂ） 実施方法（送迎方法）",
+      "fit": true
+    },
+    {
+      "key": "plan.2.free.planned_yes",
+      "target": "参考様式第１－１７号!S256",
+      "format": "check",
+      "label": "Ⅳ２　出入国する際の送迎（自由記入） 実施予定（有）"
+    },
+    {
+      "key": "plan.2.free.planned_no",
+      "target": "参考様式第１－１７号!S259",
+      "format": "check",
+      "label": "Ⅳ２　出入国する際の送迎（自由記入） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T256",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.2.free.yes_note"
+        }
+      },
+      "label": "Ⅳ２　出入国する際の送迎（自由記入） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T259",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.2.free.no_note"
+        }
+      },
+      "label": "Ⅳ２　出入国する際の送迎（自由記入） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.2.free.outsourced",
+      "target": "参考様式第１－１７号!AC256",
+      "format": "text",
+      "label": "Ⅳ２　出入国する際の送迎（自由記入） 委託の有無"
+    },
+    {
+      "key": "plan.2.free.staff",
+      "target": "参考様式第１－１７号!AG256",
+      "format": "text",
+      "label": "Ⅳ２　出入国する際の送迎（自由記入） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.2.free.address",
+      "target": "参考様式第１－１７号!AO258",
+      "format": "text",
+      "label": "Ⅳ２　出入国する際の送迎（自由記入） 委託先の住所"
+    },
+    {
+      "key": "plan.2.free.method_text",
+      "target": "参考様式第１－１７号!BC256",
+      "format": "text",
+      "label": "Ⅳ２　出入国する際の送迎（自由記入） 実施方法"
+    },
+    {
+      "key": "plan.2.free.content",
+      "target": "参考様式第１－１７号!E258",
+      "format": "text",
+      "label": "Ⅳ２　出入国する際の送迎（自由記入） 内容"
+    },
+    {
+      "key": "plan.3a.a.planned_yes",
+      "target": "参考様式第１－１７号!S276",
+      "format": "check",
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（ａ） 実施予定（有）"
+    },
+    {
+      "key": "plan.3a.a.planned_no",
+      "target": "参考様式第１－１７号!S279",
+      "format": "check",
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（ａ） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T276",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.3a.a.yes_note"
+        }
+      },
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（ａ） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T279",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.3a.a.no_note"
+        }
+      },
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（ａ） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.3a.a.outsourced",
+      "target": "参考様式第１－１７号!AC269",
+      "format": "text",
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（ａ） 委託の有無"
+    },
+    {
+      "key": "plan.3a.a.staff",
+      "target": "参考様式第１－１７号!AG269",
+      "format": "text",
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（ａ） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.3a.a.address",
+      "target": "参考様式第１－１７号!AO271",
+      "format": "text",
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（ａ） 委託先の住所"
+    },
+    {
+      "key": "plan.3a.a.method_text",
+      "target": "参考様式第１－１７号!BC269",
+      "format": "text",
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（ａ） 実施方法"
+    },
+    {
+      "key": "plan.3a.b.planned_yes",
+      "target": "参考様式第１－１７号!S291",
+      "format": "check",
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（ｂ） 実施予定（有）"
+    },
+    {
+      "key": "plan.3a.b.planned_no",
+      "target": "参考様式第１－１７号!S294",
+      "format": "check",
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（ｂ） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T291",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.3a.b.yes_note"
+        }
+      },
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（ｂ） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T294",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.3a.b.no_note"
+        }
+      },
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（ｂ） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.3a.b.outsourced",
+      "target": "参考様式第１－１７号!AC290",
+      "format": "text",
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（ｂ） 委託の有無"
+    },
+    {
+      "key": "plan.3a.b.staff",
+      "target": "参考様式第１－１７号!AG290",
+      "format": "text",
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（ｂ） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.3a.b.address",
+      "target": "参考様式第１－１７号!AO292",
+      "format": "text",
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（ｂ） 委託先の住所"
+    },
+    {
+      "key": "plan.3a.c.planned_yes",
+      "target": "参考様式第１－１７号!S299",
+      "format": "check",
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（ｃ） 実施予定（有）"
+    },
+    {
+      "key": "plan.3a.c.planned_no",
+      "target": "参考様式第１－１７号!S302",
+      "format": "check",
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（ｃ） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T299",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.3a.c.yes_note"
+        }
+      },
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（ｃ） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T302",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.3a.c.no_note"
+        }
+      },
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（ｃ） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.3a.c.outsourced",
+      "target": "参考様式第１－１７号!AC298",
+      "format": "text",
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（ｃ） 委託の有無"
+    },
+    {
+      "key": "plan.3a.c.staff",
+      "target": "参考様式第１－１７号!AG298",
+      "format": "text",
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（ｃ） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.3a.c.address",
+      "target": "参考様式第１－１７号!AO300",
+      "format": "text",
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（ｃ） 委託先の住所"
+    },
+    {
+      "key": "plan.3a.free.planned_yes",
+      "target": "参考様式第１－１７号!S306",
+      "format": "check",
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（自由記入） 実施予定（有）"
+    },
+    {
+      "key": "plan.3a.free.planned_no",
+      "target": "参考様式第１－１７号!S309",
+      "format": "check",
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（自由記入） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T306",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.3a.free.yes_note"
+        }
+      },
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（自由記入） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T309",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.3a.free.no_note"
+        }
+      },
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（自由記入） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.3a.free.outsourced",
+      "target": "参考様式第１－１７号!AC306",
+      "format": "text",
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（自由記入） 委託の有無"
+    },
+    {
+      "key": "plan.3a.free.staff",
+      "target": "参考様式第１－１７号!AG306",
+      "format": "text",
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（自由記入） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.3a.free.address",
+      "target": "参考様式第１－１７号!AO308",
+      "format": "text",
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（自由記入） 委託先の住所"
+    },
+    {
+      "key": "plan.3a.free.method_text",
+      "target": "参考様式第１－１７号!BC306",
+      "format": "text",
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（自由記入） 実施方法"
+    },
+    {
+      "key": "plan.3a.free.content",
+      "target": "参考様式第１－１７号!G308",
+      "format": "text",
+      "label": "Ⅳ３　ア　適切な住居の確保に係る支援（自由記入） 内容"
+    },
+    {
+      "key": "plan.3b.a.planned_yes",
+      "target": "参考様式第１－１７号!S338",
+      "format": "check",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ａ） 実施予定（有）"
+    },
+    {
+      "key": "plan.3b.a.planned_no",
+      "target": "参考様式第１－１７号!S341",
+      "format": "check",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ａ） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T338",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.3b.a.yes_note"
+        }
+      },
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ａ） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T341",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.3b.a.no_note"
+        }
+      },
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ａ） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.3b.a.outsourced",
+      "target": "参考様式第１－１７号!AC338",
+      "format": "text",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ａ） 委託の有無"
+    },
+    {
+      "key": "plan.3b.a.staff",
+      "target": "参考様式第１－１７号!AG338",
+      "format": "text",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ａ） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.3b.a.address",
+      "target": "参考様式第１－１７号!AO340",
+      "format": "text",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ａ） 委託先の住所"
+    },
+    {
+      "key": "plan.3b.a.method.information",
+      "target": "参考様式第１－１７号!BC338",
+      "format": "check",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ａ） 実施方法（情報提供）"
+    },
+    {
+      "key": "plan.3b.a.method.accompany",
+      "target": "参考様式第１－１７号!BC340",
+      "format": "check",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ａ） 実施方法（同行）"
+    },
+    {
+      "key": "plan.3b.a.method.other",
+      "target": "参考様式第１－１７号!BC342",
+      "format": "check",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ａ） 実施方法（その他）"
+    },
+    {
+      "target": "参考様式第１－１７号!BD342",
+      "format": "template",
+      "template": "其他（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.3b.a.method_note.other"
+        }
+      },
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ａ） 実施方法（その他）",
+      "fit": true
+    },
+    {
+      "key": "plan.3b.b.planned_yes",
+      "target": "参考様式第１－１７号!S344",
+      "format": "check",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ｂ） 実施予定（有）"
+    },
+    {
+      "key": "plan.3b.b.planned_no",
+      "target": "参考様式第１－１７号!S347",
+      "format": "check",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ｂ） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T344",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.3b.b.yes_note"
+        }
+      },
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ｂ） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T347",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.3b.b.no_note"
+        }
+      },
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ｂ） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.3b.b.outsourced",
+      "target": "参考様式第１－１７号!AC344",
+      "format": "text",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ｂ） 委託の有無"
+    },
+    {
+      "key": "plan.3b.b.staff",
+      "target": "参考様式第１－１７号!AG344",
+      "format": "text",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ｂ） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.3b.b.address",
+      "target": "参考様式第１－１７号!AO346",
+      "format": "text",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ｂ） 委託先の住所"
+    },
+    {
+      "key": "plan.3b.b.method.information",
+      "target": "参考様式第１－１７号!BC344",
+      "format": "check",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ｂ） 実施方法（情報提供）"
+    },
+    {
+      "key": "plan.3b.b.method.accompany",
+      "target": "参考様式第１－１７号!BC346",
+      "format": "check",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ｂ） 実施方法（同行）"
+    },
+    {
+      "key": "plan.3b.b.method.other",
+      "target": "参考様式第１－１７号!BC348",
+      "format": "check",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ｂ） 実施方法（その他）"
+    },
+    {
+      "target": "参考様式第１－１７号!BD348",
+      "format": "template",
+      "template": "其他（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.3b.b.method_note.other"
+        }
+      },
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ｂ） 実施方法（その他）",
+      "fit": true
+    },
+    {
+      "key": "plan.3b.c.planned_yes",
+      "target": "参考様式第１－１７号!S350",
+      "format": "check",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ｃ） 実施予定（有）"
+    },
+    {
+      "key": "plan.3b.c.planned_no",
+      "target": "参考様式第１－１７号!S353",
+      "format": "check",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ｃ） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T350",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.3b.c.yes_note"
+        }
+      },
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ｃ） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T353",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.3b.c.no_note"
+        }
+      },
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ｃ） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.3b.c.outsourced",
+      "target": "参考様式第１－１７号!AC350",
+      "format": "text",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ｃ） 委託の有無"
+    },
+    {
+      "key": "plan.3b.c.staff",
+      "target": "参考様式第１－１７号!AG350",
+      "format": "text",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ｃ） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.3b.c.address",
+      "target": "参考様式第１－１７号!AO352",
+      "format": "text",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ｃ） 委託先の住所"
+    },
+    {
+      "key": "plan.3b.c.method.information",
+      "target": "参考様式第１－１７号!BC350",
+      "format": "check",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ｃ） 実施方法（情報提供）"
+    },
+    {
+      "key": "plan.3b.c.method.accompany",
+      "target": "参考様式第１－１７号!BC352",
+      "format": "check",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ｃ） 実施方法（同行）"
+    },
+    {
+      "key": "plan.3b.c.method.other",
+      "target": "参考様式第１－１７号!BC354",
+      "format": "check",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ｃ） 実施方法（その他）"
+    },
+    {
+      "target": "参考様式第１－１７号!BD354",
+      "format": "template",
+      "template": "其他（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.3b.c.method_note.other"
+        }
+      },
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（ｃ） 実施方法（その他）",
+      "fit": true
+    },
+    {
+      "key": "plan.3b.free.planned_yes",
+      "target": "参考様式第１－１７号!S356",
+      "format": "check",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（自由記入） 実施予定（有）"
+    },
+    {
+      "key": "plan.3b.free.planned_no",
+      "target": "参考様式第１－１７号!S359",
+      "format": "check",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（自由記入） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T356",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.3b.free.yes_note"
+        }
+      },
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（自由記入） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T359",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.3b.free.no_note"
+        }
+      },
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（自由記入） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.3b.free.outsourced",
+      "target": "参考様式第１－１７号!AC356",
+      "format": "text",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（自由記入） 委託の有無"
+    },
+    {
+      "key": "plan.3b.free.staff",
+      "target": "参考様式第１－１７号!AG356",
+      "format": "text",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（自由記入） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.3b.free.address",
+      "target": "参考様式第１－１７号!AO358",
+      "format": "text",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（自由記入） 委託先の住所"
+    },
+    {
+      "key": "plan.3b.free.method_text",
+      "target": "参考様式第１－１７号!BC356",
+      "format": "text",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（自由記入） 実施方法"
+    },
+    {
+      "key": "plan.3b.free.content",
+      "target": "参考様式第１－１７号!G358",
+      "format": "text",
+      "label": "Ⅳ３　イ　生活に必要な契約に係る支援（自由記入） 内容"
+    },
+    {
+      "key": "plan.4.main.planned_yes",
+      "target": "参考様式第１－１７号!S375",
+      "format": "check",
+      "label": "Ⅳ４　生活オリエンテーションの実施 実施予定（有）"
+    },
+    {
+      "key": "plan.4.main.planned_no",
+      "target": "参考様式第１－１７号!S379",
+      "format": "check",
+      "label": "Ⅳ４　生活オリエンテーションの実施 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T375",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.4.main.yes_note"
+        }
+      },
+      "label": "Ⅳ４　生活オリエンテーションの実施 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T379",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.4.main.no_note"
+        }
+      },
+      "label": "Ⅳ４　生活オリエンテーションの実施 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.4.main.outsourced",
+      "target": "参考様式第１－１７号!AC369",
+      "format": "text",
+      "label": "Ⅳ４　生活オリエンテーションの実施 委託の有無"
+    },
+    {
+      "key": "plan.4.main.staff",
+      "target": "参考様式第１－１７号!AG369",
+      "format": "text",
+      "label": "Ⅳ４　生活オリエンテーションの実施 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.4.main.address",
+      "target": "参考様式第１－１７号!AO371",
+      "format": "text",
+      "label": "Ⅳ４　生活オリエンテーションの実施 委託先の住所"
+    },
+    {
+      "key": "plan.4.main.method.in_person",
+      "target": "参考様式第１－１７号!BC374",
+      "format": "check",
+      "label": "Ⅳ４　生活オリエンテーションの実施 実施方法（対面）"
+    },
+    {
+      "key": "plan.4.main.method.video_or_dvd",
+      "target": "参考様式第１－１７号!BC377",
+      "format": "check",
+      "label": "Ⅳ４　生活オリエンテーションの実施 実施方法（テレビ電話やＤＶＤ等）"
+    },
+    {
+      "key": "plan.4.main.note",
+      "target": "参考様式第１－１７号!BC393",
+      "format": "text",
+      "label": "Ⅳ４　生活オリエンテーションの実施 支援内容ごとに異なる場合"
+    },
+    {
+      "key": "plan.4.free.planned_yes",
+      "target": "参考様式第１－１７号!S413",
+      "format": "check",
+      "label": "Ⅳ４　生活オリエンテーションの実施（自由記入） 実施予定（有）"
+    },
+    {
+      "key": "plan.4.free.planned_no",
+      "target": "参考様式第１－１７号!S416",
+      "format": "check",
+      "label": "Ⅳ４　生活オリエンテーションの実施（自由記入） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T413",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.4.free.yes_note"
+        }
+      },
+      "label": "Ⅳ４　生活オリエンテーションの実施（自由記入） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T416",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.4.free.no_note"
+        }
+      },
+      "label": "Ⅳ４　生活オリエンテーションの実施（自由記入） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.4.free.outsourced",
+      "target": "参考様式第１－１７号!AC413",
+      "format": "text",
+      "label": "Ⅳ４　生活オリエンテーションの実施（自由記入） 委託の有無"
+    },
+    {
+      "key": "plan.4.free.staff",
+      "target": "参考様式第１－１７号!AG413",
+      "format": "text",
+      "label": "Ⅳ４　生活オリエンテーションの実施（自由記入） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.4.free.address",
+      "target": "参考様式第１－１７号!AO415",
+      "format": "text",
+      "label": "Ⅳ４　生活オリエンテーションの実施（自由記入） 委託先の住所"
+    },
+    {
+      "key": "plan.4.free.method_text",
+      "target": "参考様式第１－１７号!BC413",
+      "format": "text",
+      "label": "Ⅳ４　生活オリエンテーションの実施（自由記入） 実施方法"
+    },
+    {
+      "key": "plan.4.free.content",
+      "target": "参考様式第１－１７号!G415",
+      "format": "text",
+      "label": "Ⅳ４　生活オリエンテーションの実施（自由記入） 内容"
+    },
+    {
+      "key": "plan.5.a.planned_yes",
+      "target": "参考様式第１－１７号!S433",
+      "format": "check",
+      "label": "Ⅳ５　日本語学習の機会の提供（ａ） 実施予定（有）"
+    },
+    {
+      "key": "plan.5.a.planned_no",
+      "target": "参考様式第１－１７号!S436",
+      "format": "check",
+      "label": "Ⅳ５　日本語学習の機会の提供（ａ） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T433",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.5.a.yes_note"
+        }
+      },
+      "label": "Ⅳ５　日本語学習の機会の提供（ａ） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T436",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.5.a.no_note"
+        }
+      },
+      "label": "Ⅳ５　日本語学習の機会の提供（ａ） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.5.a.outsourced",
+      "target": "参考様式第１－１７号!AC432",
+      "format": "text",
+      "label": "Ⅳ５　日本語学習の機会の提供（ａ） 委託の有無"
+    },
+    {
+      "key": "plan.5.a.staff",
+      "target": "参考様式第１－１７号!AG432",
+      "format": "text",
+      "label": "Ⅳ５　日本語学習の機会の提供（ａ） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.5.a.address",
+      "target": "参考様式第１－１７号!AO434",
+      "format": "text",
+      "label": "Ⅳ５　日本語学習の機会の提供（ａ） 委託先の住所"
+    },
+    {
+      "key": "plan.5.a.method_text",
+      "target": "参考様式第１－１７号!BC432",
+      "format": "text",
+      "label": "Ⅳ５　日本語学習の機会の提供（ａ） 実施方法"
+    },
+    {
+      "key": "plan.5.b.planned_yes",
+      "target": "参考様式第１－１７号!S443",
+      "format": "check",
+      "label": "Ⅳ５　日本語学習の機会の提供（ｂ） 実施予定（有）"
+    },
+    {
+      "key": "plan.5.b.planned_no",
+      "target": "参考様式第１－１７号!S446",
+      "format": "check",
+      "label": "Ⅳ５　日本語学習の機会の提供（ｂ） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T443",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.5.b.yes_note"
+        }
+      },
+      "label": "Ⅳ５　日本語学習の機会の提供（ｂ） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T446",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.5.b.no_note"
+        }
+      },
+      "label": "Ⅳ５　日本語学習の機会の提供（ｂ） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.5.b.outsourced",
+      "target": "参考様式第１－１７号!AC440",
+      "format": "text",
+      "label": "Ⅳ５　日本語学習の機会の提供（ｂ） 委託の有無"
+    },
+    {
+      "key": "plan.5.b.staff",
+      "target": "参考様式第１－１７号!AG440",
+      "format": "text",
+      "label": "Ⅳ５　日本語学習の機会の提供（ｂ） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.5.b.address",
+      "target": "参考様式第１－１７号!AO442",
+      "format": "text",
+      "label": "Ⅳ５　日本語学習の機会の提供（ｂ） 委託先の住所"
+    },
+    {
+      "key": "plan.5.c.planned_yes",
+      "target": "参考様式第１－１７号!S453",
+      "format": "check",
+      "label": "Ⅳ５　日本語学習の機会の提供（ｃ） 実施予定（有）"
+    },
+    {
+      "key": "plan.5.c.planned_no",
+      "target": "参考様式第１－１７号!S456",
+      "format": "check",
+      "label": "Ⅳ５　日本語学習の機会の提供（ｃ） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T453",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.5.c.yes_note"
+        }
+      },
+      "label": "Ⅳ５　日本語学習の機会の提供（ｃ） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T456",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.5.c.no_note"
+        }
+      },
+      "label": "Ⅳ５　日本語学習の機会の提供（ｃ） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.5.c.outsourced",
+      "target": "参考様式第１－１７号!AC452",
+      "format": "text",
+      "label": "Ⅳ５　日本語学習の機会の提供（ｃ） 委託の有無"
+    },
+    {
+      "key": "plan.5.c.staff",
+      "target": "参考様式第１－１７号!AG452",
+      "format": "text",
+      "label": "Ⅳ５　日本語学習の機会の提供（ｃ） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.5.c.address",
+      "target": "参考様式第１－１７号!AO454",
+      "format": "text",
+      "label": "Ⅳ５　日本語学習の機会の提供（ｃ） 委託先の住所"
+    },
+    {
+      "key": "plan.5.free.planned_yes",
+      "target": "参考様式第１－１７号!S460",
+      "format": "check",
+      "label": "Ⅳ５　日本語学習の機会の提供（自由記入） 実施予定（有）"
+    },
+    {
+      "key": "plan.5.free.planned_no",
+      "target": "参考様式第１－１７号!S463",
+      "format": "check",
+      "label": "Ⅳ５　日本語学習の機会の提供（自由記入） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T460",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.5.free.yes_note"
+        }
+      },
+      "label": "Ⅳ５　日本語学習の機会の提供（自由記入） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T463",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.5.free.no_note"
+        }
+      },
+      "label": "Ⅳ５　日本語学習の機会の提供（自由記入） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.5.free.outsourced",
+      "target": "参考様式第１－１７号!AC460",
+      "format": "text",
+      "label": "Ⅳ５　日本語学習の機会の提供（自由記入） 委託の有無"
+    },
+    {
+      "key": "plan.5.free.staff",
+      "target": "参考様式第１－１７号!AG460",
+      "format": "text",
+      "label": "Ⅳ５　日本語学習の機会の提供（自由記入） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.5.free.address",
+      "target": "参考様式第１－１７号!AO462",
+      "format": "text",
+      "label": "Ⅳ５　日本語学習の機会の提供（自由記入） 委託先の住所"
+    },
+    {
+      "key": "plan.5.free.method_text",
+      "target": "参考様式第１－１７号!BC460",
+      "format": "text",
+      "label": "Ⅳ５　日本語学習の機会の提供（自由記入） 実施方法"
+    },
+    {
+      "key": "plan.5.free.content",
+      "target": "参考様式第１－１７号!E462",
+      "format": "text",
+      "label": "Ⅳ５　日本語学習の機会の提供（自由記入） 内容"
+    },
+    {
+      "key": "plan.6.main.planned_yes",
+      "target": "参考様式第１－１７号!S479",
+      "format": "check",
+      "label": "Ⅳ６　相談又は苦情への対応 実施予定（有）"
+    },
+    {
+      "key": "plan.6.main.planned_no",
+      "target": "参考様式第１－１７号!S482",
+      "format": "check",
+      "label": "Ⅳ６　相談又は苦情への対応 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T479",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.6.main.yes_note"
+        }
+      },
+      "label": "Ⅳ６　相談又は苦情への対応 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T482",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.6.main.no_note"
+        }
+      },
+      "label": "Ⅳ６　相談又は苦情への対応 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.6.main.outsourced",
+      "target": "参考様式第１－１７号!AC473",
+      "format": "text",
+      "label": "Ⅳ６　相談又は苦情への対応 委託の有無"
+    },
+    {
+      "key": "plan.6.main.staff",
+      "target": "参考様式第１－１７号!AG473",
+      "format": "text",
+      "label": "Ⅳ６　相談又は苦情への対応 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.6.main.address",
+      "target": "参考様式第１－１７号!AO475",
+      "format": "text",
+      "label": "Ⅳ６　相談又は苦情への対応 委託先の住所"
+    },
+    {
+      "key": "plan.6.free.planned_yes",
+      "target": "参考様式第１－１７号!S490",
+      "format": "check",
+      "label": "Ⅳ６　相談又は苦情への対応（自由記入） 実施予定（有）"
+    },
+    {
+      "key": "plan.6.free.planned_no",
+      "target": "参考様式第１－１７号!S493",
+      "format": "check",
+      "label": "Ⅳ６　相談又は苦情への対応（自由記入） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T490",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.6.free.yes_note"
+        }
+      },
+      "label": "Ⅳ６　相談又は苦情への対応（自由記入） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T493",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.6.free.no_note"
+        }
+      },
+      "label": "Ⅳ６　相談又は苦情への対応（自由記入） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.6.free.outsourced",
+      "target": "参考様式第１－１７号!AC490",
+      "format": "text",
+      "label": "Ⅳ６　相談又は苦情への対応（自由記入） 委託の有無"
+    },
+    {
+      "key": "plan.6.free.staff",
+      "target": "参考様式第１－１７号!AG490",
+      "format": "text",
+      "label": "Ⅳ６　相談又は苦情への対応（自由記入） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.6.free.address",
+      "target": "参考様式第１－１７号!AO492",
+      "format": "text",
+      "label": "Ⅳ６　相談又は苦情への対応（自由記入） 委託先の住所"
+    },
+    {
+      "key": "plan.6.free.content",
+      "target": "参考様式第１－１７号!G492",
+      "format": "text",
+      "label": "Ⅳ６　相談又は苦情への対応（自由記入） 内容"
+    },
+    {
+      "key": "plan.7.main.planned_yes",
+      "target": "参考様式第１－１７号!S566",
+      "format": "check",
+      "label": "Ⅳ７　日本人との交流促進に係る支援 実施予定（有）"
+    },
+    {
+      "key": "plan.7.main.planned_no",
+      "target": "参考様式第１－１７号!S569",
+      "format": "check",
+      "label": "Ⅳ７　日本人との交流促進に係る支援 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T566",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.7.main.yes_note"
+        }
+      },
+      "label": "Ⅳ７　日本人との交流促進に係る支援 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T569",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.7.main.no_note"
+        }
+      },
+      "label": "Ⅳ７　日本人との交流促進に係る支援 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.7.main.outsourced",
+      "target": "参考様式第１－１７号!AC554",
+      "format": "text",
+      "label": "Ⅳ７　日本人との交流促進に係る支援 委託の有無"
+    },
+    {
+      "key": "plan.7.main.staff",
+      "target": "参考様式第１－１７号!AG554",
+      "format": "text",
+      "label": "Ⅳ７　日本人との交流促進に係る支援 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.7.main.address",
+      "target": "参考様式第１－１７号!AO556",
+      "format": "text",
+      "label": "Ⅳ７　日本人との交流促進に係る支援 委託先の住所"
+    },
+    {
+      "key": "plan.7.main.method_text",
+      "target": "参考様式第１－１７号!BC554",
+      "format": "text",
+      "label": "Ⅳ７　日本人との交流促進に係る支援 実施方法"
+    },
+    {
+      "key": "plan.7.free.planned_yes",
+      "target": "参考様式第１－１７号!S580",
+      "format": "check",
+      "label": "Ⅳ７　日本人との交流促進に係る支援（自由記入） 実施予定（有）"
+    },
+    {
+      "key": "plan.7.free.planned_no",
+      "target": "参考様式第１－１７号!S583",
+      "format": "check",
+      "label": "Ⅳ７　日本人との交流促進に係る支援（自由記入） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T580",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.7.free.yes_note"
+        }
+      },
+      "label": "Ⅳ７　日本人との交流促進に係る支援（自由記入） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T583",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.7.free.no_note"
+        }
+      },
+      "label": "Ⅳ７　日本人との交流促進に係る支援（自由記入） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.7.free.outsourced",
+      "target": "参考様式第１－１７号!AC580",
+      "format": "text",
+      "label": "Ⅳ７　日本人との交流促進に係る支援（自由記入） 委託の有無"
+    },
+    {
+      "key": "plan.7.free.staff",
+      "target": "参考様式第１－１７号!AG580",
+      "format": "text",
+      "label": "Ⅳ７　日本人との交流促進に係る支援（自由記入） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.7.free.address",
+      "target": "参考様式第１－１７号!AO582",
+      "format": "text",
+      "label": "Ⅳ７　日本人との交流促進に係る支援（自由記入） 委託先の住所"
+    },
+    {
+      "key": "plan.7.free.method_text",
+      "target": "参考様式第１－１７号!BC580",
+      "format": "text",
+      "label": "Ⅳ７　日本人との交流促進に係る支援（自由記入） 実施方法"
+    },
+    {
+      "key": "plan.7.free.content",
+      "target": "参考様式第１－１７号!E582",
+      "format": "text",
+      "label": "Ⅳ７　日本人との交流促進に係る支援（自由記入） 内容"
+    },
+    {
+      "key": "plan.8.a.planned_yes",
+      "target": "参考様式第１－１７号!S593",
+      "format": "check",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ａ） 実施予定（有）"
+    },
+    {
+      "key": "plan.8.a.planned_no",
+      "target": "参考様式第１－１７号!S596",
+      "format": "check",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ａ） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T593",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.8.a.yes_note"
+        }
+      },
+      "label": "Ⅳ８　非自発的離職時の転職支援（ａ） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T596",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.8.a.no_note"
+        }
+      },
+      "label": "Ⅳ８　非自発的離職時の転職支援（ａ） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.8.a.outsourced",
+      "target": "参考様式第１－１７号!AC593",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ａ） 委託の有無"
+    },
+    {
+      "key": "plan.8.a.staff",
+      "target": "参考様式第１－１７号!AG593",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ａ） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.8.a.address",
+      "target": "参考様式第１－１７号!AO595",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ａ） 委託先の住所"
+    },
+    {
+      "key": "plan.8.a.method_text",
+      "target": "参考様式第１－１７号!BC593",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ａ） 実施方法"
+    },
+    {
+      "key": "plan.8.b.planned_yes",
+      "target": "参考様式第１－１７号!S600",
+      "format": "check",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｂ） 実施予定（有）"
+    },
+    {
+      "key": "plan.8.b.planned_no",
+      "target": "参考様式第１－１７号!S603",
+      "format": "check",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｂ） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T600",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.8.b.yes_note"
+        }
+      },
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｂ） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T603",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.8.b.no_note"
+        }
+      },
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｂ） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.8.b.outsourced",
+      "target": "参考様式第１－１７号!AC599",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｂ） 委託の有無"
+    },
+    {
+      "key": "plan.8.b.staff",
+      "target": "参考様式第１－１７号!AG599",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｂ） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.8.b.address",
+      "target": "参考様式第１－１７号!AO601",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｂ） 委託先の住所"
+    },
+    {
+      "key": "plan.8.b.method_text",
+      "target": "参考様式第１－１７号!BC599",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｂ） 実施方法"
+    },
+    {
+      "key": "plan.8.c.planned_yes",
+      "target": "参考様式第１－１７号!S609",
+      "format": "check",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｃ） 実施予定（有）"
+    },
+    {
+      "key": "plan.8.c.planned_no",
+      "target": "参考様式第１－１７号!S612",
+      "format": "check",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｃ） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T609",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.8.c.yes_note"
+        }
+      },
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｃ） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T612",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.8.c.no_note"
+        }
+      },
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｃ） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.8.c.outsourced",
+      "target": "参考様式第１－１７号!AC607",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｃ） 委託の有無"
+    },
+    {
+      "key": "plan.8.c.staff",
+      "target": "参考様式第１－１７号!AG607",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｃ） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.8.c.address",
+      "target": "参考様式第１－１７号!AO609",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｃ） 委託先の住所"
+    },
+    {
+      "key": "plan.8.c.method_text",
+      "target": "参考様式第１－１７号!BC607",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｃ） 実施方法"
+    },
+    {
+      "key": "plan.8.d.planned_yes",
+      "target": "参考様式第１－１７号!S618",
+      "format": "check",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｄ） 実施予定（有）"
+    },
+    {
+      "key": "plan.8.d.planned_no",
+      "target": "参考様式第１－１７号!S621",
+      "format": "check",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｄ） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T618",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.8.d.yes_note"
+        }
+      },
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｄ） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T621",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.8.d.no_note"
+        }
+      },
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｄ） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.8.d.outsourced",
+      "target": "参考様式第１－１７号!AC617",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｄ） 委託の有無"
+    },
+    {
+      "key": "plan.8.d.staff",
+      "target": "参考様式第１－１７号!AG617",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｄ） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.8.d.address",
+      "target": "参考様式第１－１７号!AO619",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｄ） 委託先の住所"
+    },
+    {
+      "key": "plan.8.d.method_text",
+      "target": "参考様式第１－１７号!BC617",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｄ） 実施方法"
+    },
+    {
+      "key": "plan.8.e.planned_yes",
+      "target": "参考様式第１－１７号!S625",
+      "format": "check",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｅ） 実施予定（有）"
+    },
+    {
+      "key": "plan.8.e.planned_no",
+      "target": "参考様式第１－１７号!S628",
+      "format": "check",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｅ） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T625",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.8.e.yes_note"
+        }
+      },
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｅ） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T628",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.8.e.no_note"
+        }
+      },
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｅ） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.8.e.outsourced",
+      "target": "参考様式第１－１７号!AC625",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｅ） 委託の有無"
+    },
+    {
+      "key": "plan.8.e.staff",
+      "target": "参考様式第１－１７号!AG625",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｅ） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.8.e.address",
+      "target": "参考様式第１－１７号!AO625",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｅ） 委託先の住所"
+    },
+    {
+      "key": "plan.8.e.method_text",
+      "target": "参考様式第１－１７号!BC625",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｅ） 実施方法"
+    },
+    {
+      "key": "plan.8.f.planned_yes",
+      "target": "参考様式第１－１７号!S631",
+      "format": "check",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｆ） 実施予定（有）"
+    },
+    {
+      "key": "plan.8.f.planned_no",
+      "target": "参考様式第１－１７号!S634",
+      "format": "check",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｆ） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T631",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.8.f.yes_note"
+        }
+      },
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｆ） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T634",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.8.f.no_note"
+        }
+      },
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｆ） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.8.f.outsourced",
+      "target": "参考様式第１－１７号!AC631",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｆ） 委託の有無"
+    },
+    {
+      "key": "plan.8.f.staff",
+      "target": "参考様式第１－１７号!AG631",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｆ） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.8.f.address",
+      "target": "参考様式第１－１７号!AO633",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｆ） 委託先の住所"
+    },
+    {
+      "key": "plan.8.f.method_text",
+      "target": "参考様式第１－１７号!BC631",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｆ） 実施方法"
+    },
+    {
+      "key": "plan.8.g.planned_yes",
+      "target": "参考様式第１－１７号!S639",
+      "format": "check",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｇ） 実施予定（有）"
+    },
+    {
+      "key": "plan.8.g.planned_no",
+      "target": "参考様式第１－１７号!S642",
+      "format": "check",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｇ） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T639",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.8.g.yes_note"
+        }
+      },
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｇ） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T642",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.8.g.no_note"
+        }
+      },
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｇ） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.8.g.outsourced",
+      "target": "参考様式第１－１７号!AC637",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｇ） 委託の有無"
+    },
+    {
+      "key": "plan.8.g.staff",
+      "target": "参考様式第１－１７号!AG637",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｇ） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.8.g.address",
+      "target": "参考様式第１－１７号!AO639",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｇ） 委託先の住所"
+    },
+    {
+      "key": "plan.8.g.method_text",
+      "target": "参考様式第１－１７号!BC637",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（ｇ） 実施方法"
+    },
+    {
+      "key": "plan.8.free.planned_yes",
+      "target": "参考様式第１－１７号!S647",
+      "format": "check",
+      "label": "Ⅳ８　非自発的離職時の転職支援（自由記入） 実施予定（有）"
+    },
+    {
+      "key": "plan.8.free.planned_no",
+      "target": "参考様式第１－１７号!S650",
+      "format": "check",
+      "label": "Ⅳ８　非自発的離職時の転職支援（自由記入） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T647",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.8.free.yes_note"
+        }
+      },
+      "label": "Ⅳ８　非自発的離職時の転職支援（自由記入） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T650",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.8.free.no_note"
+        }
+      },
+      "label": "Ⅳ８　非自発的離職時の転職支援（自由記入） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.8.free.outsourced",
+      "target": "参考様式第１－１７号!AC647",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（自由記入） 委託の有無"
+    },
+    {
+      "key": "plan.8.free.staff",
+      "target": "参考様式第１－１７号!AG647",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（自由記入） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.8.free.address",
+      "target": "参考様式第１－１７号!AO649",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（自由記入） 委託先の住所"
+    },
+    {
+      "key": "plan.8.free.method_text",
+      "target": "参考様式第１－１７号!BC647",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（自由記入） 実施方法"
+    },
+    {
+      "key": "plan.8.free.content",
+      "target": "参考様式第１－１７号!E649",
+      "format": "text",
+      "label": "Ⅳ８　非自発的離職時の転職支援（自由記入） 内容"
+    },
+    {
+      "key": "plan.9.main.planned_yes",
+      "target": "参考様式第１－１７号!S670",
+      "format": "check",
+      "label": "Ⅳ９　定期的な面談の実施・行政機関への通報 実施予定（有）"
+    },
+    {
+      "key": "plan.9.main.planned_no",
+      "target": "参考様式第１－１７号!S673",
+      "format": "check",
+      "label": "Ⅳ９　定期的な面談の実施・行政機関への通報 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T670",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.9.main.yes_note"
+        }
+      },
+      "label": "Ⅳ９　定期的な面談の実施・行政機関への通報 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T673",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.9.main.no_note"
+        }
+      },
+      "label": "Ⅳ９　定期的な面談の実施・行政機関への通報 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.9.main.outsourced",
+      "target": "参考様式第１－１７号!AC663",
+      "format": "text",
+      "label": "Ⅳ９　定期的な面談の実施・行政機関への通報 委託の有無"
+    },
+    {
+      "key": "plan.9.main.staff",
+      "target": "参考様式第１－１７号!AG663",
+      "format": "text",
+      "label": "Ⅳ９　定期的な面談の実施・行政機関への通報 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.9.main.address",
+      "target": "参考様式第１－１７号!AO663",
+      "format": "text",
+      "label": "Ⅳ９　定期的な面談の実施・行政機関への通報 委託先の住所"
+    },
+    {
+      "key": "plan.9.main.planned_yes",
+      "target": "参考様式第１－１７号!S687",
+      "format": "check",
+      "label": "Ⅳ９　定期的な面談の実施・行政機関への通報 実施予定（ｃ・ｄ）（有）"
+    },
+    {
+      "key": "plan.9.main.planned_no",
+      "target": "参考様式第１－１７号!S690",
+      "format": "check",
+      "label": "Ⅳ９　定期的な面談の実施・行政機関への通報 実施予定（ｃ・ｄ）（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!BC664",
+      "format": "template",
+      "template": "{c} 当面",
+      "keys": {
+        "c": {
+          "key": "plan.9.main.method.in_person",
+          "format": "check",
+          "empty": "□"
+        }
+      },
+      "label": "Ⅳ９　定期的な面談の実施・行政機関への通報 実施方法（対面）"
+    },
+    {
+      "target": "参考様式第１－１７号!BC667",
+      "format": "template",
+      "template": "{c} 在线",
+      "keys": {
+        "c": {
+          "key": "plan.9.main.method.online",
+          "format": "check",
+          "empty": "□"
+        }
+      },
+      "label": "Ⅳ９　定期的な面談の実施・行政機関への通報 実施方法（オンライン）"
+    },
+    {
+      "key": "plan.9.free.planned_yes",
+      "target": "参考様式第１－１７号!S701",
+      "format": "check",
+      "label": "Ⅳ９　定期的な面談の実施・行政機関への通報（自由記入） 実施予定（有）"
+    },
+    {
+      "key": "plan.9.free.planned_no",
+      "target": "参考様式第１－１７号!S704",
+      "format": "check",
+      "label": "Ⅳ９　定期的な面談の実施・行政機関への通報（自由記入） 実施予定（無）"
+    },
+    {
+      "target": "参考様式第１－１７号!T701",
+      "format": "template",
+      "template": "有（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.9.free.yes_note"
+        }
+      },
+      "label": "Ⅳ９　定期的な面談の実施・行政機関への通報（自由記入） 実施予定（有）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!T704",
+      "format": "template",
+      "template": "无（{n}）",
+      "keys": {
+        "n": {
+          "key": "plan.9.free.no_note"
+        }
+      },
+      "label": "Ⅳ９　定期的な面談の実施・行政機関への通報（自由記入） 実施予定（無）",
+      "fit": true
+    },
+    {
+      "key": "plan.9.free.outsourced",
+      "target": "参考様式第１－１７号!AC701",
+      "format": "text",
+      "label": "Ⅳ９　定期的な面談の実施・行政機関への通報（自由記入） 委託の有無"
+    },
+    {
+      "key": "plan.9.free.staff",
+      "target": "参考様式第１－１７号!AG701",
+      "format": "text",
+      "label": "Ⅳ９　定期的な面談の実施・行政機関への通報（自由記入） 担当者",
+      "fit": true
+    },
+    {
+      "key": "plan.9.free.address",
+      "target": "参考様式第１－１７号!AO703",
+      "format": "text",
+      "label": "Ⅳ９　定期的な面談の実施・行政機関への通報（自由記入） 委託先の住所"
+    },
+    {
+      "key": "plan.9.free.method_text",
+      "target": "参考様式第１－１７号!BC701",
+      "format": "text",
+      "label": "Ⅳ９　定期的な面談の実施・行政機関への通報（自由記入） 実施方法"
+    },
+    {
+      "key": "plan.9.free.content",
+      "target": "参考様式第１－１７号!G703",
+      "format": "text",
+      "label": "Ⅳ９　定期的な面談の実施・行政機関への通報（自由記入） 内容"
+    },
+    {
+      "key": "plan.item.pre_guidance.languages",
+      "target": "参考様式第１－１７号!S231",
+      "format": "text",
+      "label": "Ⅳ１　事前ガイダンスの提供 実施言語"
+    },
+    {
+      "target": "参考様式第１－１７号!AC231",
+      "format": "template",
+      "template": "（由支援工作人员以外的人担任口译时）口译人员的所属、姓名　　{n}",
+      "keys": {
+        "n": {
+          "key": "plan.item.pre_guidance.interpreter"
+        }
+      },
+      "label": "Ⅳ１　事前ガイダンスの提供 通訳者",
+      "fit": true
+    },
+    {
+      "key": "plan.item.pre_guidance.planned_hours",
+      "target": "参考様式第１－１７号!V234",
+      "format": "number",
+      "label": "Ⅳ１　事前ガイダンスの提供 実施予定時間"
+    },
+    {
+      "key": "plan.item.orientation.languages",
+      "target": "参考様式第１－１７号!S419",
+      "format": "text",
+      "label": "Ⅳ４　生活オリエンテーションの実施 実施言語"
+    },
+    {
+      "target": "参考様式第１－１７号!AC419",
+      "format": "template",
+      "template": "（由支援工作人员以外的人担任口译时）口译人员的所属、姓名　　{n}",
+      "keys": {
+        "n": {
+          "key": "plan.item.orientation.interpreter"
+        }
+      },
+      "label": "Ⅳ４　生活オリエンテーションの実施 通訳者",
+      "fit": true
+    },
+    {
+      "key": "plan.item.orientation.planned_hours",
+      "target": "参考様式第１－１７号!V422",
+      "format": "number",
+      "label": "Ⅳ４　生活オリエンテーションの実施 実施予定時間"
+    },
+    {
+      "key": "plan.item.consultation.languages",
+      "target": "参考様式第１－１７号!S544",
+      "format": "text",
+      "label": "Ⅳ６　相談又は苦情への対応 実施言語"
+    },
+    {
+      "target": "参考様式第１－１７号!AC544",
+      "format": "template",
+      "template": "（由支援工作人员以外的人担任口译时）口译人员的所属、姓名　　{n}",
+      "keys": {
+        "n": {
+          "key": "plan.item.consultation.interpreter"
+        }
+      },
+      "label": "Ⅳ６　相談又は苦情への対応 通訳者",
+      "fit": true
+    },
+    {
+      "key": "plan.item.periodic_interview.languages",
+      "target": "参考様式第１－１７号!S707",
+      "format": "text",
+      "label": "Ⅳ９　定期的な面談の実施・行政機関への通報 実施言語"
+    },
+    {
+      "target": "参考様式第１－１７号!AC707",
+      "format": "template",
+      "template": "（由支援工作人员以外的人担任口译时）口译人员的所属、姓名　　{n}",
+      "keys": {
+        "n": {
+          "key": "plan.item.periodic_interview.interpreter"
+        }
+      },
+      "label": "Ⅳ９　定期的な面談の実施・行政機関への通報 通訳者",
+      "fit": true
+    },
+    {
+      "key": "housing.secured",
+      "target": "参考様式第１－１７号!S312",
+      "format": "check",
+      "label": "Ⅳ ３ア ｄ 申請時点で確保"
+    },
+    {
+      "key": "housing.after",
+      "target": "参考様式第１－１７号!S315",
+      "format": "check",
+      "label": "Ⅳ ３ア ｄ 申請後に確保"
+    },
+    {
+      "key": "housing.occupants",
+      "target": "参考様式第１－１７号!AD318",
+      "format": "number",
+      "label": "Ⅳ ３ア ｄ 同居人数"
+    },
+    {
+      "key": "housing.room_area_ok",
+      "target": "参考様式第１－１７号!T321",
+      "format": "check",
+      "label": "Ⅳ ３ア ｄ 7.5㎡以上"
+    },
+    {
+      "key": "housing.bedroom_area_ok",
+      "target": "参考様式第１－１７号!T328",
+      "format": "check",
+      "label": "Ⅳ ３ア ｄ 4.5㎡以上"
+    },
+    {
+      "key": "housing.rent_yes",
+      "target": "参考様式第１－１７号!AR318",
+      "format": "check",
+      "label": "Ⅳ ３ア ｄ ① 居住費の徴収 有"
+    },
+    {
+      "key": "housing.rent_no",
+      "target": "参考様式第１－１７号!AU318",
+      "format": "check",
+      "label": "Ⅳ ３ア ｄ ① 居住費の徴収 無"
+    },
+    {
+      "key": "housing.monthly_rent",
+      "target": "参考様式第１－１７号!AZ321",
+      "format": "number",
+      "label": "Ⅳ ３ア ｄ ② 月額"
+    },
+    {
+      "key": "housing.owned",
+      "target": "参考様式第１－１７号!AW324",
+      "format": "check",
+      "label": "Ⅳ ３ア ｄ ③ 自己所有物件"
+    },
+    {
+      "key": "housing.leased",
+      "target": "参考様式第１－１７号!BD324",
+      "format": "check",
+      "label": "Ⅳ ３ア ｄ ③ 借上物件"
+    },
+    {
+      "key": "housing.rent_explanation",
+      "target": "参考様式第１－１７号!AV327",
+      "format": "text",
+      "label": "Ⅳ ３ア ｄ ④ 適正な額である旨の説明",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!S499",
+      "format": "template",
+      "template": "{s}　～　{e}",
+      "keys": {
+        "s": {
+          "key": "consultation.mon.start"
+        },
+        "e": {
+          "key": "consultation.mon.end"
+        }
+      },
+      "label": "Ⅳ６イ 対応時間（月曜日）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!AC499",
+      "format": "template",
+      "template": "{s}　～　{e}",
+      "keys": {
+        "s": {
+          "key": "consultation.tue.start"
+        },
+        "e": {
+          "key": "consultation.tue.end"
+        }
+      },
+      "label": "Ⅳ６イ 対応時間（火曜日）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!AM499",
+      "format": "template",
+      "template": "{s}　～　{e}",
+      "keys": {
+        "s": {
+          "key": "consultation.wed.start"
+        },
+        "e": {
+          "key": "consultation.wed.end"
+        }
+      },
+      "label": "Ⅳ６イ 対応時間（水曜日）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!AW499",
+      "format": "template",
+      "template": "{s}　～　{e}",
+      "keys": {
+        "s": {
+          "key": "consultation.thu.start"
+        },
+        "e": {
+          "key": "consultation.thu.end"
+        }
+      },
+      "label": "Ⅳ６イ 対応時間（木曜日）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!BG499",
+      "format": "template",
+      "template": "{s}　～　{e}",
+      "keys": {
+        "s": {
+          "key": "consultation.fri.start"
+        },
+        "e": {
+          "key": "consultation.fri.end"
+        }
+      },
+      "label": "Ⅳ６イ 対応時間（金曜日）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!S502",
+      "format": "template",
+      "template": "{s}　～　{e}",
+      "keys": {
+        "s": {
+          "key": "consultation.sat.start"
+        },
+        "e": {
+          "key": "consultation.sat.end"
+        }
+      },
+      "label": "Ⅳ６イ 対応時間（土曜日）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!S506",
+      "format": "template",
+      "template": "{s}　～　{e}",
+      "keys": {
+        "s": {
+          "key": "consultation.sun.start"
+        },
+        "e": {
+          "key": "consultation.sun.end"
+        }
+      },
+      "label": "Ⅳ６イ 対応時間（日曜日）",
+      "fit": true
+    },
+    {
+      "target": "参考様式第１－１７号!S510",
+      "format": "template",
+      "template": "{s}　～　{e}",
+      "keys": {
+        "s": {
+          "key": "consultation.holiday.start"
+        },
+        "e": {
+          "key": "consultation.holiday.end"
+        }
+      },
+      "label": "Ⅳ６イ 対応時間（祝日）",
+      "fit": true
+    },
+    {
+      "key": "consultation.method.in_person",
+      "target": "参考様式第１－１７号!I517",
+      "format": "check",
+      "label": "Ⅳ ６イ 相談方法 直接面談"
+    },
+    {
+      "key": "consultation.method.phone",
+      "target": "参考様式第１－１７号!I520",
+      "format": "check",
+      "label": "Ⅳ ６イ 相談方法 電話"
+    },
+    {
+      "target": "参考様式第１－１７号!J520",
+      "format": "template",
+      "template": "电话（{n}）",
+      "keys": {
+        "n": {
+          "key": "consultation.phone"
+        }
+      },
+      "label": "Ⅳ ６イ 相談方法 電話",
+      "fit": true
+    },
+    {
+      "key": "consultation.method.email",
+      "target": "参考様式第１－１７号!I523",
+      "format": "check",
+      "label": "Ⅳ ６イ 相談方法 メール"
+    },
+    {
+      "target": "参考様式第１－１７号!J523",
+      "format": "template",
+      "template": "邮件（{n}）",
+      "keys": {
+        "n": {
+          "key": "consultation.email"
+        }
+      },
+      "label": "Ⅳ ６イ 相談方法 メール",
+      "fit": true
+    },
+    {
+      "key": "consultation.method.other",
+      "target": "参考様式第１－１７号!I526",
+      "format": "check",
+      "label": "Ⅳ ６イ 相談方法 その他"
+    },
+    {
+      "target": "参考様式第１－１７号!J526",
+      "format": "template",
+      "template": "其他（{n}）",
+      "keys": {
+        "n": {
+          "key": "consultation.other"
+        }
+      },
+      "label": "Ⅳ ６イ 相談方法 その他",
+      "fit": true
+    },
+    {
+      "key": "emergency.method.in_person",
+      "target": "参考様式第１－１７号!I532",
+      "format": "check",
+      "label": "Ⅳ ６イ 緊急時 直接面談"
+    },
+    {
+      "key": "emergency.method.phone",
+      "target": "参考様式第１－１７号!I535",
+      "format": "check",
+      "label": "Ⅳ ６イ 緊急時 電話"
+    },
+    {
+      "target": "参考様式第１－１７号!J535",
+      "format": "template",
+      "template": "电话（{n}）",
+      "keys": {
+        "n": {
+          "key": "emergency.phone"
+        }
+      },
+      "label": "Ⅳ ６イ 緊急時 電話",
+      "fit": true
+    },
+    {
+      "key": "emergency.method.email",
+      "target": "参考様式第１－１７号!I538",
+      "format": "check",
+      "label": "Ⅳ ６イ 緊急時 メール"
+    },
+    {
+      "target": "参考様式第１－１７号!J538",
+      "format": "template",
+      "template": "邮件（{n}）",
+      "keys": {
+        "n": {
+          "key": "emergency.email"
+        }
+      },
+      "label": "Ⅳ ６イ 緊急時 メール",
+      "fit": true
+    },
+    {
+      "key": "emergency.method.other",
+      "target": "参考様式第１－１７号!I541",
+      "format": "check",
+      "label": "Ⅳ ６イ 緊急時 その他"
+    },
+    {
+      "target": "参考様式第１－１７号!J541",
+      "format": "template",
+      "template": "其他（{n}）",
+      "keys": {
+        "n": {
+          "key": "emergency.other"
+        }
+      },
+      "label": "Ⅳ ６イ 緊急時 その他",
+      "fit": true
+    },
+    {
+      "key": "municipality.checked",
+      "target": "参考様式第１－１７号!E711",
+      "format": "check",
+      "label": "Ⅴ 共生施策の確認"
+    },
+    {
+      "target": "参考様式第１－１７号!F711",
+      "format": "template",
+      "template": "在制定本计划时，已确认地方公共团体为实现共生社会而实施的措施（共生措施）。\n已确认共生措施的地方公共团体（市区町村）名称\n　　・支援对象进行活动的事业所的所在地 （{sp}{sm}　） \n　  　　 确认日期：{sy}年{smo}月{sd}日　　确认方法：　{sw} 网站　 {so} 其他方法（{sn}）　　　　　　　　　　　　　　　　　　　　\n　　  　 备注：{snote}\n     ・支援对象的住所地\n　　　{same} 同上\n　　　{diff} 不同的地方公共团体（{rp}{rm}　）　　　\n　　　　　确认日期：{ry}年{rmo}月{rd}日　　确认方法：　{rw} 网站　 {ro} 其他方法（{rn}）\n           备注：{rnote}\n　",
+      "keys": {
+        "sp": {
+          "key": "municipality.site.prefecture",
+          "empty": "　　　　　都・道・府・县",
+          "pattern": "　{}　"
+        },
+        "sm": {
+          "key": "municipality.site.municipality",
+          "empty": "　　　　　市・区・町・村"
+        },
+        "sy": {
+          "key": "municipality.site.checked_on",
+          "format": "year",
+          "empty": "　　　　"
+        },
+        "smo": {
+          "key": "municipality.site.checked_on",
+          "format": "month",
+          "empty": "　　　"
+        },
+        "sd": {
+          "key": "municipality.site.checked_on",
+          "format": "day",
+          "empty": "　　　"
+        },
+        "sw": {
+          "key": "municipality.site.website",
+          "format": "check",
+          "empty": "□"
+        },
+        "so": {
+          "key": "municipality.site.other",
+          "format": "check",
+          "empty": "□"
+        },
+        "sn": {
+          "key": "municipality.site.method_note",
+          "empty": "　　　　　　　　　　　　　　　　　"
+        },
+        "snote": {
+          "key": "municipality.site.note"
+        },
+        "same": {
+          "key": "municipality.residence.same",
+          "format": "check",
+          "empty": "□"
+        },
+        "diff": {
+          "key": "municipality.residence.different",
+          "format": "check",
+          "empty": "□"
+        },
+        "rp": {
+          "key": "municipality.residence.prefecture",
+          "empty": "　　　　　都・道・府・县",
+          "pattern": "　{}　"
+        },
+        "rm": {
+          "key": "municipality.residence.municipality",
+          "empty": "　　　　　市・区・町・村"
+        },
+        "ry": {
+          "key": "municipality.residence.checked_on",
+          "format": "year",
+          "empty": "  　　　"
+        },
+        "rmo": {
+          "key": "municipality.residence.checked_on",
+          "format": "month",
+          "empty": "　　　"
+        },
+        "rd": {
+          "key": "municipality.residence.checked_on",
+          "format": "day",
+          "empty": "　　　"
+        },
+        "rw": {
+          "key": "municipality.residence.website",
+          "format": "check",
+          "empty": "□"
+        },
+        "ro": {
+          "key": "municipality.residence.other",
+          "format": "check",
+          "empty": "□"
+        },
+        "rn": {
+          "key": "municipality.residence.method_note",
+          "empty": "　　　　　　　　　　　　　　　　　"
+        },
+        "rnote": {
+          "key": "municipality.residence.note"
+        }
+      },
+      "label": "Ⅴ 共生施策を確認した地方公共団体"
+    },
+    {
+      "key": "host.name",
+      "target": "参考様式第１－１７号!AP748",
+      "format": "text",
+      "label": "特定技能所属機関の氏名又は名称",
+      "fit": true
+    },
+    {
+      "key": "plan.responsible_name",
+      "target": "参考様式第１－１７号!AP753",
+      "format": "text",
+      "label": "作成責任者の氏名",
+      "fit": true
+    },
+    {
+      "key": "plan.translation_language",
+      "target": "参考様式第１－１７号!H760",
+      "format": "text",
+      "label": "翻訳文の言語"
+    },
+    {
+      "target": "参考様式第１－１７号!A764",
+      "format": "template",
+      "template": " 另外，已就Ⅳ栏９アａ的定期面谈的实施方法接受了说明，充分理解其内容，希望以　{online} 在线　 {in_person} 当面　的方式实施。　　　　　",
+      "keys": {
+        "online": {
+          "key": "plan.interview_online",
+          "format": "check",
+          "empty": "□"
+        },
+        "in_person": {
+          "key": "plan.interview_in_person",
+          "format": "check",
+          "empty": "□"
+        }
+      },
+      "label": "面談の方法の希望"
+    }
+  ],
+  "rules": []
+}

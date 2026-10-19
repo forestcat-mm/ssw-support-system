@@ -46,6 +46,7 @@ from services import (
     form_convert,
     form_docx,
     form_templates,
+    form_translations,
     form_xlsx,
     jobs,
 )
@@ -307,9 +308,16 @@ def check(
     return _check(template, target, data, basis_on)
 
 
+def prepared(template: FormTemplate, data: Mapping[str, Any]) -> Mapping[str, Any]:
+    """版に入れる値（訳文の版は値を訳の表で置き換える。T43、ADR-0035）。"""
+    language = form_translations.language_of(template)
+    return form_translations.translate(data, language) if language else data
+
+
 def _check(
     template: FormTemplate, target: models.Model, data: Mapping[str, Any], basis_on: datetime.date
 ) -> form_checks.CheckResult:
+    data = prepared(template, data)
     worker = worker_of(target)
     if worker is None:
         # 外国人が 1 人に決まらない帳票（第5-4号。T35）は、外国人を見る規則を持たない
@@ -336,6 +344,7 @@ def request(
     selection = form_templates.select_template(form_id, basis_on, language=language)
     template = selection.template
     result = _check(template, target, data, basis_on)
+    data = prepared(template, data)
     if result.blocking:
         raise GenerationBlocked(result)
     if result.warnings and not accept_warnings:

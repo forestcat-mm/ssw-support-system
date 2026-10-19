@@ -15,6 +15,7 @@
     <section class="card stack">
       {% form_field form.basis_on %}
       {% form_field form.propriety %}
+      {% if form.language %}{% form_field form.language %}{% endif %}
       {% if result.warnings and not result.blocking %}{% form_field form.accept_warnings %}{% endif %}
     </section>
     <div class="form-actions">
