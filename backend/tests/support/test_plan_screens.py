@@ -241,4 +241,5 @@ def test_organization_and_staff_new_fields(admin_client: Client) -> None:
 def test_keepalive_extends_session(support_staff_client: Client) -> None:
     response = support_staff_client.post("/accounts/keepalive/")
     assert response.status_code == 204
-    assert Client().post("/accounts/keepalive/").status_code == 302  # ログインしていなければ不可
+    # ログインしていなければ 401（ログインの画面に移さない。fetch が成功と取り違えるため。J8）
+    assert Client().post("/accounts/keepalive/").status_code == 401
