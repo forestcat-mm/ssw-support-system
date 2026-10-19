@@ -40,6 +40,8 @@ services:
       context: .
       dockerfile: backend/Dockerfile.e2e
     env_file: .env
+    environment:
+      TEST_DB_SUFFIX: e2e  # 単体テストの DB と分ける（config/settings_test.py）
     command: pytest e2e
     volumes:
       - ./:/app

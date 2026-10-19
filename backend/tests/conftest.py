@@ -7,6 +7,35 @@ from pytest_django.fixtures import Settings
 from apps.core.models import User
 from tests.core.factories import make_user, verified_client
 
+# 時間のかかるテスト（make check-quick では飛ばし、make test では流す）。LibreOffice で PDF に
+# 変換するモジュールと、ダミーデータを丸ごと作る（seed_dummy）テスト。
+SLOW_MODULES = {
+    "tests/forms_engine/test_checks.py",
+    "tests/forms_engine/test_form_1_17.py",
+    "tests/forms_engine/test_form_application.py",
+    "tests/forms_engine/test_form_briefing.py",
+    "tests/forms_engine/test_form_career.py",
+    "tests/forms_engine/test_form_contract.py",
+    "tests/forms_engine/test_form_interview.py",
+    "tests/forms_engine/test_form_languages.py",
+    "tests/forms_engine/test_generation.py",
+    "tests/forms_engine/test_pdf_merges.py",
+    "tests/forms_engine/test_pdfcheck.py",
+    "tests/forms_engine/test_seed_documents.py",
+    "tests/seed/test_seed_dummy.py",
+    "tests/seed/test_seed_support.py",
+}
+SLOW_FIXTURES = {"seeded"}
+
+
+def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
+    for item in items:
+        module = item.nodeid.split("::")[0]
+        uses = set(getattr(item, "fixturenames", ()))
+        if module in SLOW_MODULES or uses & SLOW_FIXTURES:
+            item.add_marker(pytest.mark.slow)
+
+
 PDF_BYTES = b"%PDF-1.4\n% test\n"
 PNG_BYTES = b"\x89PNG\r\n\x1a\n" + b"\x00" * 16
 

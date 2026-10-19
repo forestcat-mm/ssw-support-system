@@ -21,6 +21,7 @@ import zipfile
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 from xml.sax.saxutils import escape
 
 CELL_REF = re.compile(r"^([A-Z]{1,3})(\d+)$")
@@ -124,19 +125,25 @@ def check_targets(path: Path, targets: list[str]) -> None:
     """書き込み先がすべて書けるセル（シートがあり、結合セルなら左上、計算式でない）か。"""
     with zipfile.ZipFile(path) as archive:
         sheets = sheet_paths(archive)
-        cache: dict[str, str] = {}
+        # シートごとに 1 回だけ展開し、結合の範囲も 1 回だけ読む（様式の読み込みを速くする）
+        cache: dict[str, tuple[str, list[tuple[int, int, int, int]]]] = {}
         for target in targets:
             sheet, ref = split_target(target)
             if sheet not in sheets:
                 raise XlsxWriteError(f"sheet not found: {sheet}")
-            xml = cache.setdefault(sheet, archive.read(sheets[sheet]).decode("utf-8"))
-            _check_cell(xml, ref)
+            if sheet not in cache:
+                xml = archive.read(sheets[sheet]).decode("utf-8")
+                cache[sheet] = (xml, merged_ranges(xml))
+            xml, merges = cache[sheet]
+            _check_cell(xml, ref, merges)
 
 
-def _check_cell(sheet_xml: str, ref: str) -> None:
+def _check_cell(
+    sheet_xml: str, ref: str, merges: list[tuple[int, int, int, int]] | None = None
+) -> None:
     letters, row = split_ref(ref)
     column = column_index(letters)
-    for left, top, right, bottom in merged_ranges(sheet_xml):
+    for left, top, right, bottom in merges if merges is not None else merged_ranges(sheet_xml):
         inside = left <= column <= right and top <= row <= bottom
         if inside and (column, row) != (left, top):
             raise XlsxWriteError(f"{ref} is inside a merged range but not its top-left cell")
@@ -549,22 +556,23 @@ def cell_fonts(
     with zipfile.ZipFile(path) as archive:
         sheets = sheet_paths(archive)
         fonts, xf_fonts = _fonts(archive.read("xl/styles.xml").decode("utf-8"))
-        cache: dict[str, str] = {}
+        cache: dict[str, Any] = {}  # シートごとに 1 回だけ読む（XML・結合・列の幅・行の高さ）
         for target in targets:
             sheet, ref = split_target(target)
-            xml = cache.setdefault(sheet, archive.read(sheets[sheet]).decode("utf-8"))
+            if sheet not in cache:
+                xml = archive.read(sheets[sheet]).decode("utf-8")
+                cache[sheet] = (xml, merged_ranges(xml), _column_widths(xml), _row_heights(xml))
+            xml, merges, (widths, default), (heights, default_height) = cache[sheet]
             letters, row = split_ref(ref)
             column = column_index(letters)
             right, bottom = column, row
-            for left, top, end, last in merged_ranges(xml):
+            for left, top, end, last in merges:
                 if (left, top) == (column, row):
                     right, bottom = end, last
             if target in areas:
                 end_letters, end_row = split_ref(areas[target].split(":")[1])
                 right, bottom = column_index(end_letters), end_row
-            widths, default = _column_widths(xml)
             width = sum(_width_pt(widths.get(c, default)) for c in range(column, right + 1))
-            heights, default_height = _row_heights(xml)
             height = sum(heights.get(r, default_height) for r in range(row, bottom + 1))
             element = _find_cell(xml, ref)
             style = (

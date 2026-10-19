@@ -10,7 +10,7 @@ import re
 import shutil
 import tempfile
 from collections import Counter
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from pathlib import Path
 
 from pypdf import PdfReader
@@ -26,12 +26,29 @@ def _squash(text: str) -> str:
     return re.sub(r"\s+", "", text)
 
 
+# 空の様式の変換の結果（テストのセッションで 1 回だけ作って使い回す。並列のときはワーカーごと）。
+# 鍵はファイルの場所・大きさ・更新時刻（様式を書き換えるテストは別の場所の写しを使う）
+_CONVERTED: dict[tuple[str, str, int, int], Path] = {}
+
+
+def _once(kind: str, source: Path, make: Callable[[], Path]) -> Path:
+    stat = source.stat()
+    key = (kind, str(source.resolve()), stat.st_size, stat.st_mtime_ns)
+    if key not in _CONVERTED or not _CONVERTED[key].exists():
+        _CONVERTED[key] = make()
+    return _CONVERTED[key]
+
+
 def blank_pdf(original: Path) -> Path:
     """公式の様式を空のまま、生成と同じ方法（convert）で PDF にする。"""
-    workdir = Path(tempfile.mkdtemp(prefix="blank-"))
-    copy = workdir / f"blank{original.suffix}"
-    shutil.copyfile(original, copy)
-    return form_convert.convert(copy)
+
+    def make() -> Path:
+        workdir = Path(tempfile.mkdtemp(prefix="blank-"))
+        copy = workdir / f"blank{original.suffix}"
+        shutil.copyfile(original, copy)
+        return form_convert.convert(copy)
+
+    return _once("blank", original, make)
 
 
 def fixed_text_matches(generated: Path, blank: Path, inserted: Iterable[object]) -> bool:
@@ -66,33 +83,39 @@ def blank_from_template(template: Path) -> Path:
     """
     from services import form_docx
 
-    workdir = Path(tempfile.mkdtemp(prefix="blank-"))
-    filled = workdir / "blank.docx"
-    form_docx.render(template, filled, {})
-    return form_convert.convert(filled)
+    def make() -> Path:
+        workdir = Path(tempfile.mkdtemp(prefix="blank-"))
+        filled = workdir / "blank.docx"
+        form_docx.render(template, filled, {})
+        return form_convert.convert(filled)
+
+    return _once("template", template, make)
 
 
 def doc_to_pdf(original: Path) -> Path:
     """配布の .doc を PDF にする（テストだけ。生成の convert は docx と xlsx だけを受ける）。"""
     import subprocess
 
-    workdir = Path(tempfile.mkdtemp(prefix="doc-"))
-    copy = workdir / f"original{original.suffix}"
-    shutil.copyfile(original, copy)
-    subprocess.run(
-        [
-            "soffice",
-            "--headless",
-            "--norestore",
-            f"-env:UserInstallation=file://{workdir / 'profile'}",
-            "--convert-to",
-            "pdf",
-            "--outdir",
-            str(workdir),
-            str(copy),
-        ],
-        capture_output=True,
-        timeout=120,
-        check=True,
-    )
-    return copy.with_suffix(".pdf")
+    def make() -> Path:
+        workdir = Path(tempfile.mkdtemp(prefix="doc-"))
+        copy = workdir / f"original{original.suffix}"
+        shutil.copyfile(original, copy)
+        subprocess.run(
+            [
+                "soffice",
+                "--headless",
+                "--norestore",
+                f"-env:UserInstallation=file://{workdir / 'profile'}",
+                "--convert-to",
+                "pdf",
+                "--outdir",
+                str(workdir),
+                str(copy),
+            ],
+            capture_output=True,
+            timeout=120,
+            check=True,
+        )
+        return copy.with_suffix(".pdf")
+
+    return _once("doc", original, make)
