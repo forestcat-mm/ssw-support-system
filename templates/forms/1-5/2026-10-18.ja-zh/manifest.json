@@ -18,7 +18,7 @@
     "revision_date_unknown": true,
     "original_sha256": "9f8a6619ed8ff86cac20bfc193d242e77ce24ff9b8786b58ac6c3ad2641ddb37",
     "converted_sha256": "f243703b3a221ac23a81561dc68ab8b85740093fd28c108d0d23e4c0c9cec016",
-    "template_sha256": "2cbf072cbd3f8b7ef88f2d5011ec50caed5fb5bfd0ab7a2b5aa7e0cede68fd6e",
+    "template_sha256": "3d35aa6c18058c09f2fcf47da57cbaa3bd87845cbf6006fa4aadcba1919a624d",
     "adr": "ADR-0027（取得日 2026-10-18（Last-Modified 2025-04-01。改正日の記載なし。10 の様式を 1 つにまとめた中国語の版））、ADR-0018"
   }
 }

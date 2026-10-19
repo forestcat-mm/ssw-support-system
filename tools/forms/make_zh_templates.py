@@ -1,7 +1,9 @@
 """日中併記の様式（第1-5号・第5-8号・第5-9号）の template.docx とマッピング定義を作る（開発用。T38、ADR-0027）。
 
 元は extract_zh_forms.py が入管の中国語の版から取り出した extracted.docx。差込タグを置くだけで、
-ほかの zip の中身はそのまま写す。値は日本語の行の欄に入れる（中国語の行の欄は空のまま。T38-D6）。
+ほかの zip の中身はそのまま写す。値は日本語の行の欄と、中国語の行の同じ欄の両方に入れる（修正 1 回目
+A7。T38-D6 では日本語の行だけだった）。中国語の行のタグは日本語の行と同じ名前なので、マッピングの欄は
+増えない。
 データのキーは日本語の版と同じ（services/form_data_contract.py・form_data_briefing.py が作る）。
 出力は手で直さない（テストで、出力が登録済みのファイルと同じことを確かめる）。標準ライブラリだけで動く。
 
@@ -63,6 +65,38 @@ NAMES = (
 )
 
 
+# 中国語の行（修正 1 回目 A7）: 日本語の行と同じ名前のタグを置き、同じ値を入れる
+ZH_UNITS_5_8 = ("年", "月", "日", "点", "分至", "点", "分")
+ZH_UNITS_5_9 = ("年", "月", "日", "点", "分起至", "点", "分为止")
+HALF = " "  # 半角の空白（併記の版の中国語の行は、欄の一部が半角の空白で作られている）
+
+
+def zh_row(row: int, indent: str, units: tuple[str, ...], year: str = "＿＿＿＿", slot: str = "＿＿") -> str:
+    names = ("year", "month", "day", "start_hour", "start_minute", "end_hour", "end_minute")
+    widths = (year,) + (slot,) * 6
+    return indent + "".join(
+        f"[s{row}_{name}:{width}]{unit}" for name, width, unit in zip(names, widths, units, strict=True)
+    )
+
+
+SPEC_ZH = {
+    "5-8": [
+        zh_row(1, "", ZH_UNITS_5_8),
+        zh_row(2, "＿" * 5, ZH_UNITS_5_8),
+        zh_row(3, "＿" * 5, ZH_UNITS_5_8),
+    ],
+    "5-9": [
+        zh_row(1, "＿" * 5, ZH_UNITS_5_9, slot=HALF * 4),
+        zh_row(2, "＿" * 6, ZH_UNITS_5_9, year="＿＿" + HALF * 2, slot=HALF * 4),
+        zh_row(3, "＿" * 5, ZH_UNITS_5_9, slot=HALF * 4),
+    ],
+    "1-5": [
+        "特定技能所属机构[host_name:" + "＿" * 15 + HALF * 16 + "]（以下简称“甲方”）与",
+        "特定技能外国人（含候补生）[worker_name:" + "＿" * 15 + HALF * 6 + "]（以下简称“乙方”），",
+    ],
+}
+
+
 def make_briefing(document: docx_tags.Document) -> list[dict]:
     slots = apply(document, SPEC_BRIEFING)
     items = []
@@ -91,14 +125,17 @@ def make_briefing(document: docx_tags.Document) -> list[dict]:
 
 def make(form_id: str, document: docx_tags.Document) -> list[dict]:
     if form_id == "1-5":
-        return fields_of("c", apply(document, SPEC_1_5), TEXT_FIELDS_1_5, LABELS_1_5, set())
-    return make_briefing(document)
+        items = fields_of("c", apply(document, SPEC_1_5), TEXT_FIELDS_1_5, LABELS_1_5, set())
+    else:
+        items = make_briefing(document)
+    apply(document, SPEC_ZH[form_id])  # 中国語の行（同じ名前のタグ。マッピングの欄は増えない）
+    return items
 
 
 NOTES = {
-    "1-5": "T38 の日中併記の版（ADR-0027）。欄とデータのキーは日本語の版（T34、ADR-0023）と同じ。乙の署名は手で書く。",
-    "5-8": "T38 の日中併記の版（ADR-0027）。欄とデータのキーは日本語の版（T32、ADR-0021）と同じ。値は日本語の行に入れる。",
-    "5-9": "T38 の日中併記の版（ADR-0027）。欄とデータのキーは日本語の版（T32、ADR-0021）と同じ。値は日本語の行に入れる。",
+    "1-5": "T38 の日中併記の版（ADR-0027）。欄とデータのキーは日本語の版（T34、ADR-0023）と同じ。甲・乙の名前は中国語の行にも入れる（修正 1 回目 A7）。乙の署名は手で書く。",
+    "5-8": "T38 の日中併記の版（ADR-0027）。欄とデータのキーは日本語の版（T32、ADR-0021）と同じ。値は日本語の行と中国語の行の両方に入れる（修正 1 回目 A7）。",
+    "5-9": "T38 の日中併記の版（ADR-0027）。欄とデータのキーは日本語の版（T32、ADR-0021）と同じ。値は日本語の行と中国語の行の両方に入れる（修正 1 回目 A7）。",
 }
 
 

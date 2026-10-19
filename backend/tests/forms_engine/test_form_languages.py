@@ -178,6 +178,12 @@ def test_chinese_worker_gets_the_bilingual_confirmation(worker: Any) -> None:  #
     assert document.page_count == 2
     text = "\n".join(body_texts(Path(document.filled_file.path)))
     assert "事先引导确认书" in text and "佐藤 花子" in text
+    # 中国語の行の日時の欄にも同じ値が入る（修正 1 回目 A7）
+    year = str(briefing.record.occurred_on.year).translate(
+        str.maketrans("0123456789", "０１２３４５６７８９")
+    )
+    chinese_rows = [line for line in text.splitlines() if "分起至" in line]
+    assert chinese_rows and year in chinese_rows[0]
     # 交付記録の書面の言語は、生成物の版の言語（日本語と中国語）
     client = verified_client(make_user("tanto38", roles=("support_staff",)))
     page = client.get(

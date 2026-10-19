@@ -7,6 +7,7 @@
 """
 
 from io import StringIO
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -18,6 +19,7 @@ from apps.workers.models import ForeignWorker, WorkerStatus
 from services import application_sets, contracts, form_data_application, form_generation
 from services.form_signatures import SignatureState, state
 from tests.forms_engine.conftest import BASE
+from tests.forms_engine.test_form_contract import body_texts
 
 pytestmark = pytest.mark.django_db
 
@@ -53,6 +55,11 @@ def test_seed_documents_make_the_signature_scenes(
     ]
     bilingual = documents[(seeded[1].pk, "1-5")]
     assert bilingual.template.language == "ja-zh" and state(bilingual) is SignatureState.AWAITING
+    # 中国語の行の甲・乙の欄にも名前が入る（修正 1 回目 A7）
+    text = "\n".join(body_texts(Path(bilingual.filled_file.path)))
+    host_name = bilingual.target.contract.host_organization.name  # type: ignore[union-attr]
+    assert any("甲方" in line and host_name in line for line in text.splitlines())
+    assert any("乙方" in line and seeded[1].name_romaji in line for line in text.splitlines())
     assert state(documents[(seeded[25].pk, "1-5")]) is SignatureState.SIGNED
     awaiting = documents[(seeded[2].pk, "1-6")]
     assert state(awaiting) is SignatureState.AWAITING and awaiting.template.language == "ja"
