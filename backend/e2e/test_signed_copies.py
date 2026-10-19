@@ -31,7 +31,7 @@ def task() -> Filing:
     make_contract(worker, site=site_with_categories())
     generated = timezone.localdate() - datetime.timedelta(days=20)
     GeneratedDocument.objects.create(
-        template=FormTemplate.objects.get(form_id="1-17"),
+        template=FormTemplate.objects.get(form_id="1-17", language="ja"),
         target=worker,
         worker=worker,
         basis_on=generated,
