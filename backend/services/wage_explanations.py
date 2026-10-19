@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import Any
 
 from django.db import transaction
@@ -27,6 +28,7 @@ from apps.contracts.models import (
     WageUnit,
 )
 from apps.core.models import User
+from apps.workers.models import StatusOfResidence
 
 COPIED_FIELDS = (
     "comparison",
@@ -59,6 +61,46 @@ def initial_values(version: EmploymentContractVersion) -> dict[str, Any]:
         values["japanese_wage"] = version.comparable_japanese_wage
         values["wage_unit"] = WageUnit.MONTHLY
     return values
+
+
+# 技能実習の修了者の経験年数の目安（運用要領 本体 印刷49頁【留意事項】: 2号の修了者はおおむね 3 年、
+# 3号の修了者はおおむね 5 年の経験者として扱う）。修了は台帳に無いので、在留情報の行から推定する
+INTERN_EXPERIENCE_YEARS = {
+    StatusOfResidence.TECHNICAL_INTERN_3: Decimal(5),
+    StatusOfResidence.TECHNICAL_INTERN_2: Decimal(3),
+}
+
+
+@dataclass(frozen=True)
+class FromRecords:
+    """「台帳と契約から入れる」で入れる値と、入れた欄の注記（修正 1 回目 B12）。"""
+
+    values: dict[str, Any]
+    experience_from: str = ""  # 経験年数の目安の元にした在留資格（技能実習2号・3号）
+
+
+def from_records(version: EmploymentContractVersion) -> FromRecords:
+    """申請人の職務内容（版の従事する業務）・報酬の単位（版の賃金の形態）・経験年数の目安を返す。
+
+    役職・責任の程度・比較対象の日本人は人が入れる。保存はしない（画面で直してから保存する）。
+    """
+    values: dict[str, Any] = {}
+    if version.duties.strip():
+        values["applicant_duties"] = version.duties.strip()
+    # 日給は第1-4号に書けない（月給か時間給。注意３）ので月給の換算額にする
+    values["wage_unit"] = (
+        WageUnit.HOURLY if version.wage_type == WageType.HOURLY else WageUnit.MONTHLY
+    )
+    statuses = set(
+        version.contract.worker.residence_records.filter(voided_at__isnull=True).values_list(
+            "status_of_residence", flat=True
+        )
+    )
+    for status, years in INTERN_EXPERIENCE_YEARS.items():
+        if status in statuses:
+            values["applicant_experience_years"] = years
+            return FromRecords(values, experience_from=str(StatusOfResidence(status).label))
+    return FromRecords(values)
 
 
 @transaction.atomic

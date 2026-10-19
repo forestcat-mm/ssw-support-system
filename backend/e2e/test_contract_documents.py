@@ -13,10 +13,11 @@ from playwright.sync_api import Page, Request, expect
 
 from apps.contracts.models import EmploymentContractVersion
 from apps.core.models import User
+from apps.workers.models import StatusOfResidence
 from e2e.conftest import SignIn
 from services import form_templates
 from tests.contracts.factories import make_contract, site_with_categories
-from tests.workers.factories import make_worker
+from tests.workers.factories import add_residence, make_worker
 
 
 @pytest.fixture
@@ -37,6 +38,7 @@ def version() -> EmploymentContractVersion:
         consultation_contact_person="総務課長 窓口 一郎",
         consultation_contact_phone="03-0000-0100",
     )
+    add_residence(contract.worker, status_of_residence=StatusOfResidence.TECHNICAL_INTERN_2)
     return contract.versions.get()
 
 
@@ -66,8 +68,15 @@ def test_generate_contract_documents_from_the_contract_tab(
     page.locator("#wage-explanation-edit").click()
     expect(page.get_by_role("heading", level=1)).to_have_text("報酬の説明（第1-4号）")
     assert page.evaluate("document.documentElement.scrollWidth") <= width
+    expect(page.locator("#wage-explanation-applicant")).to_contain_text(worker.name_romaji)
     page.locator("#id_comparison").select_option("comparable")
-    page.locator("#id_wage_unit").select_option("monthly")
+    # 台帳と契約から入れる（修正 1 回目 B12）: 選んだ比較の型は残り、技能実習2号の行から 3 年の目安
+    page.locator("#wage-explanation-fill").click()
+    expect(page.locator("#wage-explanation-filled")).to_contain_text("技能実習2号")
+    expect(page.locator("#id_comparison")).to_have_value("comparable")
+    expect(page.locator("#id_applicant_duties")).to_have_value(version.duties)
+    expect(page.locator("#id_applicant_experience_years")).to_have_value("3")
+    expect(page.locator("#id_wage_unit")).to_have_value("monthly")
     page.locator("#id_applicant_duties").fill("製造ラインの作業員")
     page.locator("#id_applicant_experience_years").fill("2")
     page.locator("#id_japanese_duties").fill("製造ラインの作業員（入社3年目）")

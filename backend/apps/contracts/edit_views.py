@@ -464,14 +464,23 @@ class WageExplanationView(ContractFormView):
         return worker, contract, version
 
     def page(
-        self, request: HttpRequest, worker: Any, contract: Any, version: Any, form: Any
+        self,
+        request: HttpRequest,
+        worker: Any,
+        contract: Any,
+        version: Any,
+        form: Any,
+        filled: wage_explanations.FromRecords | None = None,
     ) -> HttpResponse:
+        today = timezone.localdate()
         return self.render(
             request,
             worker=worker,
             contract=contract,
             version=version,
             form=form,
+            filled=filled,
+            applicant_age=form_data_contract.age_on(worker.birth_date, today),
             applicant_monthly=wage_explanations.applicant_wage(version, WageUnit.MONTHLY),
             applicant_hourly=wage_explanations.applicant_wage(version, WageUnit.HOURLY),
             back=tab_url(worker, contract) + f"&version={version.version}",
@@ -491,6 +500,14 @@ class WageExplanationView(ContractFormView):
         worker, contract, version = self.target(request, pk, contract_id, number)
         if not consume_once_token(request):
             return self.already_submitted(request, tab_url(worker, contract))
+        if request.POST.get("action") == "fill":
+            # 台帳と契約から入れる（修正 1 回目 B12）: 入れた値で画面を出し直す（保存はしない）
+            filled = wage_explanations.from_records(version)
+            data = request.POST.copy()
+            for name, value in filled.values.items():
+                data[name] = str(value)
+            form = WageExplanationForm(initial=data.dict())
+            return self.page(request, worker, contract, version, form, filled)
         form = WageExplanationForm(request.POST, instance=wage_explanations.explanation_of(version))
         if form.is_valid():
             try:

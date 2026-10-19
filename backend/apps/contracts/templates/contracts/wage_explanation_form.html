@@ -16,10 +16,16 @@
   </section>
   <section class="card stack">
     <h2 class="card__title">{% translate "1. Wage of the applicant" %}</h2>
-    <dl class="fields">
-      <dt>{% translate "name, age and sex" %}</dt><dd>{% translate "Printed from the register of the foreign worker." %}</dd>
+    <p class="caption">{% translate "These are printed from the register and the contract version when the form is generated." %}</p>
+    <dl class="fields" id="wage-explanation-applicant">
+      <dt>{% translate "name, age and sex" %}</dt><dd>{{ worker.name_romaji }} · {% blocktranslate with age=applicant_age %}{{ age }} years old (today){% endblocktranslate %} · {{ worker.get_sex_display|default:"—" }}</dd>
       <dt>{% translate "wage (from the contract version)" %}</dt><dd class="mono">{% translate "monthly salary" %} {% if applicant_monthly is not None %}¥{{ applicant_monthly|yen }}{% else %}—{% endif %} / {% translate "hourly wage" %} {% if applicant_hourly is not None %}¥{{ applicant_hourly|yen }}{% else %}—{% endif %}</dd>
     </dl>
+    <div class="cluster">
+      <button class="button button--neutral button--small" type="submit" name="action" value="fill" id="wage-explanation-fill">{% translate "Fill in from the register and the contract" %}</button>
+      <span class="caption">{% translate "Fills in the duties (from the contract version), the unit of the wages and a guide to the years of experience. Position, responsibility and the Japanese worker are entered by hand." %}</span>
+    </div>
+    {% if filled %}<div class="message message--success" role="status" id="wage-explanation-filled">{% translate "Filled in from the register and the contract. Check the values and save." %}{% if filled.experience_from %}<br>{% blocktranslate with status=filled.experience_from %}The years of experience are a guide from the residence record ({{ status }}): about 3 years for those who completed Technical Intern Training (ii), about 5 years for (iii). The system does not know whether the training was completed; check it.{% endblocktranslate %}{% endif %}</div>{% endif %}
     {% form_field form.applicant_duties %}
     {% form_field form.applicant_experience_years %}
     {% form_field form.applicant_other %}

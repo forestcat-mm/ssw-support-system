@@ -21,6 +21,7 @@ from typing import Any
 import docx
 import pytest
 from django.conf import settings
+from django.utils import timezone
 
 from apps.contracts.models import (
     ContractWageExplanation,
@@ -33,6 +34,7 @@ from apps.contracts.models import (
 )
 from apps.core.models import AuditAction, AuditLog
 from apps.forms_engine.models import GeneratedDocument, GenerationStatus
+from apps.workers.models import StatusOfResidence
 from services import (
     contracts,
     form_checks,
@@ -44,7 +46,7 @@ from services import (
 from tests.contracts.factories import add_version, make_contract, site_with_categories
 from tests.core.factories import make_user, verified_client
 from tests.forms_engine import pdfcheck
-from tests.workers.factories import make_worker
+from tests.workers.factories import add_residence, make_worker
 
 pytestmark = pytest.mark.django_db
 
@@ -563,6 +565,47 @@ def test_explanation_screen_saves_and_records_the_audit_log(loaded: None) -> Non
     assert AuditLog.objects.filter(
         action=AuditAction.UPDATE, content_type__model="contractwageexplanation"
     ).exists()
+
+
+def test_fill_in_from_the_register_and_the_contract(loaded: None) -> None:
+    """「台帳と契約から入れる」（修正 1 回目 B12）: 職務内容・報酬の単位・経験年数の目安。
+
+    保存はしない。
+    """
+    version = full_version()
+    worker = version.contract.worker
+    filled = wage_explanations.from_records(version)
+    assert filled.values["applicant_duties"] == version.duties
+    assert filled.values["wage_unit"] == "monthly"
+    assert "applicant_experience_years" not in filled.values and filled.experience_from == ""
+    add_residence(worker, status_of_residence=StatusOfResidence.TECHNICAL_INTERN_2)
+    filled = wage_explanations.from_records(version)
+    assert filled.values["applicant_experience_years"] == Decimal(3)
+    third = add_residence(worker, status_of_residence=StatusOfResidence.TECHNICAL_INTERN_3)
+    assert wage_explanations.from_records(version).values["applicant_experience_years"] == 5
+    third.voided_at = timezone.now()  # 取り消した行は使わない
+    third.save()
+    assert wage_explanations.from_records(version).values["applicant_experience_years"] == 3
+    # 画面: 入れた値で出し直し、ほかの欄の入力は残す。保存はしない
+    client = verified_client(make_user("tanto34", roles=("support_staff",)))
+    url = f"/workers/{worker.pk}/contracts/{version.contract_id}/versions/1/wage-explanation/"
+    page = client.get(url)
+    response = client.post(
+        url,
+        {
+            page.context["once_field"]: page.context["once_token"],
+            "action": "fill",
+            "comparison": "comparable",
+            "japanese_age": "24",
+        },
+    )
+    assert response.status_code == 200
+    form = response.context["form"]
+    assert form.initial["applicant_duties"] == version.duties
+    assert form.initial["applicant_experience_years"] == "3"
+    assert form.initial["comparison"] == "comparable" and form.initial["japanese_age"] == "24"
+    assert 'id="wage-explanation-filled"' in response.content.decode()
+    assert wage_explanations.explanation_of(version) is None
 
 
 # --- 生成（A の①②）---------------------------------------------------------------------------
