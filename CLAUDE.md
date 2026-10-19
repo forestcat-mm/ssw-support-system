@@ -45,6 +45,7 @@
 │   ├── handoff-phase3.md      # 段階3への引継ぎ（到達点・ADR の一覧・持ち越し・注意）
 │   ├── operations.md          # 管理者・担当者向けの運用手順
 │   ├── dummy-data.md          # seed_dummy の内容（外国人の番号ごとの場面）
+│   ├── translations/          # 自作の訳文の対照表（日本語と中国語。道具が作る。T43）
 │   ├── design/                # 業務画面のデザイン
 │   └── decisions/             # ADR（設計判断の記録。1 判断 1 ファイル）
 ├── backend/
@@ -63,7 +64,7 @@
 │   └── e2e/                   # Playwright の通しのテスト（make e2e・make gate2）
 ├── templates/forms/           # 入管配布の Word/Excel テンプレート（版ごとにフォルダ。段階3で作る）
 ├── mappings/                  # 様式ごとのマッピング定義 JSON と生成前の検査の規則 *.rules.json（ADR-0019）
-├── tools/                     # 開発用の道具（run_checks.sh〔make checks〕、forms/ の template.docx の作成）
+├── tools/                     # 開発用の道具（run_checks.sh〔make checks〕、forms/ の template.docx・訳文の版の作成）
 ├── scripts/                   # 手元用の補助スクリプト（init_env.py など。標準ライブラリのみ）
 ├── docker-compose.yml
 ├── docker-compose.prod.yml    # 本番準備で作る（docs/tasks-phase1.md）
