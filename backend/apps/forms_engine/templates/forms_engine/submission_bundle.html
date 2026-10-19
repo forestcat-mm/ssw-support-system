@@ -1,0 +1,30 @@
+{% extends "workers/detail_base.html" %}{% load i18n ui %}
+{% block tab_content %}
+<div class="stack" style="margin-top: var(--space-16)">
+  <p class="caption"><a href="{{ back_url }}">← {% translate "Documents for the application" %}</a></p>
+  <section class="card stack" id="submission-bundle">
+    <div class="card__header"><h2 class="card__title">{% translate "PDF for the submission" %}</h2>{% if can_download %}<a class="button button--primary button--small" href="{% url 'workers:submission_bundle_pdf' worker.pk bundle.pk %}" id="submission-download">{% translate "Download the PDF" %}</a>{% endif %}</div>
+    <dl class="fields">
+      <dt>{% translate "made at" %}</dt><dd class="mono">{{ bundle.created_at|date:"Y-m-d H:i" }}{% if bundle.created_by %} · {{ bundle.created_by }}{% endif %}</dd>
+      <dt>{% translate "application" %}</dt><dd>{{ bundle.set_id }} · {% translate "list revised on" %} {{ bundle.definition_valid_from|date:"Y-m-d" }} · {% translate "basis date" context "generated document" %} {{ bundle.basis_on|date:"Y-m-d" }}</dd>
+      <dt>{% translate "pages" %}</dt><dd class="mono" id="submission-pages">{{ bundle.page_count }}</dd>
+      <dt>{% translate "size" %}</dt><dd class="mono">{{ bundle.size|filesizeformat }}</dd>
+      <dt>SHA-256</dt><dd class="mono" style="overflow-wrap: anywhere">{{ bundle.sha256 }}</dd>
+    </dl>
+    {% if bundle.contains_sensitive %}<p class="message message--warning" id="submission-sensitive">{% translate "The PDF contains sensitive documents (health check documents). Only the assigned staff member and administrators can download it." %}</p>{% endif %}
+    {% for warning in warnings %}<p class="message message--warning" data-warning>{% if warning.row %}{{ warning.row.table }} {{ warning.row.number }}: {% endif %}{{ warning.text }}</p>{% endfor %}
+  </section>
+  <section class="card stack" id="submission-items">
+    <div class="card__header"><h2 class="card__title">{% translate "Contents" %}</h2></div>
+    <div class="table-scroll"><table class="table table--list">
+      <thead><tr><th>{% translate "table" %}</th><th>{% translate "document" %}</th><th>{% translate "kind" %}</th><th>{% translate "pages" %}</th></tr></thead>
+      <tbody>{% for entry in items %}<tr data-row="{{ entry.item.row }}" data-source="{{ entry.item.source }}">
+        <td>{{ entry.item.table }} {{ entry.item.number }}</td>
+        <td>{{ entry.row.document|truncatechars:60 }}</td>
+        <td>{% if entry.item.source == "signed" %}{% translate "signed scan" %}{% elif entry.item.source == "generated" %}{% translate "generated PDF" %}{% elif entry.item.source == "upload" %}{% translate "uploaded file" %}{% else %}{% translate "attachment" %}{% endif %}</td>
+        <td class="mono">{{ entry.item.pages }}</td>
+      </tr>{% endfor %}</tbody>
+    </table></div>
+  </section>
+</div>
+{% endblock %}

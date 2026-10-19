@@ -67,6 +67,26 @@ urlpatterns = [
         name="application_set",
     ),
     path(
+        "<int:pk>/documents/application/generate/",
+        forms_views.ApplicationBulkView.as_view(),
+        name="application_bulk",
+    ),
+    path(
+        "<int:pk>/documents/application/submission/",
+        forms_views.SubmissionBundleCreateView.as_view(),
+        name="submission_bundle_create",
+    ),
+    path(
+        "<int:pk>/documents/submission/<int:bundle_id>/",
+        forms_views.SubmissionBundleView.as_view(),
+        name="submission_bundle",
+    ),
+    path(
+        "<int:pk>/documents/submission/<int:bundle_id>/pdf/",
+        forms_views.SubmissionBundleDownloadView.as_view(),
+        name="submission_bundle_pdf",
+    ),
+    path(
         "<int:pk>/documents/<int:document_id>/signature/",
         forms_views.SignatureAddView.as_view(),
         name="document_signature",

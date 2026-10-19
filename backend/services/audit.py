@@ -96,6 +96,8 @@ AUDITED_MODELS: frozenset[str] = frozenset(
         "forms_engine.formmapping",
         "forms_engine.generateddocument",
         "forms_engine.generateddocumentsignature",
+        # 提出用の統合 PDF（T42。作成だけ。変更・削除はモデルが拒否する）
+        "forms_engine.submissionbundle",
     }
 )
 

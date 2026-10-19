@@ -120,3 +120,61 @@ class ApplicationSetForm(StyledFormMixin, forms.Form):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.style_fields()
+
+
+class BulkGenerateForm(StyledFormMixin, forms.Form):
+    """不足の書類の一括生成（T42）: 生成する行・第1-17号のⅢ欄７の申告・警告を確かめた印。
+
+    基準日・申請の種類は一覧の条件をそのまま送る（隠しの欄）。
+    """
+
+    set_id = forms.CharField(widget=forms.HiddenInput)
+    basis_on = forms.DateField(widget=forms.HiddenInput)
+    rows = forms.MultipleChoiceField(
+        label=_("documents to generate"), required=False, widget=forms.CheckboxSelectMultiple
+    )
+    propriety = PlanGenerateForm.base_fields["propriety"]
+    accept_warnings = forms.BooleanField(
+        label=_("I have checked the warnings and will generate the documents anyway."),
+        required=False,
+    )
+
+    def __init__(
+        self, *args: Any, row_choices: list[tuple[str, str]] | None = None, **kwargs: Any
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.fields["rows"].choices = row_choices or []  # type: ignore[attr-defined]
+        self.style_fields()
+
+
+class SubmissionBundleForm(StyledFormMixin, forms.Form):
+    """提出用の統合 PDF（T42）: システムの外の行のアップロード・警告を確かめた印。
+
+    アップロードの欄は行ごとに upload-<行の ID>（PDF・PNG・JPEG）。
+    """
+
+    set_id = forms.CharField(widget=forms.HiddenInput)
+    basis_on = forms.DateField(widget=forms.HiddenInput)
+    accept_warnings = forms.BooleanField(
+        label=_("I have checked the warnings and will make the PDF anyway."), required=False
+    )
+
+    def __init__(self, *args: Any, upload_rows: list[str] | None = None, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        for row_id in upload_rows or []:
+            self.fields[f"upload-{row_id}"] = MultipleFileField(
+                label=_("file to include"), required=False
+            )
+        self.style_fields()
+
+    def uploads(self) -> dict[str, list[Any]]:
+        prefix = "upload-"
+        return {
+            name.removeprefix(prefix): files
+            for name, files in self.cleaned_data.items()
+            if name.startswith(prefix) and files
+        }
+
+    def upload_field(self, row_id: str) -> Any:
+        name = f"upload-{row_id}"
+        return self[name] if name in self.fields else None

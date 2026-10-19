@@ -155,3 +155,9 @@ def model_label(content_type: Any) -> str:
 def active_attachments(attachments: Any) -> list[Any]:
     """取り消していない添付だけ（並び順はそのまま。先頭が今の添付）。"""
     return [attachment for attachment in attachments if attachment.voided_at is None]
+
+
+@register.filter
+def get_item(mapping: Any, key: Any) -> Any:
+    """辞書の値（無ければ None）。行の ID ごとの結果を表の行で引く（T42）。"""
+    return mapping.get(key) if hasattr(mapping, "get") else None

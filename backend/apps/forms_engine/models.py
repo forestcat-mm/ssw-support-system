@@ -240,3 +240,50 @@ class GeneratedDocumentSignature(TrackedModel):
 
     def delete(self, *args: Any, **kwargs: Any) -> tuple[int, dict[str, int]]:
         raise ImmutableRowError("signatures cannot be deleted; void the attachment instead")
+
+
+def bundle_upload_to(instance: object, filename: str) -> str:
+    return upload_path("submission", filename)
+
+
+class SubmissionBundle(TrackedModel):
+    """提出用の統合 PDF の生成履歴（追記だけ。T42、ADR-0033）。
+
+    申請の書類の一覧（申請の種類×基準日）の書類を、提出書類一覧表を先頭に番号順に 1 つの PDF に
+    まとめたもの。中身（items）は綴じた順の行と元の生成物・添付の ID・頁数・SHA-256 で、
+    ファイル名は持たない（要配慮のファイル名を出さない。ADR-0011）。
+    """
+
+    worker = models.ForeignKey(
+        "workers.ForeignWorker",
+        verbose_name=_("foreign worker"),
+        on_delete=models.PROTECT,
+        related_name="submission_bundles",
+    )
+    set_id = models.CharField(_("application type"), max_length=8)
+    definition_valid_from = models.DateField(_("list revised on"))
+    basis_on = models.DateField(pgettext_lazy("generated document", "basis date"))
+    file = PrivateFileField(_("PDF"), upload_to=bundle_upload_to, max_length=255)
+    sha256 = models.CharField("SHA-256", max_length=64)
+    size = models.PositiveBigIntegerField(_("size (bytes)"))
+    page_count = models.PositiveIntegerField(_("pages"))
+    # 要配慮の添付（健康診断の書類など）を含む: ダウンロードは担当者と管理者だけ
+    contains_sensitive = models.BooleanField(_("contains sensitive documents"), default=False)
+    items = models.JSONField(_("contents"), default=list)
+    warnings = models.JSONField(_("warnings when made"), default=list, blank=True)
+
+    class Meta:
+        verbose_name = _("submission PDF")
+        verbose_name_plural = _("submission PDFs")
+        ordering = ["-created_at", "-pk"]
+
+    def __str__(self) -> str:
+        return f"{self.set_id} {self.basis_on:%Y-%m-%d} #{self.pk}"
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        if not self._state.adding:
+            raise ImmutableRowError("submission PDFs cannot be changed; make a new one")
+        super().save(*args, **kwargs)
+
+    def delete(self, *args: Any, **kwargs: Any) -> tuple[int, dict[str, int]]:
+        raise ImmutableRowError("submission PDFs cannot be deleted")

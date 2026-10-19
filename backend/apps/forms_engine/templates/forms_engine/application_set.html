@@ -12,6 +12,10 @@
     <p class="caption" id="application-set-source">{% blocktranslate with name=overview.definition.name day=overview.definition.valid_from|date:"Y-m-d" %}{{ name }}: the list of documents to submit (revised on {{ day }}). Rows marked ○ are required; △ only when they apply.{% endblocktranslate %}</p>
     {% if not overview.facts.contract %}<p class="message message--warning" id="application-set-no-contract">{% translate "There is no employment contract on the basis date, so rows that depend on the host organization cannot be judged." %}</p>{% endif %}
     <p id="application-set-open">{% blocktranslate count counter=overview.open_count %}{{ counter }} required document is not ready.{% plural %}{{ counter }} required documents are not ready.{% endblocktranslate %}</p>
+    {% if can_generate %}<div class="cluster" id="application-set-actions">
+      {% if row_checks %}<a class="button button--primary" href="{% url 'workers:application_bulk' worker.pk %}?{{ query }}" id="application-bulk-link">{% translate "Generate the missing documents" %}</a>{% endif %}
+      <a class="button button--neutral" href="{% url 'workers:submission_bundle_create' worker.pk %}?{{ query }}" id="submission-bundle-link">{% translate "Make the PDF for the submission" %}</a>
+    </div>{% endif %}
     <div class="table-scroll"><table class="table table--list application-set" id="application-set-rows">
       <thead><tr><th>{% translate "status" %}</th><th>{% translate "table" %}</th><th>{% translate "document" %}</th><th>{% translate "form" %}</th><th>{% translate "required" context "application set" %}</th></tr></thead>
       <tbody>{% for state in overview.rows %}{% with row=state.row %}
@@ -29,6 +33,7 @@
             {% elif state.status == "alternative" %}<span class="muted">{% translate "for organizations with a track record (not judged in the system)" %}</span>
             {% elif state.status == "unknown" %}<span class="muted">{% translate "cannot be judged" %}</span>
             {% else %}<span class="muted">{% translate "prepared outside the system" %}</span>{% endif %}
+            {% with check=row_checks|get_item:row.id %}{% if check %}<br>{% if check.blocked %}<span class="badge badge--overdue" data-check="blocked">{% translate "cannot generate" %}</span>{% elif check.warnings %}<span class="badge badge--within-7" data-check="warning">{% blocktranslate count counter=check.warnings %}{{ counter }} warning{% plural %}{{ counter }} warnings{% endblocktranslate %}</span>{% else %}<span class="badge badge--within-14" data-check="ok">{% translate "can be generated" %}</span>{% endif %}{% endif %}{% endwith %}
             {% if state.applicable is None and state.status != "alternative" %}<br><span class="caption">{% translate "Check whether it applies." %}</span>{% endif %}
             {% if state.detail %}<br><span class="caption mono">{{ state.detail }}</span>{% endif %}
             {% if state.signature == "awaiting" %}<br><span class="caption">{% translate "awaiting signature" %}</span>{% elif state.signature == "signed" %}<br><span class="caption">{% translate "signed" %}</span>{% endif %}
@@ -51,5 +56,20 @@
     </details>
     {% endif %}
   </section>
+  {% if bundles %}
+  <section class="card stack" id="submission-bundles">
+    <div class="card__header"><h2 class="card__title">{% translate "PDFs for the submission" %}</h2></div>
+    <div class="table-scroll"><table class="table table--list">
+      <thead><tr><th>{% translate "made at" %}</th><th>{% translate "application" %}</th><th>{% translate "pages" %}</th><th>{% translate "size" %}</th><th></th></tr></thead>
+      <tbody>{% for item in bundles %}{% with bundle=item.bundle %}<tr data-bundle="{{ bundle.pk }}">
+        <td class="mono"><a href="{% url 'workers:submission_bundle' worker.pk bundle.pk %}">{{ bundle.created_at|date:"Y-m-d H:i" }}</a></td>
+        <td>{{ bundle.set_id }} · {{ bundle.basis_on|date:"Y-m-d" }}{% if bundle.contains_sensitive %}<br><span class="badge badge--within-7">{% translate "contains sensitive documents" %}</span>{% endif %}</td>
+        <td class="mono">{{ bundle.page_count }}</td>
+        <td class="mono">{{ bundle.size|filesizeformat }}</td>
+        <td>{% if item.can_download %}<a class="button button--neutral button--small" href="{% url 'workers:submission_bundle_pdf' worker.pk bundle.pk %}">PDF</a>{% endif %}</td>
+      </tr>{% endwith %}{% endfor %}</tbody>
+    </table></div>
+  </section>
+  {% endif %}
 </div>
 {% endblock %}

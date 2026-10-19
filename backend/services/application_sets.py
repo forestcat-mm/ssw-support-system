@@ -382,6 +382,65 @@ def _attachment_state(row: dict[str, Any], applicable: bool | None, facts: Facts
     return RowState(row, applicable, Status.ATTACHED if exists else Status.MISSING, action_url=url)
 
 
+def row_attachments(row: dict[str, Any], facts: Facts) -> list[Attachment]:
+    """添付の行を満たす添付（取り消していないもの。統合 PDF に綴じる。T42）。
+
+    健康診断の書類・構成員の証明書・協議会の証明書は最新の 1 件、版の根拠資料は全部（古い順）。
+    当てはまるかの判断は state_of と同じ（有効期限を過ぎた加入の証明書は綴じない）。
+    """
+    kind = row["how"].get("attachment")
+    worker, contract, version = facts.worker, facts.contract, facts.version
+    live = Attachment.objects.filter(voided_at__isnull=True)
+    if kind == "health_check":
+        wanted = (
+            AttachmentKind.HEALTH_DECLARATION
+            if "申告書" in row["document"]
+            else AttachmentKind.HEALTH_CHECK_RECORD
+        )
+        latest = (
+            live.filter(
+                content_type__app_label="workers",
+                content_type__model="foreignworker",
+                object_id=worker.pk,
+                kind=wanted,
+            )
+            .order_by("-created_at")
+            .first()
+        )
+        return [latest] if latest else []
+    if kind == "own_council_certificate":
+        organization = facts.organization
+        if organization is None or organization.food_council_joined_on is None:
+            return []
+        latest = (
+            organization.attachments.filter(
+                kind=AttachmentKind.FOOD_COUNCIL_CERTIFICATE, voided_at__isnull=True
+            )
+            .order_by("-created_at")
+            .first()
+        )
+        return [latest] if latest else []
+    if contract is None or version is None:
+        return []
+    if kind == "membership_certificate":
+        membership = contract.host_organization.memberships.filter(field=version.site.field).first()
+        if membership is None or membership.joined_on > facts.on:
+            return []
+        if membership.valid_until is not None and membership.valid_until < facts.on:
+            return []
+        latest = (
+            membership.attachments.filter(
+                kind=AttachmentKind.MEMBERSHIP_CERTIFICATE, voided_at__isnull=True
+            )
+            .order_by("-created_at")
+            .first()
+        )
+        return [latest] if latest else []
+    return list(
+        version.attachments.filter(kind=kind, voided_at__isnull=True).order_by("created_at", "pk")
+    )
+
+
 def timezone_date(value: datetime.datetime) -> str:
     from django.utils import timezone
 

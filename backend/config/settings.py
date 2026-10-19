@@ -196,3 +196,7 @@ FORM_MAPPINGS_ROOT = REPO_ROOT / "mappings"
 FORM_CONVERT_TIMEOUT = 120
 # 依頼のまま、この秒数を過ぎた生成履歴は「時間がかかっています」と出す（T33、ADR-0022）
 FORM_STALE_AFTER = 600
+# 提出用の統合 PDF（T42、ADR-0033）: 在留申請オンラインシステムの添付の上限（顔写真を含め
+# 合計 25MB・20 ファイル。Q&A Q4-2）。MB は 1,000,000 バイトとして判定する（小さい方）
+SUBMISSION_PDF_MAX_MB: int = env.int("SUBMISSION_PDF_MAX_MB", default=25)
+SUBMISSION_MAX_FILES: int = env.int("SUBMISSION_MAX_FILES", default=20)

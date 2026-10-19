@@ -11,7 +11,7 @@ from django.http import HttpRequest
 
 from apps.core.admin import TrackedModelAdmin
 
-from .models import FormMapping, FormTemplate, GeneratedDocument
+from .models import FormMapping, FormTemplate, GeneratedDocument, SubmissionBundle
 
 
 class ReadOnlyAdmin(TrackedModelAdmin[Any]):
@@ -41,3 +41,9 @@ class GeneratedDocumentAdmin(ReadOnlyAdmin):
     list_display = ("pk", "template", "basis_on", "status", "page_count", "created_at")
     list_filter = ("status", "template__form_id")
     exclude = ("snapshot", "filled_file", "pdf_file")
+
+
+@admin.register(SubmissionBundle)
+class SubmissionBundleAdmin(ReadOnlyAdmin):
+    list_display = ("pk", "set_id", "basis_on", "page_count", "size", "created_at")
+    exclude = ("file",)

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 21:25+0900\n"
+"POT-Creation-Date: 2026-10-19 22:52+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -3072,6 +3072,18 @@ msgstr "在留資格変更"
 msgid "Extension of period of stay"
 msgstr "在留期間更新"
 
+msgid "documents to generate"
+msgstr "生成する書類"
+
+msgid "I have checked the warnings and will generate the documents anyway."
+msgstr "警告を確かめたうえで生成する"
+
+msgid "I have checked the warnings and will make the PDF anyway."
+msgstr "警告を確かめたうえで PDF を作る"
+
+msgid "file to include"
+msgstr "綴じるファイル"
+
 msgid "common"
 msgstr "共通"
 
@@ -3208,6 +3220,76 @@ msgstr "帳票の署名"
 msgid "signatures of generated documents"
 msgstr "帳票の署名"
 
+msgid "application type"
+msgstr "申請種別"
+
+msgid "list revised on"
+msgstr "一覧の改定日"
+
+msgid "contains sensitive documents"
+msgstr "要配慮の書類を含む"
+
+msgid "contents"
+msgstr "中身"
+
+msgid "warnings when made"
+msgstr "作ったときの警告"
+
+msgid "submission PDF"
+msgstr "提出用の統合 PDF"
+
+msgid "submission PDFs"
+msgstr "提出用の統合 PDF"
+
+msgid "Generate the missing documents"
+msgstr "不足の書類をまとめて生成"
+
+msgid ""
+"The documents are generated with the same defaults as on each form's page "
+"(the person responsible for the document, the language of the form). To "
+"change them, generate the document on its own page."
+msgstr ""
+"1 件ずつの生成の画面と同じ初期値（作成責任者・様式の言語）で生成します。変え"
+"たいときは、その様式の画面で生成してください。"
+
+msgid "Documents to generate"
+msgstr "生成する書類"
+
+msgid "generated with the row above (same form)"
+msgstr "上の行と同じ様式（一緒に生成する）"
+
+msgid "cannot generate"
+msgstr "生成不可"
+
+#, python-format
+msgid "%(counter)s warning"
+msgid_plural "%(counter)s warnings"
+msgstr[0] "警告 %(counter)s 件"
+
+msgid "can be generated"
+msgstr "生成できる"
+
+msgid "generated for another contract or version"
+msgstr "ほかの契約・版で生成済み"
+
+msgid "Fix"
+msgstr "直す"
+
+msgid "There are no missing documents to generate."
+msgstr "生成する不足の書類はありません。"
+
+msgid "Missing attachments"
+msgstr "不足の添付"
+
+msgid "These are not generated. Attach them on the record's page."
+msgstr "これらは生成しません。記録の画面で添付してください。"
+
+msgid "Go to the record"
+msgstr "記録へ"
+
+msgid "Generate the selected documents"
+msgstr "選んだ書類を生成"
+
 msgid "Show"
 msgstr "表示"
 
@@ -3229,6 +3311,9 @@ msgid "%(counter)s required document is not ready."
 msgid_plural "%(counter)s required documents are not ready."
 msgstr[0] "必須の書類のうち %(counter)s 件がそろっていません。"
 
+msgid "Make the PDF for the submission"
+msgstr "提出用の PDF を作る"
+
 msgid "table"
 msgstr "表"
 
@@ -3247,9 +3332,6 @@ msgstr "生成済み"
 
 msgid "generating"
 msgstr "生成中"
-
-msgid "generated for another contract or version"
-msgstr "ほかの契約・版で生成済み"
 
 msgid "not generated"
 msgstr "未生成"
@@ -3292,9 +3374,6 @@ msgstr "開く"
 msgid "Attach"
 msgstr "添付"
 
-msgid "Go to the record"
-msgstr "記録へ"
-
 msgid "points to note"
 msgstr "留意事項"
 
@@ -3302,6 +3381,15 @@ msgstr "留意事項"
 msgid "%(counter)s row does not apply"
 msgid_plural "%(counter)s rows do not apply"
 msgstr[0] "当てはまらない行（%(counter)s 行）"
+
+msgid "PDFs for the submission"
+msgstr "提出用の PDF"
+
+msgid "made at"
+msgstr "作成日時"
+
+msgid "size"
+msgstr "大きさ"
 
 msgid ""
 "The Chinese bilingual version distributed by the Immigration Services Agency "
@@ -3318,14 +3406,8 @@ msgstr "生成できません"
 msgid "Can generate with warnings"
 msgstr "警告付きで生成できます"
 
-msgid "cannot generate"
-msgstr "生成不可"
-
 msgid "warning"
 msgstr "警告"
-
-msgid "Fix"
-msgstr "直す"
 
 msgid "No problems were found."
 msgstr "不足はありません。"
@@ -3414,6 +3496,58 @@ msgstr "署名は不要"
 msgid "Warnings at generation"
 msgstr "生成のときの警告"
 
+msgid "PDF for the submission"
+msgstr "提出用の PDF"
+
+msgid ""
+"The PDF contains sensitive documents (health check documents). Only the "
+"assigned staff member and administrators can download it."
+msgstr ""
+"要配慮の書類（健康診断の書類）を含みます。ダウンロードできるのは担当者と管理"
+"者だけです。"
+
+msgid "Contents"
+msgstr "中身"
+
+msgid "generated PDF"
+msgstr "生成した PDF"
+
+msgid "uploaded file"
+msgstr "アップロードしたファイル"
+
+msgid ""
+"The documents are put in one PDF in the order of the list of documents to "
+"submit, with the list itself first (note 3 on the cover of the list). Signed "
+"copies are used when they are attached. Documents prepared outside the "
+"system can be added here."
+msgstr ""
+"提出書類一覧表を先頭に、一覧表の番号順に 1 つの PDF にまとめます（一覧表の表"
+"紙の留意事項３）。署名済みのスキャンがあればそれを使います。システムの外で用"
+"意した書類は、ここで足せます。"
+
+#, python-format
+msgid ""
+"The online application system accepts up to %(files)s PDF files and "
+"%(limit)s MB in total, including the photo."
+msgstr ""
+"在留申請オンラインシステムに添付できるのは、PDF で %(files)s ファイルまで、顔"
+"写真を含め合計 %(limit)s MB までです。"
+
+msgid "Estimated size"
+msgstr "見積もりの大きさ"
+
+msgid "included in the PDF of the row above (same document)"
+msgstr "上の行の PDF に含む（同じ書類）"
+
+msgid "prepared outside the system (not included unless you add the file)"
+msgstr "システムの外で用意する（ファイルを足さなければ綴じない）"
+
+msgid "not included"
+msgstr "綴じない"
+
+msgid "Make the PDF"
+msgstr "PDF を作る"
+
 msgid "taking too long"
 msgstr "時間がかかっています"
 
@@ -3437,6 +3571,25 @@ msgstr "この期間の相談はありません。"
 
 msgid "Requested the generation of the consultation records."
 msgstr "相談記録書の生成を依頼しました。"
+
+msgid "Select the documents to generate."
+msgstr "生成する書類を選んでください。"
+
+#, python-format
+msgid "Requested the generation of %(count)s documents."
+msgstr "%(count)s 件の生成を依頼しました。"
+
+#, python-format
+msgid "Skipped %(form)s because it cannot be generated."
+msgstr "%(form)s は生成できないため飛ばしました。"
+
+msgid ""
+"The file cannot be read as a PDF or an image (or it is a transparent PNG)."
+msgstr ""
+"PDF・画像として読めないファイルです（透過のある PNG も綴じられません）。"
+
+msgid "Made the PDF for the submission."
+msgstr "提出用の PDF を作りました。"
 
 msgid "Support contracts entered on this page overlap each other."
 msgstr "この画面で入力した支援委託契約どうしの期間が重なっています。"
@@ -5784,9 +5937,6 @@ msgstr "許可日"
 msgid "For card reissue and change of particulars, enter the issue date."
 msgstr "在留カード再交付・記載事項変更は交付日を入力します。"
 
-msgid "application type"
-msgstr "申請種別"
-
 msgid "residence record"
 msgstr "在留情報"
 
@@ -6113,6 +6263,15 @@ msgstr "外国人を無効化しました。"
 
 msgid "Back to business screens"
 msgstr "業務画面へ戻る"
+
+msgid "There is no support plan."
+msgstr "支援計画がありません。"
+
+msgid "There is no employment contract on the basis date."
+msgstr "基準日の雇用契約がありません。"
+
+msgid "The form is not loaded."
+msgstr "様式が読み込まれていません。"
 
 msgid "This attachment is already voided."
 msgstr "この添付は取り消し済みです。"
@@ -7253,6 +7412,61 @@ msgstr "この事務所の、支援責任者の印のある有効な担当者を
 
 msgid "Enter a passport number of 6 to 12 letters and digits."
 msgstr "旅券番号は英数字 6〜12 桁で入力してください。"
+
+msgid "Not generated, so it is not included."
+msgstr "未生成のため綴じません。"
+
+msgid "Still being generated, so it is not included."
+msgstr "生成中のため綴じません。"
+
+msgid "Generated only for another contract or version, so it is not included."
+msgstr "ほかの契約・版を対象にした生成物しか無いため綴じません。"
+
+msgid "Not signed yet: the generated PDF without the signature is included."
+msgstr "署名待ちです。署名の無い生成した PDF を綴じます。"
+
+msgid "Not attached, so it is not included."
+msgstr "添付が無いため綴じません。"
+
+msgid "The membership has expired, so it is not included."
+msgstr "加入の有効期限を過ぎているため綴じません。"
+
+msgid "The examination was too long before the application."
+msgstr "受診日が申請に使える時期より前です。"
+
+msgid "The examination date is not entered."
+msgstr "受診日が登録されていません。"
+
+msgid ""
+"Only the assigned staff member and administrators can include this sensitive "
+"document, so it is not included."
+msgstr "要配慮の書類は担当者と管理者だけが綴じられるため、綴じません。"
+
+msgid "You cannot open this file, so it is not included."
+msgstr "このファイルを開く権限が無いため綴じません。"
+
+msgid ""
+"The file cannot be read as a PDF or an image (broken, password-protected, or "
+"a transparent PNG), so it is not included."
+msgstr ""
+"PDF・画像として読めない（壊れている・パスワード付き・透過のある PNG）ため綴じ"
+"ません。"
+
+#, python-format
+msgid ""
+"The total size is over the limit of the online application system (%(limit)s "
+"MB including the photo). Attach what fits and submit the rest with the "
+"declaration on attaching documents (reference form 9)."
+msgstr ""
+"在留申請オンラインシステムの上限（顔写真を含め %(limit)s MB）を超えます。添付"
+"できる分だけを添付し、残りは「資料添付に係る申告書（参考様式９）」とともに提"
+"出してください。"
+
+msgid "Check the warnings before making the PDF."
+msgstr "PDF を作る前に警告を確かめてください。"
+
+msgid "There is no document to include."
+msgstr "綴じる書類がありません。"
 
 msgid "pre-entry guidance"
 msgstr "事前ガイダンス"

@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import io
 import random
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from pypdf import PdfWriter
 
 from apps.contracts.models import EmploymentContract
 from apps.core.models import Organization, Staff
@@ -19,7 +21,19 @@ SEED = 20261016
 DUMMY_MARK = "（ダミー）"
 DUMMY_USERNAME = "dummy_tanto"
 DUMMY_USERNAME_2 = "dummy_tanto2"  # 2 人目の担当者（鈴木 次郎）
-DUMMY_PDF = b"%PDF-1.4\n% dummy certificate for development\n"
+
+
+def _dummy_pdf() -> bytes:
+    """ダミーの添付の PDF（空白の A4 の 1 頁。提出用の統合 PDF に綴じられる。T42-D13）。"""
+    writer = PdfWriter()
+    writer.add_blank_page(width=595.276, height=841.89)
+    writer.add_metadata({"/Title": "dummy document for development"})
+    out = io.BytesIO()
+    writer.write(out)
+    return out.getvalue()
+
+
+DUMMY_PDF = _dummy_pdf()
 
 
 @dataclass

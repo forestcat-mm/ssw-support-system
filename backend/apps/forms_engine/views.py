@@ -5,6 +5,7 @@ PDF のダウンロードはファイルの中身を渡す唯一の経路。記�
 """
 
 from typing import Any
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib import messages
@@ -26,15 +27,18 @@ from apps.core.web_forms import consume_once_token, once_context
 from apps.forms_engine.forms import (
     NOT_LOADED,
     ApplicationSetForm,
+    BulkGenerateForm,
     ConsultationRecordForm,
     SignatureForm,
+    SubmissionBundleForm,
 )
-from apps.forms_engine.models import GeneratedDocument, GenerationStatus
+from apps.forms_engine.models import GeneratedDocument, GenerationStatus, SubmissionBundle
 from apps.hosts.models import HostOrganization
 from apps.support.models import Briefing, DeliveryKind, PeriodicInterview, SupportPlanVersion
 from apps.support.record_forms import ReasonForm
 from apps.workers.views import WorkerDetailView, WorkerFormView
 from services import (
+    application_bulk,
     application_sets,
     attachments,
     audit,
@@ -44,8 +48,10 @@ from services import (
     form_generation,
     form_signatures,
     form_templates,
+    submission_bundles,
     workers,
 )
+from services.files import FilePolicy, validate_file
 
 
 class GeneratedDocumentView(ActionRequiredMixin, View):
@@ -191,7 +197,22 @@ class ApplicationSetView(WorkerDetailView):
         else:
             set_id, on = application_sets.default_set(self.worker), today
         found = application_sets.overview(self.worker, set_id, on)
-        context.update(selector=form, overview=found, set_id=set_id, basis_on=on)
+        user = self.request.user
+        bundles = submission_bundles.bundles_of(self.worker)
+        context.update(
+            selector=form,
+            overview=found,
+            set_id=set_id,
+            basis_on=on,
+            row_checks=application_bulk.row_checks(found),
+            bundles=[
+                {"bundle": bundle, "can_download": submission_bundles.can_download(user, bundle)}
+                for bundle in bundles
+            ],
+            can_generate=workers.is_active(self.worker)
+            and authorization.has_action(user, Action.FORMS_GENERATE),
+            query=urlencode({"set_id": set_id, "basis_on": on.isoformat()}),
+        )
         return {
             "shown": {
                 "application_set": set_id,
@@ -393,3 +414,285 @@ class ConsultationRecordView(ActionRequiredMixin, View):
             return self.page(request, host, form)
         messages.success(request, _("Requested the generation of the consultation records."))
         return redirect(f"{back}#consultation-records")
+
+
+# --- 不足の書類の一括生成と提出用の統合 PDF（T42、ADR-0033）-----------------------------------
+
+
+def _set_and_day(worker: Any, data: Any) -> tuple[str, Any]:
+    """申請の種類と基準日（一覧の条件。不正なら初期値）。"""
+    form = ApplicationSetForm(
+        {
+            "set_id": data.get("set_id") or application_sets.default_set(worker),
+            "basis_on": data.get("basis_on") or timezone.localdate().isoformat(),
+        }
+    )
+    if form.is_valid():
+        return form.cleaned_data["set_id"], form.cleaned_data["basis_on"]
+    return application_sets.default_set(worker), timezone.localdate()
+
+
+def _set_url(worker: Any, set_id: str, on: Any) -> str:
+    query = urlencode({"set_id": set_id, "basis_on": on.isoformat()})
+    return reverse("workers:application_set", args=[worker.pk]) + f"?{query}"
+
+
+class ApplicationBulkView(WorkerFormView):
+    """不足の書類をまとめて生成する（T42）。
+
+    行ごとの検査の結果（生成不可・警告）と不足の添付を一覧で出し、警告を確かめてから生成する。
+    生成不可の行は選べず、飛ばして知らせる。
+    """
+
+    required_action = Action.FORMS_GENERATE
+    template_name = "forms_engine/application_bulk.html"
+
+    def page(
+        self,
+        request: HttpRequest,
+        worker: Any,
+        overview: application_sets.Overview,
+        found: list[application_bulk.Candidate],
+        form: BulkGenerateForm,
+    ) -> HttpResponse:
+        audit.record_view(
+            worker,
+            context={
+                "application_bulk": overview.definition.id,
+                "basis_on": str(overview.facts.on),
+            },
+        )
+        return self.render(
+            request,
+            worker=worker,
+            overview=overview,
+            candidates=found,
+            gaps=application_bulk.attachment_gaps(overview),
+            form=form,
+            has_warnings=any(c.warnings and not c.blocked and not c.same_as for c in found),
+            has_plan=any(c.form_id == "1-17" and not c.same_as for c in found),
+            selectable=[c for c in found if not c.blocked and not c.same_as],
+            back_url=_set_url(worker, overview.definition.id, overview.facts.on),
+        )
+
+    def form(
+        self, found: list[application_bulk.Candidate], *args: Any, **kwargs: Any
+    ) -> BulkGenerateForm:
+        choices = [(c.row_id, c.row_id) for c in found if not c.blocked and not c.same_as]
+        return BulkGenerateForm(*args, row_choices=choices, **kwargs)
+
+    def get(self, request: HttpRequest, pk: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        set_id, on = _set_and_day(worker, request.GET)
+        overview = application_sets.overview(worker, set_id, on)
+        found = application_bulk.candidates(overview)
+        initial = {
+            "set_id": set_id,
+            "basis_on": on,
+            "rows": [c.row_id for c in found if not c.blocked and not c.same_as],
+        }
+        return self.page(request, worker, overview, found, self.form(found, initial=initial))
+
+    def post(self, request: HttpRequest, pk: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        set_id, on = _set_and_day(worker, request.POST)
+        overview = application_sets.overview(worker, set_id, on)
+        propriety = request.POST.get("propriety") in ("on", "true", "1")
+        found = application_bulk.candidates(overview, propriety=propriety)
+        form = self.form(found, request.POST)
+        if not form.is_valid() or request.POST.get("action") != "generate":
+            return self.page(request, worker, overview, found, form)
+        back = _set_url(worker, set_id, on)
+        if not consume_once_token(request):
+            return self.already_submitted(request, back)
+        if not form.cleaned_data["rows"]:
+            form.add_error("rows", _("Select the documents to generate."))
+            return self.page(request, worker, overview, found, form)
+        assert isinstance(request.user, User)
+        try:
+            outcome = application_bulk.generate(
+                found,
+                form.cleaned_data["rows"],
+                basis_on=on,
+                by=request.user,
+                accept_warnings=bool(form.cleaned_data.get("accept_warnings")),
+            )
+        except form_generation.WarningsNotAccepted:
+            form.add_error("accept_warnings", _("Check the warnings before generating."))
+            return self.page(request, worker, overview, found, form)
+        if outcome.requested:
+            messages.success(
+                request,
+                _("Requested the generation of %(count)s documents.")
+                % {"count": len(outcome.requested)},
+            )
+        for skipped in outcome.skipped:
+            messages.warning(
+                request,
+                _("Skipped %(form)s because it cannot be generated.") % {"form": skipped.form_id},
+            )
+        return redirect(back)
+
+
+def upload_policy() -> FilePolicy:
+    """その場でアップロードする書類（PDF・PNG・JPEG。1 つの大きさは容量の上限まで）。"""
+    return FilePolicy(
+        extensions=frozenset({"pdf", "png", "jpg", "jpeg"}),
+        max_bytes=submission_bundles.limit_bytes(),
+    )
+
+
+class SubmissionBundleCreateView(WorkerFormView):
+    """提出用の統合 PDF を作る（T42）。
+
+    綴じる順の一覧・見積もりの大きさ・警告を出し、システムの外の行はその場でアップロードできる。
+    """
+
+    required_action = Action.FORMS_GENERATE
+    template_name = "forms_engine/submission_bundle_form.html"
+
+    def page(
+        self,
+        request: HttpRequest,
+        worker: Any,
+        outline: submission_bundles.Outline,
+        form: SubmissionBundleForm,
+    ) -> HttpResponse:
+        overview = outline.overview
+        audit.record_view(
+            worker,
+            context={
+                "submission_outline": overview.definition.id,
+                "basis_on": str(overview.facts.on),
+            },
+        )
+        return self.render(
+            request,
+            worker=worker,
+            outline=outline,
+            overview=overview,
+            form=form,
+            rows=[
+                {
+                    "entry": entry,
+                    "upload": form.upload_field(entry.row_id),
+                    "warnings": [submission_bundles.warning_text(code) for code in entry.warnings]
+                    + [
+                        submission_bundles.warning_text(submission_bundles.Warn.UNREADABLE)
+                        for part in entry.parts
+                        if part.error and part.error != submission_bundles.NOT_ALLOWED
+                    ],
+                }
+                for entry in outline.entries
+            ],
+            limit_mb=settings.SUBMISSION_PDF_MAX_MB,
+            max_files=settings.SUBMISSION_MAX_FILES,
+            over_limit_text=submission_bundles.warning_text(submission_bundles.Warn.OVER_LIMIT),
+            back_url=_set_url(worker, overview.definition.id, overview.facts.on),
+        )
+
+    def form(
+        self, outline: submission_bundles.Outline, *args: Any, **kwargs: Any
+    ) -> SubmissionBundleForm:
+        rows = [entry.row_id for entry in outline.entries if entry.can_upload]
+        return SubmissionBundleForm(*args, upload_rows=rows, **kwargs)
+
+    def get(self, request: HttpRequest, pk: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        set_id, on = _set_and_day(worker, request.GET)
+        overview = application_sets.overview(worker, set_id, on)
+        outline = submission_bundles.outline(overview, request.user)
+        form = self.form(outline, initial={"set_id": set_id, "basis_on": on})
+        return self.page(request, worker, outline, form)
+
+    def post(self, request: HttpRequest, pk: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        set_id, on = _set_and_day(worker, request.POST)
+        overview = application_sets.overview(worker, set_id, on)
+        outline = submission_bundles.outline(overview, request.user)
+        form = self.form(outline, request.POST, request.FILES)
+        if not form.is_valid():
+            return self.page(request, worker, outline, form)
+        policy = upload_policy()
+        uploads = form.uploads()
+        for row_id, files in uploads.items():
+            for file in files:
+                try:
+                    validate_file(file, policy)
+                except ValidationError as error:
+                    form.add_error(f"upload-{row_id}", error)
+        if form.errors:
+            return self.page(request, worker, outline, form)
+        outline = submission_bundles.outline(overview, request.user, uploads)
+        for row_id in submission_bundles.upload_errors(outline):
+            form.add_error(
+                f"upload-{row_id}",
+                _("The file cannot be read as a PDF or an image (or it is a transparent PNG)."),
+            )
+        if form.errors:
+            return self.page(request, worker, outline, form)
+        back = _set_url(worker, set_id, on)
+        if not consume_once_token(request):
+            return self.already_submitted(request, back)
+        assert isinstance(request.user, User)
+        try:
+            bundle = submission_bundles.build(
+                outline,
+                by=request.user,
+                accept_warnings=bool(form.cleaned_data.get("accept_warnings")),
+            )
+        except ValidationError as error:
+            field = "accept_warnings" if error.code == "warnings" else None
+            form.add_error(field, error)
+            return self.page(request, worker, outline, form)
+        messages.success(request, _("Made the PDF for the submission."))
+        return redirect("workers:submission_bundle", pk=worker.pk, bundle_id=bundle.pk)
+
+
+class SubmissionBundleView(WorkerDetailView):
+    """作った統合 PDF 1 件（綴じた中身・警告・ダウンロード）。"""
+
+    tab = "documents"
+    template_name = "forms_engine/submission_bundle.html"
+
+    def tab_context(self, context: dict[str, Any]) -> dict[str, Any]:
+        user = self.request.user
+        bundle = get_object_or_404(
+            SubmissionBundle.objects.select_related("created_by"),
+            pk=self.kwargs["bundle_id"],
+            worker=self.worker,
+        )
+        if not submission_bundles.can_view(user, bundle):
+            raise PermissionDenied
+        definition = application_sets.definition(bundle.set_id, bundle.basis_on)
+        names = {row["id"]: row for row in definition.rows}
+        context.update(
+            bundle=bundle,
+            items=[{"item": item, "row": names.get(item["row"])} for item in bundle.items],
+            warnings=[
+                {"row": names.get(w["row"]), "text": submission_bundles.warning_text(w["code"])}
+                for w in bundle.warnings
+            ],
+            can_download=submission_bundles.can_download(user, bundle),
+            back_url=_set_url(self.worker, bundle.set_id, bundle.basis_on),
+        )
+        return {"shown": {"submission_bundle": bundle.pk}}
+
+
+class SubmissionBundleDownloadView(View):
+    def get(self, request: HttpRequest, pk: int, bundle_id: int) -> FileResponse:
+        bundle = get_object_or_404(
+            SubmissionBundle.objects.select_related("worker__assigned_staff"),
+            pk=bundle_id,
+            worker_id=pk,
+        )
+        if not submission_bundles.can_download(request.user, bundle):
+            raise PermissionDenied
+        filename = f"submission_{bundle.set_id}_{bundle.basis_on:%Y%m%d}_{bundle.pk}.pdf"
+        response = FileResponse(bundle.file.open("rb"), as_attachment=True, filename=filename)
+        audit.record(
+            AuditAction.DOWNLOAD,
+            target=bundle,
+            context={"submission_bundle": True, "sensitive": bundle.contains_sensitive},
+        )
+        return response

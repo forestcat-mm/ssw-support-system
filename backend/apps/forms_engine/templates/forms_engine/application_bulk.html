@@ -1,0 +1,61 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Generate the missing documents" %} | {{ worker }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{{ back_url }}">← {% translate "Documents for the application" %}</a></p>
+  <h1>{% translate "Generate the missing documents" %}</h1>
+  <p class="caption">{{ worker }} · {{ overview.definition.name }} · {% translate "basis date" context "generated document" %} {{ overview.facts.on|date:"Y-m-d" }}</p>
+{% endblock %}
+{% block content %}
+<div class="stack form">
+  <p class="caption">{% translate "The documents are generated with the same defaults as on each form's page (the person responsible for the document, the language of the form). To change them, generate the document on its own page." %}</p>
+  <form class="form stack" method="post" novalidate id="bulk-form">
+    {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+    {{ form.set_id }}{{ form.basis_on }}
+    {% include "ui/components/form_errors.html" %}
+    <section class="card stack" id="bulk-candidates">
+      <div class="card__header"><h2 class="card__title">{% translate "Documents to generate" %}</h2></div>
+      {% if candidates %}
+      {% if form.rows.errors %}<p class="message message--error">{{ form.rows.errors|join:" " }}</p>{% endif %}
+      <ul class="stack bulk-list" style="list-style: none; padding: 0; margin: 0">
+        {% for candidate in candidates %}{% with row=candidate.state.row %}
+        <li class="bulk-item stack" data-row="{{ row.id }}" data-form="{{ candidate.form_id }}" data-check="{% if candidate.blocked %}blocked{% elif candidate.warnings %}warning{% else %}ok{% endif %}">
+          <div class="cluster">
+            {% if not candidate.blocked and not candidate.same_as %}<label class="cluster"><input type="checkbox" name="rows" value="{{ row.id }}"{% if row.id in form.rows.value %} checked{% endif %}> <strong>{{ row.form }}</strong></label>{% else %}<strong>{{ row.form }}</strong>{% endif %}
+            {% if candidate.same_as %}<span class="muted">{% translate "generated with the row above (same form)" %}</span>
+            {% elif candidate.blocked %}<span class="badge badge--overdue">{% translate "cannot generate" %}</span>
+            {% elif candidate.warnings %}<span class="badge badge--within-7">{% blocktranslate count counter=candidate.warnings|length %}{{ counter }} warning{% plural %}{{ counter }} warnings{% endblocktranslate %}</span>
+            {% else %}<span class="badge badge--within-14">{% translate "can be generated" %}</span>{% endif %}
+            {% if candidate.state.status == "other_target" %}<span class="caption">{% translate "generated for another contract or version" %}</span>{% endif %}
+          </div>
+          <span class="caption">{{ row.table }} {{ row.number }} · {{ row.document|truncatechars:60 }}</span>
+          {% if not candidate.same_as %}
+          {% if candidate.problem %}<p class="message message--error">{{ candidate.problem_message }}</p>{% endif %}
+          {% if candidate.result.findings %}<ul class="stack" style="list-style: none; padding: 0; margin: 0">{% for finding in candidate.result.findings %}
+            <li class="message {% if finding.severity == 'block' %}message--error{% elif finding.strong %}message--strong{% else %}message--warning{% endif %}" data-rule="{{ finding.rule }}">{{ finding.message }}{% if finding.destination %} <a href="{{ finding.destination.url }}">{% translate "Fix" %}</a>{% endif %}</li>
+          {% endfor %}</ul>{% endif %}
+          {% endif %}
+        </li>{% endwith %}{% endfor %}
+      </ul>
+      {% else %}<div class="empty">{% translate "There are no missing documents to generate." %}</div>{% endif %}
+    </section>
+    {% if gaps %}
+    <section class="card stack" id="bulk-gaps">
+      <div class="card__header"><h2 class="card__title">{% translate "Missing attachments" %}</h2></div>
+      <p class="caption">{% translate "These are not generated. Attach them on the record's page." %}</p>
+      <ul>{% for state in gaps %}<li data-row="{{ state.row.id }}">{{ state.row.table }} {{ state.row.number }} · {{ state.row.document|truncatechars:60 }}{% if state.action_url %} <a href="{{ state.action_url }}">{% translate "Go to the record" %}</a>{% endif %}</li>{% endfor %}</ul>
+    </section>
+    {% endif %}
+    {% if selectable %}
+    <section class="card stack">
+      {% if has_plan %}{% form_field form.propriety %}{% endif %}
+      {% if has_warnings %}{% form_field form.accept_warnings %}{% endif %}
+    </section>
+    {% endif %}
+    <div class="form-actions">
+      <button class="button button--neutral" type="submit" name="action" value="check">{% translate "Check again" %}</button>
+      {% if selectable %}<button class="button button--primary" type="submit" name="action" value="generate" id="bulk-generate">{% translate "Generate the selected documents" %}</button>{% endif %}
+      <a class="button button--neutral" href="{{ back_url }}">{% translate "Cancel" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
