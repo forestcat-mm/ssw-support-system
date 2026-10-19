@@ -600,3 +600,85 @@ class SupportContractFee(TrackedModel):
 
     def __str__(self) -> str:
         return f"{self.contract}: {self.name} {self.amount}"
+
+
+class HostDocumentKind(models.TextChoices):
+    """受入れ機関の書類の種類（T42 の追加。申請の書類の一覧の行に、種類ごとの語で合わせる）。"""
+
+    VARIABLE_HOURS_AGREEMENT = (
+        "variable_hours_agreement",
+        _("agreement on the one-year variable working hours system"),
+    )
+    ANNUAL_CALENDAR = "annual_calendar", _("annual calendar")
+    WAGE_RULES = "wage_rules", _("wage rules")
+    WORK_RULES = "work_rules", _("work rules")
+    # 第2表の書類（原本は発行後 3 か月以内。表紙の留意事項２）
+    REGISTRY_CERTIFICATE = "registry_certificate", _("certificate of registered matters")
+    OFFICER_RESIDENCE = "officer_residence", _("copy of residence certificates of the officers")
+    OWNER_RESIDENCE = "owner_residence", _("copy of residence certificate of the sole proprietor")
+    LABOR_INSURANCE = (
+        "labor_insurance_certificate",
+        _("certificate of payment of labor insurance premiums"),
+    )
+    SOCIAL_INSURANCE = (
+        "social_insurance",
+        _("documents on payment of social insurance premiums"),
+    )
+    NATIONAL_TAX = "national_tax_certificate", _("tax payment certificate (No. 3)")
+    LOCAL_TAX = "local_tax_certificate", _("certificate of payment of residence tax")
+    OTHER_TABLE2 = "other_table2", _("other document of table 2")
+
+
+class HostDocument(TrackedModel):
+    """受入れ機関・事業所の書類の保管庫の 1 件（T42 の追加、ADR-0033 の追記）。
+
+    ファイルは添付（種別「受入れ機関の書類」）。協定書・年間カレンダーは事業所ごと・対象期間ごと、
+    第2表の書類は発行日を持つ。誤りは取消（理由は必須）＋新しい行。
+    """
+
+    host_organization = models.ForeignKey(
+        HostOrganization,
+        verbose_name=_("host organization"),
+        on_delete=models.PROTECT,
+        related_name="documents",
+    )
+    site = models.ForeignKey(
+        HostSite,
+        verbose_name=_("site"),
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="documents",
+        help_text=_("Leave blank if the document applies to all sites."),
+    )
+    kind = models.CharField(_("kind"), max_length=32, choices=HostDocumentKind.choices)
+    period_start = models.DateField(_("period from"), null=True, blank=True)
+    period_end = models.DateField(_("period to"), null=True, blank=True)
+    issued_on = models.DateField(_("issued on"), null=True, blank=True)
+    valid_until = models.DateField(_("valid until"), null=True, blank=True)
+    languages = models.ManyToManyField(
+        "core.SupportLanguage",
+        verbose_name=_("languages"),
+        blank=True,
+        related_name="+",
+    )
+    note = models.CharField(_("note"), max_length=200, blank=True)
+    voided_at = models.DateTimeField(_("voided at"), null=True, blank=True)
+    voided_by = models.ForeignKey(
+        "core.User",
+        verbose_name=_("voided by"),
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    void_reason = models.CharField(_("reason for voiding"), max_length=200, blank=True)
+    attachments = GenericRelation(Attachment)
+
+    class Meta:
+        verbose_name = _("document of the host organization")
+        verbose_name_plural = _("documents of the host organization")
+        ordering = ["host_organization", "kind", "-period_start", "-issued_on", "-pk"]
+
+    def __str__(self) -> str:
+        return f"{self.host_organization}: {self.get_kind_display()}"

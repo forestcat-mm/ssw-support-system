@@ -57,6 +57,7 @@ AUDITED_MODELS: frozenset[str] = frozenset(
         "hosts.hostorganization",
         "hosts.hostmembership",
         "hosts.hostcooperationconfirmation",
+        "hosts.hostdocument",
         "hosts.hostsite",
         "hosts.supportcontract",
         "hosts.supportcontractfee",
@@ -119,6 +120,7 @@ VIEW_AUDITED_MODELS: frozenset[str] = frozenset(
         "hosts.hostorganization",
         "hosts.hostmembership",
         "hosts.hostcooperationconfirmation",
+        "hosts.hostdocument",
         "hosts.hostsite",
         "hosts.supportcontract",
         # 雇用契約（報酬を含む）

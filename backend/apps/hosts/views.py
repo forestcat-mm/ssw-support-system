@@ -9,7 +9,15 @@ from django.views.generic import TemplateView
 from apps.core.models import Action, User
 from apps.core.permissions import ActionRequiredMixin
 from apps.hosts.models import HostOrganization
-from services import audit, authorization, career_plans, condition_templates, host_detail
+from services import (
+    audit,
+    authorization,
+    career_plans,
+    condition_templates,
+    deadlines,
+    host_detail,
+    host_documents,
+)
 
 
 class HostListView(ActionRequiredMixin, TemplateView):
@@ -64,6 +72,19 @@ class HostDetailView(ActionRequiredMixin, TemplateView):
             can_reopen=authorization.has_action(user, Action.CONTRACTS_REOPEN),
         )
         context["career_plans"] = career_plans.plans_of(host)  # キャリアアッププラン（T36）
+        # 受入れ機関・事業所の書類の保管庫（T42 の追加）
+        context["host_document_rows"] = [
+            {
+                "document": document,
+                "files": host_documents.files_of(document),
+                "valid": host_documents.valid_on(document, today),
+                "ending": host_documents.ending_soon(document, today),
+                "old": document.kind in host_documents.ISSUED_KINDS
+                and document.issued_on is not None
+                and document.issued_on < deadlines.add_months(today, -host_documents.ISSUED_MONTHS),
+            }
+            for document in host_documents.live(host)
+        ]
         # 雇用条件のひな形（T41。報酬などの契約の値を含むので、契約を見る権限も要る）
         can_see_templates = authorization.has_action(user, Action.CONTRACTS_VIEW)
         context["can_see_templates"] = can_see_templates

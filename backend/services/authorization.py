@@ -175,6 +175,7 @@ DJANGO_PERMISSION_ACTIONS: dict[str, Action] = {
             "hosts.hostorganization",
             "hosts.hostmembership",
             "hosts.hostcooperationconfirmation",
+            "hosts.hostdocument",
             "hosts.hostsite",
             "hosts.supportcontract",
         )

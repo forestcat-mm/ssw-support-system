@@ -86,6 +86,7 @@
           </tbody>
         </table>
       </div>
+      <p class="caption" id="host-documents-guide">{% translate "Annual calendars, agreements of the variable working hours system and wage rules are kept in the documents of the host organization (per site)." %} <a href="{% url 'hosts:detail' contract.host_organization_id %}#host-documents">{% translate "Documents of the host organization" %}</a></p>
       {% if view.attachments %}
       <h3>{% translate "Attachments" %}</h3>
       <ul class="attachment-list" id="version-attachments">{% for attachment in view.attachments %}<li{% if attachment.voided_at %} class="is-voided"{% endif %}><a class="attachment-list__name" href="{% url 'attachment_download' attachment.pk %}">{{ attachment.original_filename }}</a> <span class="caption">{{ attachment.get_kind_display }}{% if attachment.voided_at %} · {% translate "voided" %} {{ attachment.voided_at|date:"Y-m-d" }}: {{ attachment.void_reason }}{% endif %}</span>{% if can_manage_contracts and not attachment.voided_at %} <a class="caption" href="{% url 'workers:contract_attachment_void' worker.pk contract.pk attachment.pk %}">{% translate "Void" %}</a>{% endif %}</li>{% endfor %}</ul>

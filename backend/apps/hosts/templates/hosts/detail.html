@@ -109,6 +109,23 @@
     {% else %}<p class="muted">{% translate "No career-up plans are registered." %}</p>{% endif %}
   </section>
 
+  <section class="card" id="host-documents">
+    <div class="card__header"><h2 class="card__title">{% translate "Documents of the host organization" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" id="host-document-create" href="{% url 'hosts:host_document_create' host.pk %}">{% translate "Add a document" %}</a>{% endif %}</div>
+    <p class="caption">{% translate "Agreements and annual calendars of the variable working hours system, wage rules, work rules and the documents of table 2. They are chosen automatically for the documents for the application." %}</p>
+    {% if host_document_rows %}
+    <div class="table-scroll"><table class="table table--list" id="host-document-list">
+      <thead><tr><th>{% translate "kind" %}</th><th>{% translate "site" %}</th><th>{% translate "period or issue date" %}</th><th>{% translate "languages" %}</th><th>{% translate "files" %}</th></tr></thead>
+      <tbody>{% for item in host_document_rows %}{% with document=item.document %}<tr data-host-document="{{ document.pk }}">
+        <td>{{ document.get_kind_display }}{% if not item.valid %}<br><span class="badge badge--overdue">{% translate "outside the period" %}</span>{% elif item.ending %}<br><span class="badge badge--within-7">{% translate "period ending soon" %}</span>{% endif %}{% if item.old %}<br><span class="badge badge--within-7">{% translate "issued more than 3 months ago" %}</span>{% endif %}</td>
+        <td>{{ document.site.name|default:"—" }}</td>
+        <td class="mono">{% if document.period_start %}{{ document.period_start|date:"Y-m-d" }}〜{{ document.period_end|date:"Y-m-d" }}{% elif document.issued_on %}{{ document.issued_on|date:"Y-m-d" }}{% else %}—{% endif %}{% if document.valid_until %}<br>〜{{ document.valid_until|date:"Y-m-d" }}{% endif %}</td>
+        <td>{% for language in document.languages.all %}{{ language.name }}{% if not forloop.last %}・{% endif %}{% empty %}—{% endfor %}</td>
+        <td><div class="cluster">{% for file in item.files %}<a class="button button--neutral button--small" href="{% url 'attachment_download' file.pk %}">{% translate "file" %} {{ forloop.counter }}</a>{% endfor %}{% if can_manage %}<a class="button button--danger button--small" href="{% url 'hosts:host_document_void' host.pk document.pk %}">{% translate "Void" %}</a>{% endif %}</div></td>
+      </tr>{% endwith %}{% endfor %}</tbody>
+    </table></div>
+    {% else %}<p class="muted">{% translate "No documents are kept." %}</p>{% endif %}
+  </section>
+
   {% if can_see_templates %}
   <section class="card" id="condition-templates">
     <div class="card__header"><h2 class="card__title">{% translate "Employment condition templates" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" id="condition-template-create" href="{% url 'hosts:condition_template_create' host.pk %}">{% translate "Add a template" %}</a>{% endif %}</div>

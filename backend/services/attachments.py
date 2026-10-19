@@ -35,6 +35,7 @@ POLICIES: dict[AttachmentKind, FilePolicy] = {
     AttachmentKind.HEALTH_CHECK_RECORD: DOCUMENT_POLICY,
     AttachmentKind.HEALTH_DECLARATION: DOCUMENT_POLICY,
     AttachmentKind.DOCTOR_OPINION: DOCUMENT_POLICY,
+    AttachmentKind.HOST_DOCUMENT: DOCUMENT_POLICY,
 }
 
 

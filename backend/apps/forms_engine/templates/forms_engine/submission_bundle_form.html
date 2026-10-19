@@ -13,6 +13,10 @@
     {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
     {{ form.set_id }}{{ form.basis_on }}
     {% include "ui/components/form_errors.html" %}
+    <section class="card stack" id="submission-list">
+      {% form_field form.make_list %}
+      <p class="caption" id="submission-photo">{% translate "The photo of the applicant is not put in this PDF: attach it separately as a JPEG file in the online application system (it counts toward the size limit), or paste it on the application form at the counter." %}</p>
+    </section>
     <section class="card stack" id="submission-estimate">
       <p>{% translate "Estimated size" %}: <span class="mono" id="submission-size">{{ outline.estimated_size|filesizeformat }}</span> / {{ limit_mb }} MB</p>
       {% if outline.over_limit %}<p class="message message--warning" id="submission-over-limit">{{ over_limit_text }}</p>{% endif %}
@@ -24,11 +28,12 @@
         <div><strong>{{ row.table }} {{ row.number }}</strong> {{ row.document|truncatechars:70 }}{% if row.form and row.form != "－" %} <span class="caption">（{{ row.form }}）</span>{% endif %}</div>
         <div class="cluster caption">
           {% if entry.same_as %}{% translate "included in the PDF of the row above (same document)" %}
-          {% elif entry.bound %}{% for part in entry.bound %}<span class="badge badge--within-14" data-source="{{ part.source }}">{% if part.source == "signed" %}{% translate "signed scan" %}{% elif part.source == "generated" %}{% translate "generated PDF" %}{% elif part.source == "upload" %}{% translate "uploaded file" %}{% elif part.source == "translation" %}{% translate "Chinese translation (self-made)" %}{% else %}{% translate "attachment" %}{% endif %}</span>{% endfor %} <span class="mono">{{ entry.size|filesizeformat }}</span>
+          {% elif entry.bound %}{% for part in entry.bound %}<span class="badge badge--within-14" data-source="{{ part.source }}">{% if part.source == "signed" %}{% translate "signed scan" %}{% elif part.source == "generated" %}{% translate "generated PDF" %}{% elif part.source == "upload" %}{% translate "uploaded file" %}{% elif part.source == "translation" %}{% translate "Chinese translation (self-made)" %}{% elif part.source == "host_document" %}{% translate "document of the host organization" %}{% else %}{% translate "attachment" %}{% endif %}</span>{% endfor %} <span class="mono">{{ entry.size|filesizeformat }}</span>
           {% elif entry.can_upload %}{% translate "prepared outside the system (not included unless you add the file)" %}
           {% else %}{% translate "not included" %}{% endif %}
         </div>
         {% for text in item.warnings %}<p class="message message--warning" data-warning>{{ text }}</p>{% endfor %}
+        {% if item.mark %}<div class="submission-item__mark" data-mark>{% form_field item.mark %}</div>{% endif %}
         {% if item.upload %}{% form_field item.upload %}{% endif %}
       </li>{% endwith %}{% endfor %}
     </ol>

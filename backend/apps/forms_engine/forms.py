@@ -175,14 +175,47 @@ class SubmissionBundleForm(StyledFormMixin, forms.Form):
     accept_warnings = forms.BooleanField(
         label=_("I have checked the warnings and will make the PDF anyway."), required=False
     )
+    make_list = forms.BooleanField(
+        label=_("Make the list of documents to submit (cover and tables 1 to 3) and put it first"),
+        required=False,
+        initial=True,
+        help_text=_(
+            "Written into the list distributed by the Immigration Services Agency. The mark of "
+            "each row (yes / no) can be changed below."
+        ),
+    )
 
-    def __init__(self, *args: Any, upload_rows: list[str] | None = None, **kwargs: Any) -> None:
+    MARKS = [("yes", _("yes (submitted)")), ("no", _("no")), ("", _("no mark"))]
+
+    def __init__(
+        self,
+        *args: Any,
+        upload_rows: list[str] | None = None,
+        mark_rows: list[str] | None = None,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(*args, **kwargs)
         for row_id in upload_rows or []:
             self.fields[f"upload-{row_id}"] = MultipleFileField(
                 label=_("file to include"), required=False
             )
+        for row_id in mark_rows or []:
+            self.fields[f"mark-{row_id}"] = forms.ChoiceField(
+                label=_("submission check"), choices=self.MARKS, required=False
+            )
         self.style_fields()
+
+    def marks(self) -> dict[str, str]:
+        prefix = "mark-"
+        return {
+            name.removeprefix(prefix): str(value or "")
+            for name, value in self.cleaned_data.items()
+            if name.startswith(prefix)
+        }
+
+    def mark_field(self, row_id: str) -> Any:
+        name = f"mark-{row_id}"
+        return self[name] if name in self.fields else None
 
     def uploads(self) -> dict[str, list[Any]]:
         prefix = "upload-"

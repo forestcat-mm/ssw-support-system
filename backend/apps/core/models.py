@@ -137,6 +137,9 @@ class AttachmentKind(models.TextChoices):
         "doctor_opinion",
         _("Doctor's opinion that the worker can work without problems"),
     )
+    # 受入れ機関・事業所の書類の保管庫のファイル（協定書・年間カレンダー・賃金規程・就業規則・
+    # 第2表の書類。T42 の追加）
+    HOST_DOCUMENT = "host_document", _("Document of the host organization or site")
 
 
 # 要配慮の添付の種別（ダウンロードを担当者と管理者に限る。印は種別から自動で付く。ADR-0011）

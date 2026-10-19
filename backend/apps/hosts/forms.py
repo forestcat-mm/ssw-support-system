@@ -11,11 +11,12 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.forms import allow_formatted_number_input
-from apps.core.models import AttachmentKind
+from apps.core.models import AttachmentKind, SupportLanguage
 from apps.core.web_forms import FilteredCheckboxSelectMultiple, StyledFormMixin
 from apps.hosts.models import (
     FeeTiming,
     HostCooperationConfirmation,
+    HostDocument,
     HostMembership,
     HostOrganization,
     HostSite,
@@ -387,3 +388,50 @@ class SupportFeeForm(StyledFormMixin, forms.Form):
 
 
 SupportFeeFormSet = forms.formset_factory(SupportFeeForm, extra=0, can_delete=True)
+
+
+class HostDocumentForm(StyledFormMixin, forms.ModelForm[HostDocument]):
+    """受入れ機関の書類の保管庫に足す（T42 の追加）。"""
+
+    uploads = MultipleFileField(
+        label=_("files"), help_text=_("PDF, PNG or JPEG, up to 10 MB each.")
+    )
+
+    class Meta:
+        model = HostDocument
+        fields = (
+            "kind",
+            "site",
+            "period_start",
+            "period_end",
+            "issued_on",
+            "valid_until",
+            "languages",
+            "note",
+        )
+        widgets = {
+            "period_start": forms.DateInput,
+            "period_end": forms.DateInput,
+            "issued_on": forms.DateInput,
+            "valid_until": forms.DateInput,
+            "languages": forms.CheckboxSelectMultiple,
+        }
+        help_texts = {
+            "period_start": _("For the agreement and the annual calendar."),
+            "issued_on": _(
+                "For certificates of table 2 (originals must be issued within 3 months)."
+            ),
+            "languages": _(
+                "For the annual calendar: Japanese and the language the worker fully understands."
+            ),
+        }
+
+    def __init__(self, *args: Any, host: HostOrganization, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        site = self.fields["site"]
+        assert isinstance(site, forms.ModelChoiceField)
+        site.queryset = host.sites.filter(is_active=True).order_by("pk")
+        languages = self.fields["languages"]
+        assert isinstance(languages, forms.ModelMultipleChoiceField)
+        languages.queryset = SupportLanguage.objects.order_by("pk")
+        self.style_fields()

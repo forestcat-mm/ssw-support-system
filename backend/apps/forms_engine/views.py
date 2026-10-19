@@ -576,6 +576,7 @@ class SubmissionBundleCreateView(WorkerFormView):
                 {
                     "entry": entry,
                     "upload": form.upload_field(entry.row_id),
+                    "mark": form.mark_field(entry.row_id),
                     "warnings": [submission_bundles.warning_text(code) for code in entry.warnings]
                     + [
                         submission_bundles.warning_text(submission_bundles.Warn.UNREADABLE)
@@ -595,14 +596,17 @@ class SubmissionBundleCreateView(WorkerFormView):
         self, outline: submission_bundles.Outline, *args: Any, **kwargs: Any
     ) -> SubmissionBundleForm:
         rows = [entry.row_id for entry in outline.entries if entry.can_upload]
-        return SubmissionBundleForm(*args, upload_rows=rows, **kwargs)
+        marks = [entry.row_id for entry in outline.entries if entry.row.get("check")]
+        return SubmissionBundleForm(*args, upload_rows=rows, mark_rows=marks, **kwargs)
 
     def get(self, request: HttpRequest, pk: int) -> HttpResponse:
         worker = self.worker(request, pk)
         set_id, on = _set_and_day(worker, request.GET)
         overview = application_sets.overview(worker, set_id, on)
         outline = submission_bundles.outline(overview, request.user)
-        form = self.form(outline, initial={"set_id": set_id, "basis_on": on})
+        initial: dict[str, Any] = {"set_id": set_id, "basis_on": on, "make_list": True}
+        initial |= {f"mark-{row}": mark for row, mark in outline.default_marks(True).items()}
+        form = self.form(outline, initial=initial)
         return self.page(request, worker, outline, form)
 
     def post(self, request: HttpRequest, pk: int) -> HttpResponse:
@@ -636,10 +640,13 @@ class SubmissionBundleCreateView(WorkerFormView):
             return self.already_submitted(request, back)
         assert isinstance(request.user, User)
         try:
+            make_list = bool(form.cleaned_data.get("make_list"))
             bundle = submission_bundles.build(
                 outline,
                 by=request.user,
                 accept_warnings=bool(form.cleaned_data.get("accept_warnings")),
+                make_list=make_list,
+                marks=form.marks(),
             )
         except ValidationError as error:
             field = "accept_warnings" if error.code == "warnings" else None

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 23:31+0900\n"
+"POT-Creation-Date: 2026-10-20 00:09+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -158,10 +158,14 @@ msgstr "第 %(n)d 版への根拠資料の添付"
 msgid ""
 "Evidence of equal pay, the calendar and agreement for variable working "
 "hours, or annex 2 (conditions after conversion). The version itself is not "
-"changed."
+"changed. Keep new annual calendars, agreements and wage rules in the "
+"documents of the host organization (per site) instead: they are chosen "
+"automatically by the period."
 msgstr ""
-"日本人と同等以上の報酬の根拠、変形労働時間制のカレンダー・協定書、または別紙2"
-"（無期転換後の労働条件）。版の内容は変わりません。"
+"同等報酬の根拠資料、変形労働時間制のカレンダーと協定書、または別紙２（無期転"
+"換後の労働条件）。版そのものは変わりません。新しい年間カレンダー・協定書・賃"
+"金規程は、受入れ機関の書類（事業所ごと）に保管してください。対象期間で自動で"
+"選ばれます。"
 
 msgid "Add"
 msgstr "追加"
@@ -1321,6 +1325,9 @@ msgstr "受診者の申告書（参考様式第1-3号 別紙）"
 
 msgid "Doctor's opinion that the worker can work without problems"
 msgstr "医師の意見書（稼働に問題がない旨）"
+
+msgid "Document of the host organization or site"
+msgstr "受入れ機関・事業所の書類"
 
 msgid "size (bytes)"
 msgstr "サイズ（バイト）"
@@ -3164,8 +3171,32 @@ msgstr "警告を確かめたうえで生成する"
 msgid "I have checked the warnings and will make the PDF anyway."
 msgstr "警告を確かめたうえで PDF を作る"
 
+msgid ""
+"Make the list of documents to submit (cover and tables 1 to 3) and put it "
+"first"
+msgstr "提出書類一覧表（表紙・第1〜3表）をシステムで作って先頭に綴じる"
+
+msgid ""
+"Written into the list distributed by the Immigration Services Agency. The "
+"mark of each row (yes / no) can be changed below."
+msgstr ""
+"入管が配布する一覧表に書き込みます。行ごとの提出確認欄（有・無）は下で直せま"
+"す。"
+
+msgid "yes (submitted)"
+msgstr "有（提出する）"
+
+msgid "no"
+msgstr "なし"
+
+msgid "no mark"
+msgstr "印を付けない"
+
 msgid "file to include"
 msgstr "綴じるファイル"
+
+msgid "submission check"
+msgstr "提出確認欄"
 
 msgid "common"
 msgstr "共通"
@@ -3318,6 +3349,9 @@ msgstr "中身"
 msgid "warnings when made"
 msgstr "作ったときの警告"
 
+msgid "marks of the list of documents"
+msgstr "提出書類一覧表の印"
+
 msgid "submission PDF"
 msgstr "提出用の統合 PDF"
 
@@ -3429,6 +3463,9 @@ msgstr "受診が古い（申請に使える期間の外）"
 msgid "examination date not entered"
 msgstr "受診日が未入力"
 
+msgid "document to check"
+msgstr "確かめが要る書類"
+
 msgctxt "application set"
 msgid "not attached"
 msgstr "未添付"
@@ -3444,6 +3481,9 @@ msgstr "システムの外で用意"
 
 msgid "Check whether it applies."
 msgstr "該当するかを確かめてください。"
+
+msgid "from the documents of the host organization"
+msgstr "受入れ機関の書類から"
 
 msgid "awaiting signature"
 msgstr "署名待ち"
@@ -3606,6 +3646,12 @@ msgstr "アップロードしたファイル"
 msgid "Chinese translation (self-made)"
 msgstr "中国語の訳文（自作）"
 
+msgid "document of the host organization"
+msgstr "受入れ機関の書類"
+
+msgid "list of documents to submit (made by the system)"
+msgstr "提出書類一覧表（システムで作成）"
+
 msgid ""
 "The documents are put in one PDF in the order of the list of documents to "
 "submit, with the list itself first (note 3 on the cover of the list). Signed "
@@ -3623,6 +3669,14 @@ msgid ""
 msgstr ""
 "在留申請オンラインシステムに添付できるのは、PDF で %(files)s ファイルまで、顔"
 "写真を含め合計 %(limit)s MB までです。"
+
+msgid ""
+"The photo of the applicant is not put in this PDF: attach it separately as a "
+"JPEG file in the online application system (it counts toward the size "
+"limit), or paste it on the application form at the counter."
+msgstr ""
+"申請人の写真はこの PDF に入れません。在留申請オンラインシステムでは JPEG で別"
+"に添付し（容量の上限に含まれます）、窓口では申請書に貼ってください。"
 
 msgid "Estimated size"
 msgstr "見積もりの大きさ"
@@ -3751,6 +3805,31 @@ msgstr ""
 #, python-format
 msgid "Saved the career-up plan (version %(n)d)."
 msgstr "キャリアアッププランを保存しました（第%(n)d版）。"
+
+msgid "Add a document of the host organization"
+msgstr "受入れ機関の書類を追加"
+
+msgid ""
+"The documents are chosen automatically for the documents for the application "
+"by the site of the employment contract and the basis date. The annual "
+"calendar must be written in Japanese and the language the worker fully "
+"understands."
+msgstr ""
+"申請の書類の一覧では、雇用契約の事業所と基準日から自動で選ばれます。年間カレ"
+"ンダーは、日本語と申請人が十分に理解できる言語の併記のものにしてください。"
+
+msgid "Added the document."
+msgstr "書類を追加しました。"
+
+#, python-format
+msgid "Void the document: %(kind)s"
+msgstr "書類を取り消す: %(kind)s"
+
+msgid "The document and its files are kept and marked as voided."
+msgstr "書類とファイルは消さずに、取消として残します。"
+
+msgid "Voided the document."
+msgstr "書類を取り消しました。"
 
 #, python-format
 msgid "Created %(count)d task for the deadline on the dashboard."
@@ -4035,6 +4114,17 @@ msgstr "金額（円）"
 msgid "when collected"
 msgstr "徴収の時期"
 
+msgid "For the agreement and the annual calendar."
+msgstr "協定書・年間カレンダーの対象期間。"
+
+msgid "For certificates of table 2 (originals must be issued within 3 months)."
+msgstr "第2表の証明書の発行日（原本は発行後 3 か月以内のもの）。"
+
+msgid ""
+"For the annual calendar: Japanese and the language the worker fully "
+"understands."
+msgstr "年間カレンダーは日本語と申請人が十分に理解できる言語。"
+
 msgid "registered corporation"
 msgstr "登録法人"
 
@@ -4225,6 +4315,57 @@ msgstr "委託料の内訳"
 msgid "entrustment fee items"
 msgstr "委託料の内訳"
 
+msgid "agreement on the one-year variable working hours system"
+msgstr "1 年単位の変形労働時間制に関する協定書"
+
+msgid "annual calendar"
+msgstr "年間カレンダー"
+
+msgid "wage rules"
+msgstr "賃金規程"
+
+msgid "work rules"
+msgstr "就業規則"
+
+msgid "certificate of registered matters"
+msgstr "登記事項証明書"
+
+msgid "copy of residence certificates of the officers"
+msgstr "役員の住民票の写し"
+
+msgid "copy of residence certificate of the sole proprietor"
+msgstr "個人事業主の住民票の写し"
+
+msgid "certificate of payment of labor insurance premiums"
+msgstr "労働保険料等納付証明書"
+
+msgid "documents on payment of social insurance premiums"
+msgstr "社会保険料の納付の書類（納入状況回答票など）"
+
+msgid "tax payment certificate (No. 3)"
+msgstr "納税証明書（その３）"
+
+msgid "certificate of payment of residence tax"
+msgstr "住民税の納税証明書"
+
+msgid "other document of table 2"
+msgstr "第2表のほかの書類"
+
+msgid "site"
+msgstr "事業所"
+
+msgid "Leave blank if the document applies to all sites."
+msgstr "すべての事業所に当てはまるときは空にします。"
+
+msgid "issued on"
+msgstr "発行日"
+
+msgid "reason for voiding"
+msgstr "取消の理由"
+
+msgid "documents of the host organization"
+msgstr "受入れ機関の書類"
+
 msgid "Career-up plan"
 msgstr "キャリアアッププラン"
 
@@ -4370,6 +4511,35 @@ msgstr "キャリアアッププラン"
 msgid "No career-up plans are registered."
 msgstr "キャリアアッププランは登録されていません。"
 
+msgid "Documents of the host organization"
+msgstr "受入れ機関の書類"
+
+msgid "Add a document"
+msgstr "書類を追加"
+
+msgid ""
+"Agreements and annual calendars of the variable working hours system, wage "
+"rules, work rules and the documents of table 2. They are chosen "
+"automatically for the documents for the application."
+msgstr ""
+"変形労働時間制の協定書・年間カレンダー、賃金規程、就業規則、第2表の書類。申請"
+"の書類の一覧で自動で選ばれます。"
+
+msgid "period or issue date"
+msgstr "対象期間・発行日"
+
+msgid "outside the period"
+msgstr "期間の外"
+
+msgid "period ending soon"
+msgstr "期間の終了が近い"
+
+msgid "issued more than 3 months ago"
+msgstr "発行後 3 か月を超える"
+
+msgid "No documents are kept."
+msgstr "保管している書類はありません。"
+
 msgid "Employment condition templates"
 msgstr "雇用条件のひな形"
 
@@ -4493,9 +4663,6 @@ msgstr "支援"
 
 msgid "yes"
 msgstr "あり"
-
-msgid "no"
-msgstr "なし"
 
 msgid "Holidays"
 msgstr "祝日"
@@ -6057,9 +6224,6 @@ msgstr "旅券番号"
 msgid "issuing country or region"
 msgstr "発行国・地域"
 
-msgid "issued on"
-msgstr "発行日"
-
 msgid "expires on"
 msgstr "有効期限"
 
@@ -6250,6 +6414,13 @@ msgstr "申込みができる（%(day)s から転換）"
 
 msgid "Allowances and deductions"
 msgstr "手当・控除"
+
+msgid ""
+"Annual calendars, agreements of the variable working hours system and wage "
+"rules are kept in the documents of the host organization (per site)."
+msgstr ""
+"年間カレンダー・変形労働時間制の協定書・賃金規程は、受入れ機関の書類（事業所"
+"ごと）に保管します。"
 
 #, python-format
 msgid "Documents of version %(number)s"
@@ -7406,6 +7577,43 @@ msgstr ""
 "様式 %(form_id)s が読み込まれていません。load_form_templates を実行してくださ"
 "い。"
 
+msgid ""
+"The basis date is outside the period or after the expiry date of the "
+"document."
+msgstr "基準日が書類の対象期間の外か、有効期限の後です。"
+
+msgid ""
+"The document was issued more than 3 months before the basis date (originals "
+"must be issued within 3 months)."
+msgstr "発行日が基準日の 3 か月より前です（原本は発行後 3 か月以内のもの）。"
+
+msgid "The issue date of the document is not entered."
+msgstr "書類の発行日が入っていません。"
+
+msgid ""
+"The annual calendar is not written in both Japanese and the worker's support "
+"language."
+msgstr "年間カレンダーが、日本語と申請人の支援言語の併記ではありません。"
+
+msgid ""
+"The host organization already accepts specified skilled workers this fiscal "
+"year, so the documents of table 2 are not required."
+msgstr ""
+"この受入れ機関は同じ年度に特定技能外国人を既に受け入れているので、第2表の書類"
+"は提出不要です。"
+
+msgid "Select a site of this host organization."
+msgstr "この受入れ機関の事業所を選んでください。"
+
+msgid "Enter the period of the agreement or the calendar."
+msgstr "協定書・カレンダーの対象期間を入れてください。"
+
+msgid "Enter the issue date."
+msgstr "発行日を入れてください。"
+
+msgid "This document is already voided."
+msgstr "この書類は既に取り消されています。"
+
 msgid "The field of a membership cannot be changed after registration."
 msgstr "加入状況の分野は、登録した後は変えられません。"
 
@@ -7455,9 +7663,6 @@ msgid ""
 msgstr ""
 "雇用契約の今日有効な版か今後適用される版がこの事業所を就業の場所にしているた"
 "め、無効にできません。"
-
-msgid "Select a site of this host organization."
-msgstr "この受入れ機関の事業所を選んでください。"
 
 msgid "The termination is already registered."
 msgstr "終了はすでに登録されています。"
@@ -7598,6 +7803,9 @@ msgstr "PDF を作る前に警告を確かめてください。"
 
 msgid "There is no document to include."
 msgstr "綴じる書類がありません。"
+
+msgid "List of documents to submit"
+msgstr "提出書類一覧表"
 
 msgid "pre-entry guidance"
 msgstr "事前ガイダンス"

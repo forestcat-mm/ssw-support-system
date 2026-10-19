@@ -266,7 +266,9 @@ class VersionAttachView(ContractFormView):
             title=_("Attach documents to version %(n)d") % {"n": version.version},
             lead=_(
                 "Evidence of equal pay, the calendar and agreement for variable working hours, "
-                "or annex 2 (conditions after conversion). The version itself is not changed."
+                "or annex 2 (conditions after conversion). The version itself is not changed. "
+                "Keep new annual calendars, agreements and wage rules in the documents of the host "
+                "organization (per site) instead: they are chosen automatically by the period."
             ),
             back=tab_url(worker, contract),
             submit=_("Add"),

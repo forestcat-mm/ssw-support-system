@@ -69,6 +69,23 @@ def cells(path: Path) -> dict[tuple[int, int], str]:
     return result
 
 
+def letters(col: int) -> str:
+    result = ""
+    while col:
+        col, rest = divmod(col - 1, 26)
+        result = chr(65 + rest) + result
+    return result
+
+
+def sheet_name(path: Path) -> str:
+    """最初のシートの名前（セルの書き込み先の「シート!セル」に使う）。"""
+    with zipfile.ZipFile(path) as archive:
+        workbook = archive.read("xl/workbook.xml").decode("utf-8")
+    found = re.search(r'<sheet [^>]*name="([^"]+)"', workbook)
+    assert found is not None
+    return unescape(found.group(1))
+
+
 def clean(text: str) -> str:
     return re.sub(r"\s*\n\s*", "", text).strip()
 
@@ -82,7 +99,9 @@ def table_rows(key: str) -> list[dict]:
     header = {col: clean(text) for (row, col), text in grid.items() if row == header_row}
     find = lambda prefix: next(col for col, text in header.items() if text.startswith(prefix))  # noqa: E731
     number_col, document_col = find("番号"), find("必要書類")
-    form_col, need_col, note_col = find("様式番号"), find("提出"), find("留意事項")
+    form_col, need_col, note_col = find("様式番号"), find("提出の"), find("留意事項")
+    check_col = find("提出確認")  # 「有」「無」の 2 つのセル（T42 の追加。提出書類一覧表の生成）
+    sheet = sheet_name(path)
     field_col = next((col for col, text in header.items() if text == "分野"), None)
     title = next(
         (re.search(r"＜(第.+?)＞", text).group(1) for (row, col), text in sorted(grid.items())  # type: ignore[union-attr]
@@ -130,6 +149,12 @@ def table_rows(key: str) -> list[dict]:
                 "need": need,
                 "note": value(note_col).strip(),
                 **({"field": field} if field_col is not None else {}),
+                "check": {
+                    "file": path.name,
+                    "sheet": sheet,
+                    "yes": f"{letters(check_col)}{row}",
+                    "no": f"{letters(check_col + 1)}{row}",
+                },
             }
         )
     if field_col is not None:
@@ -196,6 +221,8 @@ def main(out: Path) -> None:
                 "tools/forms/make_application_sets.py が application_sets/sources の Excel から作る。"
             ),
             "sources": sources,
+            # 表紙の申請人の氏名・所属機関の名称の欄（提出書類一覧表の生成。T42 の追加）
+            "cover": {"file": sources[0]["file"], "sheet": "表紙", "worker": "F47", "host": "F48"},
             "rows": rows,
         }
         folder = out / set_id

@@ -19,8 +19,10 @@ from __future__ import annotations
 import enum
 import hashlib
 import io
+import tempfile
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 from django.conf import settings
@@ -41,7 +43,9 @@ from services import (
     form_generation,
     form_languages,
     form_signatures,
+    host_documents,
     pdf_pages,
+    submission_lists,
 )
 from services.application_sets import Overview, RowState, Status
 from services.authorization import AnyUser
@@ -57,6 +61,8 @@ class Source(enum.StrEnum):
     ATTACHMENT = "attachment"  # 添付
     UPLOAD = "upload"  # その場でアップロードしたシステムの外の書類
     TRANSLATION = "translation"  # 自作の訳文の版の PDF（日本語の様式の直後。T43-D1）
+    HOST_DOCUMENT = "host_document"  # 受入れ機関の書類の保管庫（T42 の追加）
+    LIST = "list"  # システムで作った提出書類一覧表（T42 の追加）
 
 
 class Warn(enum.StrEnum):
@@ -120,6 +126,8 @@ STATUS_NOTES = {Status.OUT_OF_PERIOD: Warn.OUT_OF_PERIOD, Status.DATE_MISSING: W
 
 
 def warning_text(code: str) -> str:
+    if code in host_documents.ISSUE_TEXTS:
+        return host_documents.issue_text(code)
     text = str(WARNING_TEXTS[code])
     if code == Warn.OVER_LIMIT:
         return text % {"limit": settings.SUBMISSION_PDF_MAX_MB}
@@ -202,6 +210,19 @@ class Entry:
 class Outline:
     overview: Overview
     entries: list[Entry]
+    skip_table2: bool = False  # 既に受け入れている機関（第2表は提出不要。T42-D25）
+
+    @property
+    def list_row_id(self) -> str:
+        """提出書類一覧表そのものの行。"""
+        return next((e.row_id for e in self.entries if LIST_MARK in str(e.row["document"])), "")
+
+    def default_marks(self, make_list: bool) -> dict[str, str]:
+        """提出確認欄の有・無の初期値（T42-D19）。"""
+        bound = {entry.row_id for entry in self.entries if entry.bound or entry.same_as}
+        if make_list and self.list_row_id:
+            bound.add(self.list_row_id)
+        return submission_lists.default_marks(self.overview, bound, skip_table2=self.skip_table2)
 
     @property
     def bound_parts(self) -> list[Part]:
@@ -323,6 +344,10 @@ def outline(
     uploads = uploads or {}
     entries: list[Entry] = []
     bound_documents: dict[int, str] = {}
+    facts = overview.facts
+    accepting = facts.contract is not None and submission_lists.already_accepting(
+        facts.contract.host_organization, facts.worker.pk, facts.on
+    )
     for state in _ordered(overview.rows):
         entry = Entry(state=state)
         entries.append(entry)
@@ -331,30 +356,35 @@ def outline(
             entry.warnings.append(STATUS_WARNINGS[state.status])
         if state.status in STATUS_NOTES:
             entry.warnings.append(STATUS_NOTES[state.status])
+        if state.host_document is not None:
+            entry.warnings += list(state.issues)
+            entry.parts = [
+                _attachment_part(attachment, user, entry, Source.HOST_DOCUMENT)
+                for attachment in host_documents.files_of(state.host_document)
+            ]
         if "out" in how:
             entry.can_upload = NOT_BOUND_MARK not in str(state.row["document"])
             for file in uploads.get(entry.row_id, ()):
                 entry.parts.append(
                     Part(Source.UPLOAD, None, file.size or 0, False, _upload_reader(file))
                 )
-            continue
-        if "generate" in how:
+        elif "generate" in how:
             document = state.document
-            if state.status != Status.GENERATED or document is None:
-                continue
-            if document.pk in bound_documents:
-                entry.same_as = bound_documents[document.pk]
-                continue
-            bound_documents[document.pk] = entry.row_id
-            entry.parts = _document_parts(document, user, entry)
-            entry.parts += _translation_parts(document, overview, user, entry)
-            continue
-        if state.status in (Status.ATTACHED, *STATUS_NOTES):
+            if state.status == Status.GENERATED and document is not None:
+                if document.pk in bound_documents:
+                    entry.same_as = bound_documents[document.pk]
+                else:
+                    bound_documents[document.pk] = entry.row_id
+                    entry.parts = _document_parts(document, user, entry)
+                    entry.parts += _translation_parts(document, overview, user, entry)
+        elif state.host_document is None and state.status in (Status.ATTACHED, *STATUS_NOTES):
             entry.parts = [
                 _attachment_part(attachment, user, entry, Source.ATTACHMENT)
                 for attachment in application_sets.row_attachments(state.row, overview.facts)
             ]
-    found = Outline(overview=overview, entries=entries)
+        if accepting and entry.parts and submission_lists.is_table2(state.row):
+            entry.warnings.append(host_documents.Issue.TABLE2_NOT_NEEDED)
+    found = Outline(overview=overview, entries=entries, skip_table2=accepting)
     for part in found.bound_parts:
         part.load()
     return found
@@ -379,15 +409,55 @@ def upload_errors(outline_: Outline) -> dict[str, str]:
     }
 
 
-def build(outline_: Outline, *, by: User | None, accept_warnings: bool) -> SubmissionBundle:
-    """1 つの PDF にまとめ、生成履歴と監査ログに残す。"""
+def build(
+    outline_: Outline,
+    *,
+    by: User | None,
+    accept_warnings: bool,
+    make_list: bool = False,
+    marks: Mapping[str, str] | None = None,
+) -> SubmissionBundle:
+    """1 つの PDF にまとめ、生成履歴と監査ログに残す。
+
+    make_list のときは、提出書類一覧表（表紙・第1〜3表）を marks の印で作って先頭に綴じる。
+    """
     if outline_.has_warnings and not accept_warnings:
         raise ValidationError(_("Check the warnings before making the PDF."), code="warnings")
-    if not outline_.bound_parts:
+    if not outline_.bound_parts and not make_list:
         raise ValidationError(_("There is no document to include."), code="empty")
     overview = outline_.overview
+    marks = dict(marks if marks is not None else outline_.default_marks(make_list))
     writer = PdfWriter()
     items: list[dict[str, Any]] = []
+    if make_list:
+        facts = overview.facts
+        contract = facts.contract
+        books = submission_lists.workbooks(
+            overview,
+            marks,
+            worker_name=facts.worker.name_romaji,
+            host_name=contract.host_organization.name if contract else "",
+        )
+        with tempfile.TemporaryDirectory(prefix="list-") as workdir:
+            for index, pdf in enumerate(submission_lists.render(books, Path(workdir))):
+                start = len(writer.pages)
+                writer.append(
+                    str(pdf),
+                    outline_item=_("List of documents to submit") if index == 0 else None,
+                    import_outline=False,
+                )
+                items.append(
+                    {
+                        "row": outline_.list_row_id,
+                        "table": "",
+                        "number": "",
+                        "source": str(Source.LIST),
+                        "object_id": None,
+                        "pages": len(writer.pages) - start,
+                        "sha256": hashlib.sha256(pdf.read_bytes()).hexdigest(),
+                        "file": books[index].file,
+                    }
+                )
     for entry in outline_.entries:
         for index, part in enumerate(entry.bound):
             start = len(writer.pages)
@@ -426,6 +496,7 @@ def build(outline_: Outline, *, by: User | None, accept_warnings: bool) -> Submi
         contains_sensitive=outline_.contains_sensitive,
         items=items,
         warnings=warnings,
+        list_marks={key: value for key, value in marks.items() if value} if make_list else {},
         created_by=by,
         updated_by=by,
     )

@@ -21,7 +21,7 @@
       <tbody>{% for entry in items %}<tr data-row="{{ entry.item.row }}" data-source="{{ entry.item.source }}">
         <td>{{ entry.item.table }} {{ entry.item.number }}</td>
         <td>{{ entry.row.document|truncatechars:60 }}</td>
-        <td>{% if entry.item.source == "signed" %}{% translate "signed scan" %}{% elif entry.item.source == "generated" %}{% translate "generated PDF" %}{% elif entry.item.source == "upload" %}{% translate "uploaded file" %}{% elif entry.item.source == "translation" %}{% translate "Chinese translation (self-made)" %}{% else %}{% translate "attachment" %}{% endif %}</td>
+        <td>{% if entry.item.source == "signed" %}{% translate "signed scan" %}{% elif entry.item.source == "generated" %}{% translate "generated PDF" %}{% elif entry.item.source == "upload" %}{% translate "uploaded file" %}{% elif entry.item.source == "translation" %}{% translate "Chinese translation (self-made)" %}{% elif entry.item.source == "host_document" %}{% translate "document of the host organization" %}{% elif entry.item.source == "list" %}{% translate "list of documents to submit (made by the system)" %}{% else %}{% translate "attachment" %}{% endif %}</td>
         <td class="mono">{{ entry.item.pages }}</td>
       </tr>{% endfor %}</tbody>
     </table></div>

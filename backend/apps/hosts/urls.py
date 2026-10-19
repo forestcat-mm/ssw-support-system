@@ -2,7 +2,7 @@ from django.urls import path
 
 from apps.contracts import template_views
 from apps.forms_engine.views import ConsultationRecordView
-from apps.hosts import career_plan_views, edit_views, views
+from apps.hosts import career_plan_views, document_views, edit_views, views
 
 app_name = "hosts"
 
@@ -45,6 +45,16 @@ urlpatterns = [
         "<int:pk>/condition-templates/<int:template_id>/",
         template_views.ConditionTemplateEditView.as_view(),
         name="condition_template_edit",
+    ),
+    path(
+        "<int:pk>/documents/new/",
+        document_views.HostDocumentAddView.as_view(),
+        name="host_document_create",
+    ),
+    path(
+        "<int:pk>/documents/<int:document_id>/void/",
+        document_views.HostDocumentVoidView.as_view(),
+        name="host_document_void",
     ),
     path("<int:pk>/sites/new/", edit_views.SiteEditView.as_view(), name="site_create"),
     path(

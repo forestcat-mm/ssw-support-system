@@ -26,7 +26,7 @@ from django.urls import reverse
 from apps.contracts.models import EmploymentContract, EmploymentContractVersion, VariableHoursUnit
 from apps.core.models import Attachment, AttachmentKind, Organization
 from apps.forms_engine.models import GeneratedDocument, GenerationStatus
-from apps.hosts.models import EntityType, SupportScope
+from apps.hosts.models import EntityType, HostDocument, SupportScope
 from apps.support.models import SupportPlan
 from apps.workers.models import (
     ApplicationType,
@@ -34,7 +34,15 @@ from apps.workers.models import (
     LatestResidenceRecord,
     StatusOfResidence,
 )
-from services import contracts, deadlines, form_languages, form_signatures, hosts, support_plans
+from services import (
+    contracts,
+    deadlines,
+    form_languages,
+    form_signatures,
+    host_documents,
+    hosts,
+    support_plans,
+)
 
 SET_IDS = ("coe", "chg", "ext")
 INDUSTRIAL = "industrial_products"
@@ -58,6 +66,8 @@ class Status(enum.StrEnum):
     OUT_OF_PERIOD = "out_of_period"
     DATE_MISSING = "date_missing"
     GENERATING = "generating"  # 生成を依頼した後、ジョブが終わる前（修正 1 回目 B10）
+    # 受入れ機関の書類の保管庫に書類はあるが、期間の外・発行が古い・言語が違う（T42 の追加）
+    CHECK_DOCUMENT = "check_document"
 
 
 # 行の色とラベルの区分（修正 1 回目 B9）: 不足＝赤、確かめが要る＝黄、済み＝緑、
@@ -69,6 +79,7 @@ TONES: dict[Status, str] = {
     Status.OTHER_TARGET: "warning",
     Status.OUT_OF_PERIOD: "warning",
     Status.DATE_MISSING: "warning",
+    Status.CHECK_DOCUMENT: "warning",
     Status.GENERATED: "ok",
     Status.ATTACHED: "ok",
     Status.GENERATING: "muted",
@@ -92,6 +103,8 @@ class Definition:
     valid_from: datetime.date
     rows: tuple[dict[str, Any], ...]
     path: Path
+    sources: tuple[str, ...] = ()  # 元の Excel のファイル（表の順）
+    cover: dict[str, str] = field(default_factory=dict)  # 表紙の氏名・名称の欄（T42 の追加）
 
 
 def _root() -> Path:
@@ -107,6 +120,8 @@ def _read(path: Path) -> Definition:
         valid_from=datetime.date.fromisoformat(data["valid_from"]),
         rows=tuple(data["rows"]),
         path=path,
+        sources=tuple(source["file"] for source in data.get("sources", [])),
+        cover=dict(data.get("cover", {})),
     )
 
 
@@ -152,6 +167,8 @@ class Facts:
     requested: dict[str, GeneratedDocument] = field(default_factory=dict)  # 生成中（最新の依頼）
     # 自作の訳文の版の生成物（様式 ID ごとの新しい順。生成の有無には数えない。T43）
     translations: dict[str, list[GeneratedDocument]] = field(default_factory=dict)
+    # 雇用契約の受入れ機関の書類の保管庫（取り消していないもの。T42 の追加）
+    host_documents: list[HostDocument] = field(default_factory=list)
     set_id: str = ""  # 申請の種類（健康診断の受診の時期が申請の種類で違う）
 
 
@@ -192,6 +209,7 @@ def facts_for(worker: ForeignWorker, on: datetime.date) -> Facts:
         documents=documents,
         requested=requested,
         translations=translations,
+        host_documents=host_documents.live(contract.host_organization) if contract else [],
     )
 
 
@@ -243,6 +261,8 @@ class RowState:
     document: GeneratedDocument | None = None
     signature: str = ""  # form_signatures.SignatureState の値
     attach_url: str = ""  # 添付の画面（モーダルで開く。健康診断の書類。修正 1 回目 B8）
+    host_document: HostDocument | None = None  # 受入れ機関の書類の保管庫から綴じる書類
+    issues: tuple[str, ...] = ()  # その書類の問題（host_documents.Issue）
 
     @property
     def done(self) -> bool:
@@ -251,6 +271,10 @@ class RowState:
     @property
     def tone(self) -> str:
         return TONES[self.status]
+
+    @property
+    def issue_texts(self) -> list[str]:
+        return [host_documents.issue_text(code) for code in self.issues]
 
 
 def _generate_url(form_id: str, facts: Facts) -> str:
@@ -468,6 +492,32 @@ def timezone_date(value: datetime.datetime) -> str:
 
 
 def state_of(row: dict[str, Any], facts: Facts) -> RowState:
+    base = _state_of(row, facts)
+    if not host_documents.kinds_for_row(row) or facts.contract is None or facts.version is None:
+        return base
+    document, issues = host_documents.select(
+        facts.host_documents, row, facts.version.site, facts.on, facts.worker
+    )
+    if document is None or (issues and base.status == Status.ATTACHED):
+        return base  # 版の根拠資料（雇用契約の版の添付）を綴じる
+    url = reverse("hosts:detail", args=[facts.contract.host_organization_id]) + "#host-documents"
+    detail = (
+        f"{document.period_start}〜{document.period_end}"
+        if document.period_start
+        else (document.issued_on.isoformat() if document.issued_on else "")
+    )
+    return RowState(
+        row,
+        base.applicable,
+        Status.CHECK_DOCUMENT if issues else Status.ATTACHED,
+        detail,
+        url,
+        host_document=document,
+        issues=tuple(issues),
+    )
+
+
+def _state_of(row: dict[str, Any], facts: Facts) -> RowState:
     applicable = applies(row, facts)
     how = row["how"]
     if "track_record" in row["applies"]:

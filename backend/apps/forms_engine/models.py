@@ -271,6 +271,8 @@ class SubmissionBundle(TrackedModel):
     contains_sensitive = models.BooleanField(_("contains sensitive documents"), default=False)
     items = models.JSONField(_("contents"), default=list)
     warnings = models.JSONField(_("warnings when made"), default=list, blank=True)
+    # 提出書類一覧表の提出確認欄の印（行の ID → yes・no。空は書かない。T42 の追加）
+    list_marks = models.JSONField(_("marks of the list of documents"), default=dict, blank=True)
 
     class Meta:
         verbose_name = _("submission PDF")

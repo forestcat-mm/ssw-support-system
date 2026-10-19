@@ -22,6 +22,7 @@ SLOW_MODULES = {
     "tests/forms_engine/test_pdf_merges.py",
     "tests/forms_engine/test_pdfcheck.py",
     "tests/forms_engine/test_seed_documents.py",
+    "tests/forms_engine/test_submission_lists.py",
     "tests/forms_engine/test_translations.py",
     "tests/seed/test_seed_dummy.py",
     "tests/seed/test_seed_scenario.py",
