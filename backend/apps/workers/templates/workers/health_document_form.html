@@ -5,7 +5,7 @@
   <h1>{% translate "Add health check documents" %}</h1>
 {% endblock %}
 {% block content %}
-<form class="form" method="post" enctype="multipart/form-data" novalidate id="health-document-form">
+<form class="form" method="post" enctype="multipart/form-data" novalidate id="health-document-form" data-modal-content>
   {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
   {% include "ui/components/form_errors.html" %}
   <section class="card stack">
@@ -14,7 +14,7 @@
   </section>
   <div class="form-actions">
     <button class="button button--primary" type="submit">{% translate "Add" %}</button>
-    <a class="button button--neutral" href="{% url 'workers:detail' worker.pk %}#health-documents">{% translate "Cancel" %}</a>
+    <a class="button button--neutral" href="{% url 'workers:detail' worker.pk %}#health-documents" data-modal-close>{% translate "Cancel" %}</a>
   </div>
 </form>
 {% endblock %}

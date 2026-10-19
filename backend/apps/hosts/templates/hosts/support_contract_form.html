@@ -1,0 +1,46 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{{ title }} | {{ host.name }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{{ back }}">← {{ host.name }}</a></p>
+  <h1>{{ title }}</h1>
+{% endblock %}
+{% block content %}
+<form class="form" method="post" novalidate{% if multipart %} enctype="multipart/form-data"{% endif %} id="{{ form_id }}">
+  {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+  {% include "ui/components/form_errors.html" %}
+  <section class="card stack">
+    {% if lead %}<p class="caption">{{ lead }}</p>{% endif %}
+    {% for field in form %}{% form_field field %}
+      {% if field.name == "monthly_fee" %}
+      {# 委託料の内訳（第5-10号 別紙。修正 1 回目 B11）: JS があればボタンでモーダルに開き、無ければここに並べる #}
+      <div class="fee-breakdown stack" id="fee-breakdown" data-fee-breakdown data-fee-input="{{ field.id_for_label }}"{% if fees_open %} data-open{% endif %}>
+        <div class="cluster">
+          <button class="button button--neutral button--small" type="button" data-fee-open hidden>{% translate "Breakdown" %}</button>
+          <span class="caption" data-fee-summary aria-live="polite" data-template="{% translate 'Breakdown: {count} items, total {total} yen' %}" data-empty="{% translate 'No breakdown.' %}"></span>
+        </div>
+        <div class="fee-breakdown__panel stack" data-fee-panel>
+          <h3 class="fee-breakdown__title" data-fee-title>{% translate "Breakdown of the entrustment fee" %}</h3>
+          <p class="caption">{% translate "The annex of the support entrustment contract (form 5-10). The total must equal the monthly fee. Leave it empty when there is no breakdown. Changing only the breakdown does not create a notification task." %}</p>
+          {% if fee_errors %}<ul class="messages" role="alert" id="fee-errors">{% for error in fee_errors %}<li class="message message--error">{{ error }}</li>{% endfor %}</ul>{% endif %}
+          <p>{% translate "monthly fee (yen)" %}: <span class="mono" data-fee-amount>—</span> · {% translate "total of the items (yen)" %}: <span class="mono" data-fee-total>—</span></p>
+          <p class="message message--warning" data-fee-mismatch hidden>{% translate "The total of the items differs from the monthly fee." %}</p>
+          {% include "support/components/formset_rows.html" with formset=fees id="fee-rows" title=_("Items") add_label=_("Add an item") nested=True %}
+          <div class="message message--warning stack" data-fee-choice hidden>
+            <p>{% translate "The total of the items differs from the monthly fee. How do you want to fix it?" %}</p>
+            <div class="cluster">
+              <button class="button button--primary button--small" type="button" data-fee-apply>{% translate "Set the monthly fee to the total of the items" %}</button>
+              <button class="button button--neutral button--small" type="button" data-fee-back>{% translate "Go back and fix the items" %}</button>
+            </div>
+          </div>
+          <div class="form-actions" data-fee-actions hidden><button class="button button--primary" type="button" data-fee-close>{% translate "Done" %}</button></div>
+        </div>
+      </div>
+      {% endif %}
+    {% endfor %}
+  </section>
+  <div class="form-actions">
+    <button class="button button--primary" type="submit">{{ submit }}</button>
+    <a class="button button--neutral" href="{{ back }}">{% translate "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

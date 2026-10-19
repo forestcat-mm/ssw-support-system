@@ -35,6 +35,7 @@ from services import (
     form_generation,
     host_records,
     industries,
+    jobs,
 )
 from services.attachments import create_attachment
 from tests.contracts.factories import make_contract
@@ -419,15 +420,30 @@ def test_fee_breakdown_must_match_the_monthly_fee_and_raises_no_filing(loaded: N
     )
 
 
-def test_fee_screen(loaded: None) -> None:
+def contract_post(support: SupportContract, token: tuple[str, str]) -> dict[str, str]:
+    return {
+        token[0]: token[1],
+        "concluded_on": support.concluded_on.isoformat() if support.concluded_on else "",
+        "starts_on": support.starts_on.isoformat(),
+        "ends_on": support.ends_on.isoformat() if support.ends_on else "",
+        "monthly_fee": str(support.monthly_fee),
+    }
+
+
+def test_fee_breakdown_is_saved_with_the_support_contract(loaded: None) -> None:
+    """内訳は支援委託契約の画面で契約と一緒に保存する（修正 1 回目 B11）。"""
     make_case(with_fees=False)
     support = SupportContract.objects.get()
     client = verified_client(make_user("tanto37", roles=("support_staff",)))
-    url = f"/hosts/{support.host_organization_id}/support-contracts/{support.pk}/fees/"
-    page = client.get(url)
-    assert page.status_code == 200
-    post = {
-        page.context["once_field"]: page.context["once_token"],
+    base = f"/hosts/{support.host_organization_id}/support-contracts/{support.pk}"
+    # 旧い内訳の画面の URL（生成前の検査の「直す」）は、契約の画面に移って内訳を開く
+    old = client.get(f"{base}/fees/")
+    assert old.status_code == 302 and old["Location"] == f"{base}/edit/?fees=open"
+    url = f"{base}/edit/"
+    page = client.get(url + "?fees=open")
+    assert page.context["fees_open"] is True
+    token = (page.context["once_field"], page.context["once_token"])
+    rows = {
         "fees-TOTAL_FORMS": "2",
         "fees-INITIAL_FORMS": "0",
         "fees-0-name": "義務的支援",
@@ -437,14 +453,41 @@ def test_fee_screen(loaded: None) -> None:
         "fees-1-amount": "4000",
         "fees-1-timing": FeeTiming.OCCASIONAL,
     }
-    response = client.post(url, post)
+    response = client.post(url, {**contract_post(support, token), **rows})
     assert response.status_code == 200 and not support.fees.exists()  # 合計が違う
+    assert response.context["fees_open"] is True
+    assert len(response.context["fee_errors"]) == 1
+    assert 'id="fee-errors"' in response.content.decode()
     page = client.get(url)
-    post[page.context["once_field"]] = page.context["once_token"]
-    post["fees-1-amount"] = "5000"
-    response = client.post(url, post)
+    token = (page.context["once_field"], page.context["once_token"])
+    rows["fees-1-amount"] = "5000"
+    response = client.post(url, {**contract_post(support, token), **rows})
     assert response.status_code == 302
     assert support.fees.count() == 2
+    created = AuditLog.objects.filter(
+        content_type__model="supportcontractfee", action=AuditAction.CREATE
+    ).count()
+    # 内訳の行を送らない保存（内訳の欄の無い送信）は内訳を変えない。同じ内訳の保存は行を作り直さない
+    page = client.get(url)
+    response = client.post(
+        url, contract_post(support, (page.context["once_field"], page.context["once_token"]))
+    )
+    assert response.status_code == 302 and support.fees.count() == 2
+    page = client.get(url)
+    token = (page.context["once_field"], page.context["once_token"])
+    assert client.post(url, {**contract_post(support, token), **rows}).status_code == 302
+    assert (
+        AuditLog.objects.filter(
+            content_type__model="supportcontractfee", action=AuditAction.CREATE
+        ).count()
+        == created
+    )
+    # 行を全部消すと内訳なし
+    page = client.get(url)
+    token = (page.context["once_field"], page.context["once_token"])
+    empty = {"fees-TOTAL_FORMS": "0", "fees-INITIAL_FORMS": "0"}
+    assert client.post(url, {**contract_post(support, token), **empty}).status_code == 302
+    assert not support.fees.exists()
 
 
 # --- 申請の書類の一覧 ---------------------------------------------------------------------------
@@ -586,3 +629,39 @@ def test_health_check_period_depends_on_the_application(
     assert rows[row_id].status == status
     ext_rows = application_sets.overview(contract.worker, "ext", BASIS).rows
     assert not any(s.row["how"].get("attachment") == "health_check" for s in ext_rows)
+
+
+def test_rows_have_a_tone_and_show_generation_in_progress(
+    loaded: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """行の色の区分と、生成を依頼した後・ジョブが終わる前の「生成中」（修正 1 回目 B9・B10）。"""
+    contract = make_case()
+    worker = contract.worker
+    found = by_id(application_sets.overview(worker, "chg", BASIS))
+    assert found["chg_ind-2-1"].tone == "danger"  # 未生成
+    assert found["chg_ind-3-1"].tone == "ok"  # 添付済み
+    assert all(state in application_sets.TONES for state in application_sets.Status)
+    monkeypatch.setattr(jobs, "enqueue", lambda *args: None)  # ジョブを動かさない
+    data = form_data_application.build("3-1", contract, BASIS, author="代表取締役　山田 太郎")
+    form_generation.request("3-1", target=contract, data=data, basis_on=BASIS, by=None)
+    state = by_id(application_sets.overview(worker, "chg", BASIS))["chg_ind-2-1"]
+    assert (state.status, state.tone) == (application_sets.Status.GENERATING, "muted")
+    client = verified_client(make_user("tanto37", roles=("support_staff",)))
+    content = client.get(
+        f"/workers/{worker.pk}/documents/application/?set_id=chg&basis_on=2026-10-18"
+    ).content.decode()
+    assert 'data-row="chg_ind-2-1" data-status="generating" data-tone="muted"' in content
+    # 生成のリンクはモーダルで開き、終わったら一覧に戻る
+    assert "data-modal data-modal-return" in content
+
+
+def test_modal_requests_get_the_redirect_as_a_header(loaded: None) -> None:
+    """モーダルの中の送信のリダイレクトは 204 と X-Modal-Location（修正 1 回目 B10）。"""
+    make_case(with_fees=False)
+    support = SupportContract.objects.get()
+    client = verified_client(make_user("tanto37", roles=("support_staff",)))
+    base = f"/hosts/{support.host_organization_id}/support-contracts/{support.pk}"
+    response = client.get(f"{base}/fees/", headers={"X-Modal": "1"})
+    assert response.status_code == 204
+    assert response["X-Modal-Location"] == f"{base}/edit/?fees=open"
+    assert client.get(f"{base}/fees/").status_code == 302

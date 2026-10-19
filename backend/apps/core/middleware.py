@@ -54,3 +54,23 @@ class AuditContextMiddleware:
     def __call__(self, request: HttpRequest) -> HttpResponse:
         with audit.bind_request(request):
             return self.get_response(request)
+
+
+class ModalRedirectMiddleware:
+    """モーダルの中の送信（X-Modal の要求）のリダイレクトを、204 と X-Modal-Location に置き換える。
+
+    fetch はリダイレクトを自動でたどり、移り先の画面（とメッセージ）を読んでしまう。
+    移り先を JS に渡し、画面の読み直しか移動を JS が決める（forms.js の initModal。
+    修正 1 回目 B10）。
+    """
+
+    def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]) -> None:
+        self.get_response = get_response
+
+    def __call__(self, request: HttpRequest) -> HttpResponse:
+        response = self.get_response(request)
+        if request.headers.get("X-Modal") == "1" and response.status_code in (301, 302, 303):
+            location = response["Location"]
+            response = HttpResponse(status=204)
+            response["X-Modal-Location"] = location
+        return response

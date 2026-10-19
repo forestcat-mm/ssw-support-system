@@ -454,7 +454,36 @@ class CooperationEditView(HostFormView):
 # --- 支援委託契約 ------------------------------------------------------------------
 
 
+def fee_formset(contract: SupportContract | None, data: Any = None) -> Any:
+    """委託料の内訳の行（支援委託契約の画面のモーダル。修正 1 回目 B11）。"""
+    if data is not None:
+        return SupportFeeFormSet(data, prefix="fees")
+    rows = (
+        [
+            {"name": fee.name, "amount": fee.amount, "timing": fee.timing}
+            for fee in contract.fees.order_by("order")
+        ]
+        if contract is not None
+        else []
+    )
+    return SupportFeeFormSet(prefix="fees", initial=rows)
+
+
+def fee_rows(formset: Any) -> list[host_records.FeeInput]:
+    return [
+        host_records.FeeInput(
+            name=form.cleaned_data["name"],
+            amount=form.cleaned_data["amount"],
+            timing=form.cleaned_data["timing"],
+        )
+        for form in formset.forms
+        if form.cleaned_data and not form.cleaned_data.get("DELETE")
+    ]
+
+
 class SupportContractEditView(HostFormView):
+    template_name = "hosts/support_contract_form.html"
+
     def target(self, request: HttpRequest, pk: int, contract_id: int | None) -> Any:
         host = self.host(request, pk)
         contract = (
@@ -470,11 +499,16 @@ class SupportContractEditView(HostFormView):
         host: HostOrganization,
         contract: SupportContract | None,
         form: Any,
+        fees: Any,
+        fee_errors: list[str] | None = None,
     ) -> HttpResponse:
         return self.render(
             request,
             host=host,
             form=form,
+            fees=fees,
+            fee_errors=fee_errors or [],
+            fees_open=bool(fee_errors) or request.GET.get("fees") == "open",
             title=_("Edit the support contract") if contract else _("Register a support contract"),
             lead=_(
                 "Entrustment of the whole support plan (full entrustment). Periods of the same "
@@ -490,14 +524,18 @@ class SupportContractEditView(HostFormView):
     def get(self, request: HttpRequest, pk: int, contract_id: int | None = None) -> HttpResponse:
         host, contract = self.target(request, pk, contract_id)
         form = SupportContractForm(instance=contract, host=host)
-        return self.page(request, host, contract, form)
+        return self.page(request, host, contract, form, fee_formset(contract))
 
     def post(self, request: HttpRequest, pk: int, contract_id: int | None = None) -> HttpResponse:
         host, contract = self.target(request, pk, contract_id)
         if not consume_once_token(request):
             return self.already_submitted(request, detail_url(host, "support-contracts"))
         form = SupportContractForm(request.POST, request.FILES, instance=contract, host=host)
-        if form.is_valid():
+        # 内訳の行が送られていない（内訳の欄の無い古い画面からの送信など）ときは、内訳を変えない
+        sent_fees = "fees-TOTAL_FORMS" in request.POST
+        fees = fee_formset(contract, request.POST) if sent_fees else fee_formset(contract)
+        fee_errors: list[str] = []
+        if form.is_valid() and (not sent_fees or fees.is_valid()):
             amendment = (
                 host_records.Amendment(changed_on=form.cleaned_data["amended_on"])
                 if form.cleaned_data.get("is_amendment")
@@ -510,15 +548,21 @@ class SupportContractEditView(HostFormView):
                     by=_actor(request),
                     today=timezone.localdate(),
                     amendment=amendment,
+                    fees=fee_rows(fees) if sent_fees else None,
                 )
             except ValidationError as error:
-                apply_errors(form, error)
+                if hasattr(error, "error_dict") and "fees" in error.error_dict:
+                    fee_errors = [m for item in error.error_dict["fees"] for m in item.messages]
+                else:
+                    apply_errors(form, error)
             else:
                 messages.success(request, _("Saved."))
                 sync_messages(request, result.sync)
                 raised_messages(request, result.raised)
                 return redirect(detail_url(host, "support-contracts"))
-        return self.page(request, host, contract, form)
+        elif sent_fees and not fees.is_valid():
+            fee_errors = [_("Check the items of the breakdown.")]
+        return self.page(request, host, contract, form, fees, fee_errors)
 
 
 class SupportTerminateView(HostFormView):
@@ -762,61 +806,12 @@ class AttachmentVoidView(HostFormView):
 
 
 class SupportFeesView(HostFormView):
-    """委託料の内訳（第5-10号 別紙）。合計は月額と一致させる。内訳だけの変更は届出を起票しない。"""
-
-    template_name = "hosts/support_fees_form.html"
-
-    def target(self, request: HttpRequest, pk: int, contract_id: int) -> Any:
-        host = self.host(request, pk)
-        return host, get_object_or_404(host.support_contracts, pk=contract_id)
-
-    def page(
-        self,
-        request: HttpRequest,
-        host: Any,
-        contract: Any,
-        formset: Any,
-        errors: list[str] | None = None,
-    ) -> HttpResponse:
-        return self.render(
-            request,
-            host=host,
-            contract=contract,
-            formset=formset,
-            fee_errors=errors or [],
-            back=detail_url(host, "support-contracts"),
-        )
+    """委託料の内訳の旧い画面の URL（生成前の検査の「直す」が指す）。内訳は支援委託契約の画面の
+    委託料の欄から扱うので、その画面に移って内訳を開く（修正 1 回目 B11）。"""
 
     def get(self, request: HttpRequest, pk: int, contract_id: int) -> HttpResponse:
-        host, contract = self.target(request, pk, contract_id)
-        rows = [
-            {"name": fee.name, "amount": fee.amount, "timing": fee.timing}
-            for fee in contract.fees.all()
-        ] or [{}]
-        return self.page(request, host, contract, SupportFeeFormSet(prefix="fees", initial=rows))
-
-    def post(self, request: HttpRequest, pk: int, contract_id: int) -> HttpResponse:
-        host, contract = self.target(request, pk, contract_id)
-        if not consume_once_token(request):
-            return self.already_submitted(request, detail_url(host, "support-contracts"))
-        formset = SupportFeeFormSet(request.POST, prefix="fees")
-        if formset.is_valid():
-            rows = [
-                host_records.FeeInput(
-                    name=form.cleaned_data["name"],
-                    amount=form.cleaned_data["amount"],
-                    timing=form.cleaned_data["timing"],
-                )
-                for form in formset.forms
-                if form.cleaned_data and not form.cleaned_data.get("DELETE")
-            ]
-            try:
-                host_records.save_fees(contract, rows, by=_actor(request))
-            except ValidationError as error:
-                return self.page(
-                    request, host, contract, formset, error.message_dict.get("fees", [])
-                )
-            else:
-                messages.success(request, _("Saved the breakdown of the fee."))
-                return redirect(detail_url(host, "support-contracts"))
-        return self.page(request, host, contract, formset)
+        host = self.host(request, pk)
+        contract = get_object_or_404(host.support_contracts, pk=contract_id)
+        return redirect(
+            reverse("hosts:support_contract_edit", args=[host.pk, contract.pk]) + "?fees=open"
+        )

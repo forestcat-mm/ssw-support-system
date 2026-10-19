@@ -57,6 +57,25 @@ class Status(enum.StrEnum):
     # 健康診断の受診が申請に使える時期の外・受診日が未登録（警告。修正 1 回目 B8）
     OUT_OF_PERIOD = "out_of_period"
     DATE_MISSING = "date_missing"
+    GENERATING = "generating"  # 生成を依頼した後、ジョブが終わる前（修正 1 回目 B10）
+
+
+# 行の色とラベルの区分（修正 1 回目 B9）: 不足＝赤、確かめが要る＝黄、済み＝緑、
+# システムの外・判断しない＝灰
+TONES: dict[Status, str] = {
+    Status.NOT_GENERATED: "danger",
+    Status.MISSING: "danger",
+    Status.EXPIRED: "danger",
+    Status.OTHER_TARGET: "warning",
+    Status.OUT_OF_PERIOD: "warning",
+    Status.DATE_MISSING: "warning",
+    Status.GENERATED: "ok",
+    Status.ATTACHED: "ok",
+    Status.GENERATING: "muted",
+    Status.OUTSIDE: "muted",
+    Status.ALTERNATIVE: "muted",
+    Status.UNKNOWN: "muted",
+}
 
 
 DONE = frozenset({Status.GENERATED, Status.ATTACHED, Status.OUTSIDE, Status.ALTERNATIVE})
@@ -130,6 +149,7 @@ class Facts:
     full_support: bool | None
     organization: Organization | None
     documents: dict[str, GeneratedDocument] = field(default_factory=dict)
+    requested: dict[str, GeneratedDocument] = field(default_factory=dict)  # 生成中（最新の依頼）
     set_id: str = ""  # 申請の種類（健康診断の受診の時期が申請の種類で違う）
 
 
@@ -148,6 +168,13 @@ def facts_for(worker: ForeignWorker, on: datetime.date) -> Facts:
     )
     for document in queryset:
         documents.setdefault(document.template.form_id, document)
+    requested: dict[str, GeneratedDocument] = {}
+    for document in (
+        GeneratedDocument.objects.filter(worker=worker, status=GenerationStatus.REQUESTED)
+        .select_related("template")
+        .order_by("-created_at", "-pk")
+    ):
+        requested.setdefault(document.template.form_id, document)
     return Facts(
         worker=worker,
         on=on,
@@ -156,6 +183,7 @@ def facts_for(worker: ForeignWorker, on: datetime.date) -> Facts:
         full_support=full_support,
         organization=Organization.objects.first(),
         documents=documents,
+        requested=requested,
     )
 
 
@@ -206,10 +234,15 @@ class RowState:
     action_url: str = ""  # 生成・添付の画面
     document: GeneratedDocument | None = None
     signature: str = ""  # form_signatures.SignatureState の値
+    attach_url: str = ""  # 添付の画面（モーダルで開く。健康診断の書類。修正 1 回目 B8）
 
     @property
     def done(self) -> bool:
         return self.status in DONE
+
+    @property
+    def tone(self) -> str:
+        return TONES[self.status]
 
 
 def _generate_url(form_id: str, facts: Facts) -> str:
@@ -247,6 +280,9 @@ def _generated(row: dict[str, Any], applicable: bool | None, facts: Facts) -> Ro
     form_id = row["how"]["generate"]
     url = _generate_url(form_id, facts)
     document = facts.documents.get(form_id)
+    pending = facts.requested.get(form_id)
+    if pending is not None and (document is None or pending.created_at > document.created_at):
+        return RowState(row, applicable, Status.GENERATING, action_url=url, document=pending)
     if document is None:
         return RowState(row, applicable, Status.NOT_GENERATED, action_url=url)
     expected = _expected_target(form_id, facts)
@@ -293,15 +329,19 @@ def _attachment_state(row: dict[str, Any], applicable: bool | None, facts: Facts
             .first()
         )
         url = reverse("workers:detail", args=[worker.pk]) + "#health-documents"
+        attach = reverse("workers:health_document_add", args=[worker.pk]) + f"?kind={wanted.value}"
         if latest is None:
-            return RowState(row, applicable, Status.MISSING, action_url=url)
+            return RowState(row, applicable, Status.MISSING, action_url=url, attach_url=attach)
         if latest.examined_on is None:
-            return RowState(row, applicable, Status.DATE_MISSING, action_url=url)
+            return RowState(row, applicable, Status.DATE_MISSING, action_url=url, attach_url=attach)
         detail = latest.examined_on.isoformat()
         earliest = health_check_earliest(facts.set_id, facts.on)
-        if earliest is not None and latest.examined_on < earliest:
-            return RowState(row, applicable, Status.OUT_OF_PERIOD, detail, url)
-        return RowState(row, applicable, Status.ATTACHED, detail, url)
+        status = (
+            Status.OUT_OF_PERIOD
+            if earliest is not None and latest.examined_on < earliest
+            else Status.ATTACHED
+        )
+        return RowState(row, applicable, status, detail, url, attach_url=attach)
     if kind == "own_council_certificate":
         organization = facts.organization
         url = reverse("settings:organization_edit")

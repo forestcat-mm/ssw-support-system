@@ -6,7 +6,7 @@
   <p class="caption">{% blocktranslate with number=version.version day=version.applies_from|date:"Y-m-d" host=version.plan.host_organization.name %}{{ host }} · version {{ number }} (applies from {{ day }}){% endblocktranslate %}</p>
 {% endblock %}
 {% block content %}
-<div class="stack form">
+<div class="stack form" data-modal-content>
   {% if bilingual_notice %}{% include "forms_engine/components/bilingual_notice.html" %}{% endif %}
   {% if result %}{% include "forms_engine/components/findings.html" %}{% endif %}
   <form class="form" method="post" novalidate id="generate-form">
@@ -20,7 +20,7 @@
     <div class="form-actions">
       <button class="button button--neutral" type="submit" name="action" value="check">{% translate "Check again" %}</button>
       {% if result and not result.blocking %}<button class="button button--primary" type="submit" name="action" value="generate">{% translate "Generate" %}</button>{% endif %}
-      <a class="button button--neutral" href="{{ back_url }}">{% translate "Cancel" %}</a>
+      <a class="button button--neutral" href="{{ back_url }}" data-modal-close>{% translate "Cancel" %}</a>
     </div>
   </form>
 </div>

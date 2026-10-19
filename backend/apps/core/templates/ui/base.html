@@ -52,5 +52,10 @@
     </div>
   </main>
 </div>
+{# モーダル（forms.js の initModal。a[data-modal] のリンク先の [data-modal-content] を読み込む） #}
+<dialog class="modal" id="modal" aria-labelledby="modal-title">
+  <div class="modal__header"><h2 class="modal__title" id="modal-title" data-modal-title></h2><button class="button button--neutral button--small" type="button" data-modal-close>{% translate "Close" %}</button></div>
+  <div class="modal__body" data-modal-body></div>
+</dialog>
 </body>
 </html>

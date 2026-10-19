@@ -636,6 +636,83 @@ a.badge:hover {
   padding: var(--space-12);
 }
 
+/* 申請の書類の一覧（修正 1 回目 B9）: 状態を先頭の列にし、行の左の線と地の色で分ける。色だけに頼らず
+   状態の文字を必ず出す */
+.application-set__row td:first-child {
+  border-left: 4px solid transparent;
+}
+
+.application-set__row--danger td:first-child {
+  border-left-color: var(--level-overdue-fg);
+}
+
+.application-set__row--danger {
+  background: var(--level-overdue-bg);
+}
+
+.application-set__row--warning td:first-child {
+  border-left-color: var(--level-within-7-mark);
+}
+
+.application-set__row--warning {
+  background: var(--level-within-7-bg);
+}
+
+.application-set__row--ok td:first-child {
+  border-left-color: var(--level-within-14-fg);
+}
+
+.application-set__row--muted {
+  color: var(--color-graphite);
+}
+
+.application-set__status {
+  min-width: 12em;
+}
+
+/* モーダル（<dialog>。forms.js の initModal と、画面の中のダイアログ〔data-dialog〕） */
+.modal {
+  width: min(720px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  color: var(--color-ink);
+  background: var(--color-surface);
+  border: 1px solid var(--popover-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-float);
+}
+
+.modal::backdrop {
+  background: rgba(12, 23, 84, 0.32);
+}
+
+.modal__header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  padding: var(--space-12) var(--space-16);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-line);
+}
+
+.modal__title {
+  flex: 1;
+  margin: 0;
+  font-size: var(--text-subheading);
+}
+
+.modal__body {
+  padding: var(--space-16);
+}
+
+.modal__body .card {
+  border: 0;
+  padding: 0;
+}
+
 /* --- 見本の画面だけで使う ---------------------------------------------------------------- */
 .swatches {
   display: grid;

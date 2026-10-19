@@ -200,12 +200,19 @@ def save_support_contract(
     by: User | None,
     today: datetime.date,
     amendment: Amendment | None = None,
+    fees: Sequence[FeeInput] | None = None,
 ) -> SupportSaved:
     """1 行＝1 期間。自動更新の後の期間は次の行で登録する（ADR-0015・0017）。
 
     新しい行は締結（続く行なら委託料の変更だけ）として届出タスクを起票する。既存の行の委託料・
     期間の変更は、amendment があれば第3-3-1号を起票し、無ければ誤りの訂正として起票しない。
+    fees を渡すと委託料の内訳（第5-10号 別紙）も一緒に置き換える（空なら内訳なし。
+    修正 1 回目 B11）。内訳だけの変更は届出を起票しない。
     """
+    if fees is not None:
+        errors = fee_errors(contract.monthly_fee, fees)
+        if errors:
+            raise ValidationError({"fees": errors})
     hosts.validate_contract_period(
         contract.host_organization_id,
         contract.starts_on,
@@ -230,6 +237,8 @@ def save_support_contract(
         attachments.create_attachment(
             target=contract, kind=AttachmentKind.SUPPORT_CONTRACT, file=file, created_by=by
         )
+    if fees is not None:
+        _replace_fees(contract, fees, by=by)
     sync = filings.sync_support_contracts(contract.host_organization, by=by, today=today)
     if is_new:
         raised = support_filings.on_registered(contract, by=by)
@@ -403,36 +412,56 @@ class FeeInput:
 FORM_FEE_ROWS = 10  # 第5-10号 別紙の行の数
 
 
+def fee_errors(monthly_fee: int | None, rows: Sequence[FeeInput]) -> list[str]:
+    """内訳の検査（行が無いのは「内訳なし」として通す）。合計は月額と一致すること。"""
+    errors: list[str] = []
+    if not rows:
+        return errors
+    if monthly_fee is None:
+        errors.append(_("Enter the monthly fee of the contract first."))
+    if len(rows) > FORM_FEE_ROWS:
+        errors.append(
+            _("The form has %(limit)d rows. Combine the items.") % {"limit": FORM_FEE_ROWS}
+        )
+    total = sum(row.amount for row in rows)
+    if monthly_fee is not None and total != monthly_fee:
+        errors.append(
+            _("The total of the items (%(total)s yen) differs from the monthly fee (%(fee)s yen).")
+            % {"total": f"{total:,}", "fee": f"{monthly_fee:,}"}
+        )
+    return errors
+
+
 @transaction.atomic
 def save_fees(contract: SupportContract, rows: Sequence[FeeInput], *, by: User | None) -> None:
     """内訳を置き換える（行ごとの作成・削除は監査ログに残る）。合計は月額と一致すること。
 
     内訳だけの変更は届出の判定に関わらない（第3-3-1号の判定は月額で行う。T28c）。
     """
-    errors: list[str] = []
-    if contract.monthly_fee is None:
-        errors.append(_("Enter the monthly fee of the contract first."))
+    errors = fee_errors(contract.monthly_fee, rows)
     if not rows:
         errors.append(_("Enter at least one item."))
-    if len(rows) > FORM_FEE_ROWS:
-        errors.append(
-            _("The form has %(limit)d rows. Combine the items.") % {"limit": FORM_FEE_ROWS}
-        )
-    total = sum(row.amount for row in rows)
-    if contract.monthly_fee is not None and rows and total != contract.monthly_fee:
-        errors.append(
-            _("The total of the items (%(total)s yen) differs from the monthly fee (%(fee)s yen).")
-            % {"total": f"{total:,}", "fee": f"{contract.monthly_fee:,}"}
-        )
     if errors:
         raise ValidationError({"fees": errors})
+    _replace_fees(contract, rows, by=by)
+
+
+def _replace_fees(contract: SupportContract, rows: Sequence[FeeInput], *, by: User | None) -> None:
+    """内訳の行を置き換える。変わっていなければ何もしない（監査ログに同じ行の作り直しを残さない）。"""
+    rows = [FeeInput(name=row.name.strip(), amount=row.amount, timing=row.timing) for row in rows]
+    saved = [
+        FeeInput(name=fee.name, amount=fee.amount, timing=fee.timing)
+        for fee in contract.fees.order_by("order")
+    ]
+    if saved == rows:
+        return
     for fee in contract.fees.all():
         fee.delete()
     for order, row in enumerate(rows, start=1):
         SupportContractFee.objects.create(
             contract=contract,
             order=order,
-            name=row.name.strip(),
+            name=row.name,
             amount=row.amount,
             timing=row.timing,
             created_by=by,

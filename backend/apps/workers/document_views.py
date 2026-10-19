@@ -80,7 +80,9 @@ class HealthDocumentAddView(WorkerFormView):
 
     def get(self, request: HttpRequest, pk: int) -> HttpResponse:
         worker = self.worker(request, pk)
-        return self.render(request, worker=worker, form=HealthDocumentForm())
+        kind = request.GET.get("kind")
+        initial = {"kind": kind} if kind in {k.value for k in worker_documents.HEALTH_KINDS} else {}
+        return self.render(request, worker=worker, form=HealthDocumentForm(initial=initial))
 
     def post(self, request: HttpRequest, pk: int) -> HttpResponse:
         worker = self.worker(request, pk)

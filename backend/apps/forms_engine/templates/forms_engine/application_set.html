@@ -12,19 +12,16 @@
     <p class="caption" id="application-set-source">{% blocktranslate with name=overview.definition.name day=overview.definition.valid_from|date:"Y-m-d" %}{{ name }}: the list of documents to submit (revised on {{ day }}). Rows marked ○ are required; △ only when they apply.{% endblocktranslate %}</p>
     {% if not overview.facts.contract %}<p class="message message--warning" id="application-set-no-contract">{% translate "There is no employment contract on the basis date, so rows that depend on the host organization cannot be judged." %}</p>{% endif %}
     <p id="application-set-open">{% blocktranslate count counter=overview.open_count %}{{ counter }} required document is not ready.{% plural %}{{ counter }} required documents are not ready.{% endblocktranslate %}</p>
-    <div class="table-scroll"><table class="table table--list" id="application-set-rows">
-      <thead><tr><th>{% translate "table" %}</th><th>{% translate "document" %}</th><th>{% translate "form" %}</th><th>{% translate "required" context "application set" %}</th><th>{% translate "status" %}</th></tr></thead>
+    <div class="table-scroll"><table class="table table--list application-set" id="application-set-rows">
+      <thead><tr><th>{% translate "status" %}</th><th>{% translate "table" %}</th><th>{% translate "document" %}</th><th>{% translate "form" %}</th><th>{% translate "required" context "application set" %}</th></tr></thead>
       <tbody>{% for state in overview.rows %}{% with row=state.row %}
-        <tr data-row="{{ row.id }}" data-status="{{ state.status }}">
-          <td>{{ row.table }} {{ row.number }}</td>
-          <td>{% if row.group or row.condition %}<span class="caption">{{ row.group }}{% if row.group and row.condition %} · {% endif %}{{ row.condition }}</span><br>{% endif %}{{ row.document|linebreaksbr }}{% if row.note %}<details class="caption"><summary>{% translate "points to note" %}</summary>{{ row.note|linebreaksbr }}</details>{% endif %}</td>
-          <td>{{ row.form|default:"—" }}</td>
-          <td>{{ row.need }}</td>
-          <td>
-            {% if state.status == "generated" %}<span class="badge badge--not-yet">{% translate "generated" %}</span>
+        <tr data-row="{{ row.id }}" data-status="{{ state.status }}" data-tone="{{ state.tone }}" class="application-set__row application-set__row--{{ state.tone }}">
+          <td class="application-set__status">
+            {% if state.status == "generated" %}<span class="badge badge--within-14">{% translate "generated" %}</span>
+            {% elif state.status == "generating" %}<span class="badge badge--open">{% translate "generating" %}</span>
             {% elif state.status == "other_target" %}<span class="badge badge--within-7">{% translate "generated for another contract or version" %}</span>
             {% elif state.status == "not_generated" %}<span class="badge badge--overdue">{% translate "not generated" %}</span>
-            {% elif state.status == "attached" %}<span class="badge badge--not-yet">{% translate "attached" context "application set" %}</span>
+            {% elif state.status == "attached" %}<span class="badge badge--within-14">{% translate "attached" context "application set" %}</span>
             {% elif state.status == "expired" %}<span class="badge badge--overdue">{% translate "expired" %}</span>
             {% elif state.status == "out_of_period" %}<span class="badge badge--within-7">{% translate "examined too long before the application" %}</span>
             {% elif state.status == "date_missing" %}<span class="badge badge--within-7">{% translate "examination date not entered" %}</span>
@@ -36,10 +33,15 @@
             {% if state.detail %}<br><span class="caption mono">{{ state.detail }}</span>{% endif %}
             {% if state.signature == "awaiting" %}<br><span class="caption">{% translate "awaiting signature" %}</span>{% elif state.signature == "signed" %}<br><span class="caption">{% translate "signed" %}</span>{% endif %}
             <div class="cluster">
-              {% if state.document %}<a class="button button--neutral button--small" href="{% url 'forms:document' state.document.pk %}">{% translate "Open" %}</a>{% endif %}
-              {% if state.action_url %}<a class="button button--neutral button--small" href="{{ state.action_url }}">{% if row.how.generate %}{% translate "Generate" %}{% else %}{% translate "Go to the record" %}{% endif %}</a>{% endif %}
+              {% if state.document and state.status != "generating" %}<a class="button button--neutral button--small" href="{% url 'forms:document' state.document.pk %}">{% translate "Open" %}</a>{% endif %}
+              {% if state.attach_url and can_manage %}<a class="button button--neutral button--small" href="{{ state.attach_url }}" data-modal data-modal-return>{% translate "Attach" %}</a>{% endif %}
+              {% if state.action_url %}{% if row.how.generate %}<a class="button button--neutral button--small" href="{{ state.action_url }}" data-modal data-modal-return>{% translate "Generate" %}</a>{% else %}<a class="button button--neutral button--small" href="{{ state.action_url }}">{% translate "Go to the record" %}</a>{% endif %}{% endif %}
             </div>
           </td>
+          <td>{{ row.table }} {{ row.number }}</td>
+          <td>{% if row.group or row.condition %}<span class="caption">{{ row.group }}{% if row.group and row.condition %} · {% endif %}{{ row.condition }}</span><br>{% endif %}{{ row.document|linebreaksbr }}{% if row.note %}<details class="caption"><summary>{% translate "points to note" %}</summary>{{ row.note|linebreaksbr }}</details>{% endif %}</td>
+          <td>{{ row.form|default:"—" }}</td>
+          <td>{{ row.need }}</td>
         </tr>{% endwith %}{% endfor %}</tbody>
     </table></div>
     {% if overview.not_applicable %}
