@@ -23,6 +23,7 @@ SLOW_MODULES = {
     "tests/forms_engine/test_pdfcheck.py",
     "tests/forms_engine/test_seed_documents.py",
     "tests/seed/test_seed_dummy.py",
+    "tests/seed/test_seed_scenario.py",
     "tests/seed/test_seed_support.py",
 }
 SLOW_FIXTURES = {"seeded"}

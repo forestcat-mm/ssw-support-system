@@ -5,13 +5,43 @@ from django.utils.translation import gettext_lazy as _
 from apps.core.models import TrackedModel
 
 
+class SeedScope(models.TextChoices):
+    """台帳の区分。dummy は seed_dummy、scenario は seed_scenario（手動のテストシナリオの本線）。"""
+
+    DUMMY = "dummy", _("dummy data")
+    SCENARIO = "scenario", _("test scenario")
+
+
+class _ScopeManager(models.Manager["SeedObject"]):
+    def __init__(self, scope: str) -> None:
+        super().__init__()
+        self.scope = scope
+
+    def get_queryset(self) -> models.QuerySet["SeedObject"]:
+        return super().get_queryset().filter(scope=self.scope)
+
+    def create(self, **kwargs: object) -> "SeedObject":
+        return super().create(**({"scope": self.scope} | kwargs))
+
+
 class SeedObject(TrackedModel):
-    """seed_dummy が作った行の台帳。--reset はここに載っている行だけを消す。"""
+    """seed_dummy・seed_scenario が作った行の台帳。--reset はここに載っている行だけを消す。
+
+    objects はダミーの行だけ（seed_dummy・seed_documents のための既定）。シナリオの行は
+    scenario_objects で扱う（seed_dummy の「作成済み」の判定や --reset に混ぜない）。
+    """
 
     content_type = models.ForeignKey(
         ContentType, verbose_name=_("target type"), on_delete=models.PROTECT
     )
     object_id = models.PositiveBigIntegerField(_("target ID"))
+    scope = models.CharField(
+        _("scope"), max_length=16, choices=SeedScope.choices, default=SeedScope.DUMMY
+    )
+
+    objects = _ScopeManager(SeedScope.DUMMY)
+    scenario_objects = _ScopeManager(SeedScope.SCENARIO)
+    all_objects = models.Manager()
 
     class Meta:
         verbose_name = _("dummy data record")

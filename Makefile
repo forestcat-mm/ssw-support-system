@@ -1,7 +1,7 @@
 COMPOSE := docker compose
 MANAGE := $(COMPOSE) exec web python manage.py
 
-.PHONY: checks check-quick test-lf test-db e2e gate2 gate3 design-shots seed seed-reset filings env up down build logs migrate admin shell psql lock test lint format messages
+.PHONY: checks check-quick test-lf test-db e2e gate2 gate3 design-shots seed seed-reset seed-scenario filings env up down build logs migrate admin shell psql lock test lint format messages
 
 env:        ## .env を作る・足りないキーを補う・鍵を生成する（既存の値は変えない）
 	python3 scripts/init_env.py
@@ -89,6 +89,9 @@ seed:       ## ダミーデータを作る（外国人31人・受入れ機関4�
 
 seed-reset: ## ダミーデータだけを消して作り直す（DATE=YYYY-MM-DD で基準日を指定できる）
 	$(MANAGE) seed_dummy --reset $(if $(DATE),--date $(DATE),)
+
+seed-scenario: ## 手動のテストシナリオの本線（王 麗娜さん）の記録。UNTIL=N で節 1〜N、DOCS=1 で生成物も、RESET=1 で作り直す（make seed の後に）
+	$(MANAGE) seed_scenario $(if $(UNTIL),--until $(UNTIL),) $(if $(DOCS),--with-docs,) $(if $(RESET),--reset,)
 
 seed-docs:  ## ダミーの生成物の場面（署名待ち・署名済み・回収のタスク・警告つき。seed の後に。T39）
 	$(MANAGE) seed_documents

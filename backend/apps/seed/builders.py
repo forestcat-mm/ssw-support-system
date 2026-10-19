@@ -67,7 +67,7 @@ from apps.seed.context import (
     SEED,
     SeedContext,
 )
-from apps.seed.models import SeedObject
+from apps.seed.models import SeedObject, SeedScope
 from apps.workers.models import (
     ApplicationType,
     ForeignWorker,
@@ -1113,15 +1113,25 @@ DELETE_ORDER: tuple[type[models.Model], ...] = (
 
 
 @transaction.atomic
-def reset() -> int:
-    """台帳に載っているダミーの行だけを消す。監査ログは追記専用なので残る（削除も記録される）。
+def reset(
+    entries: models.QuerySet[SeedObject] | None = None, *, scope: str = SeedScope.DUMMY
+) -> int:
+    """台帳に載っている行だけを消す。監査ログは追記専用なので残る（削除も記録される）。
+
+    entries を省くとダミーの行（seed_dummy）。テストシナリオの行（seed_scenario）はダミーの担当者・
+    自機関を参照するので、ダミーを消すときは先に消す。
 
     雇用契約の版・明細はモデルの delete() では消せない（T09）。開発用のこの処理に限り、
     QuerySet の一括削除で消す。
     """
     ensure_allowed()
+    deleted_scenario = 0
+    if entries is None:
+        if scope == SeedScope.DUMMY and SeedObject.scenario_objects.exists():
+            deleted_scenario = reset(SeedObject.scenario_objects.all(), scope=SeedScope.SCENARIO)
+        entries = SeedObject.objects.all()
     by_model: dict[type[models.Model], list[int]] = {}
-    for entry in SeedObject.objects.select_related("content_type"):
+    for entry in entries.select_related("content_type"):
         model = entry.content_type.model_class()
         if model is not None:
             by_model.setdefault(model, []).append(entry.object_id)
@@ -1144,5 +1154,5 @@ def reset() -> int:
         ids = by_model.get(model, [])
         if ids:
             deleted += model._base_manager.filter(pk__in=ids).delete()[0]
-    SeedObject.objects.all().delete()
-    return deleted + deleted_support
+    SeedObject.all_objects.filter(scope=scope).delete()
+    return deleted + deleted_support + deleted_scenario

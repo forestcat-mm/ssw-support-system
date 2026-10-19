@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 19:05+0900\n"
+"POT-Creation-Date: 2026-10-19 21:25+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -4214,6 +4214,12 @@ msgstr "完了"
 
 msgid "Dummy data (development)"
 msgstr "ダミーデータ（開発用）"
+
+msgid "dummy data"
+msgstr "ダミーデータ"
+
+msgid "test scenario"
+msgstr "テストシナリオ"
 
 msgid "dummy data record"
 msgstr "ダミーデータの台帳"
