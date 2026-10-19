@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 16:46+0900\n"
+"POT-Creation-Date: 2026-10-19 16:50+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -1166,6 +1166,14 @@ msgstr "このメールアドレスのユーザーはすでに登録されてい
 msgid "Email address"
 msgstr "メールアドレス"
 
+#, python-format
+msgid ""
+"You were signed out because %(hours)d hours have passed since you signed in. "
+"Sign in again."
+msgstr ""
+"ログインから %(hours)d 時間たったので、ログアウトしました。もう一度ログインし"
+"てください。"
+
 msgid "deactivated at"
 msgstr "無効化日時"
 
@@ -2206,6 +2214,27 @@ msgstr "メインメニュー"
 
 msgid "Menu"
 msgstr "メニュー"
+
+#, python-brace-format
+msgid "in {minutes} min {seconds} s"
+msgstr "（あと {minutes} 分 {seconds} 秒）"
+
+msgid "You will be signed out soon because there has been no activity."
+msgstr "操作が無いので、まもなく自動でログアウトします。"
+
+msgid ""
+"You will be signed out soon because the time since you signed in reaches the "
+"limit. It cannot be extended; save your work."
+msgstr ""
+"ログインからの時間の上限になるので、まもなく自動でログアウトします。延長でき"
+"ないので、入力中の内容を保存してください。"
+
+msgid "You have been signed out. Copy anything you need, then sign in again."
+msgstr ""
+"ログアウトしました。必要な入力は写してから、もう一度ログインしてください。"
+
+msgid "Extend"
+msgstr "延長する"
 
 msgid "Close"
 msgstr "閉じる"

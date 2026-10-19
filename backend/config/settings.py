@@ -57,6 +57,7 @@ MIDDLEWARE = [
     "apps.core.middleware.MFARequiredMiddleware",
     "apps.core.middleware.AuditContextMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    "apps.core.middleware.SessionLimitMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "axes.middleware.AxesMiddleware",
     "apps.core.middleware.ModalRedirectMiddleware",
@@ -145,8 +146,12 @@ SILENCED_SYSTEM_CHECKS = ["axes.W006"]
 # 接続元 IP（監査ログ・ロック）。Cloudflare Tunnel 経由でしか届かない本番でだけ true にする。
 TRUST_CF_CONNECTING_IP: bool = env.bool("TRUST_CF_CONNECTING_IP", default=False)
 
-# 無操作でのセッション失効（第8章）。リクエストのたびに期限を延ばす。
-SESSION_COOKIE_AGE: int = env.int("SESSION_IDLE_TIMEOUT_MINUTES", default=30) * 60
+# 無操作でのセッション失効（第8章）。リクエストのたびに期限を延ばす。ログインからの上限は
+# 延ばせない。失効の前に画面で知らせる（services/sessions.py。修正 1 回目 J8、ADR-0030。
+# NIST SP 800-63B-4 2.2.3）
+SESSION_COOKIE_AGE: int = env.int("SESSION_IDLE_TIMEOUT_MINUTES", default=60) * 60
+SESSION_ABSOLUTE_TIMEOUT: int = env.int("SESSION_ABSOLUTE_TIMEOUT_HOURS", default=12) * 3600
+SESSION_WARNING_SECONDS = 5 * 60
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 AUTH_PASSWORD_VALIDATORS = [

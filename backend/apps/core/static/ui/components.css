@@ -688,6 +688,27 @@ a.badge:hover {
   min-width: 12em;
 }
 
+/* 自動ログアウトの知らせ（修正 1 回目 J8）: 画面の下に固定して出す（影はここだけの浮いた要素と同じ） */
+.session-notice {
+  position: fixed;
+  right: var(--space-16);
+  bottom: var(--space-16);
+  left: var(--space-16);
+  z-index: 20;
+  max-width: 480px;
+  margin-left: auto;
+  padding: var(--space-12) var(--space-16);
+  background: var(--level-within-7-bg);
+  color: var(--level-within-7-fg);
+  border: 1px solid var(--popover-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-float);
+}
+
+.session-notice p {
+  margin: 0 0 var(--space-8);
+}
+
 /* モーダル（<dialog>。forms.js の initModal と、画面の中のダイアログ〔data-dialog〕） */
 .modal {
   width: min(720px, calc(100vw - 32px));

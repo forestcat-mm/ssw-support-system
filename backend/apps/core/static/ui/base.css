@@ -5,6 +5,11 @@
   box-sizing: border-box;
 }
 
+/* hidden の属性は、部品のクラス（.button の display など）より強く効かせる（JS で出し入れする部品） */
+[hidden] {
+  display: none !important;
+}
+
 html {
   font-size: 100%;
 }

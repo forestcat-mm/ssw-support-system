@@ -52,6 +52,15 @@
     </div>
   </main>
 </div>
+{% if session_timing %}{# 自動ログアウトの知らせ（forms.js の initSessionNotice。修正 1 回目 J8） #}
+<div class="session-notice" id="session-notice" role="alert" hidden data-idle="{{ session_timing.idle }}" data-warning="{{ session_timing.warning }}" data-absolute="{{ session_timing.absolute }}" data-keepalive="{% url 'accounts:keepalive' %}" data-remaining-template="{% translate 'in {minutes} min {seconds} s' %}">
+  {% csrf_token %}
+  <p data-session-state="idle">{% translate "You will be signed out soon because there has been no activity." %} <span class="mono" data-session-remaining></span></p>
+  <p data-session-state="absolute" hidden>{% translate "You will be signed out soon because the time since you signed in reaches the limit. It cannot be extended; save your work." %} <span class="mono" data-session-remaining></span></p>
+  <p data-session-state="expired" hidden>{% translate "You have been signed out. Copy anything you need, then sign in again." %} <a href="{% url 'accounts:login' %}?next={{ request.get_full_path|urlencode }}">{% translate "Sign in" %}</a></p>
+  <div class="cluster"><button class="button button--primary button--small" type="button" data-session-extend>{% translate "Extend" %}</button></div>
+</div>
+{% endif %}
 {# モーダル（forms.js の initModal。a[data-modal] のリンク先の [data-modal-content] を読み込む） #}
 <dialog class="modal" id="modal" aria-labelledby="modal-title">
   <div class="modal__header"><h2 class="modal__title" id="modal-title" data-modal-title></h2><button class="button button--neutral button--small" type="button" data-modal-close>{% translate "Close" %}</button></div>

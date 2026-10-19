@@ -235,14 +235,17 @@ class AttachmentDownloadView(View):
         return response
 
 
-@method_decorator(login_required, name="dispatch")
 class KeepAliveView(View):
     """長い入力の画面で、入力している間のセッションを延ばす（無操作の失効で入力が消えないように）。
 
     SESSION_SAVE_EVERY_REQUEST により、このリクエスト自体が操作として扱われ失効が延びる。
+    自動ログアウトの知らせの「延長する」も使う（J8）。失効した後はログインの画面に移さず 401 を返す
+    （fetch はリダイレクトをたどり、ログインの画面を成功と取り違えるため）。
     """
 
     def post(self, request: HttpRequest) -> HttpResponse:
+        if not request.user.is_authenticated:
+            return HttpResponse(status=401)  # 失効した後（画面は「ログアウトしました」を出す）
         return HttpResponse(status=204)
 
 

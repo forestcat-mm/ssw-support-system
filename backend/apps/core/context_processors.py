@@ -8,7 +8,7 @@ from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import Action
-from services import authorization
+from services import authorization, sessions
 from services.organization import organization_display_name
 
 
@@ -49,4 +49,8 @@ def ui(request: HttpRequest) -> dict[str, Any]:
         prefixes = (item.match,) if isinstance(item.match, str) else item.match
         active = current == item.url_name if not item.match else current.startswith(prefixes)
         items.append({"label": item.label, "url": url, "active": active})
-    return {"nav_items": items, "organization_name": organization_display_name()}
+    return {
+        "nav_items": items,
+        "organization_name": organization_display_name(),
+        "session_timing": sessions.timing(request.session),  # 自動ログアウトの知らせ（J8）
+    }

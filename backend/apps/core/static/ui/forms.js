@@ -16,7 +16,7 @@ document.addEventListener("submit", (event) => {
 });
 
 // 長い入力の画面（form[data-keepalive]）: 入力している間は 5 分おきにセッションを延ばす。
-// 無操作 30 分のセッション失効で、入力途中の内容が消えるのを防ぐ（入力していなければ延ばさない）。
+// 無操作のセッション失効（既定 60 分）で、入力途中の内容が消えるのを防ぐ（入力していなければ延ばさない）。
 const KEEPALIVE_INTERVAL_MS = 5 * 60 * 1000;
 const initializers = [];
 const initKeepalive = (root) => root.querySelectorAll("form[data-keepalive]").forEach((form) => {
@@ -29,6 +29,8 @@ const initKeepalive = (root) => root.querySelectorAll("form[data-keepalive]").fo
       method: "POST",
       credentials: "same-origin",
       headers: { "X-CSRFToken": token ? token.value : "" },
+    }).then((response) => {
+      if (response.ok) window.dispatchEvent(new Event("session:touched"));
     });
   });
 });
@@ -428,6 +430,7 @@ const initModal = () => {
       window.location.assign(url);
       return;
     }
+    window.dispatchEvent(new Event("session:touched")); // サーバーに届いた（無操作の失効が延びた）
     show(await response.text(), url);
   };
   document.addEventListener("click", async (event) => {
@@ -473,7 +476,81 @@ const initModal = () => {
   });
 };
 
+// 自動ログアウトの知らせ（修正 1 回目 J8。#session-notice）: 最後にサーバーに届いた時から無操作の失効までの
+// 残りと、ログインからの上限までの残りの早いほうを数え、残りが data-warning 秒になったら知らせる。
+// 無操作の失効なら「延長する」で延長の通信を送る（上限は延ばせないのでボタンを出さない）。
+// 時間が来たら「ログアウトしました」に変える（画面は移さない。入力の途中の文字を写せるように）。
+const initSessionNotice = () => {
+  const notice = document.getElementById("session-notice");
+  if (!notice) return;
+  const idle = Number(notice.dataset.idle) * 1000;
+  const warning = Number(notice.dataset.warning) * 1000;
+  const absoluteEnd = Date.now() + Number(notice.dataset.absolute) * 1000;
+  const extend = notice.querySelector("[data-session-extend]");
+  const token = notice.querySelector('input[name="csrfmiddlewaretoken"]');
+  let lastContact = Date.now();
+  let expired = false;
+  const state = (name) => {
+    notice.querySelectorAll("[data-session-state]").forEach((item) => {
+      item.hidden = item.dataset.sessionState !== name;
+    });
+    extend.hidden = name !== "idle";
+  };
+  const remaining = (ms) => {
+    const total = Math.max(0, Math.ceil(ms / 1000));
+    return notice.dataset.remainingTemplate
+      .replace("{minutes}", String(Math.floor(total / 60)))
+      .replace("{seconds}", String(total % 60));
+  };
+  const tick = () => {
+    if (expired) return;
+    const now = Date.now();
+    const idleEnd = lastContact + idle;
+    const end = Math.min(idleEnd, absoluteEnd);
+    if (end <= now) {
+      expired = true;
+      state("expired");
+      notice.hidden = false;
+      return;
+    }
+    if (end - now > warning) {
+      notice.hidden = true;
+      return;
+    }
+    state(absoluteEnd <= idleEnd ? "absolute" : "idle");
+    notice.querySelectorAll("[data-session-remaining]").forEach((item) => {
+      item.textContent = remaining(end - now);
+    });
+    notice.hidden = false;
+  };
+  window.addEventListener("session:touched", () => {
+    lastContact = Date.now();
+    tick();
+  });
+  extend.addEventListener("click", async () => {
+    try {
+      const response = await fetch(notice.dataset.keepalive, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "X-CSRFToken": token ? token.value : "" },
+      });
+      if (response.ok) {
+        window.dispatchEvent(new Event("session:touched"));
+        return;
+      }
+    } catch {
+      // 通信できないときは時間切れと同じ扱い
+    }
+    expired = true;
+    state("expired");
+    notice.hidden = false;
+  });
+  tick();
+  window.setInterval(tick, 1000);
+};
+
 const initAll = (root) => initializers.forEach((init) => init(root));
 initAll(document);
 initModal();
 initUnsavedLinks();
+initSessionNotice();
