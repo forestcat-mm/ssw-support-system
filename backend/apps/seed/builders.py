@@ -170,14 +170,16 @@ def seed_staff(ctx: SeedContext) -> None:
     # （パスワードは設定しない。changepassword かパスワードの再設定〔T25〕で設定する）
     login_user = _login_user(DUMMY_USERNAME, "佐藤", "花子")
     login_user_2 = _login_user(DUMMY_USERNAME_2, "鈴木", "次郎")
-    for name, kana, manager, user in (
-        (f"山田 一郎{DUMMY_MARK}", "ヤマダ イチロウ", True, None),
-        (f"佐藤 花子{DUMMY_MARK}", "サトウ ハナコ", False, login_user),
-        (f"鈴木 次郎{DUMMY_MARK}", "スズキ ジロウ", False, login_user_2),
+    # 役職は第1-17号の「氏名（役職）」・Ⅲ欄７の役職に出る（修正 1 回目 A6 の確かめ）
+    for name, kana, position, manager, user in (
+        (f"山田 一郎{DUMMY_MARK}", "ヤマダ イチロウ", "所長", True, None),
+        (f"佐藤 花子{DUMMY_MARK}", "サトウ ハナコ", "主任", False, login_user),
+        (f"鈴木 次郎{DUMMY_MARK}", "スズキ ジロウ", "支援担当", False, login_user_2),
     ):
         staff = Staff.objects.create(
             name=name,
             name_kana=kana,
+            position=position,
             is_support_manager=manager,
             is_support_staff=True,
             employment_type=EmploymentType.FULL_TIME,
