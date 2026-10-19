@@ -28,6 +28,7 @@ from decimal import Decimal
 from typing import Any
 from zoneinfo import ZoneInfo
 
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.base import ContentFile
 from django.db import models, transaction
@@ -52,6 +53,8 @@ from apps.core.models import (
 )
 from apps.forms_engine.models import GeneratedDocument
 from apps.hosts.models import (
+    CareerPlanLevel,
+    CareerPlanVersion,
     FeeTiming,
     HostCooperationConfirmation,
     HostMembership,
@@ -69,6 +72,7 @@ from apps.support.models import (
     InterviewPreference,
     PeriodicInterview,
 )
+from apps.support.models import SupportPlan as SupportPlanOf
 from apps.workers.models import (
     ApplicationType,
     ForeignWorker,
@@ -992,6 +996,147 @@ def conflicts() -> list[str]:
         ).exclude(pk__in=ledger.filter(content_type__model="foreignworker"))
     ]
     return found
+
+
+# --- --replace: 画面で作った本線と同じ記録を消す（開発用。DEBUG のときだけ） --------------------
+
+
+def replacement_rows() -> dict[type[models.Model], list[int]]:
+    """台帳の外の、本線と同じ名前の受入れ機関・外国人と、それに紐づく行（種類ごとの ID）。
+
+    支援のデータ（計画・記録・面談・相談・交付・生成物・外国人の添付）と届出タスクは、
+    builders.delete_rows が外国人・受入れ機関から辿って消す。
+    """
+    from apps.contracts.models import EmploymentContractShift
+    from apps.hosts.models import CareerPlan
+
+    ledger = SeedObject.all_objects.values("object_id")
+    hosts = list(
+        HostOrganization.objects.filter(
+            models.Q(name=HOST_NAME) | models.Q(corporate_number="7123456789012")
+        )
+        .exclude(pk__in=ledger.filter(content_type__model="hostorganization"))
+        .values_list("pk", flat=True)
+    )
+    people = list(
+        ForeignWorker.objects.filter(name_romaji=WORKER_ROMAJI)
+        .exclude(pk__in=ledger.filter(content_type__model="foreignworker"))
+        .values_list("pk", flat=True)
+    )
+    contracts_ = EmploymentContract.objects.filter(
+        models.Q(worker_id__in=people) | models.Q(host_organization_id__in=hosts)
+    )
+    others = contracts_.exclude(worker_id__in=people)
+    if (
+        others.exists()
+        or SupportPlanOf.objects.filter(host_organization_id__in=hosts)
+        .exclude(worker_id__in=people)
+        .exists()
+    ):
+        raise ScenarioError(
+            "Other foreign workers have contracts or support plans with the host organization; "
+            "it is not deleted."
+        )
+    versions = EmploymentContractVersion.objects.filter(contract__in=contracts_)
+    plans = CareerPlan.objects.filter(host_organization_id__in=hosts)
+    support = SupportContract.objects.filter(host_organization_id__in=hosts)
+    memberships = HostMembership.objects.filter(host_organization_id__in=hosts)
+    cooperation = HostCooperationConfirmation.objects.filter(host_organization_id__in=hosts)
+
+    def ids(queryset: models.QuerySet[Any]) -> list[int]:
+        return list(queryset.values_list("pk", flat=True))
+
+    attachment_targets = models.Q(pk__in=[])
+    for model, queryset in (
+        (HostOrganization, HostOrganization.objects.filter(pk__in=hosts)),
+        (HostMembership, memberships),
+        (HostCooperationConfirmation, cooperation),
+        (SupportContract, support),
+        (EmploymentContract, contracts_),
+        (EmploymentContractVersion, versions),
+    ):
+        attachment_targets |= models.Q(
+            content_type=ContentType.objects.get_for_model(model),
+            object_id__in=queryset.values("pk"),
+        )
+    rows: dict[type[models.Model], list[int]] = {
+        HostOrganization: hosts,
+        HostSite: ids(HostSite.objects.filter(host_organization_id__in=hosts)),
+        HostMembership: ids(memberships),
+        HostCooperationConfirmation: ids(cooperation),
+        SupportContract: ids(support),
+        CareerPlan: ids(plans),
+        CareerPlanVersion: ids(CareerPlanVersion.objects.filter(plan__in=plans)),
+        CareerPlanLevel: ids(CareerPlanLevel.objects.filter(version__plan__in=plans)),
+        EmploymentContract: ids(contracts_),
+        EmploymentContractVersion: ids(versions),
+        EmploymentContractAllowance: ids(
+            EmploymentContractAllowance.objects.filter(version__in=versions)
+        ),
+        EmploymentContractDeduction: ids(
+            EmploymentContractDeduction.objects.filter(version__in=versions)
+        ),
+        EmploymentContractShift: ids(EmploymentContractShift.objects.filter(version__in=versions)),
+        ResidenceRecord: ids(ResidenceRecord.objects.filter(worker_id__in=people)),
+        PassportRecord: ids(PassportRecord.objects.filter(worker_id__in=people)),
+        WorkerAddress: ids(WorkerAddress.objects.filter(worker_id__in=people)),
+        WorkerContact: ids(WorkerContact.objects.filter(worker_id__in=people)),
+        ForeignWorker: people,
+        Attachment: ids(Attachment.objects.filter(attachment_targets)),
+    }
+    return {model: values for model, values in rows.items() if values}
+
+
+def replacement_counts(rows: dict[type[models.Model], list[int]]) -> dict[str, int]:
+    """消す行の件数（種類ごと。支援のデータ・生成物・届出タスクは外国人・受入れ機関から数える）。"""
+    from apps.filings.models import Filing
+    from apps.support.models import (
+        Briefing,
+        Consultation,
+        DocumentDelivery,
+        SupportPlan,
+        SupportRecord,
+    )
+
+    people = rows.get(ForeignWorker, [])
+    hosts = rows.get(HostOrganization, [])
+    counts = {model._meta.label: len(values) for model, values in rows.items()}
+    worker_files = Attachment.objects.filter(
+        content_type__model__in=["foreignworker", "supportrecord", "documentdelivery"],
+        object_id__in=[
+            *people,
+            *SupportRecord.objects.filter(worker_id__in=people).values_list("pk", flat=True),
+            *DocumentDelivery.objects.filter(worker_id__in=people).values_list("pk", flat=True),
+        ],
+    )
+    filings = models.Q(worker_id__in=people)
+    for model, values in rows.items():
+        filings |= models.Q(
+            content_type=ContentType.objects.get_for_model(model), object_id__in=values
+        )
+    extra = {
+        "support.SupportPlan": SupportPlan.objects.filter(worker_id__in=people).count(),
+        "support.SupportRecord": SupportRecord.objects.filter(worker_id__in=people).count(),
+        "support.PeriodicInterview": PeriodicInterview.objects.filter(worker_id__in=people).count(),
+        "support.Consultation": Consultation.objects.filter(worker_id__in=people).count(),
+        "support.Briefing": Briefing.objects.filter(worker_id__in=people).count(),
+        "support.DocumentDelivery": DocumentDelivery.objects.filter(worker_id__in=people).count(),
+        "forms_engine.GeneratedDocument": GeneratedDocument.objects.filter(
+            models.Q(worker_id__in=people)
+            | models.Q(content_type__model="hostorganization", object_id__in=hosts)
+        ).count(),
+        "core.Attachment (worker and support)": worker_files.count(),
+        "filings.Filing": Filing.objects.filter(filings).count(),
+    }
+    return counts | {label: count for label, count in extra.items() if count}
+
+
+def replace_existing(rows: dict[type[models.Model], list[int]]) -> int:
+    """画面で作った本線と同じ記録を消す（開発用。DEBUG のときだけ。監査ログは消さない）。"""
+    if not settings.DEBUG:
+        raise ScenarioError("--replace is only for development (DEBUG=True).")
+    builders.ensure_allowed()
+    return builders.delete_rows(rows)
 
 
 @transaction.atomic

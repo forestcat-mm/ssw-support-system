@@ -1135,8 +1135,21 @@ def reset(
         model = entry.content_type.model_class()
         if model is not None:
             by_model.setdefault(model, []).append(entry.object_id)
-    # 支援のデータは台帳の外国人に紐づくものをまとめて消す（届出タスクより先。定期面談の組が
-    # 届出タスクを参照しているため）。手で足した記録も、ダミーの外国人のものなら消える
+    deleted = delete_rows(by_model)
+    SeedObject.all_objects.filter(scope=scope).delete()
+    return deleted + deleted_scenario
+
+
+def delete_rows(by_model: dict[type[models.Model], list[int]]) -> int:
+    """種類ごとの ID の行を、紐づく支援のデータ・届出タスク・添付のファイルとあわせて消す。
+
+    開発用。
+
+    台帳の行（reset）と、seed_scenario の --replace（画面で作った本線と同じ記録）から使う。
+    監査ログは消さない。
+    """
+    # 支援のデータは外国人に紐づくものをまとめて消す（届出タスクより先。定期面談の組が
+    # 届出タスクを参照しているため）。手で足した記録も、その外国人のものなら消える
     deleted_support = support_builders.delete_support_data(by_model.get(ForeignWorker, []))
     deleted_support += support_builders.delete_host_documents(by_model.get(HostOrganization, []))
     targets = [(ContentType.objects.get_for_model(model), ids) for model, ids in by_model.items()]
@@ -1146,7 +1159,7 @@ def reset(
     deleted = Filing.objects.filter(filings_query).delete()[0]
     for attachment in Attachment.objects.filter(pk__in=by_model.get(Attachment, [])):
         attachment.file.delete(save=False)
-    # 報酬の説明は版ごとに 1 つ（画面で入れ直したものも、ダミーの版のものなら消す）
+    # 報酬の説明は版ごとに 1 つ（画面で入れ直したものも、その版のものなら消す）
     deleted += ContractWageExplanation.objects.filter(
         version_id__in=by_model.get(EmploymentContractVersion, [])
     ).delete()[0]
@@ -1154,5 +1167,4 @@ def reset(
         ids = by_model.get(model, [])
         if ids:
             deleted += model._base_manager.filter(pk__in=ids).delete()[0]
-    SeedObject.all_objects.filter(scope=scope).delete()
-    return deleted + deleted_support + deleted_scenario
+    return deleted + deleted_support

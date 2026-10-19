@@ -15,7 +15,7 @@ from django.utils import timezone
 from pytest_django.fixtures import Settings
 
 from apps.contracts.models import ContractWageExplanation
-from apps.core.models import Attachment, Role, User, UserRole
+from apps.core.models import Attachment, AuditAction, AuditLog, Role, User, UserRole
 from apps.forms_engine.models import GeneratedDocument
 from apps.hosts.models import HostOrganization, SupportContractFee
 from apps.seed import builders, scenario
@@ -188,6 +188,12 @@ def test_with_docs_generates_and_signs() -> None:
     )
     host = HostOrganization.objects.get(name=scenario.HOST_NAME)
     assert GeneratedDocument.objects.filter(object_id=host.pk, template__form_id="5-4").exists()
+    # 生成日はその場面の日付（seed の中だけ「今」をずらす）。監査ログの日時は実際の時刻
+    plan = documents.get(template__form_id="1-17")
+    assert plan.generated_at is not None
+    assert timezone.localdate(plan.generated_at) == date(2026, 7, 7)
+    log = AuditLog.objects.filter(action=AuditAction.GENERATE, object_id=str(plan.pk)).get()
+    assert timezone.localdate(log.occurred_at) == timezone.localdate()
 
 
 def test_records_made_on_the_screens_stop_the_seed() -> None:
@@ -203,3 +209,51 @@ def test_records_made_on_the_screens_stop_the_seed() -> None:
         seed_scenario()
     assert HostOrganization.objects.filter(name=scenario.HOST_NAME).count() == 1
     assert not SeedObject.scenario_objects.exists()
+
+
+def test_replace_is_refused_without_debug(settings: Settings) -> None:
+    settings.DEBUG = False
+    with pytest.raises(CommandError, match="only for development"):
+        seed_scenario("--replace", "--yes")
+
+
+def test_replace_deletes_the_records_made_on_the_screens() -> None:
+    """画面で作った本線と同じ記録（台帳の外）を、紐づく記録ごと消してから作る。
+
+    ダミーデータと監査ログは消さない。
+    """
+    seed_scenario()
+    old_host = HostOrganization.objects.get(name=scenario.HOST_NAME)
+    old_worker = ForeignWorker.objects.get(name_romaji=scenario.WORKER_ROMAJI)
+    SeedObject.scenario_objects.all().delete()  # 台帳から外す＝画面で作った記録と同じ
+    dummy_rows = SeedObject.objects.count()
+    dummy_workers = ForeignWorker.objects.exclude(pk=old_worker.pk).count()
+    audit_rows = AuditLog.objects.count()
+    output = seed_scenario("--replace", "--yes")
+    assert "Records made on the screens to delete (by type):" in output
+    assert "- hosts.HostOrganization: 1" in output and "- workers.ForeignWorker: 1" in output
+    assert "- support.SupportRecord:" in output and "- filings.Filing:" in output
+    assert not HostOrganization.objects.filter(pk=old_host.pk).exists()
+    assert not ForeignWorker.objects.filter(pk=old_worker.pk).exists()
+    assert HostOrganization.objects.filter(name=scenario.HOST_NAME).count() == 1
+    assert ForeignWorker.objects.filter(name_romaji=scenario.WORKER_ROMAJI).count() == 1
+    assert SeedObject.objects.count() == dummy_rows
+    assert ForeignWorker.objects.count() == dummy_workers + 1
+    assert AuditLog.objects.count() >= audit_rows  # 監査ログは消さない（作った分が増える）
+
+
+def test_audit_log_keeps_the_real_time_inside_as_of() -> None:
+    """「今」をずらしても、監査ログの日時は実際の時刻。
+
+    AuditLog の既定は、定義のときの timezone.now の関数（ずらした関数ではない）。
+    """
+    real_day = timezone.localdate()
+    worker = ForeignWorker.objects.first()
+    assert worker is not None
+    with scenario.as_of(date(2026, 7, 7)):
+        assert timezone.localdate() == date(2026, 7, 7)
+        worker.name_kana = "テスト"
+        worker.save()
+    log = AuditLog.objects.filter(object_id=str(worker.pk), action=AuditAction.UPDATE).latest("pk")
+    assert timezone.localdate(log.occurred_at) == real_day
+    assert timezone.localdate() == real_day

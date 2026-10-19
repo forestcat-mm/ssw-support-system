@@ -5,11 +5,17 @@
 - 作成済みなら何もしない。--reset でシナリオの記録だけを消して作り直す（ダミーデータは消さない）。
 - seed_dummy の後に流す（担当者 dummy_tanto・自機関を使う）。
 - DEBUG かつ ALLOW_DUMMY_DATA のときだけ動く。
+- --replace（DEBUG のときだけ）: 台帳の外の、本線と同じ名前の受入れ機関（さくら台フーズ株式会社）・
+  外国人（WANG LINA）と、紐づく記録を消してから作る。消す前に件数を種類ごとに出して確かめる
+  （--yes で確かめを省く）。消すのと作るのは 1 つのトランザクションで、作れなければ消さない。
+  監査ログとほかのデータは消さない。
 """
 
 from typing import Any
 
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError, CommandParser
+from django.db import transaction
 
 from apps.seed import builders, scenario
 
@@ -32,22 +38,58 @@ class Command(BaseCommand):
         parser.add_argument(
             "--reset", action="store_true", help="Delete the scenario records and recreate them."
         )
+        parser.add_argument(
+            "--replace",
+            action="store_true",
+            help="Delete the same host organization and foreign worker made on the screens, with "
+            "their records, before creating the scenario (development only).",
+        )
+        parser.add_argument(
+            "--yes", action="store_true", help="Do not ask before deleting with --replace."
+        )
 
     def handle(self, *args: Any, **options: Any) -> None:
+        if options["replace"] and not settings.DEBUG:
+            raise CommandError("--replace is only for development (DEBUG=True).")
         try:
-            builders.ensure_allowed()
-            if options["reset"]:
-                self.stdout.write(f"deleted scenario rows: {scenario.reset()}")
-            elif scenario.exists():
-                self.stdout.write(
-                    self.style.WARNING(
-                        "The scenario records already exist. Run with --reset to recreate them."
-                    )
-                )
-                return
-            result = scenario.run(options["until"], with_docs=options["with_docs"])
+            with transaction.atomic():
+                self.create(options)
         except (builders.SeedNotAllowedError, scenario.ScenarioError) as error:
             raise CommandError(str(error)) from error
+
+    def replace(self, options: dict[str, Any]) -> bool:
+        """台帳の外の同じ記録を、件数を見せて確かめてから消す。やめたら False。"""
+        rows = scenario.replacement_rows()
+        counts = scenario.replacement_counts(rows)
+        if not counts:
+            self.stdout.write("No records made on the screens to replace.")
+            return True
+        self.stdout.write("Records made on the screens to delete (by type):")
+        for label, count in counts.items():
+            self.stdout.write(f"- {label}: {count}")
+        if not options["yes"]:
+            answer = input("Delete these records and create the scenario? [y/N] ")
+            if answer.strip().lower() not in ("y", "yes"):
+                self.stdout.write("Cancelled. Nothing was deleted.")
+                return False
+        deleted = scenario.replace_existing(rows)
+        self.stdout.write(self.style.WARNING(f"deleted records made on the screens: {deleted}"))
+        return True
+
+    def create(self, options: dict[str, Any]) -> None:
+        builders.ensure_allowed()
+        if options["replace"] and not self.replace(options):
+            return
+        if options["reset"]:
+            self.stdout.write(f"deleted scenario rows: {scenario.reset()}")
+        elif scenario.exists():
+            self.stdout.write(
+                self.style.WARNING(
+                    "The scenario records already exist. Run with --reset to recreate them."
+                )
+            )
+            return
+        result = scenario.run(options["until"], with_docs=options["with_docs"])
         sections = ", ".join(f"{n} {scenario.SECTIONS[n]}" for n in range(1, result.until + 1))
         self.stdout.write(
             self.style.SUCCESS(
