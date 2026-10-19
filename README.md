@@ -57,21 +57,41 @@ make seed DATE=2026-10-16     # 基準日を指定する（同じ基準日なら
 
 ## テスト・検査
 
+検査は 3 つの段に分ける（修正 1 回目の後）。
+
+| 段 | いつ | 中身 |
+|---|---|---|
+| `make check-quick T=…` | 直すたびに | lint と、`T` で指定したファイル・アプリのテスト（slow を除く。例: `make check-quick T="tests/core tests/workers"`。`T` を省くと slow 以外の全部） |
+| `make test` | タスクのコミットのたびに | 単体テストの全部を並列で（pytest-xdist の `-n auto`。slow を含む） |
+| `make checks` | push の前に 1 回 | lint・test・e2e・gate2・gate3 を順に流す |
+
+- **落ちたテストを直したとき**は `make test-lf`（前回落ちたテストだけ）で確かめ、全部の流し直しは最後の `make checks` の 1 回にまとめる。
+- **gate2 の基準日**: `make checks` の gate2 は既定で 1 つの基準日（2026-10-17）。期限の計算・届出の起票にさわったときだけ、`make checks GATE2_DATES="2026-10-17 2026-11-30 2026-12-28"` で 3 つの基準日にする。gate3 は既定で流す（`GATE3=` で外す）。
+- **slow の印**: LibreOffice で PDF に変換するモジュールと、ダミーデータを丸ごと作る（`seeded` の fixture・seed のテスト）テストに付く（`tests/conftest.py` の `SLOW_MODULES`・`SLOW_FIXTURES`）。空の様式の変換の結果は、テストのセッション（並列のときはワーカー）ごとに 1 回だけ作って使い回す（`tests/forms_engine/pdfcheck.py`）。
+- **テスト用の DB**: 使い回す（`--reuse-db`。ワーカーごとに `test_…_gw0` などの別の DB）。新しいマイグレーションは流れる。マイグレーションを直した・消したとき、DB がおかしいときは `make test-db`（作り直して全部を流す）。
+- **e2e**: 並列で流す（`E2E_WORKERS`。既定 4）。ワーカーごとにライブサーバーと DB が別になる。
+
 ```
-make test           # pytest（先に make up）
+make check-quick T=tests/core  # 直すたびに（lint と、指定したテストの slow 以外）
+make test           # 単体テストの全部を並列で（先に make up）
+make test-lf        # 前回落ちたテストだけ
+make test-db        # テスト用の DB を作り直して全部（マイグレーションを直したとき）
 make lint           # ruff check / ruff format --check / mypy（strict）
 make format         # 整形と自動修正
-make e2e            # 通しのテスト（Playwright・Chromium。e2e コンテナ。初回はイメージの作成に時間がかかる）
+make e2e            # 通しのテスト（Playwright・Chromium。e2e コンテナ。並列。初回はイメージの作成に時間がかかる）
 make gate2          # 段階2の受け入れ確認（seed → 担当者 2 人が定期面談と相談を画面で記録。DATE=YYYY-MM-DD で基準日）
 make gate3          # 段階3の受け入れ確認（seed → seed_documents → 署名・生成・日中併記・警告・生成不可を画面で。DATE=YYYY-MM-DD で基準日）
-make checks        # lint・test・e2e を順に流し、終了コードと === DONE を .checks/checks.log に書く
+make checks         # push の前に: lint・test・e2e・gate2・gate3 を順に流し、終了コードと === DONE を .checks/checks.log に書く
 make design-shots   # 見本画面（/ui/）のスクリーンショットを docs/design/ に保存する
 make messages       # UI 文言を .po に抽出し .mo にコンパイルする（両方をコミットする）
 ```
 
-まとめて流すときは `make checks`（lint・test・e2e。`GATE2_DATES="2026-10-17 2026-11-30 2026-12-28"` を付けると gate2 も、`GATE3=1` を付けると gate3 も）。`tools/run_checks.sh` が検査を順に流し、`.checks/checks.log` に検査ごとの開始・終了の時刻・件数・終了コードと、最後に必ず `=== DONE` を書く（出力そのものは `.checks/checks.log.full`）。1 件の上限は `CHECK_LIMIT`（秒。既定 900）で、超えたら止めて終了コード 124 にする。別のシェルから待つときは、`=== DONE` の行と上限の時間（例: 30 分）の両方で待つ。前の実行が終わる前に次を始めない（DB と e2e のコンテナを取り合う）。
+`tools/run_checks.sh` が `make checks` の検査を順に流し、`.checks/checks.log` に、検査ごとの開始・終了の時刻・件数・終了コードと、最後に必ず `=== DONE` を書く（出力そのものは `.checks/checks.log.full`）。
+- 1 件の上限は `CHECK_LIMIT`（秒。既定 900）。超えたら止めて、終了コード 124 にする。
+- 別のシェルから待つときは、`=== DONE` の行と上限の時間（例: 30 分）の両方で待つ。
+- 前の実行が終わる前に次を始めない（DB と e2e のコンテナを取り合う）。
 
-コミットの前に `make test`・`make lint`・`make e2e` を通す。`make gate2`・`make gate3` は通常の `make e2e` では飛ばす（seed を入れて 27 人分の面談を記録するため時間がかかる）。基準日を変えて流すときは `make gate2 DATE=2026-12-28` のようにする（画面の「今日」も基準日になる）。コミットは 1 タスク 1 コミットで、接頭辞は `feat: ` / `fix: ` / `chore: ` / `docs: `。
+`make gate2`・`make gate3` は、通常の `make e2e` では飛ばす（seed を入れて、画面で記録するため時間がかかる）。基準日を変えて流すときは `make gate2 DATE=2026-12-28` のようにする（画面の「今日」も基準日になる）。コミットは 1 タスク 1 コミットで、接頭辞は `feat: ` / `fix: ` / `chore: ` / `docs: `。
 
 ## よく使うそのほかのコマンド
 
