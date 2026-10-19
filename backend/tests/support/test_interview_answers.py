@@ -247,7 +247,12 @@ def test_old_records_without_answers_still_work(support_staff_client: Client, wo
     )
     detail = support_staff_client.get(f"/workers/{worker.pk}/support/interviews/{saved.pk}/")
     assert detail.status_code == 200
-    assert detail.content.decode().count("質問の回答はありません（質問の回答を記録できるようになる前の記録）") == 3
+    assert (
+        detail.content.decode().count(
+            "質問の回答はありません（質問の回答を記録できるようになる前の記録）"
+        )
+        == 3
+    )
     result = support_interviews.void_interview(saved, by=None, reason="誤り")
     assert result.tasks_reverted
     assert not InterviewAnswer.objects.exists()

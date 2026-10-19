@@ -13,7 +13,7 @@
 from __future__ import annotations
 
 import enum
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass
 from datetime import date
 from typing import Any
@@ -523,6 +523,96 @@ def _on_contract_concluded(
 # --- 日次の起票 ----------------------------------------------------------------------
 
 
+@dataclass(frozen=True)
+class DeadlineCandidate:
+    """期限の到来で起票するタスクの元（日次の起票と、ダッシュボードの今後の予定で共通）。"""
+
+    kind: FilingKind
+    target: models.Model
+    basis_on: date
+    trigger: Trigger
+
+
+def deadline_candidates() -> Iterator[DeadlineCandidate]:
+    """在留期限・旅券・自機関の登録・加入の証明・支援委託契約・雇用契約の期間満了の期限。
+
+    受付・着手の日にかかわらず、今ある期限をすべて返す（起票するかは呼び出す側が決める）。
+    無効化した外国人の期限は返さない。
+    """
+    # 無効化した外国人は対象にしない（念のため create_if_active でも外す）
+    for latest in LatestResidenceRecord.objects.select_related("record", "worker").filter(
+        worker__status=WorkerStatus.RESIDING, worker__deactivated_at__isnull=True
+    ):
+        yield DeadlineCandidate(
+            FilingKind.RESIDENCE_RENEWAL,
+            latest.record,
+            latest.record.expires_on,
+            Trigger.RESIDENCE_EXPIRY,
+        )
+
+    for latest_passport in LatestPassportRecord.objects.select_related("record").filter(
+        worker__status__in=[WorkerStatus.PRE_ENTRY, WorkerStatus.RESIDING],
+        worker__deactivated_at__isnull=True,
+    ):
+        yield DeadlineCandidate(
+            FilingKind.PASSPORT_CHECK,
+            latest_passport.record,
+            latest_passport.record.expires_on,
+            Trigger.PASSPORT_EXPIRY,
+        )
+
+    organization = Organization.objects.first()
+    if organization is not None:
+        yield DeadlineCandidate(
+            FilingKind.REGISTRATION_RENEWAL,
+            organization,
+            organization.registration_expires_on,
+            Trigger.REGISTRATION_EXPIRY,
+        )
+
+    for membership in HostMembership.objects.filter(valid_until__isnull=False):
+        assert membership.valid_until is not None
+        yield DeadlineCandidate(
+            FilingKind.MEMBERSHIP_RENEWAL,
+            membership,
+            membership.valid_until,
+            Trigger.DOCUMENT_EXPIRY,
+        )  # 業務画面の保存のときは sync_membership（同じ起票。二重にはならない）
+    for attachment in _latest_attachments_with_expiry():
+        assert attachment.valid_until is not None
+        yield DeadlineCandidate(
+            FilingKind.MEMBERSHIP_RENEWAL,
+            attachment,
+            attachment.valid_until,
+            Trigger.DOCUMENT_EXPIRY,
+        )
+
+    for support_contract in SupportContract.objects.filter(
+        ends_on__isnull=False, terminated_on__isnull=True
+    ):
+        assert support_contract.ends_on is not None
+        if not _support_contract_renewed(support_contract):
+            yield DeadlineCandidate(
+                FilingKind.SUPPORT_CONTRACT_RENEWAL,
+                support_contract,
+                support_contract.ends_on,
+                Trigger.SUPPORT_CONTRACT_END,
+            )  # 業務画面の保存のときは sync_support_contracts
+
+    for contract in EmploymentContract.objects.filter(
+        terminated_on__isnull=True,
+        current_ends_on__isnull=False,
+        worker__deactivated_at__isnull=True,
+    ):
+        assert contract.current_ends_on is not None
+        yield DeadlineCandidate(
+            FilingKind.CONTRACT_EXPIRY_CHECK,
+            contract,
+            contract.current_ends_on,
+            Trigger.CONTRACT_EXPIRY,
+        )
+
+
 @dataclass
 class ScheduledResult:
     created: list[Filing]
@@ -542,78 +632,9 @@ def create_scheduled(today: date, *, by: User | None = None) -> ScheduledResult:
         else:
             result.existing += 1
 
-    # 無効化した外国人は対象にしない（念のため create_if_active でも外す）
-    for latest in LatestResidenceRecord.objects.select_related("record", "worker").filter(
-        worker__status=WorkerStatus.RESIDING, worker__deactivated_at__isnull=True
-    ):
-        add(
-            FilingKind.RESIDENCE_RENEWAL,
-            latest.record,
-            latest.record.expires_on,
-            Trigger.RESIDENCE_EXPIRY,
-        )
-
-    for latest_passport in LatestPassportRecord.objects.select_related("record").filter(
-        worker__status__in=[WorkerStatus.PRE_ENTRY, WorkerStatus.RESIDING],
-        worker__deactivated_at__isnull=True,
-    ):
-        add(
-            FilingKind.PASSPORT_CHECK,
-            latest_passport.record,
-            latest_passport.record.expires_on,
-            Trigger.PASSPORT_EXPIRY,
-        )
-
+    for candidate in deadline_candidates():
+        add(candidate.kind, candidate.target, candidate.basis_on, candidate.trigger)
     organization = Organization.objects.first()
-    if organization is not None:
-        add(
-            FilingKind.REGISTRATION_RENEWAL,
-            organization,
-            organization.registration_expires_on,
-            Trigger.REGISTRATION_EXPIRY,
-        )
-
-    for membership in HostMembership.objects.filter(valid_until__isnull=False):
-        assert membership.valid_until is not None
-        add(
-            FilingKind.MEMBERSHIP_RENEWAL,
-            membership,
-            membership.valid_until,
-            Trigger.DOCUMENT_EXPIRY,
-        )  # 業務画面の保存のときは sync_membership（同じ起票。二重にはならない）
-    for attachment in _latest_attachments_with_expiry():
-        assert attachment.valid_until is not None
-        add(
-            FilingKind.MEMBERSHIP_RENEWAL,
-            attachment,
-            attachment.valid_until,
-            Trigger.DOCUMENT_EXPIRY,
-        )
-
-    for support_contract in SupportContract.objects.filter(
-        ends_on__isnull=False, terminated_on__isnull=True
-    ):
-        assert support_contract.ends_on is not None
-        if not _support_contract_renewed(support_contract):
-            add(
-                FilingKind.SUPPORT_CONTRACT_RENEWAL,
-                support_contract,
-                support_contract.ends_on,
-                Trigger.SUPPORT_CONTRACT_END,
-            )  # 業務画面の保存のときは sync_support_contracts
-
-    for contract in EmploymentContract.objects.filter(
-        terminated_on__isnull=True,
-        current_ends_on__isnull=False,
-        worker__deactivated_at__isnull=True,
-    ):
-        assert contract.current_ends_on is not None
-        add(
-            FilingKind.CONTRACT_EXPIRY_CHECK,
-            contract,
-            contract.current_ends_on,
-            Trigger.CONTRACT_EXPIRY,
-        )
 
     for worker, basis_on in _workers_due_for_interview(today):
         add(FilingKind.PERIODIC_INTERVIEW, worker, basis_on, Trigger.INTERVIEW_CYCLE)

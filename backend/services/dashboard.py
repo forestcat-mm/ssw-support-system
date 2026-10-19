@@ -163,3 +163,112 @@ def dashboard(query: DashboardQuery, today: datetime.date) -> DashboardResult:
     if query.level is not None:
         rows = [row for row in rows if row.level is query.level]
     return DashboardResult(rows=rows, level_counts=counts, awaiting_receipt=awaiting)
+
+
+# --- 担当者なし・今後の予定（修正 1 回目 A3）------------------------------------------------
+
+UPCOMING_MONTHS = 6  # 今後の予定は今日から 6 か月先の期限まで（A3-D1）
+
+
+def unassigned(query: DashboardQuery, today: datetime.date) -> list[FilingRow]:
+    """担当者の無い、開いているタスク（受入れ機関の加入・支援委託契約の更新など。A3-D2）。
+
+    担当者で絞った一覧（自分の担当など）には入らないので、別の区分にして全員に出す。全員・未割当で
+    絞った一覧には入っているので、そのときは空を返す。
+    """
+    if query.assignee_id is None:
+        return []
+    listed = base_queryset().filter(assignee__isnull=True, status__in=OPEN_STATUSES)
+    if query.kind:
+        listed = listed.filter(kind=query.kind)
+    if query.filer:
+        kinds = [k for k, d in filings.KIND_DEFINITIONS.items() if d.filer == query.filer]
+        listed = listed.filter(kind__in=kinds)
+    listed = (
+        listed.select_related("worker", "assignee", "content_type")
+        .prefetch_related("target")
+        .order_by("unadjusted_due_on", "pk")
+    )
+    return filing_rows(listed, today)
+
+
+@dataclass(frozen=True)
+class UpcomingRow:
+    """今後の予定の 1 行（まだタスクになっていない期限、または受付前のタスク）。"""
+
+    kind: str
+    kind_label: str
+    deadline: deadlines.Deadline
+    target_label: str
+    target_url_name: str
+    target_pk: int | None
+    filing: Filing | None  # 受付前のタスク（まだ起票前なら None）
+    worker_staff_id: int | None
+
+
+def _owner(target: object) -> tuple[str, str, int | None, int | None]:
+    """対象の表示名・リンク先と、外国人の担当者（外国人に紐づかない期限は None）。"""
+    worker = getattr(target, "worker", None)
+    if worker is not None:
+        return str(worker), "workers:detail", worker.pk, worker.assigned_staff_id
+    host_id = _host_id_of(target)
+    if host_id is not None:
+        host = HostOrganization.objects.filter(pk=host_id).first()
+        return (str(host) if host else str(target)), "hosts:detail", host_id, None
+    return str(target), "", None, None
+
+
+def upcoming(query: DashboardQuery, today: datetime.date) -> list[UpcomingRow]:
+    """今日から 6 か月先までの期限のうち、まだタスクになっていないもの（受付・着手の日の前）と、
+    受付前のタスク。期限の近い順。
+
+    担当者で絞るときは、その担当者の外国人の期限と、外国人に紐づかない期限を出す。
+    """
+    until = deadlines.add_months(today, UPCOMING_MONTHS)
+    rows: list[UpcomingRow] = []
+    for candidate in filings.deadline_candidates():
+        deadline = filings.definition(candidate.kind).deadline(candidate.basis_on)
+        if deadline.opens_on is None or deadline.opens_on <= today:
+            continue  # 受付・着手の日を過ぎた期限は日次の起票でタスクになる
+        if deadline.unadjusted_due_on > until:
+            continue
+        label, url_name, pk, staff_id = _owner(candidate.target)
+        rows.append(
+            UpcomingRow(
+                kind=candidate.kind,
+                kind_label=str(FilingKind(candidate.kind).label),
+                deadline=deadline,
+                target_label=label,
+                target_url_name=url_name,
+                target_pk=pk,
+                filing=None,
+                worker_staff_id=staff_id,
+            )
+        )
+    for row in filing_rows(
+        base_queryset()
+        .filter(status__in=OPEN_STATUSES, unadjusted_due_on__lte=until)
+        .select_related("worker", "assignee", "content_type")
+        .prefetch_related("target"),
+        today,
+    ):
+        if row.level is not deadlines.Level.NOT_YET:
+            continue
+        worker = row.filing.worker
+        rows.append(
+            UpcomingRow(
+                kind=row.filing.kind,
+                kind_label=row.filing.get_kind_display(),
+                deadline=row.deadline,
+                target_label=row.target_label,
+                target_url_name=row.target_url_name,
+                target_pk=row.target_pk,
+                filing=row.filing,
+                worker_staff_id=worker.assigned_staff_id if worker else None,
+            )
+        )
+    if query.assignee_id is not None:
+        rows = [r for r in rows if r.worker_staff_id in (None, query.assignee_id)]
+    if query.kind:
+        rows = [r for r in rows if r.kind == query.kind]
+    return sorted(rows, key=lambda r: (r.deadline.unadjusted_due_on, r.kind_label))

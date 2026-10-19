@@ -37,4 +37,30 @@
 {% else %}
   <div class="card"><div class="empty">{% translate "No filing tasks match the conditions." %}</div></div>
 {% endif %}
+
+{% if unassigned_rows %}
+<section class="stack" id="dashboard-unassigned" style="margin-top: var(--space-24)">
+  <h2>{% translate "Without an assignee (deadlines of host organizations, etc.)" %}</h2>
+  <p class="caption" data-count="{{ unassigned_rows|length }}">{% blocktranslate count counter=unassigned_rows|length %}{{ counter }} task without an assignee. Everyone sees it.{% plural %}{{ counter }} tasks without an assignee. Everyone sees them.{% endblocktranslate %}</p>
+  {% include "ui/components/filing_table.html" with rows=unassigned_rows show_target=True table_id="dashboard-unassigned-filings" %}
+</section>
+{% endif %}
+
+<details class="card" id="dashboard-upcoming" style="margin-top: var(--space-24)">
+  <summary><h2 class="card__title" style="display:inline">{% blocktranslate count counter=upcoming_rows|length with months=upcoming_months %}Upcoming ({{ months }} months): {{ counter }} deadline{% plural %}Upcoming ({{ months }} months): {{ counter }} deadlines{% endblocktranslate %}</h2></summary>
+  <p class="caption">{% translate "Deadlines that are not tasks yet (they become tasks when the period to act starts) and tasks before that period." %}</p>
+  {% if upcoming_rows %}
+  <div class="table-wrap"><table class="table table--list" id="dashboard-upcoming-rows">
+    <thead><tr><th>{% translate "due date" %}</th><th>{% translate "kind" %}</th><th>{% translate "target" %}</th><th>{% translate "opens on" %}</th><th>{% translate "status" %}</th></tr></thead>
+    <tbody>{% for row in upcoming_rows %}
+      <tr data-kind="{{ row.kind }}"{% if row.filing %} data-filing="{{ row.filing.pk }}"{% endif %}>
+        <td class="mono">{{ row.deadline.unadjusted_due_on|date:"Y-m-d" }}</td>
+        <td>{% if row.filing %}<a href="{% url 'filings:detail' row.filing.pk %}">{{ row.kind_label }}</a>{% else %}{{ row.kind_label }}{% endif %}</td>
+        <td>{% if row.target_url_name %}<a href="{% url row.target_url_name row.target_pk %}">{{ row.target_label }}</a>{% else %}{{ row.target_label }}{% endif %}</td>
+        <td class="mono">{{ row.deadline.opens_on|date:"Y-m-d"|default:"—" }}</td>
+        <td>{% if row.filing %}<span class="status">{% translate "before the period to act" %}</span>{% else %}<span class="muted">{% translate "not a task yet" %}</span>{% endif %}</td>
+      </tr>{% endfor %}</tbody>
+  </table></div>
+  {% else %}<div class="empty">{% translate "No deadlines in this period." %}</div>{% endif %}
+</details>
 {% endblock %}

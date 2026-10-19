@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 14:49+0900\n"
+"POT-Creation-Date: 2026-10-19 15:08+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -2739,6 +2739,35 @@ msgstr[0] "%(counter)s件"
 
 msgid "No filing tasks match the conditions."
 msgstr "条件に合う届出タスクはありません。"
+
+msgid "Without an assignee (deadlines of host organizations, etc.)"
+msgstr "担当者なし（受入れ機関の期限など）"
+
+#, python-format
+msgid "%(counter)s task without an assignee. Everyone sees it."
+msgid_plural "%(counter)s tasks without an assignee. Everyone sees them."
+msgstr[0] "担当者のいないタスク %(counter)s 件（全員に表示）。"
+
+#, python-format
+msgid "Upcoming (%(months)s months): %(counter)s deadline"
+msgid_plural "Upcoming (%(months)s months): %(counter)s deadlines"
+msgstr[0] "今後の予定（%(months)s か月先まで）: %(counter)s 件"
+
+msgid ""
+"Deadlines that are not tasks yet (they become tasks when the period to act "
+"starts) and tasks before that period."
+msgstr ""
+"まだタスクになっていない期限（受付・着手の日にタスクになります）と、受付前の"
+"タスクです。"
+
+msgid "before the period to act"
+msgstr "受付前"
+
+msgid "not a task yet"
+msgstr "まだタスクではない"
+
+msgid "No deadlines in this period."
+msgstr "この期間の期限はありません。"
 
 msgid "Back to dashboard"
 msgstr "ダッシュボードへ戻る"

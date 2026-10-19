@@ -73,7 +73,10 @@ class DashboardView(ActionRequiredMixin, TemplateView):
         self.request.session[DASHBOARD_QUERY_SESSION_KEY] = self.request.GET.urlencode()
         form = DashboardForm(self.request.GET, default_assignee=default_assignee(user))
         query = form.to_query(user)
-        result = dashboard.dashboard(query, timezone.localdate())
+        today = timezone.localdate()
+        result = dashboard.dashboard(query, today)
+        unassigned_rows = dashboard.unassigned(query, today)
+        upcoming_rows = dashboard.upcoming(query, today)
         base = self.request.GET.copy()
         base.pop("level", None)
         base.pop("status", None)
@@ -90,6 +93,9 @@ class DashboardView(ActionRequiredMixin, TemplateView):
             awaiting_selected=(form.cleaned_data.get("status") == STATUS_AWAITING),
             chip_query=base.urlencode(),
             can_manage=authorization.has_action(user, Action.FILINGS_MANAGE),
+            unassigned_rows=unassigned_rows,
+            upcoming_rows=upcoming_rows,
+            upcoming_months=dashboard.UPCOMING_MONTHS,
         )
         return context
 
