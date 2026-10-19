@@ -117,7 +117,8 @@ make lock           # pyproject.toml の変更を uv.lock に反映する（そ�
 | `DEFAULT_FROM_EMAIL` | 送信元のメールアドレス | `noreply@example.invalid` |
 | `DJANGO_STORAGE_BACKEND` / `DJANGO_STORAGE_OPTIONS` | 添付ファイルの保存先（手元はローカル、本番は S3 互換） | `FileSystemStorage` / `{"location": "/app/media"}` |
 | `AUTH_LOCKOUT_FAILURE_LIMIT` / `AUTH_LOCKOUT_MINUTES` | ログイン失敗のロック（回数・分） | `5` / `30` |
-| `SESSION_IDLE_TIMEOUT_MINUTES` | 無操作でログアウトするまでの分 | `30` |
+| `SESSION_IDLE_TIMEOUT_MINUTES` | 無操作でログアウトするまでの分（5 分前に知らせ、延長できる。ADR-0030） | `60` |
+| `SESSION_ABSOLUTE_TIMEOUT_HOURS` | ログインからの上限の時間（延長できない。ADR-0030） | `12` |
 | `TRUST_CF_CONNECTING_IP` | `CF-Connecting-IP` を接続元とみなす（Cloudflare Tunnel 経由でしか届かない構成だけ `true`） | `false` |
 | `FIELD_ENCRYPTION_KEYS` | 列暗号化の鍵（カンマ区切り。先頭が現在の鍵） | `make env` が生成する |
 | `BLIND_INDEX_KEY` | 番号の検索用インデックスの鍵 | `make env` が生成する |
