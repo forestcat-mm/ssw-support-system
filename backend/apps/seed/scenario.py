@@ -22,7 +22,7 @@ from __future__ import annotations
 import datetime
 from collections.abc import Iterator
 from contextlib import contextmanager
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date, time
 from decimal import Decimal
 from typing import Any
@@ -141,6 +141,10 @@ NOT_STORED = (
     "協議会の名称（食品産業特定技能協議会）: 加入の行に協議会の名称の欄が無い（分野で決まる）",
     "報酬の説明の賃金規程の報酬（月給 205,000〜230,000 円）: 欄は 1 つの額なので "
     "205,000 円を入れた",
+    "住居の物件名（さくら台寮 203号室）: 住居の概要に物件名の欄が無い",
+    "居室の広さ 9.5㎡: 欄は「1人当たり7.5㎡以上」の印なので、印を付けた（1 人で 9.5㎡）",
+    "相談・苦情の受付の「日曜・祝日は緊急時のみ」: 対応時間の欄は曜日ごとの時刻なので日曜・祝日は"
+    "空にし、緊急時の連絡方法（電話 080-0000-9999）で表した",
 )
 
 
@@ -226,6 +230,7 @@ def section_1(ctx: ScenarioContext) -> None:
         "representative_title": "代表取締役",
         "representative_name": "小林 直人",
         "court_name": "東京地方裁判所",
+        "phone_number": "03-0000-1111",  # 第1-17号Ⅲ４（空のときだけ）
     }
     changed = [name for name, value in values.items() if not getattr(organization, name)]
     for name in changed:
@@ -475,6 +480,8 @@ def section_4(ctx: ScenarioContext) -> None:
         hiring_health_check_on=date(2026, 9, 1),  # 雇入れ時 2026 年 9 月（欄は月）
         first_periodic_health_check_on=date(2027, 9, 1),  # 初回の定期健康診断 2027 年 9 月
         periodic_health_check_interval="1年",
+        has_deduction_agreement=True,  # 社宅費・水道光熱費の控除
+        work_rules_location="総務部に備え付け（本社工場 事務所）",
         treatment_contact_department="総務部",
         treatment_contact_person="田中 一郎",
         treatment_contact_phone="047-400-1236",
@@ -553,6 +560,57 @@ def section_5(ctx: ScenarioContext, with_docs: bool) -> None:
     zh = _language("zh-hans")
     content = support_plans.content_for_worker(ctx.worker)
     content.created_on = date(2026, 7, 4)
+    content.responsible_name = AUTHOR  # 代表取締役 高橋 誠
+    content.items[SupportItem.PRE_GUIDANCE] = replace(
+        content.items[SupportItem.PRE_GUIDANCE], planned_hours=Decimal(3)
+    )
+    content.items[SupportItem.ORIENTATION] = replace(
+        content.items[SupportItem.ORIENTATION], planned_hours=Decimal(8)
+    )
+    pickup = content.activities["2.a"]
+    content.activities["2.a"] = replace(
+        pickup,
+        methods=sorted({*pickup.methods, "arrival_airport", "transport"}),
+        method_notes={"arrival_airport": "成田国際空港", "transport": "社用車"},
+    )
+    content.housing = support_plans.HousingContent(
+        timing="secured",
+        room_area_ok=True,  # 居室 9.5㎡・1 人（欄は「1人当たり7.5㎡以上」の印）
+        occupants=1,
+        bedroom_area_ok=True,
+        rent_collected=True,
+        monthly_rent=25000,
+        property_type="leased",
+        rent_explanation="借上げの賃料（管理費を含む）月 25,000 円を入居者 1 人で除した額",
+    )
+    content.consultation = support_plans.ConsultationContent(
+        hours={
+            **{day: ["09:00", "18:00"] for day in ("mon", "tue", "wed", "thu", "fri")},
+            "sat": ["09:00", "12:00"],
+        },
+        methods=["in_person", "phone", "email"],
+        phone="03-0000-1111",
+        email="soudan@example.com",
+        emergency_methods=["phone"],
+        emergency_phone="080-0000-9999",
+    )
+    content.municipality_checks = [
+        support_plans.MunicipalityContent(
+            place="site",
+            prefecture="千葉県",
+            municipality="船橋市",
+            checked_on=date(2026, 7, 4),
+            method="website",
+        ),
+        support_plans.MunicipalityContent(
+            place="residence",
+            same_as_site=False,
+            prefecture="千葉県",
+            municipality="市川市",
+            checked_on=date(2026, 7, 4),
+            method="website",
+        ),
+    ]
     content.interview_preference = InterviewPreference.IN_PERSON
     content.translation_language_id = zh.pk
     support_plans.create_plan(

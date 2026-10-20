@@ -372,3 +372,32 @@ def test_replace_counts_and_removes_the_host_store_and_submission_records() -> N
     assert "- contracts.EmploymentConditionTemplate: 1" in output
     assert "- core.Attachment (host documents and submission drafts): 2" in output
     _gone(*ids)
+
+
+def test_scenario_has_no_empty_field_warnings_on_1_17_and_1_6() -> None:
+    """テストシナリオの値（2026-10-20 に足したもの）で、第1-17号・第1-6号の空欄の警告が出ない。"""
+    from services import form_data_contract, form_generation, form_samples
+
+    form_templates.load_all()
+    seed_scenario("--until", "5")
+    worker = ForeignWorker.objects.get(name_romaji=scenario.WORKER_ROMAJI)
+    on = date(2026, 7, 10)
+    empty_codes = {
+        "deduction_without_agreement",
+        "work_rules_location_missing",
+    }
+    version = worker.employment_contracts.get().versions.get()
+    targets = {
+        "1-17": form_samples.sample("1-17", worker, on),
+        "1-6": (version, form_data_contract.build_1_6(version)),
+    }
+    for form_id, (target, data) in targets.items():
+        result = form_generation.check(form_id, target=target, data=data, basis_on=on)
+        codes = {finding.code for finding in result.findings}
+        assert not {code for code in codes if code.startswith("plan_empty_")}, (form_id, codes)
+        assert not codes & empty_codes, (form_id, codes)
+    plan = SupportPlan.objects.get(worker=worker).versions.get()
+    housing = plan.housing
+    assert (housing.occupants, housing.monthly_rent, housing.property_type) == (1, 25000, "leased")
+    checks = {check.place: check.municipality for check in plan.municipality_checks.all()}
+    assert checks == {"site": "船橋市", "residence": "市川市"}
