@@ -1,0 +1,11 @@
+{% extends "settings/base.html" %}{% load i18n ui %}
+{% block settings_content %}
+<p class="muted">{% translate "Books of the registered support organization for the whole organization: support system (organization, officers, offices, staff), support entrustment contracts, and monthly counts (people supported, missing people, staff). The books of each worker are on the Books tab of the worker." %}</p>
+<form class="form stack" method="post" novalidate id="books-form">
+  {% csrf_token %}
+  {% include "ui/components/form_errors.html" %}
+  <section class="card stack">{% form_field form.starts_on %}{% form_field form.ends_on %}</section>
+  <div class="form-actions"><button class="button button--primary" type="submit">{% translate "Download the books (Excel)" %}</button></div>
+</form>
+<p class="caption">{% translate "The number of staff for each month is estimated from the staff currently active and the date they were registered." %}</p>
+{% endblock %}

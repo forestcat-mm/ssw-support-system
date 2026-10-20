@@ -91,6 +91,7 @@ SETTINGS_TABS = [
         Action.ORGANIZATION_MANAGE,
     ),
     SettingsTab("forms", gettext_lazy("Form master"), "settings:forms", Action.MASTERS_MANAGE),
+    SettingsTab("books", gettext_lazy("Books"), "settings:books", Action.ORGANIZATION_MANAGE),
     SettingsTab("audit", gettext_lazy("Audit logs"), "settings:audit", Action.AUDIT_VIEW),
 ]
 

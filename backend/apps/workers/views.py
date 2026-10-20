@@ -1,11 +1,14 @@
 """外国人の業務画面（第5章 F01）。"""
 
+import io
+import tempfile
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.http import Http404, HttpRequest, HttpResponse, HttpResponseBase
+from django.http import FileResponse, Http404, HttpRequest, HttpResponse, HttpResponseBase
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
@@ -15,7 +18,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views import View
 from django.views.generic import TemplateView
 
-from apps.core.models import Action, Staff, User
+from apps.core.models import Action, AuditAction, Staff, User
 from apps.core.permissions import ActionRequiredMixin
 from apps.core.web_forms import (
     PeriodVoidForm,
@@ -50,9 +53,11 @@ from apps.workers.models import (
 from services import (
     audit,
     authorization,
+    book_exports,
     books,
     contracts,
     deadlines,
+    form_convert,
     staff_periods,
     wage_explanations,
     worker_detail,
@@ -123,6 +128,8 @@ DETAIL_TABS = [
     Tab("history", _("History"), "workers:history"),
     Tab("support", _("Support"), "workers:support", Action.SUPPORT_VIEW),
     Tab("documents", _("Forms"), "workers:documents", Action.FORMS_GENERATE),
+    # 登録支援機関の帳簿（③④。T57、ADR-0044）
+    Tab("books", _("Books"), "workers:books", Action.SUPPORT_VIEW),
 ]
 
 
@@ -619,3 +626,44 @@ class WorkerReactivateView(ActionRequiredMixin, View):
         workers.reactivate(worker, by=_actor(request), reason=form.cleaned_data["reason"])
         messages.success(request, _("Cancelled the deactivation."))
         return redirect(detail)
+
+
+class WorkerBooksView(WorkerDetailView):
+    """帳簿（③ 支援対象者・④ 支援の実施。T57、ADR-0044）。在留カード番号を出す（監査ログ）。"""
+
+    tab = "books"
+    template_name = "workers/detail_books.html"
+
+    def tab_context(self, context: dict[str, Any]) -> dict[str, Any]:
+        book = book_exports.worker_book(self.worker)
+        context["book"] = book
+        return {
+            "shown": {"books": [self.worker.pk]},
+            "decrypted": ["card_number"] if book.card_number else [],
+        }
+
+
+class WorkerBookPdfView(ActionRequiredMixin, View):
+    """外国人ごとの帳簿の PDF（自作の xlsx を PDF に。保存しない。監査ログに EXPORT。T57-D2）。"""
+
+    required_action = Action.SUPPORT_VIEW
+
+    def get(self, request: HttpRequest, pk: int) -> FileResponse:
+        if not authorization.has_action(request.user, Action.WORKERS_VIEW):
+            raise PermissionDenied
+        worker = get_object_or_404(
+            authorization.scope(request.user, ForeignWorker.objects.all()), pk=pk
+        )
+        book = book_exports.worker_book(worker)
+        with tempfile.TemporaryDirectory(prefix="book-") as folder:
+            source = Path(folder) / "book.xlsx"
+            source.write_bytes(book_exports.worker_book_xlsx(book))
+            pdf = form_convert.convert(source).read_bytes()
+        audit.record(
+            AuditAction.EXPORT,
+            target=worker,
+            actor=request.user if isinstance(request.user, User) else None,
+            context={"books": "worker", "records": len(book.records)},
+        )
+        name = f"帳簿_{worker.name_romaji}_{timezone.localdate():%Y%m%d}.pdf"
+        return FileResponse(io.BytesIO(pdf), as_attachment=True, filename=name)

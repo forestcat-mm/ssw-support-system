@@ -9,6 +9,8 @@ from apps.workers import document_views, views
 app_name = "workers"
 
 urlpatterns = [
+    path("<int:pk>/books/", views.WorkerBooksView.as_view(), name="books"),
+    path("<int:pk>/books/pdf/", views.WorkerBookPdfView.as_view(), name="book_pdf"),
     path("", views.WorkerListView.as_view(), name="list"),
     path("new/", views.WorkerCreateView.as_view(), name="create"),
     path("<int:pk>/", views.WorkerDetailView.as_view(), name="detail"),

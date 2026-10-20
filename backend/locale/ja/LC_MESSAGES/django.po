@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 01:46+0900\n"
+"POT-Creation-Date: 2026-10-21 01:56+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -1173,6 +1173,18 @@ msgstr "マスタ（国・地域、支援言語）"
 msgid "Organization and users"
 msgstr "自機関・ユーザー"
 
+msgid "period from"
+msgstr "期間（開始）"
+
+msgid "period to"
+msgstr "期間（終了）"
+
+msgid "The end of the period must be on or after the start."
+msgstr "期間の終了は開始以後の日にしてください。"
+
+msgid "Choose a period of five years or less."
+msgstr "5 年以内の期間を選んでください。"
+
 msgid "Dashboard"
 msgstr "ダッシュボード"
 
@@ -1786,6 +1798,9 @@ msgstr "標準の支援計画"
 msgid "Form master"
 msgstr "様式マスタ"
 
+msgid "Books"
+msgstr "帳簿"
+
 msgid "Audit logs"
 msgstr "監査ログ"
 
@@ -2178,6 +2193,22 @@ msgstr "一覧へ戻る"
 
 msgid "item"
 msgstr "項目"
+
+msgid ""
+"Books of the registered support organization for the whole organization: "
+"support system (organization, officers, offices, staff), support entrustment"
+" contracts, and monthly counts (people supported, missing people, staff). "
+"The books of each worker are on the Books tab of the worker."
+msgstr ""
+"登録支援機関の機関全体の帳簿です（支援実施体制〔自機関・役員・事業所・担当者〕・支援の委託契約・月ごとの集計〔支援人数・行方不明者数・職員数〕）。外国人ごとの帳簿は、外国人詳細の「帳簿」タブにあります。"
+
+msgid "Download the books (Excel)"
+msgstr "帳簿をダウンロード（Excel）"
+
+msgid ""
+"The number of staff for each month is estimated from the staff currently "
+"active and the date they were registered."
+msgstr "月ごとの職員数は、今の有効な担当者と登録の日から数えた推定です。"
 
 msgid "Change the support manager"
 msgstr "支援責任者を変える"
@@ -3449,15 +3480,6 @@ msgstr "署名済みのスキャン"
 
 msgid "PDF, PNG or JPEG, up to 10 MB each."
 msgstr "PDF・PNG・JPEG。1 つ 10 MB まで。"
-
-msgid "period from"
-msgstr "期間（開始）"
-
-msgid "period to"
-msgstr "期間（終了）"
-
-msgid "The end of the period must be on or after the start."
-msgstr "期間の終了は開始以後の日にしてください。"
 
 msgid "fiscal year"
 msgstr "年度"
@@ -7662,6 +7684,42 @@ msgstr "目安を過ぎています"
 
 msgid "No health check documents."
 msgstr "健康診断の書類はありません。"
+
+msgid ""
+"The books of the registered support organization for this worker (management"
+" book of support recipients and of support carried out). Kept for at least "
+"one year from the end of the employment contract."
+msgstr "この外国人の登録支援機関の帳簿（支援対象者に関する管理簿・支援の実施に関する管理簿）です。雇用契約の終了の日から 1 年以上保存します。"
+
+msgid "Download the books (PDF)"
+msgstr "帳簿をダウンロード（PDF）"
+
+msgid "Management book of the support recipient"
+msgstr "支援対象者に関する管理簿"
+
+msgid "period of support"
+msgstr "支援の期間"
+
+msgid "books kept until (estimate)"
+msgstr "帳簿の保存義務の満了日（目安）"
+
+msgid "not yet fixed"
+msgstr "まだ決まらない"
+
+msgid "Management book of support carried out"
+msgstr "支援の実施に関する管理簿"
+
+msgid "interpreter"
+msgstr "通訳人"
+
+msgid "not carried out at the request of the worker"
+msgstr "本人の申出により実施せず"
+
+msgid "No support records."
+msgstr "支援の記録はありません。"
+
+msgid "Related forms"
+msgstr "関係する書類"
 
 msgid "No employment contracts are registered."
 msgstr "雇用契約は登録されていません。"

@@ -1,0 +1,37 @@
+{% extends "workers/detail_base.html" %}{% load i18n %}
+{% block tab_content %}
+<div class="stack">
+  <p class="caption">{% translate "The books of the registered support organization for this worker (management book of support recipients and of support carried out). Kept for at least one year from the end of the employment contract." %}</p>
+  <div class="cluster"><a class="button button--neutral" href="{% url 'workers:book_pdf' worker.pk %}" id="book-pdf">{% translate "Download the books (PDF)" %}</a></div>
+  <section class="card" id="book-recipient">
+    <div class="card__header"><h2 class="card__title">{% translate "Management book of the support recipient" %}</h2></div>
+    <dl class="fields fields--long-labels">
+      <dt>{% translate "name" %}</dt><dd>{{ worker.name_romaji }}</dd>
+      <dt>{% translate "date of birth" %}</dt><dd class="mono">{{ worker.birth_date|date:"Y-m-d" }}</dd>
+      <dt>{% translate "nationality or region" %}</dt><dd>{{ worker.nationality.name }}</dd>
+      <dt>{% translate "sex" %}</dt><dd>{{ worker.get_sex_display }}</dd>
+      <dt>{% translate "residence card number" %}</dt><dd class="mono">{{ book.card_number|default:"—" }}</dd>
+      <dt>{% translate "host organization" %}</dt><dd>{{ book.hosts|join:"、"|default:"—" }}</dd>
+      <dt>{% translate "support plan" %}</dt><dd>{% for line in book.plan_versions %}{{ line }}{% if not forloop.last %}<br>{% endif %}{% empty %}—{% endfor %}</dd>
+      <dt>{% translate "period of support" %}</dt><dd id="book-periods">{% for period in book.periods %}<span class="mono">{{ period.starts_on|date:"Y-m-d" }}〜{{ period.ends_on|date:"Y-m-d" }}</span> {{ period.host_name }}{% if period.end_reason %}（{{ period.end_reason }}）{% endif %}{% if not forloop.last %}<br>{% endif %}{% empty %}—{% endfor %}</dd>
+      <dt>{% translate "books kept until (estimate)" %}</dt><dd class="mono">{{ book.retention_until|date:"Y-m-d"|default:_("not yet fixed") }}</dd>
+    </dl>
+  </section>
+  <section class="card" id="book-support">
+    <div class="card__header"><h2 class="card__title">{% translate "Management book of support carried out" %}</h2></div>
+    {% if book.records %}
+    <div class="table-scroll"><table class="table table--list" id="book-records">
+      <thead><tr><th>{% translate "date" %}</th><th>{% translate "kind of support" %}</th><th>{% translate "method" %}</th><th>{% translate "place" %}</th><th>{% translate "staff in charge" %}</th><th>{% translate "interpreter" %}</th><th>{% translate "details" %}</th></tr></thead>
+      <tbody>{% for record in book.records %}<tr>
+        <td class="mono">{{ record.occurred_on|date:"Y-m-d" }}</td><td>{{ record.item }}{% if record.declined %} <span class="caption">{% translate "not carried out at the request of the worker" %}</span>{% endif %}</td><td>{{ record.method }}</td><td>{{ record.place|default:"—" }}</td><td>{{ record.staff }}{% if record.position %} <span class="caption">{{ record.position }}</span>{% endif %}</td><td>{{ record.interpreter|default:"—" }}</td><td class="caption">{{ record.content }}</td>
+      </tr>{% endfor %}</tbody>
+    </table></div>
+    {% else %}<p class="muted">{% translate "No support records." %}</p>{% endif %}
+  </section>
+  <section class="card" id="book-documents">
+    <div class="card__header"><h2 class="card__title">{% translate "Related forms" %}</h2></div>
+    {% if book.documents %}<ul class="stack" style="list-style: none; padding: 0; margin: 0">{% for document, state in book.documents %}<li><a href="{% url 'forms:document' document.pk %}">{{ document.template.form_id }} {{ document.template.name }}</a> <span class="caption mono">{{ document.generated_at|date:"Y-m-d" }}</span>{% if state == "signed" %} <span class="caption">{% translate "signed" %}</span>{% elif state == "awaiting" %} <span class="caption">{% translate "awaiting signature" %}</span>{% endif %}</li>{% endfor %}</ul>
+    {% else %}<p class="muted">{% translate "No forms have been generated." %}</p>{% endif %}
+  </section>
+</div>
+{% endblock %}
