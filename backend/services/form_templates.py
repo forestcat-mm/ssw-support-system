@@ -33,7 +33,7 @@ from django.utils.translation import gettext as _
 
 from apps.core.models import User
 from apps.forms_engine.models import FormMapping, FormMethod, FormOwner, FormTemplate
-from services import form_checks, form_xlsx
+from services import form_checks, form_docx, form_xlsx
 
 MANIFEST = "manifest.json"
 REQUIRED_KEYS = ("form_id", "name", "valid_from", "language", "owner", "method", "original")
@@ -167,6 +167,12 @@ def _load_one(manifest_path: Path, *, by: User | None, report: LoadReport) -> No
             raise FormTemplateError(f"{manifest_path}: pdf_merges: {'; '.join(errors)}")
     elif data.get("pdf_merges"):
         raise FormTemplateError(f"{manifest_path}: pdf_merges is only for Excel forms")
+    if data.get("pdf_layout"):  # 一時の写しの頁の組み方（ADR-0032）
+        if data["method"] != FormMethod.DOCX_TAGS:
+            raise FormTemplateError(f"{manifest_path}: pdf_layout is only for Word forms")
+        layout_errors = form_docx.pdf_layout_errors(data["pdf_layout"])
+        if layout_errors:
+            raise FormTemplateError(f"{manifest_path}: pdf_layout: {'; '.join(layout_errors)}")
     valid_from = datetime.date.fromisoformat(data["valid_from"])
     relative = folder.relative_to(templates_root())
     values: dict[str, Any] = {

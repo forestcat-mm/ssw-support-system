@@ -454,6 +454,14 @@ def _render(
     else:
         filled = workdir / f"{template.form_id}.docx"
         form_docx.render(source, filled, values)
+        layout = (template.manifest or {}).get("pdf_layout")
+        if layout:
+            # 保存する文書は公式の組み方のまま。変換の直前の一時の写しでだけ詰める（ADR-0032）
+            copy = workdir / "for-pdf" / filled.name
+            form_docx.with_pdf_layout(filled, copy, layout)
+            pdf = form_convert.convert(copy)
+            copy.unlink()
+            return filled, pdf
     return filled, form_convert.convert(filled)
 
 

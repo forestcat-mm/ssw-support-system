@@ -20,5 +20,14 @@
     "converted_sha256": "f243703b3a221ac23a81561dc68ab8b85740093fd28c108d0d23e4c0c9cec016",
     "template_sha256": "3d35aa6c18058c09f2fcf47da57cbaa3bd87845cbf6006fa4aadcba1919a624d",
     "adr": "ADR-0027（取得日 2026-10-18（Last-Modified 2025-04-01。改正日の記載なし。10 の様式を 1 つにまとめた中国語の版））、ADR-0018"
+  },
+  "pdf_layout": {
+    "line_pitch": 300,
+    "margin_top": 567,
+    "margin_bottom": 567,
+    "font_sizes": {
+      "22": 20
+    },
+    "note": "PDF にする一時の写しでだけ、行のグリッドの間隔 18pt → 15pt、上下の余白 15mm → 10mm、本文の字 11pt → 10pt にして 1 枚の A4 に収める（そのままでは署名の欄が 2 頁目に送られる。ADR-0032 の例外の一覧）。保存する文書は変えない。"
   }
 }

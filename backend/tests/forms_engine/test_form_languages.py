@@ -245,3 +245,50 @@ def test_notice_only_for_chinese_workers_on_outdated_forms(worker: Any) -> None:
     worker.support_language = SupportLanguage.objects.get(code="ja")
     assert form_languages.outdated_notice(worker, "1-17") is False
     assert form_languages.delivery_language_codes("ja") == ("ja",)
+
+
+def test_bilingual_1_5_is_printed_on_one_page(loaded: None) -> None:
+    """第1-5号（日中併記）は、PDF にする一時の写しでだけ詰めて 1 枚に収める（ADR-0032 の追記）。"""
+    from tests.forms_engine.test_form_contract import BASIS, data_for, explain, full_version
+
+    version = full_version()
+    explain(version)
+    document = form_generation.request(
+        "1-5",
+        target=version,
+        data=data_for("1-5", version),
+        basis_on=BASIS,
+        by=None,
+        language="ja-zh",
+        accept_warnings=True,
+    )
+    document.refresh_from_db()
+    assert document.status == GenerationStatus.COMPLETED, document.failure_reason
+    assert document.page_count == 1
+    # 保存する文書（差し込んだもの）は公式の組み方のまま
+    with zipfile.ZipFile(document.filled_file.path) as archive:
+        xml = archive.read("word/document.xml").decode()
+    assert 'w:linePitch="360"' in xml and 'w:top="851"' in xml
+    assert '<w:sz w:val="22"/>' in xml and '<w:sz w:val="20"/>' not in xml
+    # 日本語だけの第1-5号は、もとから 1 頁（詰めない）
+    japanese = FormTemplate.objects.get(form_id="1-5", language="ja")
+    assert "pdf_layout" not in japanese.manifest
+
+
+def test_pdf_layout_keeps_the_body_at_9pt_or_more() -> None:
+    assert form_docx.pdf_layout_errors({"line_pitch": 300, "font_sizes": {"22": 18}}) == []
+    assert form_docx.pdf_layout_errors({"font_sizes": {"22": 17}})
+    assert form_docx.pdf_layout_errors({"line_pitch": 0})
+    assert form_docx.pdf_layout_errors({"columns": 2})
+
+
+def test_pdf_layout_changes_only_the_copy(tmp_path: Path) -> None:
+    source = folder("1-5") / "template.docx"
+    copy = tmp_path / "copy.docx"
+    layout = json.loads((folder("1-5") / "manifest.json").read_text("utf-8"))["pdf_layout"]
+    form_docx.with_pdf_layout(source, copy, layout)
+    with zipfile.ZipFile(copy) as archive:
+        xml = archive.read("word/document.xml").decode()
+    assert 'w:linePitch="300"' in xml and 'w:top="567"' in xml and 'w:bottom="567"' in xml
+    assert '<w:sz w:val="22"/>' not in xml and '<w:sz w:val="32"/>' in xml  # 見出しはそのまま
+    assert body_texts(copy) == body_texts(source)  # 文は変えない
