@@ -2,7 +2,7 @@
 
 - 状態: 採用
 - 日付: 2026-10-19
-- 関連: 仕様書 第5章 F01・第7章 foreign_workers・offices、ADR-0020（第1-17号）、修正 1 回目 A4・A5（計画 `.checks/plan-fix1.md`。決めた点は A4-D1・A5-D1 とも (a)）
+- 関連: 仕様書 第5章 F01・第7章 foreign_workers・offices、ADR-0020（第1-17号）、修正 1 回目 A4・A5（計画 `.checks/phase3/fix1/plan.md`。決めた点は A4-D1・A5-D1 とも (a)）
 
 ## 背景
 

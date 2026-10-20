@@ -1,6 +1,6 @@
 # ADR-0042: 様式マスタの管理（F13）— 版の一覧・停止・別の版での作り直し・記入済みの取り出し
 
-- 状態: 採用（T53）。不在の間の指示（2026-10-20・21）により、決めてほしい点はおすすめで決めた（`.checks/plan-blockD.md`・`.checks/decisions-blockBCD.md` の T53-D1〜D4）
+- 状態: 採用（T53）。不在の間の指示（2026-10-20・21）により、決めてほしい点はおすすめで決めた（`.checks/phase4/blockD/plan.md`・`.checks/phase4/decisions-blockBCD.md` の T53-D1〜D4）
 - 日付: 2026-10-21
 - 関連: ADR-0018（生成と変換）・0019（生成前の検査）・0022（署名済みの写し）、仕様書 第5章 F13・第6章「様式のバージョン管理」、`docs/tasks-phase4.md` の D8・D9
 
@@ -20,7 +20,7 @@
    1. 入管の新しい様式を取得し（URL・取得日・SHA-256・改正日）、`templates/forms/<様式ID>/<適用開始日>/` に original と manifest、`mappings/<様式ID>/<適用開始日>.json`・`.rules.json` を作る（Word は道具で template.docx を作る。一括のツールは道具で columns.json を作る）。
    2. テスト（`make check-quick T=tests/forms_engine`）で欄の対応と生成を確かめ、`make forms` で読み込む。
    3. 様式マスタで新しい版が「使用中」になり、基準日がその後の生成から新しい版が選ばれることを確かめる。不備があれば新しい版を停止する（前の版に戻る）。
-   - 試し: テスト `tests/forms_engine/test_form_master.py::test_a_revision_is_reflected_by_data_only` で、第3-6号（別紙2）の新しい版（適用開始日 2027-04-01）を足して読み込み、基準日 2027-03-31 は旧版・2028-03-31 は新版が選ばれること、新版で作った生成物を旧版で作り直せること、新版を停止すると旧版に戻り、読み込み直しても停止が残り、解除で新版に戻ることを確かめた（記録 `.checks/blockD/t53-trial.md`）。
+   - 試し: テスト `tests/forms_engine/test_form_master.py::test_a_revision_is_reflected_by_data_only` で、第3-6号（別紙2）の新しい版（適用開始日 2027-04-01）を足して読み込み、基準日 2027-03-31 は旧版・2028-03-31 は新版が選ばれること、新版で作った生成物を旧版で作り直せること、新版を停止すると旧版に戻り、読み込み直しても停止が残り、解除で新版に戻ることを確かめた（記録 `.checks/phase4/blockD/t53-trial.md`）。
 
 ## 未確認の点
 

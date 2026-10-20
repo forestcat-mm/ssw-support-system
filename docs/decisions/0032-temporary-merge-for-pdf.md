@@ -2,11 +2,11 @@
 
 - 状態: 採用（修正 1 回目 A6 の案 (e)。人が 2026-10-19 に選んだ）
 - 日付: 2026-10-19
-- 関連: CLAUDE.md の制約 3、ADR-0018（Excel の書き方と PDF 変換）・0020（第1-17号）・0031、`.checks/a6-findings.md`
+- 関連: CLAUDE.md の制約 3、ADR-0018（Excel の書き方と PDF 変換）・0020（第1-17号）・0031、`.checks/research/phase3-fix1_A6-address-merge.md`
 
 ## 背景
 
-第1-17号 Ⅱ欄２の住所は、PDF で下半分が切れていた。調べた結果は次のとおり（`.checks/a6-findings.md`）。
+第1-17号 Ⅱ欄２の住所は、PDF で下半分が切れていた。調べた結果は次のとおり（`.checks/research/phase3-fix1_A6-address-merge.md`）。
 
 - 書き込み先の O44 は合っている。記載例（001459175.pdf。SHA-256 `e40ba9b8571eaf77d5215ea95485039bc2853fb85b14e5d6306ee57e10fee5a6`）でも、住所は〒の行のすぐ下の 1 行目に、ほかの欄と同じ 13pt（印刷では 9.2pt）で書かれている。
 - 〒の行の下の住所の場所 O44:BA49（6 行・49.5pt）は結合されていない。O44 は 8.25pt の 1 行のセルで、LibreOffice は 13pt の字をセルの下の端で切る（Ⅲ欄４・６の住所の場所は結合されている）。
@@ -41,7 +41,7 @@
 
 ## 影響
 
-- 生成した第1-17号の PDF で、住所が 13pt で切れずに出る（画像 `.checks/images/A6-e-II2.png`。右端の電話番号まで入る幅）。
+- 生成した第1-17号の PDF で、住所が 13pt で切れずに出る（画像 `.checks/phase3/fix1/images/A6-e-II2.png`。右端の電話番号まで入る幅）。
 - manifest を変えたので、開発用 DB では `make forms` で読み直す（manifest だけの変更は、生成履歴があっても置き換えられる）。
 - 新しい様式で同じ形の欄が見つかったら、その版の manifest に範囲を足す（読み込みの検査が通るものだけ）。
 
@@ -84,7 +84,7 @@
 
 ## 追記（2026-10-20 の 3 回目）: 游ゴシック・游明朝の置き換えを足す
 
-人の指示で、字体の置き換え（`backend/config/fonts/99-form-fonts.conf`）に、游ゴシック（Light を含む）→ Noto Sans CJK JP、游明朝 → Noto Serif CJK JP を足した。足す前に、足した場合と今の場合で、取り込み済みの入管の様式を変換して比べた（記録 `.checks/fit/yu/result.json`）。
+人の指示で、字体の置き換え（`backend/config/fonts/99-form-fonts.conf`）に、游ゴシック（Light を含む）→ Noto Sans CJK JP、游明朝 → Noto Serif CJK JP を足した。足す前に、足した場合と今の場合で、取り込み済みの入管の様式を変換して比べた（記録 `.checks/phase3/fix4/work/fonts/yu/result.json`）。
 
 | 様式（游ゴシック・游明朝を使うもの） | 足したときの頁数・頁の割れ方 |
 |---|---|

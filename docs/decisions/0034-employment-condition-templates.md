@@ -2,7 +2,7 @@
 
 - 状態: 採用（T41。不在の間の指示により、決めてほしい点はおすすめ (a) で決めた）
 - 日付: 2026-10-19
-- 関連: 仕様書 第5章 F03、第7章 employment_contracts・host_organizations。ADR-0016（雇用契約の版）・0023・0031（修正 1 回目 B2〜B4）。計画 `.checks/plan-T41.md`、記録 `.checks/decisions-phase3-rest.md`
+- 関連: 仕様書 第5章 F03、第7章 employment_contracts・host_organizations。ADR-0016（雇用契約の版）・0023・0031（修正 1 回目 B2〜B4）。計画 `.checks/phase3/T41-T43/plan-T41.md`、記録 `.checks/phase3/T41-T43/decisions.md`
 
 ## 背景
 

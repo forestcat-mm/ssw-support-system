@@ -9,7 +9,7 @@
 参照:
 - 仕様書 第5章 F09・F10・F13（F11・F12 は段階3の仕組みを使う）、第6章「出力物」「様式のバージョン管理」、第11章 MVP 完了条件
 - `docs/handoff-phase4.md`（段階4の範囲・前提・持ち越し）
-- 一次資料の調べ: `.checks/phase4-sources/findings.md`（2026-10-20。取得したファイルは `.checks/phase4-sources/`）
+- 一次資料の調べ: `.checks/research/phase4_bulk-tools-findings.md`（2026-10-20。取得したファイルは `.checks/sources/`）
 
 ## 一次資料の要点（2026-10-20。findings.md）
 
@@ -94,7 +94,7 @@ T44〜T57 を 4 つのブロックで進める（T57 はブロック A の計画
 | D10 | 第1-16号・1-11-1号・1-29号を作る（第1-11-1号は T46 と一緒）。第1-23号は役員の一覧を持つなら作る。第1-2号は作らない | 第1-16号は省略できない場合に要る。第2表の書類は新しい受入れ機関で要る |
 | D11 | Excel ツールの版の確かめは、運用手順で人が掲載ページ（online_guidance.html・i-ens_faq_manual_00002.html）を確かめる。システムから外部には接続しない | 制約1 |
 
-## ブロック A で決めたこと（2026-10-20。計画 `.checks/plan-blockA.md`。すべておすすめのとおり）
+## ブロック A で決めたこと（2026-10-20。計画 `.checks/phase4/blockA/plan.md`。すべておすすめのとおり）
 
 | # | 決めたこと |
 |---|---|
@@ -123,7 +123,7 @@ T44〜T57 を 4 つのブロックで進める（T57 はブロック A の計画
 
 ## ブロック B・C・D で決めたこと（2026-10-20〜21。不在の間の指示により、すべておすすめのとおり）
 
-計画は `.checks/plan-blockB.md`・`plan-blockC.md`・`plan-blockD.md`、決めた点の全部は `.checks/decisions-blockBCD.md`（番号・内容・選んだ案・理由・人の確認が要るか）。要点:
+計画は `.checks/phase4/blockB/plan.md`・`plan-blockC.md`・`plan-blockD.md`、決めた点の全部は `.checks/phase4/decisions-blockBCD.md`（番号・内容・選んだ案・理由・人の確認が要るか）。要点:
 
 | # | 決めたこと |
 |---|---|
@@ -138,7 +138,7 @@ T44〜T57 を 4 つのブロックで進める（T57 はブロック A の計画
 
 ## 段階4の完了確認（2026-10-21）
 
-段階4の完了条件 A を 1 つずつ確かめた（ブロック D の終わりの `make checks GATE3=1 GATE4=1 GATE2_DATES="2026-10-17 2026-11-30 2026-12-28"` の結果は `.checks/report-blockD.md`）。
+段階4の完了条件 A を 1 つずつ確かめた（ブロック D の終わりの `make checks GATE3=1 GATE4=1 GATE2_DATES="2026-10-17 2026-11-30 2026-12-28"` の結果は `.checks/phase4/blockD/report.md`）。
 
 | 項目 | 結果 | 確かめ方 |
 |---|---|---|
@@ -146,7 +146,7 @@ T44〜T57 を 4 つのブロックで進める（T57 はブロック A の計画
 | 構造 | 満たした | gate4 と単体テスト: 入力シート以外のファイル（vbaProject.bin・ActiveX・ブック・スタイル・名前定義・隠しシート・テーブル）が元のブックと同じ。入力シートは書いた行以外の XML が同じ（`test_bulk_tools`・`test_efile_tools`） |
 | 生成履歴・監査 | 満たした | 一括申請・一括届出の作ったファイルの行（様式の版・SHA-256・暗号化のスナップショット・作った人・日時）、生成とダウンロードの監査ログ（`test_bulk_applications`・`test_bulk_filings`）。帳票の生成履歴は段階3のまま、記入済みのダウンロードも監査ログ（`test_form_master`） |
 | admin | 満たした | gate4・一括申請・一括届出・届出タスクから・様式マスタ・定期届出・帳簿の e2e で `/admin/` へのリクエスト 0 件 |
-| 様式マスタ | 満たした | 版の停止と解除・旧版での作り直し（`test_form_master`）。改正の反映の試し（`.checks/blockD/t53-trial.md`） |
+| 様式マスタ | 満たした | 版の停止と解除・旧版での作り直し（`test_form_master`）。改正の反映の試し（`.checks/phase4/blockD/t53-trial.md`） |
 
 - **MVP 完成後に行うこと**（価値検証。人）: Windows の Excel でのマクロの確かめと入管システムへの取込、人の確認の一覧（`docs/handoff-mvp.md`）。
 - 段階4で見つけて直したもの: 一括申請を作る画面のボタンの文言（b57c974）、一括申請（変更）の希望する在留期間の選択肢（2cff922。gate4 で見つけた）。

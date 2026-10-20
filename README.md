@@ -95,12 +95,15 @@ make e2e            # 通しのテスト（Playwright・Chromium。e2e コンテ
 make gate2          # 段階2の受け入れ確認（seed → 担当者 2 人が定期面談と相談を画面で記録。DATE=YYYY-MM-DD で基準日）
 make gate3          # 段階3の受け入れ確認（seed → seed_documents → 署名・生成・日中併記・警告・生成不可を画面で。DATE=YYYY-MM-DD で基準日）
 make gate4          # 段階4の受け入れ確認（seed → 一括申請 3 種・一括届出 7 種の xlsm を画面で作り、写した入力チェックと構造を確かめる）
-make checks         # push の前に: lint・test・e2e・gate2・gate3（GATE4=1 で gate4 も）を順に流し、終了コードと === DONE を .checks/checks.log に書く
+make checks         # push の前に: lint・test・e2e・gate2・gate3（GATE4=1 で gate4 も）を順に流し、終了コードと === DONE を .checks/logs/<日時>_<CHECKS_NAME>_checks.log に書く
 make design-shots   # 見本画面（/ui/）のスクリーンショットを docs/design/ に保存する
 make messages       # UI 文言を .po に抽出し .mo にコンパイルする（両方をコミットする）
 ```
 
-`tools/run_checks.sh` が `make checks` の検査を順に流し、`.checks/checks.log` に、検査ごとの開始・終了の時刻・件数・終了コードと、最後に必ず `=== DONE` を書く（出力そのものは `.checks/checks.log.full`）。
+`tools/run_checks.sh` が `make checks` の検査を順に流し、`.checks/logs/<日時>_<名前>_checks.log` に、検査ごとの開始・終了の時刻・件数・終了コードと、最後に必ず `=== DONE` を書く（出力そのものは同じ名前の `.full.log`）。
+- 名前は `CHECKS_NAME` で付ける（例: `make checks CHECKS_NAME=phase4-blockD` → `.checks/logs/2026-10-21_1530_phase4-blockD_checks.log`）。付けなければ `<日時>_checks.log`。
+- いちばん新しいログは `.checks/logs/latest.log`（出力は `latest.full.log`）でも開ける（実行の始めにリンクを付け替える）。
+- `.checks/` の並べ方は `.checks/README.md`（目次）と CLAUDE.md の「.checks/ の置き方」。
 - 1 件の上限は `CHECK_LIMIT`（秒。既定 900）。超えたら止めて、終了コード 124 にする。
 - 別のシェルから待つときは、`=== DONE` の行と上限の時間（例: 30 分）の両方で待つ。
 - 前の実行が終わる前に次を始めない（DB と e2e のコンテナを取り合う）。

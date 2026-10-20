@@ -1,6 +1,6 @@
 # ADR-0045: 段階4のダミーデータと gate4
 
-- 状態: 採用（T55）。不在の間の指示（2026-10-20・21）により、決めてほしい点はおすすめで決めた（`.checks/plan-blockD.md`・`.checks/decisions-blockBCD.md` の T55-D1・D2、D-4）
+- 状態: 採用（T55）。不在の間の指示（2026-10-20・21）により、決めてほしい点はおすすめで決めた（`.checks/phase4/blockD/plan.md`・`.checks/phase4/decisions-blockBCD.md` の T55-D1・D2、D-4）
 - 日付: 2026-10-21
 - 関連: ADR-0038（台帳の項目）・0039（一括申請）・0040（一括届出）、`docs/tasks-phase4.md` の段階4の完了条件 A、`docs/dummy-data.md`
 

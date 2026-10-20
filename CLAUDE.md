@@ -117,7 +117,12 @@
 - テスト用の DB は使い回す。マイグレーションを直した・消したときは `make test-db`。
 
 ### 検査の待ち方
-- 長い検査は `make checks` で流す（各検査の終了コードと `=== DONE` を `.checks/checks.log` に必ず書く）。待つときは `=== DONE` と上限の時間（30 分まで）の両方で待つ。前の実行が終わる前に次を始めない。
+- 長い検査は `make checks CHECKS_NAME=<段階>-<ブロック>` で流す（各検査の終了コードと `=== DONE` を `.checks/logs/<日時>_<名前>_checks.log` に必ず書く。いちばん新しいログは `.checks/logs/latest.log`）。待つときは `=== DONE` と上限の時間（30 分まで）の両方で待つ。前の実行が終わる前に次を始めない。
+
+### .checks/ の置き方（人が開いて読むフォルダ。git の外。目次は `.checks/README.md`）
+- 段階・ブロックごとのフォルダ（`phase<N>/block<X>/`、段階3の残りは `phase3/T41-T43/`、直しは `phase<N>/fix<M>/`、段階をまたぐ直しは `fixes/`）。中は `plan.md`・`report.md`・`decisions.md`・`images/`（人が見る画像。何の画像か分かる英数字の名前。例 `1-6_zh_before.png`）・`work/`（作業の途中のファイル）。ブロックをまたぐ決めた点は段階のフォルダに 1 つ置く（例 `phase4/decisions-blockBCD.md`）。
+- 取得した一次資料は `sources/<取得日>_<資料名>.<拡張子>`（取得の記録は同じ名前に `.headers`）。調べの本文は `research/<段階>-<タスク>_<題>.md`（作業のファイルは同じ名前に `_data/`）。検査のログは `logs/<日時>_<名前>.log`。古い・重複したものは消さずに `archive/`。
+- 新しいブロックを始めたらフォルダを作り、`.checks/README.md` の目次（ブロックの表・sources の一覧・今いちばん新しい報告）を書き足す。
 
 ### 制度の根拠
 - 制度（入管法令・運用要領・参考様式）の根拠は推測で書かない。公式の資料を取得して読み、頁つきで引く。
@@ -174,5 +179,5 @@ make gate2     # 段階2の受け入れ確認（DATE=YYYY-MM-DD で基準日。�
 make messages  # UI 文言の抽出とコンパイル（.po と .mo の両方をコミット）
 make filings   # 日次の届出タスクの起票を手で実行（DATE=YYYY-MM-DD で基準日を指定）
 make forms     # 様式マスタ（templates/forms・mappings）を読み込む
-make checks    # push の前に: lint・test・e2e・gate2（既定は 1 つの基準日。GATE2_DATES で 3 つ）・gate3。終了コードと === DONE を .checks/checks.log に書く
+make checks    # push の前に: lint・test・e2e・gate2（既定は 1 つの基準日。GATE2_DATES で 3 つ）・gate3。終了コードと === DONE を .checks/logs/<日時>_<CHECKS_NAME>_checks.log（latest.log）に書く
 ```

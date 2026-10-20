@@ -2,7 +2,7 @@
 
 - 状態: 採用（T46a 外国人の項目、T46b 受入れ機関・事業所・自機関の項目と第1-11-1号）。ブロック A の計画で、決めてほしい点 T46-D1〜D11 はおすすめのとおりに決めた。D1 は指示で補った
 - 日付: 2026-10-20
-- 関連: ADR-0018（Excel の書き方）・0026（申請の書類の一覧）・0036（帳簿）・0037（担当者の履歴）、`docs/tasks-phase4.md` の D3。計画 `.checks/plan-blockA.md`、調べ `.checks/blockA/t46-fields.md`（全部の欄は `.checks/blockA/t46/fields_grouped.tsv`）
+- 関連: ADR-0018（Excel の書き方）・0026（申請の書類の一覧）・0036（帳簿）・0037（担当者の履歴）、`docs/tasks-phase4.md` の D3。計画 `.checks/phase4/blockA/plan.md`、調べ `.checks/research/phase4-T46_ledger-fields.md`（全部の欄は `.checks/research/phase4-T46_ledger-fields_data/fields_grouped.tsv`）
 
 ## 背景
 
