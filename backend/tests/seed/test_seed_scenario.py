@@ -78,14 +78,31 @@ def test_the_main_line_until_section_8() -> None:
         1313,
         9600,
     )
+    assert [(d.kind, d.amount) for d in version.deductions.all()] == [
+        ("tax", 4500),
+        ("social_insurance", 31900),
+        ("employment_insurance", 1300),
+        ("housing", 25000),
+        ("utilities", 8000),
+    ]
+    assert (version.hiring_health_check_on, version.first_periodic_health_check_on) == (
+        date(2026, 9, 1),
+        date(2027, 9, 1),
+    )
+    assert version.periodic_health_check_interval == "1年"
     explanation = ContractWageExplanation.objects.get(version=version)
     assert explanation.japanese_wage == 210000 and explanation.japanese_age == 21
+    assert explanation.rules_wage == 205000
     assert SupportPlan.objects.filter(worker=worker).count() == 1
 
     guidance, orientation = (
         Briefing.objects.filter(worker=worker).order_by("record__occurred_on").all()
     )
     assert guidance.interpreter == "陳 美玲" and guidance.interpreter_kind == "other"
+    assert guidance.foreign_fees == "paid" and guidance.fees_agreed is True
+    assert [(f.organization_name, f.paid_on, f.amount_jpy) for f in guidance.fees.all()] == [
+        ("鄭州サンプル人材服務（架空の送出機関）", date(2026, 5, 20), 150000)
+    ]
     assert orientation.sessions.count() == 2
     health = Attachment.objects.get(
         content_type__model="foreignworker", object_id=worker.pk, kind="health_check_record"

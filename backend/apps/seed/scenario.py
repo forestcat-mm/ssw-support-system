@@ -109,7 +109,7 @@ from services import (
     workers,
 )
 from services.attachments import create_attachment
-from services.briefings import BriefingInput, CheckInput, SessionInput
+from services.briefings import BriefingInput, CheckInput, FeeInput, SessionInput
 from services.consultations import EntryInput, ReceptionInput
 from services.deliveries import DeliveryInput
 from services.support_catalog import SupportItem
@@ -139,12 +139,8 @@ SIGNED_ON = date(2026, 7, 8)  # 節 6 の署名済みの添付の署名日
 NOT_STORED = (
     "外国人の出生地（中国河南省）: 外国人の台帳に出生地の欄が無い",
     "協議会の名称（食品産業特定技能協議会）: 加入の行に協議会の名称の欄が無い（分野で決まる）",
-    "雇用契約の控除の税金・社会保険料・雇用保険料: 控除の行は額が必須で、額の値が無い",
     "報酬の説明の賃金規程の報酬（月給 205,000〜230,000 円）: 欄は 1 つの額なので "
     "205,000 円を入れた",
-    "事前ガイダンスの「費用の合意 有」: 外国の機関に払った費用の行（相手・日・額）の値が無いので、"
-    "費用は「払っていない」にした（合意の印は、払った費用があるときだけ入れられる）",
-    "雇用条件書の雇入れ時の健康診断の日: 「雇入れ時」の日付の値が無いので空",
 )
 
 
@@ -159,6 +155,7 @@ FILLED = (
     "事前ガイダンスの本人確認の印（オンラインのガイダンスでは必須）",
     "2 回目の面談の ⑥ の対応: 本人を船橋労働基準監督署に案内／受入れ機関（製造部 製造課長 "
     "山本 健二）に 2026-10-17 に通知／出入国在留管理庁への案内は済み",
+    "事前ガイダンスの外国の機関に払った費用の内訳「紹介手数料」（内訳の欄が必須）",
 )
 
 
@@ -469,6 +466,8 @@ def section_4(ctx: ScenarioContext) -> None:
         resignation_notice_days=30,
         work_rules_articles_resignation="第40条～第45条",
         insurances=["employment", "workers_compensation", "health", "employees_pension"],
+        hiring_health_check_on=date(2026, 9, 1),  # 雇入れ時 2026 年 9 月（欄は月）
+        first_periodic_health_check_on=date(2027, 9, 1),  # 初回の定期健康診断 2027 年 9 月
         periodic_health_check_interval="1年",
         treatment_contact_department="総務部",
         treatment_contact_person="田中 一郎",
@@ -486,7 +485,13 @@ def section_4(ctx: ScenarioContext) -> None:
     ctx.keep(
         EmploymentContractAllowance.objects.create(version=version, name="通勤手当", amount=10000)
     )
-    for kind, name, amount in (("housing", "社宅費", 25000), ("utilities", "水道光熱費", 8000)):
+    for kind, name, amount in (
+        ("tax", "", 4500),
+        ("social_insurance", "", 31900),
+        ("employment_insurance", "", 1300),
+        ("housing", "社宅費", 25000),
+        ("utilities", "水道光熱費", 8000),
+    ):
         ctx.keep(
             EmploymentContractDeduction.objects.create(
                 version=version, kind=kind, name=name, amount=amount
@@ -563,7 +568,16 @@ def section_5(ctx: ScenarioContext, with_docs: bool) -> None:
             interpreter_language=zh,
             identity_confirmed=True,  # オンラインのガイダンスは本人確認の印が必須
             deposit_contract="none",
-            foreign_fees="none",  # 費用の行の値が無い（NOT_STORED）
+            foreign_fees="paid",
+            fees=[
+                FeeInput(
+                    "鄭州サンプル人材服務（架空の送出機関）",
+                    date(2026, 5, 20),
+                    150000,
+                    "紹介手数料",  # 内訳は値に無いが必須（FILLED）
+                )
+            ],
+            fees_agreed=True,
         ),
         by=ctx.user,
         today=on,
