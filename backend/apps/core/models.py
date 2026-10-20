@@ -124,6 +124,15 @@ class AttachmentKind(models.TextChoices):
         "online_interview_consent",
         _("Consent of the supervisor to an online periodic interview"),
     )
+    # 技能水準・日本語能力の合格証明書など、技能実習2号の修了の証明（T46a。ADR-0038）
+    QUALIFICATION_CERTIFICATE = (
+        "qualification_certificate",
+        _("Certificate of a passed test or another evaluation"),
+    )
+    INTERNSHIP_CERTIFICATE = (
+        "internship_certificate",
+        _("Proof of good completion of Technical Intern Training (ii)"),
+    )
     # 本人に交付した書類の署名済みの控え・受領の記録（T22、ADR-0010）
     DELIVERED_DOCUMENT = (
         "delivered_document",

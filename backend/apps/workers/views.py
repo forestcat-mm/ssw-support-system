@@ -25,6 +25,7 @@ from apps.core.web_forms import (
 )
 from apps.workers.forms import (
     RECORD_FORMS,
+    CertificateFormMixin,
     DeactivateForm,
     HistoryRecordForm,
     ReactivateForm,
@@ -35,12 +36,16 @@ from apps.workers.forms import (
 )
 from apps.workers.models import (
     ForeignWorker,
+    InternshipCompletion,
     PassportRecord,
     ResidenceRecord,
     StaffAssignment,
     WorkerAddress,
     WorkerContact,
+    WorkerQualification,
+    WorkerRelative,
     WorkerStatus,
+    WorkHistory,
 )
 from services import (
     audit,
@@ -179,6 +184,7 @@ class WorkerDetailView(ActionRequiredMixin, TemplateView):
         documents = worker_documents.rows_for(self.request.user, self.worker)
         context.update(
             info=info,
+            application_sections=worker_detail.application_sections(info),
             health_documents=documents,
             retention_until=books.retention_until(self.worker),  # 帳簿の保存義務の満了日（T44）
         )
@@ -268,6 +274,10 @@ RECORD_TITLES = {
     "passport": _("Add passport"),
     "address": _("Add address"),
     "contact": _("Add contact"),
+    "relative": _("Add a relative or housemate in Japan"),
+    "qualification": _("Add a skill or Japanese language qualification"),
+    "internship": _("Add completed Technical Intern Training (ii)"),
+    "work": _("Add work history"),
 }
 REGISTER_SECTIONS = [
     ("residence", _("Residence (optional)")),
@@ -280,6 +290,10 @@ RECORD_MODELS: dict[str, type[Any]] = {
     "passport": PassportRecord,
     "address": WorkerAddress,
     "contact": WorkerContact,
+    "relative": WorkerRelative,
+    "qualification": WorkerQualification,
+    "internship": InternshipCompletion,
+    "work": WorkHistory,
 }
 
 
@@ -389,12 +403,14 @@ class RecordCreateView(WorkerFormView):
 
     template_name = "workers/form.html"
 
-    def form(self, worker: ForeignWorker, kind: str, data: Any = None) -> HistoryRecordForm:
+    def form(
+        self, worker: ForeignWorker, kind: str, data: Any = None, files: Any = None
+    ) -> HistoryRecordForm:
         if kind not in RECORD_FORMS:
             raise Http404
         model: Any = RECORD_MODELS[kind]
         instance = model(worker=worker)
-        return RECORD_FORMS[kind](data, instance=instance, worker_status=worker.status)
+        return RECORD_FORMS[kind](data, files, instance=instance, worker_status=worker.status)
 
     def get(self, request: HttpRequest, pk: int, kind: str) -> HttpResponse:
         worker = self.worker(request, pk)
@@ -405,11 +421,12 @@ class RecordCreateView(WorkerFormView):
             form=form,
             title=RECORD_TITLES[kind],
             pre_entry_note=kind == "residence" and worker.status == WorkerStatus.PRE_ENTRY,
+            multipart=isinstance(form, CertificateFormMixin),
         )
 
     def post(self, request: HttpRequest, pk: int, kind: str) -> HttpResponse:
         worker = self.worker(request, pk)
-        form = self.form(worker, kind, request.POST)
+        form = self.form(worker, kind, request.POST, request.FILES)
         detail = reverse("workers:detail", args=[pk])
         if not consume_once_token(request):
             return self.already_submitted(request, detail)
@@ -420,8 +437,10 @@ class RecordCreateView(WorkerFormView):
                 form=form,
                 title=RECORD_TITLES[kind],
                 pre_entry_note=kind == "residence" and worker.status == WorkerStatus.PRE_ENTRY,
+                multipart=isinstance(form, CertificateFormMixin),
             )
-        workers.add_record(worker, form.save(commit=False), by=_actor(request))
+        files = form.files_to_attach() if isinstance(form, CertificateFormMixin) else []
+        workers.add_record(worker, form.save(commit=False), by=_actor(request), files=files)
         messages.success(request, _("Added: %(what)s") % {"what": RECORD_TITLES[kind]})
         return redirect(f"{detail}#{kind}")
 

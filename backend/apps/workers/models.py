@@ -16,6 +16,7 @@ from django.db.models import Q
 from django.db.models.functions import Coalesce, TruncDate
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 
 from apps.core.fields import BlindIndexField, EncryptedCharField
 from apps.core.models import (
@@ -113,6 +114,21 @@ class ForeignWorker(TrackedModel, ConfirmedValue):
     status = models.CharField(
         _("status"), max_length=16, choices=WorkerStatus.choices, default=WorkerStatus.PRE_ENTRY
     )
+    # 一括申請の欄から逆算して足した項目（T46a。ADR-0038）。どれも任意（申請の前の検査が知らせる）
+    birthplace = models.CharField(_("place of birth"), max_length=40, blank=True)
+    has_relatives_in_japan = models.BooleanField(
+        _("relatives or housemates in Japan"), null=True, blank=True
+    )
+    has_work_history = models.BooleanField(_("work history"), null=True, blank=True)
+    ssw_months_outside_ledger = models.PositiveSmallIntegerField(
+        _("months as Specified Skilled Worker (i) not in this ledger"),
+        null=True,
+        blank=True,
+        help_text=_(
+            "Months of stay as Specified Skilled Worker (i) before registration in this system "
+            "(for example, with a previous employer). Used for the total period of stay."
+        ),
+    )
     # 無効化（誤登録・重複などで台帳の対象から外す。状態とは別の軸。T13e）
     deactivated_at = models.DateTimeField(
         _("deactivated at"), null=True, blank=True, editable=False
@@ -160,6 +176,13 @@ class StatusOfResidence(models.TextChoices):
     OTHER = "other", _("Other")
 
 
+class TechnicalInternType(models.TextChoices):
+    """技能実習の区分（一括申請ツールの在留資格がイ・ロで分かれている。T46-D8）。"""
+
+    I = "i", _("(i) individual enterprise type")  # noqa: E741
+    RO = "ro", _("(ro) supervising organization type")
+
+
 class ApplicationType(models.TextChoices):
     CERTIFICATE_OF_ELIGIBILITY = "coe", _("Certificate of Eligibility")
     CHANGE = "change", _("Change of status of residence")
@@ -196,6 +219,15 @@ class ResidenceRecord(HistoryRecord):
     )
     application_type = models.CharField(
         _("application type"), max_length=32, choices=ApplicationType.choices
+    )
+    # 在留期間（長さ。一括申請ツールのコード CB20）と技能実習のイ・ロ（T46a。新しい行から）
+    period_of_stay = models.CharField(_("period of stay"), max_length=7, blank=True)
+    technical_intern_type = models.CharField(
+        _("type of technical intern training"),
+        max_length=2,
+        choices=TechnicalInternType.choices,
+        blank=True,
+        help_text=_("Only for Technical Intern Training (ii) and (iii)."),
     )
 
     class Meta:
@@ -301,6 +333,17 @@ class WorkerAddress(HistoryRecord, ConfirmedValue):
     postal_code = models.CharField(_("postal code"), max_length=8)
     address = models.CharField(_("residential address"), max_length=255)
     effective_from = models.DateField(_("effective from"))
+    # 住所を分けた値（一括申請ツールの都道府県 CA69_1・市区町村 CA69 のコードと以降。保存のときに
+    # 住所から最長一致で分ける。分けられなければ空。T46-D4）
+    prefecture_code = models.CharField(
+        _("prefecture code"), max_length=6, blank=True, editable=False
+    )
+    municipality_code = models.CharField(
+        _("municipality code"), max_length=6, blank=True, editable=False
+    )
+    address_rest = models.CharField(
+        _("rest of the address"), max_length=255, blank=True, editable=False
+    )
 
     class Meta:
         verbose_name = _("worker address")
@@ -350,6 +393,122 @@ class WorkerContact(HistoryRecord, ConfirmedValue):
     def effective_on(self) -> datetime.date:
         """並び順の日付（適用開始日。空なら登録した日）。"""
         return self.effective_from or timezone.localdate(self.created_at)
+
+
+# --- 一括申請の欄から逆算して足した履歴行（T46a。ADR-0038）---------------------------------
+# 選択肢の値は一括申請ツールのコード（services/data/immigration_codes.json。T46-D3）。
+
+
+class WorkerRelative(HistoryRecord):
+    """在日親族・同居者（T46-D2）。在留カード番号（特別永住者証明書番号）は列暗号化する。"""
+
+    worker = models.ForeignKey(
+        ForeignWorker,
+        verbose_name=_("foreign worker"),
+        on_delete=models.PROTECT,
+        related_name="relatives",
+    )
+    relationship = models.CharField(_("relationship"), max_length=4)  # CB06_2
+    name = models.CharField(_("full name"), max_length=26)
+    birth_date = models.DateField(_("date of birth"), null=True, blank=True)
+    nationality_code = models.CharField(_("nationality or region"), max_length=3)  # CB79
+    lives_together = models.BooleanField(_("lives (or will live) together"), default=False)
+    workplace = models.CharField(_("place of work or school"), max_length=60, blank=True)
+    card_number = EncryptedCharField(
+        _("residence card or special permanent resident certificate number"),
+        max_length=12,
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = _("relative or housemate in Japan")
+        verbose_name_plural = _("relatives and housemates in Japan")
+        ordering = ["pk"]
+
+    def __str__(self) -> str:
+        return f"{self.worker}: {self.name}"
+
+
+class QualificationArea(models.TextChoices):
+    SKILL = "skill", _("skill level")
+    JAPANESE = "japanese", _("Japanese language ability")
+
+
+class WorkerQualification(HistoryRecord):
+    """技能水準・日本語能力の評価（試験の合格など。T46-D7）。合格証明書は添付で持つ。"""
+
+    worker = models.ForeignKey(
+        ForeignWorker,
+        verbose_name=_("foreign worker"),
+        on_delete=models.PROTECT,
+        related_name="qualifications",
+    )
+    area = models.CharField(_("area"), max_length=16, choices=QualificationArea.choices)
+    evaluation = models.CharField(_("evaluation method"), max_length=2)  # CC06
+    exam = models.CharField(_("test passed"), max_length=3, blank=True)  # CC09・CC10
+    exam_country = models.CharField(
+        _("country or region where the test was taken"), max_length=3, blank=True
+    )  # CB79
+    passed_on = models.DateField(_("passed on"), null=True, blank=True)
+    level = models.CharField(pgettext_lazy("test", "level"), max_length=30, blank=True)
+    other_proof = models.CharField(
+        _("proof by another evaluation method"), max_length=60, blank=True
+    )
+    attachments = GenericRelation(Attachment)
+
+    class Meta:
+        verbose_name = _("skill or Japanese language qualification")
+        verbose_name_plural = _("skill and Japanese language qualifications")
+        ordering = ["area", "passed_on", "pk"]
+
+    def __str__(self) -> str:
+        return f"{self.worker}: {self.get_area_display()}"
+
+
+class InternshipCompletion(HistoryRecord):
+    """良好に修了した技能実習2号（職種・作業・証明。T46a）。"""
+
+    worker = models.ForeignKey(
+        ForeignWorker,
+        verbose_name=_("foreign worker"),
+        on_delete=models.PROTECT,
+        related_name="internship_completions",
+    )
+    occupation = models.CharField(_("job category"), max_length=3)  # CC02_3
+    work = models.CharField(_("operation"), max_length=2)  # CB30（職種ごとの連動の表）
+    proof = models.CharField(_("proof of good completion"), max_length=2)  # CC07
+    completed_on = models.DateField(_("completed on"), null=True, blank=True)
+    attachments = GenericRelation(Attachment)
+
+    class Meta:
+        verbose_name = _("completed Technical Intern Training (ii)")
+        verbose_name_plural = _("completed Technical Intern Training (ii)")
+        ordering = ["completed_on", "pk"]
+
+    def __str__(self) -> str:
+        return f"{self.worker}: {self.occupation}/{self.work}"
+
+
+class WorkHistory(HistoryRecord):
+    """職歴（入社・退社の年月と勤務先。一括申請は 10 件まで。T46a）。年月は月の 1 日で持つ。"""
+
+    worker = models.ForeignKey(
+        ForeignWorker,
+        verbose_name=_("foreign worker"),
+        on_delete=models.PROTECT,
+        related_name="work_history",
+    )
+    joined_on = models.DateField(_("joined (year and month)"))
+    left_on = models.DateField(_("left (year and month)"), null=True, blank=True)
+    employer = models.CharField(_("employer"), max_length=60)
+
+    class Meta:
+        verbose_name = _("work history")
+        verbose_name_plural = _("work history")
+        ordering = ["joined_on", "pk"]
+
+    def __str__(self) -> str:
+        return f"{self.worker}: {self.employer}"
 
 
 # --- 最新行（DB ビュー。migrations/0002 で作成。読み取り専用） -----------------------------

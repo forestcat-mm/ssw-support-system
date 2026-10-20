@@ -31,16 +31,21 @@ from apps.workers.models import (
     ApplicationType,
     ForeignWorker,
     HistoryRecord,
+    InternshipCompletion,
     LatestPassportRecord,
     LatestResidenceRecord,
     LatestWorkerAddress,
     LatestWorkerContact,
     PassportRecord,
+    QualificationArea,
     ResidenceRecord,
     WorkerAddress,
     WorkerContact,
+    WorkerQualification,
+    WorkerRelative,
+    WorkHistory,
 )
-from services import contracts, dashboard, deadlines, filings
+from services import addresses, contracts, dashboard, deadlines, filings, immigration_codes
 
 # --- 基本 -----------------------------------------------------------------------
 
@@ -53,8 +58,13 @@ class BasicInfo:
     passport_deadline: deadlines.Deadline | None
     address: WorkerAddress | None
     contact: WorkerContact | None
+    # 一括申請の欄から逆算して足した行（取り消していないもの。T46a）
+    relatives: list[WorkerRelative] = field(default_factory=list)
+    qualifications: list[WorkerQualification] = field(default_factory=list)
+    internships: list[InternshipCompletion] = field(default_factory=list)
+    work_history: list[WorkHistory] = field(default_factory=list)
 
-    def shown_ids(self) -> dict[str, int]:
+    def shown_ids(self) -> dict[str, Any]:
         """監査ログに残す、表示した行の ID。"""
         records = {
             "residence_record": self.residence,
@@ -62,7 +72,38 @@ class BasicInfo:
             "address": self.address,
             "contact": self.contact,
         }
-        return {name: record.pk for name, record in records.items() if record is not None}
+        shown: dict[str, Any] = {
+            name: record.pk for name, record in records.items() if record is not None
+        }
+        lists: dict[str, list[Any]] = {
+            "relative": self.relatives,
+            "qualification": self.qualifications,
+            "internship": self.internships,
+            "work_history": self.work_history,
+        }
+        shown.update({name: [row.pk for row in rows] for name, rows in lists.items() if rows})
+        return shown
+
+    @property
+    def period_of_stay(self) -> str:
+        """在留期間（長さ。一括申請ツールの表示名）。"""
+        if self.residence is None or not self.residence.period_of_stay:
+            return ""
+        return immigration_codes.label(
+            immigration_codes.PERIOD_OF_STAY, self.residence.period_of_stay
+        )
+
+    @property
+    def address_split(self) -> str:
+        """住所を分けた結果（都道府県・市区町村の名前。分けられなければ空）。"""
+        address = self.address
+        if address is None or not address.municipality_code:
+            return ""
+        prefecture = immigration_codes.label(immigration_codes.PREFECTURE, address.prefecture_code)
+        municipality = addresses.municipality_name(
+            address.prefecture_code, address.municipality_code
+        )
+        return f"{prefecture} / {municipality} / {address.address_rest}"
 
     def decrypted_fields(self) -> dict[str, str]:
         """復号して表示した項目（値は残さない）。"""
@@ -105,6 +146,16 @@ def basic_info(worker: ForeignWorker) -> BasicInfo:
         passport_deadline=deadlines.passport_expiry(passport.expires_on) if passport else None,
         address=_latest_record(LatestWorkerAddress, worker),
         contact=_latest_record(LatestWorkerContact, worker),
+        relatives=list(worker.relatives.filter(voided_at__isnull=True)),
+        qualifications=list(
+            worker.qualifications.filter(voided_at__isnull=True).prefetch_related("attachments")
+        ),
+        internships=list(
+            worker.internship_completions.filter(voided_at__isnull=True).prefetch_related(
+                "attachments"
+            )
+        ),
+        work_history=list(worker.work_history.filter(voided_at__isnull=True)),
     )
 
 
@@ -295,6 +346,10 @@ HISTORY_KIND_LABELS = {
     "passport": gettext_lazy("passport"),
     "address": gettext_lazy("residential address"),
     "contact": gettext_lazy("contact"),
+    "relative": gettext_lazy("relative or housemate in Japan"),
+    "qualification": gettext_lazy("skill or Japanese language qualification"),
+    "internship": gettext_lazy("completed Technical Intern Training (ii)"),
+    "work": gettext_lazy("work history"),
 }
 
 
@@ -372,5 +427,180 @@ def history(worker: ForeignWorker) -> list[HistoryEntry]:
             if getattr(contact, name)
         ]
         entries.append(HistoryEntry("contact", contact, contact.effective_on, "", details))
+    entries.extend(_application_entries(worker))
     entries.sort(key=lambda entry: (entry.on, entry.record.created_at), reverse=True)
     return entries
+
+
+def _registered_on(record: HistoryRecord) -> datetime.date:
+    return timezone.localdate(record.created_at)
+
+
+def relative_details(relative: WorkerRelative) -> list[tuple[str, str]]:
+    details = [
+        (
+            _label(WorkerRelative, "relationship"),
+            immigration_codes.label(immigration_codes.RELATIONSHIP, relative.relationship),
+        ),
+        (_label(WorkerRelative, "name"), relative.name),
+        (
+            _label(WorkerRelative, "nationality_code"),
+            immigration_codes.label(immigration_codes.COUNTRY, relative.nationality_code),
+        ),
+        (
+            _label(WorkerRelative, "lives_together"),
+            _("yes") if relative.lives_together else _("no"),
+        ),
+    ]
+    if relative.birth_date:
+        details.append((_label(WorkerRelative, "birth_date"), relative.birth_date.isoformat()))
+    if relative.workplace:
+        details.append((_label(WorkerRelative, "workplace"), relative.workplace))
+    return details
+
+
+def qualification_details(row: WorkerQualification) -> list[tuple[str, str]]:
+    exam_code = (
+        immigration_codes.SKILL_EXAM
+        if row.area == QualificationArea.SKILL
+        else immigration_codes.JAPANESE_EXAM
+    )
+    details = [
+        (_label(WorkerQualification, "area"), row.get_area_display()),
+        (
+            _label(WorkerQualification, "evaluation"),
+            immigration_codes.label(immigration_codes.EVALUATION, row.evaluation),
+        ),
+    ]
+    if row.exam:
+        details.append(
+            (_label(WorkerQualification, "exam"), immigration_codes.label(exam_code, row.exam))
+        )
+    if row.exam_country:
+        details.append(
+            (
+                _label(WorkerQualification, "exam_country"),
+                immigration_codes.label(immigration_codes.COUNTRY, row.exam_country),
+            )
+        )
+    for name in ("passed_on", "level", "other_proof"):
+        value = getattr(row, name)
+        if value:
+            details.append((_label(WorkerQualification, name), str(value)))
+    return details
+
+
+def internship_details(row: InternshipCompletion) -> list[tuple[str, str]]:
+    details = [
+        (
+            _label(InternshipCompletion, "occupation"),
+            immigration_codes.label(immigration_codes.INTERN_OCCUPATION, row.occupation),
+        ),
+        (
+            _label(InternshipCompletion, "work"),
+            immigration_codes.linked_label(
+                immigration_codes.INTERN_OCCUPATION, row.occupation, row.work
+            ),
+        ),
+        (
+            _label(InternshipCompletion, "proof"),
+            immigration_codes.label(immigration_codes.INTERN_PROOF, row.proof),
+        ),
+    ]
+    if row.completed_on:
+        details.append((_label(InternshipCompletion, "completed_on"), str(row.completed_on)))
+    return details
+
+
+def work_details(row: WorkHistory) -> list[tuple[str, str]]:
+    period = (
+        f"{row.joined_on:%Y-%m}〜{row.left_on:%Y-%m}" if row.left_on else f"{row.joined_on:%Y-%m}〜"
+    )
+    return [(_label(WorkHistory, "employer"), row.employer), (_("period"), period)]
+
+
+def _application_entries(worker: ForeignWorker) -> list[HistoryEntry]:
+    """在日親族・試験・技能実習・職歴の行（T46a）。"""
+    entries = [
+        HistoryEntry(
+            "relative",
+            relative,
+            _registered_on(relative),
+            mask_number(relative.card_number),
+            relative_details(relative),
+        )
+        for relative in worker.relatives.select_related("voided_by")
+    ]
+    entries += [
+        HistoryEntry(
+            "qualification",
+            row,
+            row.passed_on or _registered_on(row),
+            "",
+            qualification_details(row),
+        )
+        for row in worker.qualifications.select_related("voided_by")
+    ]
+    entries += [
+        HistoryEntry(
+            "internship", row, row.completed_on or _registered_on(row), "", internship_details(row)
+        )
+        for row in worker.internship_completions.select_related("voided_by")
+    ]
+    entries += [
+        HistoryEntry("work", row, row.joined_on, "", work_details(row))
+        for row in worker.work_history.select_related("voided_by")
+    ]
+    return entries
+
+
+@dataclass(frozen=True)
+class ApplicationRow:
+    record: HistoryRecord
+    masked_number: str
+    details: list[tuple[str, str]]
+    attachments: list[Any]
+
+
+@dataclass(frozen=True)
+class ApplicationSection:
+    """基本タブの「一括申請の項目」の 1 つの区分（T46a）。"""
+
+    kind: str  # 履歴の区分（URL の <kind>）
+    rows: list[ApplicationRow]
+
+    @property
+    def title(self) -> str:
+        return str(HISTORY_KIND_LABELS[self.kind])
+
+
+def application_sections(info: BasicInfo) -> list[ApplicationSection]:
+    def attached(row: Any) -> list[Any]:
+        return [a for a in row.attachments.all() if a.voided_at is None]
+
+    return [
+        ApplicationSection(
+            "relative",
+            [
+                ApplicationRow(row, mask_number(row.card_number), relative_details(row), [])
+                for row in info.relatives
+            ],
+        ),
+        ApplicationSection(
+            "qualification",
+            [
+                ApplicationRow(row, "", qualification_details(row), attached(row))
+                for row in info.qualifications
+            ],
+        ),
+        ApplicationSection(
+            "internship",
+            [
+                ApplicationRow(row, "", internship_details(row), attached(row))
+                for row in info.internships
+            ],
+        ),
+        ApplicationSection(
+            "work", [ApplicationRow(row, "", work_details(row), []) for row in info.work_history]
+        ),
+    ]

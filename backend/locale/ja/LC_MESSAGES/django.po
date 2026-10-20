@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 20:59+0900\n"
+"POT-Creation-Date: 2026-10-20 21:27+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -1274,6 +1274,12 @@ msgstr "署名済みの帳票（スキャン）"
 msgid "Consent of the supervisor to an online periodic interview"
 msgstr "オンラインの定期面談の上司（監督者）の同意の書面"
 
+msgid "Certificate of a passed test or another evaluation"
+msgstr "試験の合格証明書など（評価の証明）"
+
+msgid "Proof of good completion of Technical Intern Training (ii)"
+msgstr "技能実習2号の良好な修了の証明"
+
 msgid "Signed copy or receipt of a document given to the worker"
 msgstr "本人に交付した書類の署名済みの控え・受領の記録"
 
@@ -2395,7 +2401,7 @@ msgstr "警告レベル"
 
 msgctxt "deadline"
 msgid "level"
-msgstr "警告レベル（残り日数）"
+msgstr "レベル"
 
 msgid "badge"
 msgstr "バッジ"
@@ -3803,7 +3809,7 @@ msgstr "水産加工業の区分（2027年4月1日から）: 転職できる範�
 
 msgctxt "career plan"
 msgid "level"
-msgstr "レベルの名前"
+msgstr "レベル"
 
 msgid "Example: level 1."
 msgstr "例: レベル1"
@@ -6127,6 +6133,66 @@ msgstr "氏名（ローマ字）順"
 msgid "Include deactivated"
 msgstr "無効化済みを含む"
 
+msgid "period of stay"
+msgstr "在留期間"
+
+msgid "The length written on the residence card (for example, 1 year)."
+msgstr "在留カードに書かれた期間の長さ（例: 1年）。"
+
+msgid "Choose this only for Technical Intern Training (ii) and (iii)."
+msgstr "技能実習2号・3号のときだけ選びます。"
+
+msgid "relationship"
+msgstr "続柄"
+
+msgid "Optional. 12 characters."
+msgstr "任意。12 文字。"
+
+msgid "certificate (scan)"
+msgstr "証明書（スキャン）"
+
+msgid "evaluation method"
+msgstr "評価区分"
+
+msgid "test passed"
+msgstr "合格した試験"
+
+msgid "country or region where the test was taken"
+msgstr "受験地"
+
+msgid "skill level"
+msgstr "技能水準"
+
+msgid "Japanese language ability"
+msgstr "日本語能力"
+
+msgid "For example, N4 or A2."
+msgstr "例: N4、A2。"
+
+msgid "Choose a test of the same area."
+msgstr "同じ区分（技能水準・日本語能力）の試験を選んでください。"
+
+msgid "job category"
+msgstr "職種"
+
+msgid "operation"
+msgstr "作業"
+
+msgid "proof of good completion"
+msgstr "良好に修了したことの証明"
+
+msgid "This operation is not in the chosen job category."
+msgstr "選んだ職種にこの作業はありません。"
+
+msgid "Only the year and month are used."
+msgstr "年と月だけを使います。"
+
+msgid "Leave blank if still working there."
+msgstr "今も勤めていれば空にします。"
+
+msgid "The month of leaving is before the month of joining."
+msgstr "退社の年月が入社の年月より前です。"
+
 msgid "Example: the card number was entered incorrectly."
 msgstr "例: 在留カード番号を誤って入力した。"
 
@@ -6172,6 +6238,24 @@ msgstr "生年月日"
 msgid "sex"
 msgstr "性別"
 
+msgid "place of birth"
+msgstr "出生地"
+
+msgid "relatives or housemates in Japan"
+msgstr "在日親族・同居者の有無"
+
+msgid "work history"
+msgstr "職歴"
+
+msgid "months as Specified Skilled Worker (i) not in this ledger"
+msgstr "台帳の外の特定技能1号の在留期間（月数）"
+
+msgid ""
+"Months of stay as Specified Skilled Worker (i) before registration in this "
+"system (for example, with a previous employer). Used for the total period of"
+" stay."
+msgstr "このシステムに登録する前の、特定技能1号での在留の月数（前の受入れ機関での期間など）。通算在留期間に使います。"
+
 msgid "Specified Skilled Worker (i)"
 msgstr "特定技能1号"
 
@@ -6193,6 +6277,12 @@ msgstr "留学"
 msgid "Other"
 msgstr "その他"
 
+msgid "(i) individual enterprise type"
+msgstr "イ（企業単独型）"
+
+msgid "(ro) supervising organization type"
+msgstr "ロ（団体監理型）"
+
 msgid "Residence card reissue (lost, damaged, etc.)"
 msgstr "在留カード再交付（紛失・汚損等）"
 
@@ -6207,6 +6297,12 @@ msgstr "許可日"
 
 msgid "For card reissue and change of particulars, enter the issue date."
 msgstr "在留カード再交付・記載事項変更は交付日を入力します。"
+
+msgid "type of technical intern training"
+msgstr "技能実習の区分（イ・ロ）"
+
+msgid "Only for Technical Intern Training (ii) and (iii)."
+msgstr "技能実習2号・3号のときだけ。"
 
 msgid "residence record"
 msgstr "在留情報"
@@ -6241,6 +6337,15 @@ msgstr "住所"
 msgid "effective from"
 msgstr "適用開始日"
 
+msgid "prefecture code"
+msgstr "都道府県のコード"
+
+msgid "municipality code"
+msgstr "市区町村のコード"
+
+msgid "rest of the address"
+msgstr "住所（市区町村より後）"
+
 msgid "worker address"
 msgstr "住所"
 
@@ -6270,6 +6375,55 @@ msgstr "連絡先"
 
 msgid "contacts"
 msgstr "連絡先"
+
+msgid "lives (or will live) together"
+msgstr "同居（予定）"
+
+msgid "place of work or school"
+msgstr "勤務先・通学先"
+
+msgid "residence card or special permanent resident certificate number"
+msgstr "在留カード番号・特別永住者証明書番号"
+
+msgid "relative or housemate in Japan"
+msgstr "在日親族・同居者"
+
+msgid "relatives and housemates in Japan"
+msgstr "在日親族・同居者"
+
+msgid "area"
+msgstr "区分"
+
+msgid "passed on"
+msgstr "合格日"
+
+msgctxt "test"
+msgid "level"
+msgstr "レベル"
+
+msgid "proof by another evaluation method"
+msgstr "その他の評価方法による証明"
+
+msgid "skill or Japanese language qualification"
+msgstr "技能水準・日本語能力"
+
+msgid "skill and Japanese language qualifications"
+msgstr "技能水準・日本語能力"
+
+msgid "completed on"
+msgstr "修了日"
+
+msgid "completed Technical Intern Training (ii)"
+msgstr "良好に修了した技能実習2号"
+
+msgid "joined (year and month)"
+msgstr "入社（年月）"
+
+msgid "left (year and month)"
+msgstr "退社（年月）"
+
+msgid "employer"
+msgstr "勤務先"
 
 msgid "Home"
 msgstr "ホーム"
@@ -6366,9 +6520,33 @@ msgstr "連絡先を追加"
 msgid "from %(day)s"
 msgstr "%(day)s から"
 
+msgid "for the bulk application:"
+msgstr "一括申請の住所:"
+
+msgid ""
+"The prefecture and municipality could not be found in the address. Check the"
+" address."
+msgstr "住所から都道府県・市区町村を分けられませんでした。住所を確かめてください。"
+
 #, python-format
 msgid "No date (registered on %(day)s)"
 msgstr "適用開始日なし（登録 %(day)s）"
+
+msgid "Items for the bulk application"
+msgstr "一括申請の項目"
+
+msgid ""
+"Items of the bulk application tool of the online residence application. "
+"Enter what applies; the check before generating the bulk file shows what is "
+"missing."
+msgstr ""
+"在留申請オンラインの一括登録用ツールの項目です。当てはまるものを入れます。足りないものは、一括申請の Excel を作る前の検査で知らせます。"
+
+msgid "yes,no,not entered"
+msgstr "有,無,未入力"
+
+msgid "To correct a row, void it on the History tab and add a new one."
+msgstr "行を直すときは、「履歴」タブで取り消してから新しい行を足します。"
 
 msgid "Health check documents"
 msgstr "健康診断の書類"
@@ -6530,6 +6708,18 @@ msgstr "在留情報を追加"
 
 msgid "Add passport"
 msgstr "旅券を追加"
+
+msgid "Add a relative or housemate in Japan"
+msgstr "在日親族・同居者を追加"
+
+msgid "Add a skill or Japanese language qualification"
+msgstr "技能水準・日本語能力を追加"
+
+msgid "Add completed Technical Intern Training (ii)"
+msgstr "良好に修了した技能実習2号を追加"
+
+msgid "Add work history"
+msgstr "職歴を追加"
 
 msgid "Residence (optional)"
 msgstr "在留情報（任意）"

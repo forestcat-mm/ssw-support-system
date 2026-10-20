@@ -14,6 +14,7 @@
       <dt>{% translate "support language" %}</dt><dd>{{ worker.support_language }}</dd>
       <dt>{% translate "assigned staff" %}</dt><dd id="worker-assigned-staff">{{ worker.assigned_staff.name|default:_("not assigned") }} <a class="caption" href="{% url 'workers:history' worker.pk %}#staff-periods">{% translate "history" %}</a>{% if can_manage %} · <a class="caption" href="{% url 'workers:staff_change' worker.pk %}" id="staff-change-link">{% translate "Change" %}</a>{% endif %}</dd>
       <dt>{% translate "status" %}</dt><dd>{{ worker.get_status_display }}</dd>
+      <dt>{% translate "place of birth" %}</dt><dd id="worker-birthplace">{{ worker.birthplace|default:"—" }}</dd>
       <dt>{% translate "records kept until (estimate)" %}</dt><dd id="worker-retention-until">{% if retention_until %}<span class="mono">{{ retention_until|date:"Y-m-d" }}</span>{% else %}<span class="muted">{% translate "not fixed yet (one year after the employment contract ends)" %}</span>{% endif %}</dd>
     </dl>
   </section>
@@ -27,6 +28,8 @@
       {% if record.application_type == "coe" %}<dt>{% translate "certificate of eligibility valid until" %}</dt><dd class="mono" id="coe-valid-until">{{ record.expires_on|date:"Y-m-d" }}</dd>{% else %}<dt>{% translate "period of stay expires on" %}</dt><dd>{% due_date info.residence_deadline %}</dd>{% endif %}
       <dt>{% translate "permitted on" %}</dt><dd class="mono">{{ record.permitted_on|date:"Y-m-d" }}</dd>
       <dt>{% translate "application type" %}</dt><dd>{{ record.get_application_type_display }}</dd>
+      <dt>{% translate "period of stay" %}</dt><dd id="residence-period">{{ info.period_of_stay|default:"—" }}</dd>
+      {% if record.technical_intern_type %}<dt>{% translate "type of technical intern training" %}</dt><dd>{{ record.get_technical_intern_type_display }}</dd>{% endif %}
     </dl>
     {% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}{% endwith %}
   </section>
@@ -47,7 +50,8 @@
     <div class="card__header"><h2 class="card__title">{% translate "Address and contact (latest)" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'workers:record_create' worker.pk 'address' %}">{% translate "Add address" %}</a><a class="button button--neutral button--small" href="{% url 'workers:record_create' worker.pk 'contact' %}">{% translate "Add contact" %}</a>{% endif %}</div>
     <dl class="fields">
       {% with record=info.address %}
-      <dt>{% translate "residential address" %}</dt><dd>{% if record %}〒{{ record.postal_code }} {{ record.address }} <span class="caption">{% blocktranslate with day=record.effective_from|date:"Y-m-d" %}from {{ day }}{% endblocktranslate %}</span>{% else %}<span class="muted">{% translate "Not registered." %}</span>{% endif %}</dd>
+      <dt>{% translate "residential address" %}</dt><dd>{% if record %}〒{{ record.postal_code }} {{ record.address }} <span class="caption">{% blocktranslate with day=record.effective_from|date:"Y-m-d" %}from {{ day }}{% endblocktranslate %}</span>
+        <span class="caption" id="address-split">{% if info.address_split %}{% translate "for the bulk application:" %} {{ info.address_split }}{% else %}<span class="badge badge--within-14">{% translate "The prefecture and municipality could not be found in the address. Check the address." %}</span>{% endif %}</span>{% else %}<span class="muted">{% translate "Not registered." %}</span>{% endif %}</dd>
       {% endwith %}
       {% with record=info.contact %}{% if record %}
       <dt>{% translate "phone number" %}</dt><dd class="mono">{{ record.phone|default:"—" }}</dd>
@@ -63,6 +67,25 @@
     </dl>
   </section>
 </div>
+
+<section class="card" id="application-items" style="margin-top: var(--space-16)">
+  <div class="card__header"><h2 class="card__title">{% translate "Items for the bulk application" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'workers:edit' worker.pk %}">{% translate "Edit" %}</a>{% endif %}</div>
+  <p class="caption">{% translate "Items of the bulk application tool of the online residence application. Enter what applies; the check before generating the bulk file shows what is missing." %}</p>
+  <dl class="fields">
+    <dt>{% translate "relatives or housemates in Japan" %}</dt><dd id="worker-has-relatives">{{ worker.has_relatives_in_japan|yesno:_("yes,no,not entered") }}</dd>
+    <dt>{% translate "work history" %}</dt><dd id="worker-has-work-history">{{ worker.has_work_history|yesno:_("yes,no,not entered") }}</dd>
+    <dt>{% translate "months as Specified Skilled Worker (i) not in this ledger" %}</dt><dd class="mono">{{ worker.ssw_months_outside_ledger|default_if_none:"—" }}</dd>
+  </dl>
+  {% for section in application_sections %}
+  <div class="stack" id="{{ section.kind }}" style="margin-top: var(--space-12)">
+    <div class="card__header"><h3 class="card__title">{{ section.title }}</h3>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'workers:record_create' worker.pk section.kind %}">{% translate "Add" %}</a>{% endif %}</div>
+    {% if section.rows %}<ul class="attachment-list" data-section="{{ section.kind }}">{% for row in section.rows %}
+      <li data-record="{{ row.record.pk }}"><span>{% for label, value in row.details %}{{ value }}{% if not forloop.last %} · {% endif %}{% endfor %}</span>{% if row.masked_number %} <span class="mono caption">{{ row.masked_number }}</span>{% endif %}{% for file in row.attachments %} <a class="attachment-list__name" href="{% url 'attachment_download' file.pk %}">{{ file.original_filename }}</a>{% endfor %}</li>
+    {% endfor %}</ul>{% else %}<p class="muted">{% translate "None." %}</p>{% endif %}
+  </div>
+  {% endfor %}
+  <p class="caption">{% translate "To correct a row, void it on the History tab and add a new one." %}</p>
+</section>
 
 <section class="card" id="health-documents" style="margin-top: var(--space-16)">
   <div class="card__header"><h2 class="card__title">{% translate "Health check documents" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'workers:health_document_add' worker.pk %}" data-modal data-modal-return>{% translate "Add" %}</a>{% endif %}</div>

@@ -20,7 +20,7 @@ from django.db.models import Model, QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from apps.core.models import AuditAction, User
+from apps.core.models import AttachmentKind, AuditAction, User
 from apps.filings.models import Filing, FilingStatus
 from apps.workers.models import (
     ConfirmedValue,
@@ -28,9 +28,19 @@ from apps.workers.models import (
     HistoryRecord,
     PassportRecord,
     ResidenceRecord,
+    WorkerAddress,
     WorkerStatus,
 )
-from services import audit, crypto, filings, passport, residence_card, staff_periods
+from services import (
+    addresses,
+    attachments,
+    audit,
+    crypto,
+    filings,
+    passport,
+    residence_card,
+    staff_periods,
+)
 
 
 def conflicting_worker_id(
@@ -128,11 +138,29 @@ def _stamp(instance: Model, by: User | None) -> None:
     confirm(instance, by=by)
 
 
-def add_record(worker: ForeignWorker, record: HistoryRecord, *, by: User | None) -> HistoryRecord:
-    """履歴行（在留・旅券・住所・連絡先）を 1 行足す。検査は呼び出し前に clean_* で済ませる。"""
+@transaction.atomic
+def add_record(
+    worker: ForeignWorker,
+    record: HistoryRecord,
+    *,
+    by: User | None,
+    files: Iterable[tuple[AttachmentKind, Any]] = (),
+) -> HistoryRecord:
+    """履歴行（在留・旅券・住所・連絡先・在日親族・試験・技能実習・職歴）を 1 行足す。
+
+    検査は呼び出し前に clean_* で済ませる。住所は一括申請ツールの都道府県・市区町村に分けて
+    持つ（T46-D4）。証明書（files）は行に添付する。
+    """
     record.worker = worker  # type: ignore[attr-defined]
+    if isinstance(record, WorkerAddress):
+        split = addresses.split(record.address)
+        record.prefecture_code = split.prefecture_code
+        record.municipality_code = split.municipality_code
+        record.address_rest = split.rest
     _stamp(record, by)
     record.save()
+    for kind, file in files:
+        attachments.create_attachment(target=record, kind=kind, file=file, created_by=by)
     return record
 
 

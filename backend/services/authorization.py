@@ -132,6 +132,10 @@ DJANGO_PERMISSION_ACTIONS: dict[str, Action] = {
             "workers.workeraddress",
             "workers.workercontact",
             "workers.staffassignment",
+            "workers.workerrelative",
+            "workers.workerqualification",
+            "workers.internshipcompletion",
+            "workers.workhistory",
         )
         for perm, action in _model_permissions(
             model,
