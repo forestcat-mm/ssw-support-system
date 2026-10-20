@@ -51,7 +51,7 @@
     <dl class="fields">
       {% with record=info.address %}
       <dt>{% translate "residential address" %}</dt><dd>{% if record %}〒{{ record.postal_code }} {{ record.address }} <span class="caption">{% blocktranslate with day=record.effective_from|date:"Y-m-d" %}from {{ day }}{% endblocktranslate %}</span>
-        <span class="caption" id="address-split">{% if info.address_split %}{% translate "for the bulk application:" %} {{ info.address_split }}{% else %}<span class="badge badge--within-14">{% translate "The prefecture and municipality could not be found in the address. Check the address." %}</span>{% endif %}</span>{% else %}<span class="muted">{% translate "Not registered." %}</span>{% endif %}</dd>
+        <span class="caption" id="address-split" style="display: block">{% if info.address_split %}{% translate "for the bulk application:" %} {{ info.address_split }}{% else %}<strong data-split="none">{% translate "The prefecture and municipality could not be found in the address. Check the address." %}</strong>{% endif %}</span>{% else %}<span class="muted">{% translate "Not registered." %}</span>{% endif %}</dd>
       {% endwith %}
       {% with record=info.contact %}{% if record %}
       <dt>{% translate "phone number" %}</dt><dd class="mono">{{ record.phone|default:"—" }}</dd>
