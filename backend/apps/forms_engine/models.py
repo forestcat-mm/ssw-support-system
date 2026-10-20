@@ -35,6 +35,8 @@ class FormOwner(models.TextChoices):
 class FormMethod(models.TextChoices):
     XLSX_CELLS = "xlsx-cells", _("Excel: write values into cells")
     DOCX_TAGS = "docx-tags", _("Word: fill in tags")
+    # 入管のマクロつきの一括登録用ツール（1 人 1 行。T47、ADR-0039）
+    XLSM_ROWS = "xlsm-rows", _("Excel tool with macros: one row per person")
 
 
 class FormTemplate(TrackedModel):

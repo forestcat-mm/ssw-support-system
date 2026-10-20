@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 21:46+0900\n"
+"POT-Creation-Date: 2026-10-20 22:43+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -3251,6 +3251,9 @@ msgstr "Excel: セルに値を書く"
 
 msgid "Word: fill in tags"
 msgstr "Word: 差込タグに差し込む"
+
+msgid "Excel tool with macros: one row per person"
+msgstr "マクロつきの Excel ツール（1 人 1 行）"
 
 msgid "form ID"
 msgstr "様式 ID"
@@ -7142,6 +7145,30 @@ msgstr "実施日時が %(rows)s 行を超えるため、確認書の欄に収�
 
 msgid "The signed confirmation is not attached."
 msgstr "署名済みの確認書が添付されていません。"
+
+#, python-format
+msgid "The format of %(name)s is not correct."
+msgstr "%(name)s の入力形式が正しくありません。"
+
+#, python-format
+msgid "Enter %(name)s in %(length)s characters."
+msgstr "%(name)s は %(length)s 桁で入力してください。"
+
+#, python-format
+msgid "Enter %(name)s in %(length)s characters or fewer."
+msgstr "%(name)s は %(length)s 桁以内で入力してください。"
+
+#, python-format
+msgid "%(name)s is required."
+msgstr "%(name)s は必須入力です。"
+
+#, python-format
+msgid "%(name)s is not in the list of the tool."
+msgstr "%(name)s がツールの選択肢にありません。"
+
+#, python-format
+msgid "When %(child)s is entered, enter %(parent)s."
+msgstr "%(child)s を入力している場合は、%(parent)s を入力してください。"
 
 msgid "Select a field of a site of this host organization."
 msgstr "この受入れ機関の事業所の分野を選んでください。"

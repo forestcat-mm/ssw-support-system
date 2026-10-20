@@ -1,0 +1,19 @@
+{
+  "form_id": "bulk-ext",
+  "name": "在留申請オンライン 一括登録用Excelツール（在留期間更新許可申請）",
+  "valid_from": "2026-06-04",
+  "language": "ja",
+  "owner": "common",
+  "method": "xlsm-rows",
+  "requires_signed_copy": false,
+  "original": "original.xlsm",
+  "source": {
+    "url": "https://www.moj.go.jp/isa/content/001453108.xlsm",
+    "page": "https://www.moj.go.jp/isa/applications/online/online_guidance.html",
+    "retrieved_on": "2026-10-20",
+    "revision_date": "2026-06-04",
+    "revision_date_unknown": false,
+    "original_sha256": "1bc640105860dfa8962aab10f517d61fbff59fed1173089ac8344af48f611731",
+    "adr": "ADR-0039（ツールの版 2026/06/04。メニューの表題と案内のページの「令和８年６月４日に…更新」）"
+  }
+}

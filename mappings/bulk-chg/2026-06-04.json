@@ -1,0 +1,6 @@
+{
+ "form_id": "bulk-chg",
+ "valid_from": "2026-06-04",
+ "note": "一括申請の欄の対応（T48 で欄を足す。ADR-0039）。値は services/bulk_application_data.py が作る。",
+ "fields": []
+}

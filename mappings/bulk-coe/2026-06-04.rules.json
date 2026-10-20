@@ -1,0 +1,6 @@
+{
+  "form_id": "bulk-coe",
+  "valid_from": "2026-06-04",
+  "note": "ツールのマクロの入力チェックは列の表（.columns.json）で別に確かめる（services/bulk_checks.py）。ここには台帳の側の規則だけを書く。",
+  "rules": []
+}

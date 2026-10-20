@@ -75,3 +75,40 @@ def linked_label(code: str, parent: str, value: str) -> str:
 
 def is_valid(code: str, value: str) -> bool:
     return any(key == value for key, _label in table(code))
+
+
+# --- 手続ごとの表（一括申請の生成と検査。T47）--------------------------------------------------
+
+PROCEDURES = ("coe", "extension", "change")
+
+
+def procedure_table(code: str, procedure: str) -> list[tuple[str, str]]:
+    """[(コード, 表示名)]。手続で違う表（by_procedure）があればそれ、無ければ共通の表。
+
+    どちらにも無ければ空。
+    """
+    special = _data()["by_procedure"].get(procedure, {}).get(code)
+    if special is not None:
+        return [(value, label) for label, value in special["table"]]
+    rows = _data()["codes"].get(code)
+    return [(value, label) for label, value in rows] if rows is not None else []
+
+
+def procedure_linked(code: str, parent: str, procedure: str) -> list[tuple[str, str]] | None:
+    """連動の表（親の業務コード code・親の値 parent）。表が無ければ None。"""
+    special = _data()["by_procedure"].get(procedure, {}).get(code)
+    if special is not None and "linked" in special:
+        rows = special["linked"].get(parent)
+    else:
+        rows = _data()["linked"].get(code, {}).get(parent)
+    return None if rows is None else [(value, label) for label, value in rows]
+
+
+def full_label(code: str, value: str, procedure: str) -> str:
+    """ツールのセルに書く表示名（「中国 People's Republic of China」の形。無ければ空）。"""
+    return next((text for key, text in procedure_table(code, procedure) if key == value), "")
+
+
+def code_of(code: str, text: str, procedure: str) -> str:
+    """表示名からコード（無ければ空）。"""
+    return next((key for key, label in procedure_table(code, procedure) if label == text), "")

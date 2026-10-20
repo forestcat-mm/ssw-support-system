@@ -154,6 +154,13 @@ def _load_one(manifest_path: Path, *, by: User | None, report: LoadReport) -> No
         definition = json.loads(mapping_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as error:
         raise FormTemplateError(f"{mapping_path}: {error}") from error
+    if data["method"] == FormMethod.XLSM_ROWS:
+        # 一括登録用ツール: 列の表（道具の出力）を欄の対応と一緒に持つ（T47、ADR-0039）
+        columns_path = mapping_path.with_name(f"{stem}.columns.json")
+        definition["columns_table"] = _read_columns(columns_path, data, original_sha, definition)
+        mapping_sha = hashlib.sha256(
+            (mapping_sha + sha256_of(columns_path)).encode("ascii")
+        ).hexdigest()
 
     if definition.get("rules"):
         raise FormTemplateError(
@@ -272,6 +279,30 @@ def _load_one(manifest_path: Path, *, by: User | None, report: LoadReport) -> No
     mapping.updated_by = by
     mapping.save()
     report.updated.append(key)
+
+
+def _read_columns(
+    path: Path, manifest: dict[str, Any], original_sha: str, definition: dict[str, Any]
+) -> dict[str, Any]:
+    """一括登録用ツールの列の表を読み、元のブック・欄の対応と合っているかを確かめる。"""
+    if not path.is_file():
+        raise FormTemplateError(f"{path}: not found")
+    try:
+        table: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        raise FormTemplateError(f"{path}: {error}") from error
+    for name in ("form_id", "valid_from"):
+        if table.get(name) != manifest[name]:
+            raise FormTemplateError(f"{path}: {name} does not match the manifest")
+    if table.get("tool", {}).get("sha256") != original_sha:
+        raise FormTemplateError(f"{path}: made from another workbook (SHA-256)")
+    cells = {f"{column['sheet']}!{column['column']}" for column in table["columns"]}
+    unknown = [
+        item["target"] for item in definition.get("fields", []) if item["target"] not in cells
+    ]
+    if unknown:
+        raise FormTemplateError(f"{path}: targets not in the tool: {', '.join(unknown[:5])}")
+    return table
 
 
 def _replaceable(template: FormTemplate) -> bool:
