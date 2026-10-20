@@ -119,6 +119,21 @@ class ConsultationRecordForm(StyledFormMixin, forms.Form):
         return data
 
 
+class PeriodicReportForm(StyledFormMixin, forms.Form):
+    """定期届出の年度（届出対象期間 4月1日〜翌年3月31日。T51）。既定は前の年度。"""
+
+    fiscal_year = forms.IntegerField(
+        label=_("fiscal year"),
+        min_value=2019,
+        max_value=2100,
+        help_text=_("The period from April 1 of this year to March 31 of the next year."),
+    )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.style_fields()
+
+
 class ApplicationSetForm(StyledFormMixin, forms.Form):
     """申請の書類の一覧の条件（申請の種類・基準日。T37-D3）。"""
 

@@ -396,10 +396,10 @@ def test_field_rules(rule: dict[str, Any], value: Any, message: str | None) -> N
     assert form_checks._field_issue(rule | {"label": "氏名"}, value) == message
 
 
-# 規則を持たない様式（外国人が 1 人に決まらないので、外国人を見る規則を置けない。ADR-0024）
+# 規則を持たない様式（外国人が 1 人に決まらないので、外国人を見る規則を置けない。ADR-0024・0041）
 # 一括登録用ツール・一括申込用ツールの入力チェックは列の表（.columns.json）で確かめる
 # （ADR-0039・ADR-0040）
-WITHOUT_RULES = {"5-4", "bulk-coe", "bulk-ext", "bulk-chg"} | {
+WITHOUT_RULES = {"5-4", "3-6", "3-6-1", "3-6-2", "bulk-coe", "bulk-ext", "bulk-chg"} | {
     f"efile-{number}" for number in ("3-1", "3-2", "3-3", "3-4", "3-5", "3-7", "4-3")
 }
 

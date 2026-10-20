@@ -1,0 +1,19 @@
+{
+  "form_id": "3-6-1",
+  "name": "特定技能外国人の受入れ・活動・支援実施状況（参考様式第3-6号（別紙1））",
+  "valid_from": "2026-04-01",
+  "language": "ja",
+  "owner": "common",
+  "method": "xlsx-cells",
+  "requires_signed_copy": false,
+  "original": "original.xlsx",
+  "source": {
+    "url": "https://www.moj.go.jp/isa/content/001454512.xlsx",
+    "page": "https://www.moj.go.jp/isa/applications/ssw/10_00020.html",
+    "retrieved_on": "2026-10-20",
+    "revision_date": null,
+    "revision_date_unknown": true,
+    "original_sha256": "02fa686a8ea8bd1e2cbc24d1e7ccd7b1d61ffb28f7d08ed5e08b586f8b587d88",
+    "adr": "ADR-0041（「令和８年４月１日以降に提出する際に使用する新様式」。改正日の記載なし。ADR-0012 の 2026-10-17 の取得と同じ SHA-256）、ADR-0018"
+  }
+}

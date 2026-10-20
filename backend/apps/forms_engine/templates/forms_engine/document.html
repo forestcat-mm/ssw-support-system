@@ -19,6 +19,7 @@
     <div class="card__header"><h2 class="card__title">{% translate "Generation record" %}</h2>
       <div class="cluster">
         {% if can_download %}<a class="button button--primary" id="document-pdf" href="{% url 'forms:generated_pdf' document.pk %}">{% translate "Download the PDF" %}</a>{% endif %}
+        {% if can_download_filled %}<a class="button button--neutral" id="document-filled" href="{% url 'forms:document_filled' document.pk %}">{% translate "filled in (for editing)" %}</a>{% endif %}
         {% if can_sign %}<a class="button button--neutral" id="document-sign" href="{% url 'workers:document_signature' worker.pk document.pk %}">{% translate "Attach the signed copy" %}</a>{% endif %}
         {% if can_deliver %}<a class="button button--neutral" id="document-deliver" href="{% url 'workers:support_delivery_create' worker.pk delivery_kind %}?generated={{ document.pk }}">{% translate "Record the delivery of a copy" %}</a>{% endif %}
       </div>

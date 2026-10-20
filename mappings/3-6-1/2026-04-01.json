@@ -1,0 +1,460 @@
+{
+ "form_id": "3-6-1",
+ "valid_from": "2026-04-01",
+ "note": "定期届出の別紙1（事業所ごと・5 人ごと。T51、ADR-0041）。値は services/form_data_periodic.py が作る（ADR-0012 の support_rows と T45 の担当者の履歴）。活動日数・報酬・支払方法・随時届出の提出状況は受入れ機関・人が記入する。",
+ "fields": [
+  {
+   "key": "h.name",
+   "target": "参考様式第３－６号（別紙１）!D3",
+   "format": "text",
+   "label": "特定技能所属機関の氏名又は名称",
+   "fit": true
+  },
+  {
+   "key": "s.name",
+   "target": "参考様式第３－６号（別紙１）!R3",
+   "format": "text",
+   "label": "事業所の名称"
+  },
+  {
+   "key": "w1.name",
+   "target": "参考様式第３－６号（別紙１）!B8",
+   "format": "text",
+   "label": "1 氏名",
+   "fit": true
+  },
+  {
+   "key": "w1.nationality",
+   "target": "参考様式第３－６号（別紙１）!B10",
+   "format": "text",
+   "label": "1 国籍・地域",
+   "fit": true
+  },
+  {
+   "key": "w1.birth_date",
+   "target": "参考様式第３－６号（別紙１）!C8",
+   "format": "date",
+   "label": "1 生年月日"
+  },
+  {
+   "key": "w1.male",
+   "target": "参考様式第３－６号（別紙１）!D8",
+   "format": "check",
+   "label": "1 性別（男）"
+  },
+  {
+   "key": "w1.female",
+   "target": "参考様式第３－６号（別紙１）!F8",
+   "format": "check",
+   "label": "1 性別（女）"
+  },
+  {
+   "key": "w1.card",
+   "target": "参考様式第３－６号（別紙１）!C10",
+   "format": "text",
+   "label": "1 在留カード番号"
+  },
+  {
+   "key": "w1.field",
+   "target": "参考様式第３－６号（別紙１）!H7",
+   "format": "text",
+   "label": "1 受入れ分野",
+   "fit": true
+  },
+  {
+   "target": "参考様式第３－６号（別紙１）!O7",
+   "format": "template",
+   "template": "\n　{own} 自社支援\n　{full} 登録支援機関に全部委託\n　（機関名：{organization}）\n",
+   "keys": {
+    "own": {
+     "key": "w1.own_support",
+     "format": "check",
+     "empty": "□"
+    },
+    "full": {
+     "key": "w1.full_entrustment",
+     "format": "check",
+     "empty": "□"
+    },
+    "organization": {
+     "key": "w1.organization",
+     "format": "text",
+     "empty": "　　　　　　　　　　　　　　"
+    }
+   },
+   "label": "1 支援の形態"
+  },
+  {
+   "key": "w1.staff",
+   "target": "参考様式第３－６号（別紙１）!S8",
+   "format": "text",
+   "label": "1 支援担当者名",
+   "fit": true
+  },
+  {
+   "key": "w1.staff_phone",
+   "target": "参考様式第３－６号（別紙１）!S10",
+   "format": "text",
+   "label": "1 電話番号"
+  },
+  {
+   "key": "w1.remarks",
+   "target": "参考様式第３－６号（別紙１）!U7",
+   "format": "text",
+   "label": "1 備考",
+   "wrap": true
+  },
+  {
+   "key": "w2.name",
+   "target": "参考様式第３－６号（別紙１）!B12",
+   "format": "text",
+   "label": "2 氏名",
+   "fit": true
+  },
+  {
+   "key": "w2.nationality",
+   "target": "参考様式第３－６号（別紙１）!B14",
+   "format": "text",
+   "label": "2 国籍・地域",
+   "fit": true
+  },
+  {
+   "key": "w2.birth_date",
+   "target": "参考様式第３－６号（別紙１）!C12",
+   "format": "date",
+   "label": "2 生年月日"
+  },
+  {
+   "key": "w2.male",
+   "target": "参考様式第３－６号（別紙１）!D12",
+   "format": "check",
+   "label": "2 性別（男）"
+  },
+  {
+   "key": "w2.female",
+   "target": "参考様式第３－６号（別紙１）!F12",
+   "format": "check",
+   "label": "2 性別（女）"
+  },
+  {
+   "key": "w2.card",
+   "target": "参考様式第３－６号（別紙１）!C14",
+   "format": "text",
+   "label": "2 在留カード番号"
+  },
+  {
+   "key": "w2.field",
+   "target": "参考様式第３－６号（別紙１）!H11",
+   "format": "text",
+   "label": "2 受入れ分野",
+   "fit": true
+  },
+  {
+   "target": "参考様式第３－６号（別紙１）!O11",
+   "format": "template",
+   "template": "\n　{own} 自社支援\n　{full} 登録支援機関に全部委託\n　（機関名：{organization}）\n",
+   "keys": {
+    "own": {
+     "key": "w2.own_support",
+     "format": "check",
+     "empty": "□"
+    },
+    "full": {
+     "key": "w2.full_entrustment",
+     "format": "check",
+     "empty": "□"
+    },
+    "organization": {
+     "key": "w2.organization",
+     "format": "text",
+     "empty": "　　　　　　　　　　　　　　"
+    }
+   },
+   "label": "2 支援の形態"
+  },
+  {
+   "key": "w2.staff",
+   "target": "参考様式第３－６号（別紙１）!S12",
+   "format": "text",
+   "label": "2 支援担当者名",
+   "fit": true
+  },
+  {
+   "key": "w2.staff_phone",
+   "target": "参考様式第３－６号（別紙１）!S14",
+   "format": "text",
+   "label": "2 電話番号"
+  },
+  {
+   "key": "w2.remarks",
+   "target": "参考様式第３－６号（別紙１）!U11",
+   "format": "text",
+   "label": "2 備考",
+   "wrap": true
+  },
+  {
+   "key": "w3.name",
+   "target": "参考様式第３－６号（別紙１）!B16",
+   "format": "text",
+   "label": "3 氏名",
+   "fit": true
+  },
+  {
+   "key": "w3.nationality",
+   "target": "参考様式第３－６号（別紙１）!B18",
+   "format": "text",
+   "label": "3 国籍・地域",
+   "fit": true
+  },
+  {
+   "key": "w3.birth_date",
+   "target": "参考様式第３－６号（別紙１）!C16",
+   "format": "date",
+   "label": "3 生年月日"
+  },
+  {
+   "key": "w3.male",
+   "target": "参考様式第３－６号（別紙１）!D16",
+   "format": "check",
+   "label": "3 性別（男）"
+  },
+  {
+   "key": "w3.female",
+   "target": "参考様式第３－６号（別紙１）!F16",
+   "format": "check",
+   "label": "3 性別（女）"
+  },
+  {
+   "key": "w3.card",
+   "target": "参考様式第３－６号（別紙１）!C18",
+   "format": "text",
+   "label": "3 在留カード番号"
+  },
+  {
+   "key": "w3.field",
+   "target": "参考様式第３－６号（別紙１）!H15",
+   "format": "text",
+   "label": "3 受入れ分野",
+   "fit": true
+  },
+  {
+   "target": "参考様式第３－６号（別紙１）!O15",
+   "format": "template",
+   "template": "\n　{own} 自社支援\n　{full} 登録支援機関に全部委託\n　（機関名：{organization}）\n",
+   "keys": {
+    "own": {
+     "key": "w3.own_support",
+     "format": "check",
+     "empty": "□"
+    },
+    "full": {
+     "key": "w3.full_entrustment",
+     "format": "check",
+     "empty": "□"
+    },
+    "organization": {
+     "key": "w3.organization",
+     "format": "text",
+     "empty": "　　　　　　　　　　　　　　"
+    }
+   },
+   "label": "3 支援の形態"
+  },
+  {
+   "key": "w3.staff",
+   "target": "参考様式第３－６号（別紙１）!S16",
+   "format": "text",
+   "label": "3 支援担当者名",
+   "fit": true
+  },
+  {
+   "key": "w3.staff_phone",
+   "target": "参考様式第３－６号（別紙１）!S18",
+   "format": "text",
+   "label": "3 電話番号"
+  },
+  {
+   "key": "w3.remarks",
+   "target": "参考様式第３－６号（別紙１）!U15",
+   "format": "text",
+   "label": "3 備考",
+   "wrap": true
+  },
+  {
+   "key": "w4.name",
+   "target": "参考様式第３－６号（別紙１）!B20",
+   "format": "text",
+   "label": "4 氏名",
+   "fit": true
+  },
+  {
+   "key": "w4.nationality",
+   "target": "参考様式第３－６号（別紙１）!B22",
+   "format": "text",
+   "label": "4 国籍・地域",
+   "fit": true
+  },
+  {
+   "key": "w4.birth_date",
+   "target": "参考様式第３－６号（別紙１）!C20",
+   "format": "date",
+   "label": "4 生年月日"
+  },
+  {
+   "key": "w4.male",
+   "target": "参考様式第３－６号（別紙１）!D20",
+   "format": "check",
+   "label": "4 性別（男）"
+  },
+  {
+   "key": "w4.female",
+   "target": "参考様式第３－６号（別紙１）!F20",
+   "format": "check",
+   "label": "4 性別（女）"
+  },
+  {
+   "key": "w4.card",
+   "target": "参考様式第３－６号（別紙１）!C22",
+   "format": "text",
+   "label": "4 在留カード番号"
+  },
+  {
+   "key": "w4.field",
+   "target": "参考様式第３－６号（別紙１）!H19",
+   "format": "text",
+   "label": "4 受入れ分野",
+   "fit": true
+  },
+  {
+   "target": "参考様式第３－６号（別紙１）!O19",
+   "format": "template",
+   "template": "\n　{own} 自社支援\n　{full} 登録支援機関に全部委託\n　（機関名：{organization}）\n",
+   "keys": {
+    "own": {
+     "key": "w4.own_support",
+     "format": "check",
+     "empty": "□"
+    },
+    "full": {
+     "key": "w4.full_entrustment",
+     "format": "check",
+     "empty": "□"
+    },
+    "organization": {
+     "key": "w4.organization",
+     "format": "text",
+     "empty": "　　　　　　　　　　　　　　"
+    }
+   },
+   "label": "4 支援の形態"
+  },
+  {
+   "key": "w4.staff",
+   "target": "参考様式第３－６号（別紙１）!S20",
+   "format": "text",
+   "label": "4 支援担当者名",
+   "fit": true
+  },
+  {
+   "key": "w4.staff_phone",
+   "target": "参考様式第３－６号（別紙１）!S22",
+   "format": "text",
+   "label": "4 電話番号"
+  },
+  {
+   "key": "w4.remarks",
+   "target": "参考様式第３－６号（別紙１）!U19",
+   "format": "text",
+   "label": "4 備考",
+   "wrap": true
+  },
+  {
+   "key": "w5.name",
+   "target": "参考様式第３－６号（別紙１）!B24",
+   "format": "text",
+   "label": "5 氏名",
+   "fit": true
+  },
+  {
+   "key": "w5.nationality",
+   "target": "参考様式第３－６号（別紙１）!B26",
+   "format": "text",
+   "label": "5 国籍・地域",
+   "fit": true
+  },
+  {
+   "key": "w5.birth_date",
+   "target": "参考様式第３－６号（別紙１）!C24",
+   "format": "date",
+   "label": "5 生年月日"
+  },
+  {
+   "key": "w5.male",
+   "target": "参考様式第３－６号（別紙１）!D24",
+   "format": "check",
+   "label": "5 性別（男）"
+  },
+  {
+   "key": "w5.female",
+   "target": "参考様式第３－６号（別紙１）!F24",
+   "format": "check",
+   "label": "5 性別（女）"
+  },
+  {
+   "key": "w5.card",
+   "target": "参考様式第３－６号（別紙１）!C26",
+   "format": "text",
+   "label": "5 在留カード番号"
+  },
+  {
+   "key": "w5.field",
+   "target": "参考様式第３－６号（別紙１）!H23",
+   "format": "text",
+   "label": "5 受入れ分野",
+   "fit": true
+  },
+  {
+   "target": "参考様式第３－６号（別紙１）!O23",
+   "format": "template",
+   "template": "\n　{own} 自社支援\n　{full} 登録支援機関に全部委託\n　（機関名：{organization}）\n",
+   "keys": {
+    "own": {
+     "key": "w5.own_support",
+     "format": "check",
+     "empty": "□"
+    },
+    "full": {
+     "key": "w5.full_entrustment",
+     "format": "check",
+     "empty": "□"
+    },
+    "organization": {
+     "key": "w5.organization",
+     "format": "text",
+     "empty": "　　　　　　　　　　　　　　"
+    }
+   },
+   "label": "5 支援の形態"
+  },
+  {
+   "key": "w5.staff",
+   "target": "参考様式第３－６号（別紙１）!S24",
+   "format": "text",
+   "label": "5 支援担当者名",
+   "fit": true
+  },
+  {
+   "key": "w5.staff_phone",
+   "target": "参考様式第３－６号（別紙１）!S26",
+   "format": "text",
+   "label": "5 電話番号"
+  },
+  {
+   "key": "w5.remarks",
+   "target": "参考様式第３－６号（別紙１）!U23",
+   "format": "text",
+   "label": "5 備考",
+   "wrap": true
+  }
+ ]
+}

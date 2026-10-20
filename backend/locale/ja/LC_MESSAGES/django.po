@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 00:53+0900\n"
+"POT-Creation-Date: 2026-10-21 00:56+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -3422,6 +3422,12 @@ msgstr "期間（終了）"
 msgid "The end of the period must be on or after the start."
 msgstr "期間の終了は開始以後の日にしてください。"
 
+msgid "fiscal year"
+msgstr "年度"
+
+msgid "The period from April 1 of this year to March 31 of the next year."
+msgstr "この年の4月1日から翌年の3月31日までの期間です。"
+
 msgid "application"
 msgstr "申請"
 
@@ -4219,6 +4225,57 @@ msgid ""
 "files already generated stay."
 msgstr "%(name)s の行を一括届出から外します。届出タスクと、作ったファイルは残ります。"
 
+msgid "Periodic notification (form 3-6)"
+msgstr "定期届出（第3-6号）"
+
+msgid ""
+"Form 3-6, attachment 1 (for each workplace, five people per sheet) and "
+"attachment 2 (signatures) for the fiscal year. Average working conditions "
+"(item 4), days worked, pay, the method of payment and signatures are filled "
+"in by the host organization in the filled-in Excel file."
+msgstr ""
+"年度の第3-6号・別紙1（事業所ごと、1 枚に 5 "
+"人）・別紙2（署名欄）を作ります。労働条件等の平均（４）・活動日数・報酬・支払方法・署名は、受入れ機関が記入済みの Excel に記入します。"
+
+#, python-format
+msgid ""
+"%(count)s foreign worker supported in the period (%(sheets)s sheet of "
+"attachment 1)."
+msgid_plural ""
+"%(count)s foreign workers supported in the period (%(sheets)s sheets of "
+"attachment 1)."
+msgstr[0] "期間中に支援した外国人 %(count)s 人（別紙1 は %(sheets)s 枚）。"
+
+msgid "workplace"
+msgstr "事業所"
+
+msgid "remarks"
+msgstr "備考"
+
+msgid "start of acceptance"
+msgstr "受入れ開始日"
+
+msgid "end of acceptance"
+msgstr "受入れ終了日"
+
+msgid "Not entrusted on March 31: the form of support is left blank."
+msgstr "3月31日に全部委託ではないので、支援の形態は空にします。"
+
+msgid "Candidates of special incident reports (form 4-3)"
+msgstr "特異事案報告（第4-3号）の候補"
+
+msgid ""
+"Check whether a report was submitted. If a report was needed but not "
+"submitted, mark the column of the submission status in attachment 1 and "
+"attach a statement of reasons."
+msgstr "報告を出したかを確かめてください。必要な報告を出していなければ、別紙1 の「随時届出（報告）の提出状況」に印を付け、理由書を添付します。"
+
+msgid "date"
+msgstr "日付"
+
+msgid "No forms have been generated for this fiscal year."
+msgstr "この年度の様式はまだ作っていません。"
+
 msgid ""
 "Generate the pledge on the fulfillment of public obligations (form 1-26)"
 msgstr "公的義務履行に関する誓約書（第1-26号）を作る"
@@ -4325,9 +4382,6 @@ msgstr "生成した帳票はありません。"
 msgid "Signed documents without a generation record"
 msgstr "生成履歴の無い署名済みの書類"
 
-msgid "date"
-msgstr "日付"
-
 msgid "Attached the signed copy."
 msgstr "署名済みの書類を添付しました。"
 
@@ -4339,6 +4393,42 @@ msgstr "この期間の相談はありません。"
 
 msgid "Requested the generation of the consultation records."
 msgstr "相談記録書の生成を依頼しました。"
+
+msgid "report at a periodic interview"
+msgstr "定期面談での通報"
+
+msgid "report on a consultation"
+msgstr "相談での通報"
+
+msgid "consultation with Hello Work"
+msgstr "ハローワークへの相談"
+
+msgid "support for changing jobs"
+msgstr "転職支援"
+
+msgid "planned support not recorded"
+msgstr "計画の支援の記録なし"
+
+msgid "periodic interview overdue"
+msgstr "定期面談の期限の超過"
+
+msgid "reported (raised from the record)"
+msgstr "記録から起票したタスクあり"
+
+msgid "a task on the same day"
+msgstr "同じ日のタスクあり"
+
+msgid "a task on a nearby date"
+msgstr "近い日付のタスクあり"
+
+msgid "no task"
+msgstr "タスクなし"
+
+msgid "No foreign workers were supported in this period."
+msgstr "この期間に支援した外国人がいません。"
+
+msgid "Requested the generation of the periodic notification."
+msgstr "定期届出の様式の生成を依頼しました。"
 
 msgid "Select the documents to generate."
 msgstr "生成する書類を選んでください。"
@@ -5364,6 +5454,14 @@ msgstr "使わない"
 msgid "No employment condition templates are registered."
 msgstr "雇用条件のひな形は登録されていません。"
 
+msgid "Make the periodic notification"
+msgstr "定期届出の様式を作る"
+
+msgid ""
+"Form 3-6 and attachments 1 and 2 for a fiscal year (submitted from April 1 "
+"to May 31 of the next year)."
+msgstr "年度の第3-6号・別紙1・別紙2（翌年度の4月1日〜5月31日に提出）。"
+
 msgid "Consultation records (form 5-4)"
 msgstr "相談記録書（第5-4号）"
 
@@ -5590,9 +5688,6 @@ msgstr "確認方法"
 
 msgid "other method (details)"
 msgstr "その他の方法（内容）"
-
-msgid "remarks"
-msgstr "備考"
 
 msgid "standard plan"
 msgstr "標準の計画"
@@ -8883,9 +8978,6 @@ msgstr "日本語学習の機会の提供"
 
 msgid "exchange with Japanese people"
 msgstr "日本人との交流促進"
-
-msgid "support for changing jobs"
-msgstr "転職支援"
 
 msgid "video call"
 msgstr "テレビ電話装置"

@@ -171,6 +171,10 @@
   {% endif %}
 
   {% if can_generate_consultations %}
+  <section class="card" id="periodic-report">
+    <div class="card__header"><h2 class="card__title">{% translate "Periodic notification (form 3-6)" %}</h2><a class="button button--neutral button--small" href="{% url 'hosts:periodic_report' host.pk %}">{% translate "Make the periodic notification" %}</a></div>
+    <p class="caption">{% translate "Form 3-6 and attachments 1 and 2 for a fiscal year (submitted from April 1 to May 31 of the next year)." %}</p>
+  </section>
   <section class="card" id="consultation-records">
     <div class="card__header"><h2 class="card__title">{% translate "Consultation records (form 5-4)" %}</h2><a class="button button--neutral button--small" href="{% url 'hosts:consultation_records' host.pk %}">{% translate "Generate the consultation records" %}</a></div>
     {% if consultation_documents %}

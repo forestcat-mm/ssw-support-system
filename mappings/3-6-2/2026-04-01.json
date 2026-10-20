@@ -1,0 +1,37 @@
+{
+ "form_id": "3-6-2",
+ "valid_from": "2026-04-01",
+ "note": "定期届出の別紙2（署名欄。T51、ADR-0041）。値は services/form_data_periodic.py が作る。署名と日付は空（署名を受けてスキャンし、電子届出に添付する）。",
+ "fields": [
+  {
+   "key": "r.signature_heading",
+   "target": "Sheet1!A8",
+   "format": "text",
+   "label": "対象期間と特定技能所属機関"
+  },
+  {
+   "key": "h.name_bracket",
+   "target": "Sheet1!D9",
+   "format": "text",
+   "label": "特定技能所属機関の氏名又は名称"
+  },
+  {
+   "key": "h.corporate_number_bracket",
+   "target": "Sheet1!D10",
+   "format": "text",
+   "label": "法人番号"
+  },
+  {
+   "key": "o.name_bracket",
+   "target": "Sheet1!D17",
+   "format": "text",
+   "label": "登録支援機関名"
+  },
+  {
+   "key": "o.registration_bracket",
+   "target": "Sheet1!D18",
+   "format": "text",
+   "label": "登録番号"
+  }
+ ]
+}

@@ -582,6 +582,20 @@ def can_view(user: AnyUser, document: GeneratedDocument) -> bool:
     return authorization.scope(user, ForeignWorker.objects.filter(pk=document.worker_id)).exists()
 
 
+# 記入済みの xlsx（編集用）を取り出せる様式（D9。定期届出は受入れ機関が記入するので T51 で先に使う。
+# T53 でほかの様式に広げる）
+FILLED_FORM_IDS = frozenset({"3-6", "3-6-1", "3-6-2"})
+
+
+def can_download_filled(user: AnyUser, document: GeneratedDocument) -> bool:
+    """記入済みのファイル（編集用）をダウンロードできるか（生成物を見る権限と同じ。D9）。"""
+    if document.status != GenerationStatus.COMPLETED or not document.filled_file:
+        return False
+    if document.template.form_id not in FILLED_FORM_IDS:
+        return False
+    return can_view(user, document)
+
+
 def can_download_pdf(user: AnyUser, document: GeneratedDocument) -> bool:
     """生成物の PDF をダウンロードできるか（forms.generate と、対象の外国人を見る権限）。
 

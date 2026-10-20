@@ -1,7 +1,7 @@
 from django.urls import path
 
 from apps.contracts import template_views
-from apps.forms_engine.views import ConsultationRecordView
+from apps.forms_engine.views import ConsultationRecordView, PeriodicReportView
 from apps.hosts import application_views, career_plan_views, document_views, edit_views, views
 
 app_name = "hosts"
@@ -36,6 +36,7 @@ urlpatterns = [
         ConsultationRecordView.as_view(),
         name="consultation_records",
     ),
+    path("<int:pk>/periodic-report/", PeriodicReportView.as_view(), name="periodic_report"),
     path(
         "<int:pk>/condition-templates/new/",
         template_views.ConditionTemplateEditView.as_view(),

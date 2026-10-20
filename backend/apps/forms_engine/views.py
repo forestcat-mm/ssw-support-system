@@ -1,9 +1,10 @@
 """生成物の画面と、PDF の認可つきのダウンロード（T29・T31、ADR-0018）。
 
-PDF のダウンロードはファイルの中身を渡す唯一の経路。記入済みの docx・xlsx は画面から取り出さない
-（段階4 の F13 で決める）。
+PDF のダウンロードは認可を通す。記入済みの docx・xlsx は、定期届出の様式（T51）から
+「記入済み（編集用）」としてダウンロードできる（D9。権限は生成と同じ、監査ログに残す）。
 """
 
+from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
 
@@ -18,6 +19,7 @@ from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 from django.views import View
 
 from apps.contracts.models import EmploymentContract, EmploymentContractVersion
@@ -29,12 +31,13 @@ from apps.forms_engine.forms import (
     ApplicationSetForm,
     BulkGenerateForm,
     ConsultationRecordForm,
+    PeriodicReportForm,
     PublicDutyPledgeForm,
     SignatureForm,
     SubmissionBundleForm,
 )
 from apps.forms_engine.models import GeneratedDocument, GenerationStatus, SubmissionBundle
-from apps.hosts.models import HostOrganization
+from apps.hosts.models import HostOrganization, HostSite
 from apps.support.models import Briefing, DeliveryKind, PeriodicInterview, SupportPlanVersion
 from apps.support.record_forms import ReasonForm
 from apps.workers.views import WorkerDetailView, WorkerFormView
@@ -48,9 +51,11 @@ from services import (
     deliveries,
     form_data_application,
     form_data_consultation,
+    form_data_periodic,
     form_generation,
     form_signatures,
     form_templates,
+    periodic_report,
     submission_bundles,
     submission_drafts,
     workers,
@@ -91,8 +96,10 @@ class GeneratedDocumentView(ActionRequiredMixin, View):
         )
         if document.worker is not None:
             audit.record_view(document.worker, context={"generated_document": document.pk})
-        elif isinstance(target, HostOrganization):  # 相談記録書（複数の外国人。T35）
+        elif isinstance(target, HostOrganization):  # 相談記録書・定期届出（複数の外国人）
             audit.record_view(target, context={"generated_document": document.pk})
+        elif isinstance(target, HostSite):  # 定期届出の別紙1（事業所。T51）
+            audit.record_view(target.host_organization, context={"generated_document": document.pk})
         back_url = ""
         if version is not None and document.worker is not None:
             back_url = (
@@ -103,6 +110,12 @@ class GeneratedDocumentView(ActionRequiredMixin, View):
             back_url = reverse("workers:support_briefing", args=[target.worker_id, target.pk])
         elif isinstance(target, PeriodicInterview):
             back_url = reverse("workers:support_interview", args=[target.worker_id, target.pk])
+        elif isinstance(target, HostOrganization) and document.template.form_id in (
+            form_data_periodic.FORM_IDS
+        ):
+            back_url = reverse("hosts:periodic_report", args=[target.pk])
+        elif isinstance(target, HostSite):
+            back_url = reverse("hosts:periodic_report", args=[target.host_organization_id])
         elif isinstance(target, HostOrganization):
             back_url = reverse("hosts:detail", args=[target.pk]) + "#consultation-records"
         elif isinstance(target, EmploymentContract) and document.worker is not None:
@@ -123,6 +136,7 @@ class GeneratedDocumentView(ActionRequiredMixin, View):
             "contract_version": target if isinstance(target, EmploymentContractVersion) else None,
             "back_url": back_url,
             "can_download": form_generation.can_download_pdf(request.user, document),
+            "can_download_filled": form_generation.can_download_filled(request.user, document),
             "can_deliver": can_deliver,
             "delivery_kind": delivery_kind,
             "signature_state": form_signatures.state(document),
@@ -145,6 +159,30 @@ class GeneratedPdfDownloadView(View):
             AuditAction.DOWNLOAD,
             target=document,
             context={"form_id": document.template.form_id, "file": "pdf"},
+        )
+        return response
+
+
+def filled_name(document: GeneratedDocument) -> str:
+    suffix = Path(document.filled_file.name).suffix
+    day = f"{document.basis_on:%Y%m%d}"
+    return f"{document.template.form_id}_記入済み（編集用）_{day}_{document.pk}{suffix}"
+
+
+class GeneratedFilledDownloadView(View):
+    """記入済みの xlsx（編集用）。定期届出の様式から（D9。T53 でほかの様式に広げる）。"""
+
+    def get(self, request: HttpRequest, pk: int) -> FileResponse:
+        document = get_object_or_404(GeneratedDocument.objects.select_related("template"), pk=pk)
+        if not form_generation.can_download_filled(request.user, document):
+            raise PermissionDenied
+        response = FileResponse(
+            document.filled_file.open("rb"), as_attachment=True, filename=filled_name(document)
+        )
+        audit.record(
+            AuditAction.DOWNLOAD,
+            target=document,
+            context={"form_id": document.template.form_id, "file": "filled"},
         )
         return response
 
@@ -427,6 +465,110 @@ class ConsultationRecordView(ActionRequiredMixin, View):
             return self.page(request, host, form)
         messages.success(request, _("Requested the generation of the consultation records."))
         return redirect(f"{back}#consultation-records")
+
+
+# --- 定期届出の第3-6号・別紙1・別紙2（T51、ADR-0041）-------------------------------------------
+
+
+EVENT_LABELS = {
+    periodic_report.EventKind.INTERVIEW_REPORT: gettext_lazy("report at a periodic interview"),
+    periodic_report.EventKind.CONSULTATION_REPORT: gettext_lazy("report on a consultation"),
+    periodic_report.EventKind.HELLO_WORK: gettext_lazy("consultation with Hello Work"),
+    periodic_report.EventKind.JOB_CHANGE: gettext_lazy("support for changing jobs"),
+    periodic_report.EventKind.PLANNED_NOT_RECORDED: gettext_lazy("planned support not recorded"),
+    periodic_report.EventKind.INTERVIEW_OVERDUE: gettext_lazy("periodic interview overdue"),
+}
+MATCH_LABELS = {
+    periodic_report.MatchLevel.LINKED: gettext_lazy("reported (raised from the record)"),
+    periodic_report.MatchLevel.SAME_DAY: gettext_lazy("a task on the same day"),
+    periodic_report.MatchLevel.NEARBY: gettext_lazy("a task on a nearby date"),
+    periodic_report.MatchLevel.NONE: gettext_lazy("no task"),
+}
+
+
+class PeriodicReportView(ActionRequiredMixin, View):
+    """受入れ機関×年度の定期届出の様式を作る（別紙1 は事業所ごと・5 人ごと。T51-D2）。
+
+    複数の外国人の個人情報（在留カード番号）を含むので、帳票の生成と外国人の閲覧の両方の権限が要る。
+    """
+
+    required_action = Action.FORMS_GENERATE
+    template_name = "forms_engine/periodic_report.html"
+
+    def host(self, request: HttpRequest, pk: int) -> HostOrganization:
+        if not authorization.has_action(request.user, Action.WORKERS_VIEW):
+            raise PermissionDenied
+        return get_object_or_404(
+            authorization.scope(request.user, HostOrganization.objects.all()), pk=pk
+        )
+
+    def page(
+        self, request: HttpRequest, host: HostOrganization, form: PeriodicReportForm
+    ) -> HttpResponse:
+        lines: list[Any] = []
+        sheets = 0
+        events: list[Any] = []
+        documents: list[GeneratedDocument] = []
+        if form.is_bound and form.is_valid():
+            year = form.cleaned_data["fiscal_year"]
+            lines = form_data_periodic.lines_of(host, year)
+            sheets = len(form_data_periodic.sheets_of(lines))
+            workers_of_host = {line.row.worker.pk for line in lines}
+            events = [
+                {
+                    "event": event,
+                    "kind": EVENT_LABELS.get(event.kind, event.kind),
+                    "match": MATCH_LABELS.get(event.match.level, event.match.level),
+                }
+                for event in periodic_report.special_events(year)
+                if event.worker.pk in workers_of_host
+            ]
+            documents = form_data_periodic.documents_of(host, year)
+            audit.record_view(host, context={"periodic_report": year})
+        return TemplateResponse(
+            request,
+            self.template_name,
+            {
+                "host": host,
+                "form": form,
+                "lines": lines,
+                "sheets": sheets,
+                "events": events,
+                "documents": documents,
+                "back_url": reverse("hosts:detail", args=[host.pk]),
+                **once_context(request),
+            },
+        )
+
+    def get(self, request: HttpRequest, pk: int) -> HttpResponse:
+        host = self.host(request, pk)
+        year = request.GET.get("year", "")
+        if not year.isdigit():
+            today = timezone.localdate()
+            year = str(today.year - 1 if today.month >= 4 else today.year - 2)
+        return self.page(request, host, PeriodicReportForm({"fiscal_year": year}))
+
+    def post(self, request: HttpRequest, pk: int) -> HttpResponse:
+        host = self.host(request, pk)
+        form = PeriodicReportForm(request.POST)
+        if not form.is_valid() or request.POST.get("action") != "generate":
+            return self.page(request, host, form)
+        year = form.cleaned_data["fiscal_year"]
+        url = reverse("hosts:periodic_report", args=[host.pk]) + f"?year={year}"
+        if not consume_once_token(request):
+            messages.info(request, _("This form has already been submitted."))
+            return redirect(url)
+        if not form_data_periodic.lines_of(host, year):
+            form.add_error(None, _("No foreign workers were supported in this period."))
+            return self.page(request, host, form)
+        assert isinstance(request.user, User)
+        try:
+            form_data_periodic.request_all(host, year, by=request.user)
+        except form_templates.FormTemplateError:
+            form.add_error(None, NOT_LOADED)
+            return self.page(request, host, form)
+        messages.success(request, _("Requested the generation of the periodic notification."))
+        return redirect(f"{url}#periodic-documents")
 
 
 # --- 不足の書類の一括生成と提出用の統合 PDF（T42、ADR-0033）-----------------------------------

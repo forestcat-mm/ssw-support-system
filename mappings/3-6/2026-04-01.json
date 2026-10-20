@@ -1,0 +1,176 @@
+{
+ "form_id": "3-6",
+ "valid_from": "2026-04-01",
+ "note": "定期届出の届出書（T51、ADR-0041）。値は services/form_data_periodic.py が作る。４ 労働条件等・６ 備考・担当者・署名は受入れ機関が記入する（給与の記録を持たない。T51-D3）。",
+ "fields": [
+  {
+   "key": "r.period",
+   "target": "Sheet1!F13",
+   "format": "text",
+   "label": "１ 届出対象期間"
+  },
+  {
+   "key": "h.corporate_number_1",
+   "target": "Sheet1!F14",
+   "format": "text",
+   "label": "２① 法人番号（1 桁目）"
+  },
+  {
+   "key": "h.corporate_number_2",
+   "target": "Sheet1!G14",
+   "format": "text",
+   "label": "２① 法人番号（2 桁目）"
+  },
+  {
+   "key": "h.corporate_number_3",
+   "target": "Sheet1!H14",
+   "format": "text",
+   "label": "２① 法人番号（3 桁目）"
+  },
+  {
+   "key": "h.corporate_number_4",
+   "target": "Sheet1!I14",
+   "format": "text",
+   "label": "２① 法人番号（4 桁目）"
+  },
+  {
+   "key": "h.corporate_number_5",
+   "target": "Sheet1!J14",
+   "format": "text",
+   "label": "２① 法人番号（5 桁目）"
+  },
+  {
+   "key": "h.corporate_number_6",
+   "target": "Sheet1!K14",
+   "format": "text",
+   "label": "２① 法人番号（6 桁目）"
+  },
+  {
+   "key": "h.corporate_number_7",
+   "target": "Sheet1!L14",
+   "format": "text",
+   "label": "２① 法人番号（7 桁目）"
+  },
+  {
+   "key": "h.corporate_number_8",
+   "target": "Sheet1!N14",
+   "format": "text",
+   "label": "２① 法人番号（8 桁目）"
+  },
+  {
+   "key": "h.corporate_number_9",
+   "target": "Sheet1!O14",
+   "format": "text",
+   "label": "２① 法人番号（9 桁目）"
+  },
+  {
+   "key": "h.corporate_number_10",
+   "target": "Sheet1!P14",
+   "format": "text",
+   "label": "２① 法人番号（10 桁目）"
+  },
+  {
+   "key": "h.corporate_number_11",
+   "target": "Sheet1!Q14",
+   "format": "text",
+   "label": "２① 法人番号（11 桁目）"
+  },
+  {
+   "key": "h.corporate_number_12",
+   "target": "Sheet1!R14",
+   "format": "text",
+   "label": "２① 法人番号（12 桁目）"
+  },
+  {
+   "key": "h.corporate_number_13",
+   "target": "Sheet1!S14",
+   "format": "text",
+   "label": "２① 法人番号（13 桁目）"
+  },
+  {
+   "key": "h.field",
+   "target": "Sheet1!F15",
+   "format": "text",
+   "label": "２② 特定産業分野"
+  },
+  {
+   "target": "Sheet1!P15",
+   "format": "template",
+   "template": "※②を含め、\n　計( {count} )分野受入れ",
+   "keys": {
+    "count": {
+     "key": "h.field_count",
+     "format": "text",
+     "empty": "　"
+    }
+   },
+   "label": "２② 受け入れている分野の数"
+  },
+  {
+   "key": "h.name_kana",
+   "target": "Sheet1!F16",
+   "format": "text",
+   "label": "２③ ふりがな"
+  },
+  {
+   "key": "h.name",
+   "target": "Sheet1!F17",
+   "format": "text",
+   "label": "２③ 氏名又は名称"
+  },
+  {
+   "key": "h.postal",
+   "target": "Sheet1!F19",
+   "format": "text",
+   "label": "２④ 郵便番号"
+  },
+  {
+   "key": "h.address",
+   "target": "Sheet1!F20",
+   "format": "text",
+   "label": "２④ 住所"
+  },
+  {
+   "key": "h.phone",
+   "target": "Sheet1!F21",
+   "format": "text",
+   "label": "２④ 電話"
+  },
+  {
+   "key": "r.count_total",
+   "target": "Sheet1!F24",
+   "format": "text",
+   "label": "３ 合計"
+  },
+  {
+   "key": "r.count_1",
+   "target": "Sheet1!M24",
+   "format": "text",
+   "label": "３ 特定技能１号"
+  },
+  {
+   "key": "r.count_2",
+   "target": "Sheet1!Q24",
+   "format": "text",
+   "label": "３ 特定技能２号"
+  },
+  {
+   "target": "Sheet1!F43",
+   "format": "template",
+   "template": "{own} 自社支援のみ　　\n{full} 支援の全部委託あり　",
+   "keys": {
+    "own": {
+     "key": "r.own_support_only",
+     "format": "check",
+     "empty": "□"
+    },
+    "full": {
+     "key": "r.full_entrustment",
+     "format": "check",
+     "empty": "□"
+    }
+   },
+   "label": "５ 支援の実施状況"
+  }
+ ]
+}

@@ -1,0 +1,54 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Periodic notification (form 3-6)" %} | {{ host.name }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{{ back_url }}">← {{ host.name }}</a></p>
+  <h1>{% translate "Periodic notification (form 3-6)" %}</h1>
+{% endblock %}
+{% block content %}
+<div class="stack form">
+  <p class="caption">{% translate "Form 3-6, attachment 1 (for each workplace, five people per sheet) and attachment 2 (signatures) for the fiscal year. Average working conditions (item 4), days worked, pay, the method of payment and signatures are filled in by the host organization in the filled-in Excel file." %}</p>
+  <form class="form" method="post" novalidate id="periodic-report-form">
+    {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+    {% include "ui/components/form_errors.html" %}
+    <section class="card stack">{% form_field form.fiscal_year %}</section>
+    {% if form.is_bound and not form.errors %}
+    <section class="card stack" id="periodic-preview">
+      <p>{% blocktranslate count count=lines|length with sheets=sheets %}{{ count }} foreign worker supported in the period ({{ sheets }} sheet of attachment 1).{% plural %}{{ count }} foreign workers supported in the period ({{ sheets }} sheets of attachment 1).{% endblocktranslate %}</p>
+      {% if lines %}
+      <div class="table-scroll">
+        <table class="table" id="periodic-lines">
+          <thead><tr><th>{% translate "foreign worker" %}</th><th>{% translate "workplace" %}</th><th>{% translate "staff in charge" %}</th><th>{% translate "remarks" %}</th></tr></thead>
+          <tbody>{% for line in lines %}<tr data-worker="{{ line.row.worker.pk }}">
+            <td>{{ line.row.worker }}</td>
+            <td>{{ line.row.site.name }}</td>
+            <td>{{ line.row.staff.name|default:"—" }}{% if line.row.staff_estimated %} <span class="badge badge--within-14">{% translate "estimated: check" %}</span>{% endif %}</td>
+            <td class="caption">{% if line.accepted_from %}{% translate "start of acceptance" %} <span class="mono">{{ line.accepted_from|date:"Y-m-d" }}</span>{% if line.accepted_from_estimated %} <span class="badge badge--within-14" data-start-estimated>{% translate "estimated: check" %}</span>{% endif %}{% endif %}{% if line.accepted_until %} {% translate "end of acceptance" %} <span class="mono">{{ line.accepted_until|date:"Y-m-d" }}</span>{% endif %}{% if not line.row.fully_outsourced_on_reference %} {% translate "Not entrusted on March 31: the form of support is left blank." %}{% endif %}</td>
+          </tr>{% endfor %}</tbody>
+        </table>
+      </div>
+      {% endif %}
+      {% if events %}
+      <h2 class="card__title">{% translate "Candidates of special incident reports (form 4-3)" %}</h2>
+      <p class="caption">{% translate "Check whether a report was submitted. If a report was needed but not submitted, mark the column of the submission status in attachment 1 and attach a statement of reasons." %}</p>
+      <div class="table-scroll"><table class="table" id="periodic-events">
+        <thead><tr><th>{% translate "date" %}</th><th>{% translate "foreign worker" %}</th><th>{% translate "kind" %}</th><th>{% translate "filing task" %}</th></tr></thead>
+        <tbody>{% for item in events %}<tr><td class="mono">{{ item.event.occurred_on|date:"Y-m-d" }}</td><td>{{ item.event.worker }}</td><td>{{ item.kind }}</td><td>{{ item.match }}{% for filing_id in item.event.match.filing_ids %} <a href="{% url 'filings:detail' filing_id %}">#{{ filing_id }}</a>{% endfor %}</td></tr>{% endfor %}</tbody>
+      </table></div>
+      {% endif %}
+    </section>
+    {% endif %}
+    <div class="form-actions">
+      <button class="button button--neutral" type="submit" name="action" value="check">{% translate "Check again" %}</button>
+      {% if lines %}<button class="button button--primary" type="submit" name="action" value="generate">{% translate "Generate" %}</button>{% endif %}
+      <a class="button button--neutral" href="{{ back_url }}">{% translate "Cancel" %}</a>
+    </div>
+  </form>
+  {% if form.is_bound and not form.errors %}
+  <section class="card" id="periodic-documents">
+    <div class="card__header"><h2 class="card__title">{% translate "Generated forms" %}</h2></div>
+    {% if documents %}<ul class="stack" style="list-style: none; padding: 0; margin: 0">{% for document in documents %}<li data-document="{{ document.pk }}"><a href="{% url 'forms:document' document.pk %}">{{ document.template.form_id }} {{ document.template.name }}</a> <span class="caption">{{ document.get_status_display }} · {{ document.created_at|date:"Y-m-d H:i" }}</span></li>{% endfor %}</ul>
+    {% else %}<p class="muted">{% translate "No forms have been generated for this fiscal year." %}</p>{% endif %}
+  </section>
+  {% endif %}
+</div>
+{% endblock %}
