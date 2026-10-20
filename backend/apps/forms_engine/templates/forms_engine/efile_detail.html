@@ -51,5 +51,21 @@
     {% endfor %}</ul>{% endif %}
     <p class="caption">{% translate "One file holds as many rows as the numbered rows of the form. Open the file in Excel on Windows, enable macros and press “Run” to make the CSV. On the application screen of the electronic notification system, choose “Attach (several people)” and attach only the CSV made by the tool, without editing it. The filer is the logged-in organization." %}</p>
   </section>
+
+  <section class="card" id="submission">
+    <div class="card__header"><h2 class="card__title">{% translate "Submission" %}</h2></div>
+    {% if bulk.submitted_on %}
+    <dl class="fields" id="efile-submitted"><dt>{% translate "submitted on" %}</dt><dd class="mono">{{ bulk.submitted_on|date:"Y-m-d" }}</dd><dt>{% translate "receipt number" %}</dt><dd class="mono">{{ bulk.receipt_number|default:"—" }}</dd></dl>
+    {% elif files and perms.filings.change_filing %}
+    <form class="form stack" method="post" action="{% url 'forms:efile_submission' bulk.pk %}" novalidate id="efile-submission-form">
+      {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+      {% include "ui/components/form_errors.html" with form=submission_form %}
+      {% form_field submission_form.submitted_on %}{% form_field submission_form.receipt_number %}
+      <div class="form-actions"><button class="button button--primary" type="submit">{% translate "Record the submission" %}</button></div>
+    </form>
+    <p class="caption">{% translate "Record the date of the application on the electronic notification system and the receipt number. Every filing task in the rows is marked as submitted." %}</p>
+    {% else %}<p class="muted">{% translate "Create the Excel file and apply on the electronic notification system first." %}</p>{% endif %}
+    {% if filing_rows %}<ul class="stack" style="list-style: none; padding: 0; margin: var(--space-12) 0 0" id="efile-filings">{% for item in filing_rows %}<li data-filing="{{ item.filing.pk }}"><a href="{% url 'filings:detail' item.filing.pk %}">{{ item.filing.get_kind_display }}</a> <span class="caption">{{ item.filing.target_repr }} · {{ item.status }}{% if item.filing.receipt_number %} · {{ item.filing.receipt_number }}{% endif %}</span></li>{% endfor %}</ul>{% endif %}
+  </section>
 </div>
 {% endblock %}

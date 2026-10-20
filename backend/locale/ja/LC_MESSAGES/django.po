@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 00:56+0900\n"
+"POT-Creation-Date: 2026-10-21 01:07+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -3090,6 +3090,26 @@ msgstr "定期面談を記録する"
 msgid "Changes that need a notification"
 msgstr "届出が必要な変更"
 
+msgid "Periodic notification (form 3-6)"
+msgstr "定期届出（第3-6号）"
+
+msgid "Bulk notification"
+msgstr "一括届出"
+
+msgid "Make the periodic notification"
+msgstr "定期届出の様式を作る"
+
+msgid "not submitted"
+msgstr "未提出"
+
+msgid ""
+"Not in a bulk notification. With one person, enter it on the screen of the "
+"electronic notification system."
+msgstr "一括届出に入っていません。1 人だけなら、電子届出システムの画面で入力します。"
+
+msgid "Add to a bulk notification"
+msgstr "一括届出に入れる"
+
 msgid "Generated forms"
 msgstr "生成した帳票"
 
@@ -3141,6 +3161,9 @@ msgstr "起票する"
 #, python-format
 msgid "Changed the status to %(status)s."
 msgstr "状態を「%(status)s」にしました。"
+
+msgid "Added the filing task to the bulk notification."
+msgstr "届出タスクを一括届出に入れました。"
 
 msgid "Recalculated the due date."
 msgstr "期限を計算し直しました。"
@@ -3375,6 +3398,11 @@ msgstr "先に届出タスクを追加してください。"
 #, python-format
 msgid "Added %(count)s row(s)."
 msgstr "%(count)s 行を追加しました。"
+
+#, python-format
+msgid ""
+"Recorded the submission. %(count)s filing task(s) were marked as submitted."
+msgstr "提出を記録しました。%(count)s 件の届出タスクを提出済みにしました。"
 
 msgid "The submission of this bulk notification has been recorded."
 msgstr "この一括届出は提出を記録済みです。"
@@ -4150,9 +4178,6 @@ msgstr "署名は不要"
 msgid "Warnings at generation"
 msgstr "生成のときの警告"
 
-msgid "Bulk notification"
-msgstr "一括届出"
-
 msgid "The bulk filing tool is not loaded. Run make forms."
 msgstr "一括申込用ツールが読み込まれていません。make forms を実行してください。"
 
@@ -4189,6 +4214,21 @@ msgstr ""
 "ができます。電子届出システムの申込の画面で「添付（複数人の場合）」を選び、ツールが出した CSV "
 "を編集せずに添付してください。届出機関はログインした機関です。"
 
+msgid "Submission"
+msgstr "提出"
+
+msgid "Record the submission"
+msgstr "提出を記録する"
+
+msgid ""
+"Record the date of the application on the electronic notification system and"
+" the receipt number. Every filing task in the rows is marked as submitted."
+msgstr "電子届出システムで申し込んだ日と受付番号を記録します。行のすべての届出タスクが提出済みになります。"
+
+msgid ""
+"Create the Excel file and apply on the electronic notification system first."
+msgstr "先に Excel を作り、電子届出システムで申し込んでください。"
+
 msgid "New bulk notification"
 msgstr "一括届出を作る"
 
@@ -4224,9 +4264,6 @@ msgid ""
 "Remove the row of %(name)s from the bulk notification. The filing task and "
 "files already generated stay."
 msgstr "%(name)s の行を一括届出から外します。届出タスクと、作ったファイルは残ります。"
-
-msgid "Periodic notification (form 3-6)"
-msgstr "定期届出（第3-6号）"
 
 msgid ""
 "Form 3-6, attachment 1 (for each workplace, five people per sheet) and "
@@ -5389,9 +5426,6 @@ msgstr "事業所ごとに、事業所の所在地と外国人の住居地の市
 msgid "submission status (latest for each municipality)"
 msgstr "提出状況（提出先ごとの最新）"
 
-msgid "not submitted"
-msgstr "未提出"
-
 msgid "Register a site first."
 msgstr "先に事業所を登録します。"
 
@@ -5453,9 +5487,6 @@ msgstr "使わない"
 
 msgid "No employment condition templates are registered."
 msgstr "雇用条件のひな形は登録されていません。"
-
-msgid "Make the periodic notification"
-msgstr "定期届出の様式を作る"
 
 msgid ""
 "Form 3-6 and attachments 1 and 2 for a fiscal year (submitted from April 1 "

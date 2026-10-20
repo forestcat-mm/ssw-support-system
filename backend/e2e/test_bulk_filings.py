@@ -89,3 +89,38 @@ def test_create_fill_in_and_generate(
     assert download.value.suggested_filename.endswith(".xlsm")
     assert page.evaluate("document.documentElement.scrollWidth") <= width
     assert admin_requests == []
+
+
+@pytest.mark.parametrize("width", [1366, 390])
+def test_from_the_filing_task_to_the_submission(
+    page: Page,
+    sign_in: SignIn,
+    administrator: User,
+    contract: EmploymentContract,
+    width: int,
+) -> None:
+    """T52: 届出タスクの画面から一括届出に入れ、Excel を作り、提出を記録する。
+
+    行の届出タスクが提出済みになる。
+    """
+    admin_requests = watch_admin(page)
+    page.set_viewport_size({"width": width, "height": 900})
+    sign_in(administrator)
+    base = page.url.rstrip("/")
+    filing = contract.worker.filings.get()
+    page.goto(f"{base}/filings/{filing.pk}/")
+    expect(page.locator("#filing-bulk")).to_contain_text("第3-4号")
+    assert page.evaluate("document.documentElement.scrollWidth") <= width
+    page.get_by_role("button", name="一括届出に入れる").click()
+    expect(page.get_by_text("届出タスクを一括届出に入れました。")).to_be_visible()
+    expect(page.locator("#efile-rows tbody tr")).to_have_count(1)
+    page.get_by_role("button", name="Excel を作る").click()
+    expect(page.get_by_text("1 個のファイルを作りました。")).to_be_visible()
+    page.locator("#efile-submission-form").get_by_label("受理番号").fill("R-0001")
+    page.get_by_role("button", name="提出を記録する").click()
+    expect(page.get_by_text("1 件の届出タスクを提出済みにしました。")).to_be_visible()
+    expect(page.locator("#efile-submitted")).to_contain_text("R-0001")
+    assert page.evaluate("document.documentElement.scrollWidth") <= width
+    page.locator(f'#efile-filings [data-filing="{filing.pk}"] a').click()
+    expect(page.locator("#filing-status")).to_have_text("提出済")
+    assert admin_requests == []

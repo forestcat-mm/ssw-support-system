@@ -36,6 +36,11 @@ urlpatterns = [
     path("efile/<int:pk>/", efile_views.EfileDetailView.as_view(), name="efile"),
     path("efile/<int:pk>/filings/", efile_views.EfileAddFilingsView.as_view(), name="efile_add"),
     path(
+        "efile/<int:pk>/submission/",
+        efile_views.EfileSubmissionView.as_view(),
+        name="efile_submission",
+    ),
+    path(
         "efile/<int:pk>/rows/<int:row_id>/",
         efile_views.EfileRowView.as_view(),
         name="efile_row",

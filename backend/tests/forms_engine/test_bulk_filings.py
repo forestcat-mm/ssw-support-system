@@ -10,6 +10,7 @@ from typing import Any
 
 import openpyxl  # type: ignore[import-untyped]
 import pytest
+from django.core.exceptions import ValidationError
 
 from apps.contracts.models import EmploymentContract
 from apps.core.models import AuditAction, AuditLog, Organization
@@ -301,3 +302,74 @@ def test_screens(contract: EmploymentContract) -> None:
     assert b"".join(download.streaming_content)[:2] == b"PK"  # type: ignore[attr-defined]
     assert AuditLog.objects.filter(action=AuditAction.DOWNLOAD, object_id=str(bulk.pk)).exists()
     assert "/forms/efile/" in client.get("/forms/efile/").content.decode()
+
+
+def test_filing_task_screen_adds_to_a_bulk_notification(contract: EmploymentContract) -> None:
+    """T52: 届出タスクの画面から一括届出に入れ、提出の記録で届出タスクが提出済みになる。"""
+    filing, inputs = tasks(contract)["efile-3-4"]
+    client = verified_client(make_user("kanri-efile3", roles=("admin",)))
+    page = client.get(f"/filings/{filing.pk}/")
+    assert 'id="filing-add-to-bulk"' in page.content.decode()
+    response = client.post(
+        f"/filings/{filing.pk}/",
+        {"form": "bulk", page.context["once_field"]: page.context["once_token"]},
+    )
+    bulk = BulkFiling.objects.get()
+    assert response.status_code == 302 and response["Location"].startswith(
+        f"/forms/efile/{bulk.pk}/"
+    )
+    assert bulk.rows.get().filing == filing
+    page = client.get(f"/filings/{filing.pk}/")
+    assert f'data-efile="{bulk.pk}"' in page.content.decode()
+    row = bulk.rows.get()
+    bulk_filings.save_inputs(row, {**row.inputs, **inputs}, by=None)
+    bulk_filings.generate(bulk, by=None)
+    detail = client.get(f"/forms/efile/{bulk.pk}/")
+    assert 'id="efile-submission-form"' in detail.content.decode()
+    response = client.post(
+        f"/forms/efile/{bulk.pk}/submission/",
+        {
+            "submitted_on": "2026-10-10",
+            "receipt_number": "R-0001",
+            detail.context["once_field"]: detail.context["once_token"],
+        },
+    )
+    assert response.status_code == 302
+    filing.refresh_from_db()
+    bulk.refresh_from_db()
+    assert (filing.status, filing.submitted_on, filing.receipt_number) == (
+        "submitted",
+        datetime.date(2026, 10, 10),
+        "R-0001",
+    )
+    assert bulk.submitted_on == datetime.date(2026, 10, 10)
+    assert AuditLog.objects.filter(
+        action=AuditAction.FILING_TRANSITION, object_id=str(filing.pk)
+    ).exists()
+    # 提出を記録した一括届出には、行を足せない・直せない
+    other = task(FilingKind.ACCEPTANCE_DIFFICULTY, contract)
+    assert bulk_filings.problems_to_add(bulk, other)
+    assert bulk_filings.open_bulk_for(other, by=None).pk != bulk.pk
+
+
+def test_submission_needs_a_file(contract: EmploymentContract) -> None:
+    filing, _inputs = tasks(contract)["efile-3-5"]
+    bulk = bulk_filings.open_bulk_for(filing, by=None)
+    bulk_filings.add_filing(bulk, filing, by=None)
+    with pytest.raises(ValidationError):
+        bulk_filings.record_submission(
+            bulk, submitted_on=datetime.date(2026, 10, 10), receipt_number="", by=None
+        )
+
+
+def test_periodic_task_links_to_the_periodic_forms(contract: EmploymentContract) -> None:
+    host = contract.host_organization
+    periodic, _created = filings.create(
+        FilingKind.PERIODIC_HOST,
+        target=host,
+        basis_on=datetime.date(2027, 4, 1),
+        trigger=Trigger.PERIODIC_SEASON,
+    )
+    client = verified_client(make_user("kanri-efile4", roles=("admin",)))
+    page = client.get(f"/filings/{periodic.pk}/").content.decode()
+    assert f"/hosts/{host.pk}/periodic-report/?year=2026" in page

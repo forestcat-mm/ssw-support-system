@@ -29,11 +29,14 @@ from apps.filings.forms import (
 )
 from apps.filings.models import Filing, FilingKind, FilingStatus, Trigger
 from apps.forms_engine.models import GeneratedDocument
+from apps.hosts.models import HostOrganization
 from apps.support.models import PeriodicInterview
 from services import (
     audit,
     authorization,
+    bulk_filings,
     dashboard,
+    efile_data,
     filings,
     form_generation,
     incident_reports,
@@ -142,9 +145,29 @@ class FilingDetailView(ActionRequiredMixin, View):
                 else []
             ),
             "back_url": dashboard_url(request),
+            **self.bulk_context(request, filing),
             **once_context(request),
         }
         return TemplateResponse(request, self.template_name, context)
+
+    def bulk_context(self, request: HttpRequest, filing: Filing) -> dict[str, Any]:
+        """一括届出（電子届出の一括申込用ツール）と定期届出の様式へのつなぎ（T52）。"""
+        if not authorization.has_action(request.user, Action.FORMS_GENERATE):
+            return {}
+        form_id = efile_data.form_of(filing)
+        context: dict[str, Any] = {
+            "bulk_label": bulk_filings.label_of(form_id) if form_id else "",
+            "bulk_filings": bulk_filings.bulks_of_filing(filing) if form_id else [],
+            "can_add_to_bulk": bool(form_id)
+            and filing.worker_id is not None
+            and filing.status in dashboard.OPEN_STATUSES,
+        }
+        if filing.kind == FilingKind.PERIODIC_HOST and isinstance(filing.target, HostOrganization):
+            context["periodic_url"] = (
+                reverse("hosts:periodic_report", args=[filing.target.pk])
+                + f"?year={filing.basis_on.year - 1}"
+            )
+        return context
 
     def get(self, request: HttpRequest, pk: int) -> HttpResponse:
         filing = self.filing(pk)
@@ -201,6 +224,18 @@ class FilingDetailView(ActionRequiredMixin, View):
             else:
                 messages.success(request, _("Saved."))
             return redirect("filings:detail", pk)
+        if which == "bulk":
+            if not authorization.has_action(request.user, Action.FORMS_GENERATE):
+                raise PermissionDenied
+            try:
+                bulk = bulk_filings.open_bulk_for(filing, by=actor)
+                if not bulk.rows.filter(filing=filing).exists():
+                    bulk_filings.add_filing(bulk, filing, by=actor)
+            except ValidationError as error:
+                messages.error(request, " ".join(error.messages))
+                return redirect("filings:detail", pk)
+            messages.success(request, _("Added the filing task to the bulk notification."))
+            return redirect(reverse("forms:efile", args=[bulk.pk]) + "#rows")
         if which == "rebase":
             rebase = RebaseForm(request.POST)
             if rebase.is_valid():

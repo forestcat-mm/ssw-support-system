@@ -37,6 +37,18 @@
       </ul>
       {% endif %}
     </section>
+    {% if bulk_label or periodic_url %}
+    <section class="card" id="filing-bulk">
+      <div class="card__header"><h2 class="card__title">{% if periodic_url %}{% translate "Periodic notification (form 3-6)" %}{% else %}{% translate "Bulk notification" %}: {{ bulk_label }}{% endif %}</h2></div>
+      {% if periodic_url %}<p><a class="button button--neutral button--small" href="{{ periodic_url }}" id="filing-periodic">{% translate "Make the periodic notification" %}</a></p>{% endif %}
+      {% if bulk_filings %}<ul class="stack" style="list-style: none; padding: 0; margin: 0">{% for bulk in bulk_filings %}<li data-efile="{{ bulk.pk }}"><a href="{% url 'forms:efile' bulk.pk %}">{{ bulk_label }} #{{ bulk.pk }}</a> <span class="caption">{% if bulk.submitted_on %}{% translate "submitted on" %} <span class="mono">{{ bulk.submitted_on|date:"Y-m-d" }}</span>{% if bulk.receipt_number %} · {{ bulk.receipt_number }}{% endif %}{% else %}{% translate "not submitted" %}{% endif %}</span></li>{% endfor %}</ul>
+      {% elif bulk_label %}<p class="muted">{% translate "Not in a bulk notification. With one person, enter it on the screen of the electronic notification system." %}</p>{% endif %}
+      {% if can_add_to_bulk and can_manage %}
+      <form method="post" novalidate id="filing-add-to-bulk" style="margin-top: var(--space-12)">{% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}"><input type="hidden" name="form" value="bulk">
+        <button class="button button--neutral button--small" type="submit">{% translate "Add to a bulk notification" %}</button>
+      </form>{% endif %}
+    </section>
+    {% endif %}
     <section class="card" id="filing-documents">
       <div class="card__header"><h2 class="card__title">{% translate "Generated forms" %}</h2></div>
       {% if filing.kind == "residence_renewal" and filing.worker_id and perms.forms_engine.view_generateddocument %}<p><a class="button button--neutral button--small" href="{% url 'workers:application_set' filing.worker_id %}?set_id=ext" id="filing-application-set">{% translate "Documents for the application" %}</a></p>{% endif %}

@@ -6,6 +6,7 @@ import datetime
 from typing import Any
 
 from django import forms
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.web_forms import StyledFormMixin
@@ -137,3 +138,16 @@ class AddFilingsForm(forms.Form):
         field = self.fields["filings"]
         assert isinstance(field, forms.MultipleChoiceField)
         field.choices = [(str(pk), label) for pk, label in choices]
+
+
+class SubmissionForm(StyledFormMixin, forms.Form):
+    """電子届出の申込の記録（T52-D2）。行のすべての届出タスクを提出済みにする。"""
+
+    submitted_on = forms.DateField(label=_("submitted on"), widget=forms.DateInput)
+    receipt_number = forms.CharField(label=_("receipt number"), max_length=50, required=False)
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.is_bound:
+            self.initial.setdefault("submitted_on", timezone.localdate())
+        self.style_fields()

@@ -23,9 +23,16 @@ from apps.core.models import Action, User
 from apps.core.permissions import ActionRequiredMixin
 from apps.core.web_forms import consume_once_token, once_context
 from apps.filings.models import Filing
-from apps.forms_engine.efile_forms import AddFilingsForm, BulkFilingForm, RowForm
+from apps.forms_engine.efile_forms import AddFilingsForm, BulkFilingForm, RowForm, SubmissionForm
 from apps.forms_engine.models import BulkFiling, BulkFilingFile, BulkFilingRow
-from services import audit, bulk_filings, efile_data, form_templates, worker_list
+from services import (
+    audit,
+    authorization,
+    bulk_filings,
+    efile_data,
+    form_templates,
+    worker_list,
+)
 
 
 def _actor(request: HttpRequest) -> User:
@@ -143,7 +150,11 @@ class EfileDetailView(EfileView):
             not_loaded=not_loaded,
             files=files,
             add_form=extra.get("add_form") or AddFilingsForm(choices=choices),
-            **extra,
+            submission_form=extra.get("submission_form") or SubmissionForm(),
+            filing_rows=[
+                {"filing": filing, "status": filing.get_status_display()}
+                for filing in bulk_filings.filings_of(bulk)
+            ],
         )
 
     def get(self, request: HttpRequest, pk: int) -> HttpResponse:
@@ -184,6 +195,41 @@ class EfileAddFilingsView(EfileView):
             added += len(bulk_filings.add_filing(bulk, task, by=_actor(request)))
         messages.success(request, _("Added %(count)s row(s).") % {"count": added})
         return redirect(detail_url(bulk, "rows"))
+
+
+class EfileSubmissionView(EfileDetailView):
+    """申込の日と受付番号の記録（T52-D2）。行のすべての届出タスクを提出済みにする。"""
+
+    def post(self, request: HttpRequest, pk: int) -> HttpResponse:
+        bulk = self.bulk(request, pk)
+        if not authorization.has_action(request.user, Action.FILINGS_MANAGE):
+            raise PermissionDenied
+        if not consume_once_token(request):
+            return self.already_submitted(request, detail_url(bulk, "submission"))
+        form = SubmissionForm(request.POST)
+        if not form.is_valid():
+            return self.page(request, bulk, submission_form=form)
+        try:
+            changed = bulk_filings.record_submission(
+                bulk,
+                submitted_on=form.cleaned_data["submitted_on"],
+                receipt_number=form.cleaned_data.get("receipt_number") or "",
+                by=_actor(request),
+            )
+        except ValidationError as error:
+            if hasattr(error, "error_dict"):
+                for name, field_errors in error.message_dict.items():
+                    for message in field_errors:
+                        form.add_error(name if name in form.fields else None, message)
+            else:
+                form.add_error(None, error)
+            return self.page(request, bulk, submission_form=form)
+        messages.success(
+            request,
+            _("Recorded the submission. %(count)s filing task(s) were marked as submitted.")
+            % {"count": len(changed)},
+        )
+        return redirect(detail_url(bulk, "submission"))
 
 
 class EfileRowView(EfileView):
