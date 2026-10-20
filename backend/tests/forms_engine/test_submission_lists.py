@@ -214,3 +214,96 @@ def test_yu_fonts_are_drawn_with_noto_cjk() -> None:
             ["fc-match", "-f", "%{family[0]}", family], capture_output=True, text=True, check=True
         )
         assert found.stdout == font, family
+
+
+def _header_columns(path: Path) -> dict[str, tuple[int, int]]:
+    """一覧表のブックの「提出確認欄」「官用欄」の見出しの列の範囲（結合の範囲。1 から数える）。"""
+    import re
+
+    with zipfile.ZipFile(path) as archive:
+        shared = archive.read("xl/sharedStrings.xml").decode()
+        sheet = archive.read("xl/worksheets/sheet1.xml").decode()
+    strings = [
+        "".join(re.findall(r"<t[^>]*>([^<]*)</t>", item))
+        for item in re.findall(r"<si>.*?</si>", shared, re.S)
+    ]
+    found: dict[str, tuple[int, int]] = {}
+    for match in re.finditer(r'<c r="([A-Z]+\d+)"[^>]*?t="s"[^>]*?><v>(\d+)</v>', sheet):
+        text = strings[int(match.group(2))]
+        for head in ("提出確認欄", "官用欄"):
+            if text.startswith(head):  # 後ろはふりがな
+                letters, row = form_xlsx.split_ref(match.group(1))
+                column = form_xlsx.column_index(letters)
+                span = (column, column)
+                for left, top, right, _bottom in form_xlsx.merged_ranges(sheet):
+                    if left == column and top == row:
+                        span = (left, right)
+                found[head] = span
+    return found
+
+
+@pytest.mark.parametrize("set_id", ["coe", "chg", "ext"])
+def test_circles_are_only_in_the_submission_check_column(set_id: str) -> None:
+    """〇を付けるセルは「提出確認欄」の列の中だけで、「官用欄」の列には無い（入管が書く欄）。"""
+    definition = application_sets.definition(set_id, BASIS)
+    columns: dict[str, dict[str, tuple[int, int]]] = {
+        file: _header_columns(submission_lists.sources_root() / file) for file in definition.sources
+    }
+    checked = 0
+    for row in definition.rows:
+        check = row["check"]
+        heads = columns[check["file"]]
+        own, official = heads["提出確認欄"], heads["官用欄"]
+        for ref in (check["yes"], check["no"]):
+            letters, _row = form_xlsx.split_ref(ref)
+            column = form_xlsx.column_index(letters)
+            assert own[0] <= column <= own[1], (row["id"], ref)
+            assert not official[0] <= column <= official[1], (row["id"], ref)
+            checked += 1
+    assert checked == 2 * len(definition.rows)
+
+
+def test_rendered_list_writes_nothing_in_the_official_column(tmp_path: Path) -> None:
+    """生成した一覧表で、官用欄の列のセルは元のブックのまま、〇の図形も官用欄に無い。"""
+    import re
+
+    contract = make_case()
+    overview = application_sets.overview(contract.worker, "chg", BASIS)
+    rows = overview.definition.rows
+    marks = {row["id"]: ("yes" if index % 2 else "no") for index, row in enumerate(rows)}
+    books = submission_lists.workbooks(
+        overview, marks, worker_name="WANG LINA", host_name="テスト株式会社"
+    )
+    submission_lists.render(books, tmp_path)
+
+    def official_cells(xml: str, span: tuple[int, int]) -> list[str]:
+        cells = re.findall(r'<c r="([A-Z]+)\d+"[^>]*?(?:/>|>.*?</c>)', xml)
+        whole = re.findall(r'<c r="[A-Z]+\d+"[^>]*?(?:/>|>.*?</c>)', xml)
+        return [
+            cell
+            for letters, cell in zip(cells, whole, strict=True)
+            if span[0] <= form_xlsx.column_index(letters) <= span[1]
+        ]
+
+    for index, book in enumerate(books):
+        source = submission_lists.sources_root() / book.file
+        official = _header_columns(source)["官用欄"]
+        with zipfile.ZipFile(source) as archive:
+            before = official_cells(archive.read("xl/worksheets/sheet1.xml").decode(), official)
+        with zipfile.ZipFile(tmp_path / f"list-{index}" / book.file) as archive:
+            after = official_cells(archive.read("xl/worksheets/sheet1.xml").decode(), official)
+        assert after == before, book.file  # 官用欄のセルに書き込みが無い
+        with zipfile.ZipFile(tmp_path / f"list-{index}" / "for-pdf" / book.file) as archive:
+            drawings = [n for n in archive.namelist() if n.startswith("xl/drawings/drawing")]
+            anchors = [
+                int(column) + 1  # xdr:col は 0 から数える
+                for name in drawings
+                for column in re.findall(
+                    r"<xdr:oneCellAnchor><xdr:from><xdr:col>(\d+)</xdr:col>"
+                    r'(?:(?!</xdr:oneCellAnchor>).)*?prst="ellipse"',
+                    archive.read(name).decode(),
+                    re.S,
+                )
+            ]
+        assert anchors, book.file
+        assert all(not official[0] <= column <= official[1] for column in anchors), book.file
