@@ -171,10 +171,20 @@ def field_keys(item: Mapping[str, Any]) -> list[str]:
     return [item["key"]]
 
 
+def _translated(item: Mapping[str, Any], raw: object) -> object:
+    """欄の translate（言語）があれば値を訳の表で置き換える（無ければそのまま。ADR-0027）。"""
+    language = item.get("translate")
+    if not language or not isinstance(raw, str):
+        return raw
+    found = form_translations.translate_value(raw, form_translations.table(language))
+    return raw if found is None else found
+
+
 def field_value(item: Mapping[str, Any], data: Mapping[str, Any]) -> object | None:
     if item.get("format") == "template":
         return _template_value(item, data)
-    value = format_value(data.get(item["key"]), item.get("format", "text"))
+    raw = _translated(item, data.get(item["key"]))
+    value = format_value(raw, item.get("format", "text"))
     if value is not None and "pad" in item:
         value = padded(str(value), float(item["pad"]), item.get("align", "left"))
     return value
@@ -309,9 +319,31 @@ def check(
 
 
 def prepared(template: FormTemplate, data: Mapping[str, Any]) -> Mapping[str, Any]:
-    """版に入れる値（訳文の版は値を訳の表で置き換える。T43、ADR-0035）。"""
+    """版に入れる値（訳文の版は値を訳の表で置き換える。T43、ADR-0035）。
+
+    併記の版の中国語の行の欄（マッピングの translate）で訳の無い日本語の値は、日本語のまま入れ、
+    欄の key を UNTRANSLATED に残す（生成前の検査の警告。ADR-0027 の追記）。
+    """
     language = form_translations.language_of(template)
-    return form_translations.translate(data, language) if language else data
+    if language:
+        return form_translations.translate(data, language)
+    fields = template.mapping.definition.get("fields", [])
+    untranslated = sorted(
+        {
+            item["key"]
+            for item in fields
+            if item.get("translate")
+            and isinstance(data.get(item["key"]), str)
+            and form_translations.JAPANESE.search(data[item["key"]])
+            and form_translations.translate_value(
+                data[item["key"]], form_translations.table(item["translate"])
+            )
+            is None
+        }
+    )
+    if not untranslated:
+        return data
+    return {**data, form_translations.UNTRANSLATED: untranslated}
 
 
 def _check(

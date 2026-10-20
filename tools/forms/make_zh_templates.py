@@ -112,8 +112,9 @@ SPEC_ZH = {
 # JA_1_6 で置き換える（空のリストは、併記の版に無い行。Ⅸ４ 待遇の相違の窓口は補足の頁に書く）。
 # 中国語の行は ZH_1_6 で、日本語の行の後ろに足す。チェックの欄は日本語の行と同じ名前のタグ、ほかの欄は
 # 名前の後ろに「_zh」を付けたタグにし、中国語の行の欄の幅で値を詰める（データのキーは同じ）。
-# 中国語の行には、チェック・数・名前・自由記述の欄だけを置き、印刷済みの中国語の選択肢の文を置き換える欄
-# （更新上限・無期転換の変更・祝日・非定例日・締切日・支払日）は置かない（中国語の文を残す）。
+# 印刷済みの選択肢の文を値で置き換える欄（更新上限・無期転換の変更・祝日・非定例日・締切日・支払日。
+# TRANSLATED_1_6）は、中国語の行では値を T43 の値の訳の表（services/data/translations/zh-hans.json）で
+# 中国語にして入れる（マッピングの translate。訳の無い値は日本語のまま入れ、生成前の検査で警告する）。
 
 
 def full(n: int) -> str:
@@ -224,6 +225,12 @@ ZH_1_6: dict[int, list[str]] = {
         "[criterion_business:□]＿公司的经营情况＿＿＿＿＿＿＿＿[criterion_progress:□]＿从事的业务的进度情况"
         f"{half(7)}＿＿＿[criterion_other:□]＿其他（[criterion_other_text:13]）"
     ],
+    10: ["３． 有无更新上限（[renewal_limit:无・有（最多更新＿＿次／总合同期限＿＿年为止）]）"],
+    11: [
+        "…从本合同期限的最后一天的第二天([conversion_y:  ]年 [conversion_m:]月 [conversion_d:]日)开始，"
+        "可以转换为无期雇佣合同的雇佣。在这种情况下，有无根据本合同的劳动条件变更（[conversion_change: 无/有"
+        "（如附件2所示）]）"
+    ],
     15: ["（变更的范围）[workplace_unchanged:□]没有变更的可能性（有变更时填写以下内容）"],
     19: [f"1． 领{half(3)}域（[duty_change:11]）"],
     20: [
@@ -247,9 +254,10 @@ ZH_1_6: dict[int, list[str]] = {
     29: [f"＿ 5．有无规定时间以外劳动＿＿{half(2)}[overtime_yes:□]＿有＿＿＿＿[overtime_no:□]＿无"],
     30: [f"○详细内容参见就业规则＿[articles_hours:{ARTICLES_ZH_3}]"],
     31: [
-        "1．规定休息日：每周周[holiday_weekdays:3]、日本的法定节日、其他（[holidays_other:"
+        "1．规定休息日：每周周[holiday_weekdays:3]、[national_holidays:日本的法定节日]、其他（[holidays_other:"
         f"{full(9)}{half(3)}{full(2)}]）＿＿（全年合计休息日天数[annual_holidays:3]天）"
     ],
+    32: [f"2.非规定休息日：[irregular_holidays:每周/每月{half(8)}天，其他（＿＿＿＿＿＿＿＿＿＿＿）]"],
     33: [f"○详细内容参见就业规则[articles_holidays:{ARTICLES_ZH_2}]"],
     34: [f"1．年度带薪休假＿＿＿连续工作满6个月的→[paid_leave_days:{full(3)}{half(6)}{full(1)}]天"],
     35: [
@@ -274,6 +282,8 @@ ZH_1_6: dict[int, list[str]] = {
         f"{half(2)}非法定休息日＿＿（[rate_holiday_non_statutory:5]）％"
     ],
     44: ["(3) 深夜＿＿＿＿＿（[rate_night:5]）％"],
+    45: ["4．工资结算日＿＿＿[wage_closing_day:□＿毎月＿＿＿日、＿□＿毎月＿＿＿日]"],
+    46: ["5．工资支付日＿＿＿[wage_payment_day:□＿毎月＿＿＿日、＿□＿毎月＿＿＿日]"],
     47: ["6．工资支付方法＿＿[payment_bank:□]＿汇入银行账户＿＿[payment_cash:□]＿法定货币支付"],
     48: [
         f"＿ 7．根据劳资合同在支付工资时的扣除＿＿{half(2)}[deduction_agreement_no:□]{half(2)}无＿＿ ＿＿"
@@ -334,6 +344,16 @@ ZH_1_6: dict[int, list[str]] = {
 # 空白は行の外にはみ出せるが字ははみ出せない）。詰める幅を狭める
 PADS_1_6 = {"work_rules_location": 22}
 
+# 中国語の行で、値を訳の表で中国語にして入れる欄（印刷済みの選択肢の文を置き換える欄）
+TRANSLATED_1_6 = {
+    "renewal_limit",
+    "conversion_change",
+    "national_holidays",
+    "irregular_holidays",
+    "wage_closing_day",
+    "wage_payment_day",
+}
+
 # 補足の頁（自作。tools/forms/make_zh_supplement.py）に置く欄: Ⅸ４ 待遇の相違の窓口
 SUPPLEMENT_1_6 = [
     {"name": "treatment_department", "original": full(7)},
@@ -371,6 +391,8 @@ def make_1_6(document: docx_tags.Document) -> list[dict]:
         if zh:
             item["target"] = slot["name"]
             item["label"] += "（中国語の行）"
+            if base["name"] in TRANSLATED_1_6:
+                item["translate"] = "zh-hans"
         if item["target"] in PADS_1_6:
             item["pad"] = PADS_1_6[item["target"]]
         items.append(item)

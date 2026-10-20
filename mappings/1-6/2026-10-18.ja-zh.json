@@ -341,6 +341,13 @@
    "label": "Ⅰ３ 更新上限の有無"
   },
   {
+   "key": "c.renewal_limit",
+   "target": "renewal_limit_zh",
+   "format": "text",
+   "label": "Ⅰ３ 更新上限の有無（中国語の行）",
+   "translate": "zh-hans"
+  },
+  {
    "key": "c.conversion_y",
    "target": "conversion_y",
    "format": "zen",
@@ -369,6 +376,31 @@
    "target": "conversion_change",
    "format": "text",
    "label": "Ⅰ 無期雇用契約への転換（change）"
+  },
+  {
+   "key": "c.conversion_y",
+   "target": "conversion_y_zh",
+   "format": "zen",
+   "label": "Ⅰ 無期雇用契約への転換（年）（中国語の行）"
+  },
+  {
+   "key": "c.conversion_m",
+   "target": "conversion_m_zh",
+   "format": "zen",
+   "label": "Ⅰ 無期雇用契約への転換（月）（中国語の行）"
+  },
+  {
+   "key": "c.conversion_d",
+   "target": "conversion_d_zh",
+   "format": "zen",
+   "label": "Ⅰ 無期雇用契約への転換（日）（中国語の行）"
+  },
+  {
+   "key": "c.conversion_change",
+   "target": "conversion_change_zh",
+   "format": "text",
+   "label": "Ⅰ 無期雇用契約への転換（change）（中国語の行）",
+   "translate": "zh-hans"
   },
   {
    "key": "c.direct_employment",
@@ -1179,6 +1211,13 @@
    "align": "left"
   },
   {
+   "key": "c.national_holidays",
+   "target": "national_holidays_zh",
+   "format": "text",
+   "label": "Ⅴ１ 定例日（日本の国民の祝日）（中国語の行）",
+   "translate": "zh-hans"
+  },
+  {
    "key": "c.holidays_other",
    "target": "holidays_other_zh",
    "format": "zen_text",
@@ -1197,6 +1236,13 @@
    "target": "irregular_holidays",
    "format": "zen_text",
    "label": "Ⅴ２ 非定例日"
+  },
+  {
+   "key": "c.irregular_holidays",
+   "target": "irregular_holidays_zh",
+   "format": "zen_text",
+   "label": "Ⅴ２ 非定例日（中国語の行）",
+   "translate": "zh-hans"
   },
   {
    "key": "c.articles_holidays",
@@ -1527,10 +1573,24 @@
    "label": "Ⅶ４ 賃金締切日"
   },
   {
+   "key": "c.wage_closing_day",
+   "target": "wage_closing_day_zh",
+   "format": "zen_text",
+   "label": "Ⅶ４ 賃金締切日（中国語の行）",
+   "translate": "zh-hans"
+  },
+  {
    "key": "c.wage_payment_day",
    "target": "wage_payment_day",
    "format": "zen_text",
    "label": "Ⅶ５ 賃金支払日"
+  },
+  {
+   "key": "c.wage_payment_day",
+   "target": "wage_payment_day_zh",
+   "format": "zen_text",
+   "label": "Ⅶ５ 賃金支払日（中国語の行）",
+   "translate": "zh-hans"
   },
   {
    "key": "c.payment_bank",

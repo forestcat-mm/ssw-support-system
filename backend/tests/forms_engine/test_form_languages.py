@@ -372,3 +372,34 @@ def test_bilingual_1_6_is_generated_with_the_supplement(loaded: None) -> None:
     assert data["c.treatment_department"] in text  # Ⅸ４ の窓口は補足の頁に入る
     assert data["c.worker_name"] in text.split("先生/女士")[0]  # 中国語の行にも氏名
     assert "参考様式第１－６号　別紙２" not in text
+    # 印刷済みの選択肢の文を置き換える欄は、中国語の行では値の訳の表で中国語にして入れる
+    assert "工资结算日" in text and "月末" in text.split("工资结算日")[1].split("\n")[0]
+    assert "次月" in text.split("工资支付日")[1].split("\n")[0]
+
+
+def test_bilingual_1_6_translates_the_choice_fields_of_the_chinese_rows(loaded: None) -> None:
+    from tests.forms_engine.test_form_contract import BASIS, data_for, explain, full_version
+
+    version = full_version()
+    explain(version)
+    data = data_for("1-6", version) | {
+        "c.renewal_limit": "有（更新３回まで／通算契約期間５年まで）",
+        "c.irregular_holidays": "会社カレンダーによる",
+    }
+    template = FormTemplate.objects.get(form_id="1-6", language="ja-zh")
+    values = form_generation.field_values(
+        template.mapping.definition, form_generation.prepared(template, data)
+    )
+    assert values["renewal_limit"] == "有（更新３回まで／通算契約期間５年まで）"
+    assert values["renewal_limit_zh"] == "有（最多更新３次／总合同期限５年为止）"
+    assert "每月" in str(values["wage_closing_day_zh"]) and "月末" in str(
+        values["wage_closing_day_zh"]
+    )
+    # 訳の表に無い値は日本語のまま入れ（中国語の行を空にしない）、生成前の検査で警告する
+    assert str(values["irregular_holidays_zh"]).startswith("会社カレンダーによる")
+    result = form_generation.check(
+        "1-6", target=version, data=data, basis_on=BASIS, language="ja-zh"
+    )
+    assert "untranslated_values" in {finding.code for finding in result.findings}
+    japanese = form_generation.check("1-6", target=version, data=data, basis_on=BASIS)
+    assert "untranslated_values" not in {finding.code for finding in japanese.findings}
