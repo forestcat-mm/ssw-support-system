@@ -21,8 +21,14 @@ from django.db import models
 from apps.contracts.models import EmploymentContract
 from apps.core.models import Attachment
 from apps.filings.models import Filing, FilingKind, FilingStatus
-from apps.forms_engine.models import GeneratedDocument, GeneratedDocumentSignature
-from apps.hosts.models import HostOrganization
+from apps.forms_engine.models import (
+    GeneratedDocument,
+    GeneratedDocumentSignature,
+    SubmissionBundle,
+    SubmissionDraft,
+    SubmissionDraftFile,
+)
+from apps.hosts.models import HostDocument, HostOrganization
 from apps.seed.context import DUMMY_MARK, DUMMY_PDF, SeedContext
 from apps.support.models import (
     Briefing,
@@ -587,6 +593,41 @@ def delete_host_documents(host_ids: Iterable[int]) -> int:
     return deleted + documents.delete()[0]
 
 
+def delete_host_store(host_ids: Iterable[int], site_ids: Iterable[int]) -> int:
+    """受入れ機関・事業所の書類の保管庫（T42 の追加）の行と添付を消す（画面で足したものも）。"""
+    documents = HostDocument.objects.filter(
+        models.Q(host_organization_id__in=list(host_ids)) | models.Q(site_id__in=list(site_ids))
+    )
+    files = Attachment.objects.filter(
+        content_type=ContentType.objects.get_for_model(HostDocument),
+        object_id__in=documents.values("pk"),
+    )
+    for attachment in files:
+        attachment.file.delete(save=False)
+    deleted = files.delete()[0]
+    return deleted + documents.delete()[0]
+
+
+def delete_submission_data(worker_ids: Iterable[int]) -> int:
+    """統合 PDF の生成履歴と下書き（アップロードの行・添付）を消す（T42 とその直し）。"""
+    ids = list(worker_ids)
+    drafts = SubmissionDraft.objects.filter(worker_id__in=ids)
+    files = Attachment.objects.filter(
+        content_type=ContentType.objects.get_for_model(SubmissionDraft),
+        object_id__in=drafts.values("pk"),
+    )
+    # 下書きの行が添付を PROTECT で参照するので、行 → 添付 → 下書きの順
+    deleted = SubmissionDraftFile.objects.filter(draft__in=drafts).delete()[0]
+    for attachment in files:
+        attachment.file.delete(save=False)
+    deleted += files.delete()[0]
+    deleted += drafts.delete()[0]
+    bundles = SubmissionBundle.objects.filter(worker_id__in=ids)
+    for bundle in bundles:
+        bundle.file.delete(save=False)
+    return deleted + bundles.delete()[0]
+
+
 def delete_support_data(worker_ids: Iterable[int]) -> int:
     """台帳の外国人に紐づく支援のデータを消す（開発用。外部キーの PROTECT の順に一括削除）。
 
@@ -595,6 +636,7 @@ def delete_support_data(worker_ids: Iterable[int]) -> int:
     ids = list(worker_ids)
     if not ids:
         return 0
+    deleted_submission = delete_submission_data(ids)
     records = SupportRecord.objects.filter(worker_id__in=ids)
     record_ids = list(records.values_list("pk", flat=True))
     delivery_ids = list(
@@ -639,4 +681,4 @@ def delete_support_data(worker_ids: Iterable[int]) -> int:
         SupportPlan.objects.filter(worker_id__in=ids),
     ):
         deleted += queryset.delete()[0]
-    return deleted
+    return deleted + deleted_submission

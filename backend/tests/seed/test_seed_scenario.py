@@ -274,3 +274,99 @@ def test_audit_log_keeps_the_real_time_inside_as_of() -> None:
     log = AuditLog.objects.filter(object_id=str(worker.pk), action=AuditAction.UPDATE).latest("pk")
     assert timezone.localdate(log.occurred_at) == real_day
     assert timezone.localdate() == real_day
+
+
+def _add_records_made_on_the_screens() -> tuple[int, int, int, int]:
+    """画面で足すのと同じ、受入れ機関の書類（事業所つき）・統合 PDF の下書きと生成履歴・ひな形。"""
+    from django.core.files.base import ContentFile
+    from django.core.files.uploadedfile import SimpleUploadedFile
+
+    from apps.contracts.models import EmploymentConditionTemplate
+    from apps.forms_engine.models import SubmissionBundle
+    from apps.hosts.models import HostDocument, HostDocumentKind
+    from apps.seed.context import DUMMY_PDF
+    from services import host_documents, submission_drafts
+
+    host = HostOrganization.objects.get(name=scenario.HOST_NAME)
+    worker = ForeignWorker.objects.get(name_romaji=scenario.WORKER_ROMAJI)
+    site = host.sites.get()
+
+    def pdf() -> SimpleUploadedFile:
+        return SimpleUploadedFile("doc.pdf", DUMMY_PDF, content_type="application/pdf")
+
+    document = host_documents.add(
+        HostDocument(
+            host_organization=host,
+            site=site,
+            kind=HostDocumentKind.VARIABLE_HOURS_AGREEMENT,
+            period_start=date(2026, 4, 1),
+            period_end=date(2027, 3, 31),
+        ),
+        [pdf()],
+        language_ids=[],
+        by=None,
+    )
+    draft = submission_drafts.save(worker, "coe", {"coe_t1-1-1": [pdf()]}, by=None)
+    bundle = SubmissionBundle(
+        worker=worker,
+        set_id="coe",
+        definition_valid_from=date(2026, 10, 9),
+        basis_on=date(2026, 10, 16),
+        sha256="0" * 64,
+        size=len(DUMMY_PDF),
+        page_count=1,
+    )
+    bundle.file.save("bundle.pdf", ContentFile(DUMMY_PDF), save=False)
+    bundle.save()
+    template = EmploymentConditionTemplate.objects.create(host_organization=host, name="ひな形")
+    return document.pk, draft.pk, bundle.pk, template.pk
+
+
+def _gone(document: int, draft: int, bundle: int, template: int) -> None:
+    from apps.contracts.models import EmploymentConditionTemplate
+    from apps.forms_engine.models import SubmissionBundle, SubmissionDraft, SubmissionDraftFile
+    from apps.hosts.models import HostDocument
+
+    assert not HostDocument.objects.filter(pk=document).exists()
+    assert not SubmissionDraft.objects.filter(pk=draft).exists()
+    assert not SubmissionDraftFile.objects.filter(draft_id=draft).exists()
+    assert not SubmissionBundle.objects.filter(pk=bundle).exists()
+    assert not EmploymentConditionTemplate.objects.filter(pk=template).exists()
+    assert not Attachment.objects.filter(
+        content_type__model__in=["hostdocument", "submissiondraft"]
+    ).exists()
+
+
+def test_reset_removes_the_host_store_and_submission_records_made_on_the_screens() -> None:
+    """seed の受入れ機関・事業所・外国人に、画面で受入れ機関の書類（保管庫）・統合 PDF の下書き・
+    生成履歴・雇用条件のひな形を足した後でも、seed-reset が止まらずに消す（監査ログは残す）。"""
+    seed_scenario("--until", "5")
+    ids = _add_records_made_on_the_screens()
+    audit_rows = AuditLog.objects.count()
+    builders.reset()
+    _gone(*ids)
+    assert not HostOrganization.objects.filter(name=scenario.HOST_NAME).exists()
+    assert AuditLog.objects.count() >= audit_rows
+    call_command("seed_dummy", "--date", BASE.isoformat(), stdout=StringIO())
+    assert SeedObject.objects.exists()
+
+
+def test_scenario_reset_removes_the_host_store_and_submission_records() -> None:
+    seed_scenario("--until", "5")
+    ids = _add_records_made_on_the_screens()
+    seed_scenario("--reset", "--until", "5")
+    _gone(*ids)
+    assert HostOrganization.objects.filter(name=scenario.HOST_NAME).count() == 1
+
+
+def test_replace_counts_and_removes_the_host_store_and_submission_records() -> None:
+    seed_scenario("--until", "5")
+    ids = _add_records_made_on_the_screens()
+    SeedObject.scenario_objects.all().delete()  # 台帳から外す＝画面で作った記録と同じ
+    output = seed_scenario("--replace", "--yes", "--until", "5")
+    assert "- hosts.HostDocument: 1" in output
+    assert "- forms_engine.SubmissionDraft: 1" in output
+    assert "- forms_engine.SubmissionBundle: 1" in output
+    assert "- contracts.EmploymentConditionTemplate: 1" in output
+    assert "- core.Attachment (host documents and submission drafts): 2" in output
+    _gone(*ids)

@@ -1187,12 +1187,18 @@ def delete_rows(by_model: dict[type[models.Model], list[int]]) -> int:
     開発用。
 
     台帳の行（reset）と、seed_scenario の --replace（画面で作った本線と同じ記録）から使う。
+    台帳の外の行でも、台帳の外国人・受入れ機関・事業所に紐づくもの（支援のデータ・生成物・
+    統合 PDF の生成履歴と下書き・受入れ機関の書類の保管庫・雇用条件のひな形）は消す。
     監査ログは消さない。
     """
     # 支援のデータは外国人に紐づくものをまとめて消す（届出タスクより先。定期面談の組が
     # 届出タスクを参照しているため）。手で足した記録も、その外国人のものなら消える
     deleted_support = support_builders.delete_support_data(by_model.get(ForeignWorker, []))
     deleted_support += support_builders.delete_host_documents(by_model.get(HostOrganization, []))
+    # 受入れ機関・事業所の書類の保管庫（画面で足したものも、その受入れ機関・事業所のものなら消す）
+    deleted_support += support_builders.delete_host_store(
+        by_model.get(HostOrganization, []), by_model.get(HostSite, [])
+    )
     # 画面で足した雇用条件のひな形も、その受入れ機関のものなら消す（T41）
     deleted_support += EmploymentConditionTemplate.objects.filter(
         host_organization_id__in=by_model.get(HostOrganization, [])

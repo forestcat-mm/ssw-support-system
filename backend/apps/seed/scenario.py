@@ -1103,7 +1103,10 @@ def replacement_rows() -> dict[type[models.Model], list[int]]:
 
 def replacement_counts(rows: dict[type[models.Model], list[int]]) -> dict[str, int]:
     """消す行の件数（種類ごと。支援のデータ・生成物・届出タスクは外国人・受入れ機関から数える）。"""
+    from apps.contracts.models import EmploymentConditionTemplate
     from apps.filings.models import Filing
+    from apps.forms_engine.models import SubmissionBundle, SubmissionDraft
+    from apps.hosts.models import HostDocument
     from apps.support.models import (
         Briefing,
         Consultation,
@@ -1140,6 +1143,31 @@ def replacement_counts(rows: dict[type[models.Model], list[int]]) -> dict[str, i
             | models.Q(content_type__model="hostorganization", object_id__in=hosts)
         ).count(),
         "core.Attachment (worker and support)": worker_files.count(),
+        "hosts.HostDocument": HostDocument.objects.filter(
+            models.Q(host_organization_id__in=hosts) | models.Q(site_id__in=rows.get(HostSite, []))
+        ).count(),
+        "forms_engine.SubmissionBundle": SubmissionBundle.objects.filter(
+            worker_id__in=people
+        ).count(),
+        "forms_engine.SubmissionDraft": SubmissionDraft.objects.filter(
+            worker_id__in=people
+        ).count(),
+        "contracts.EmploymentConditionTemplate": EmploymentConditionTemplate.objects.filter(
+            host_organization_id__in=hosts
+        ).count(),
+        "core.Attachment (host documents and submission drafts)": Attachment.objects.filter(
+            models.Q(
+                content_type=ContentType.objects.get_for_model(HostDocument),
+                object_id__in=HostDocument.objects.filter(
+                    models.Q(host_organization_id__in=hosts)
+                    | models.Q(site_id__in=rows.get(HostSite, []))
+                ).values("pk"),
+            )
+            | models.Q(
+                content_type=ContentType.objects.get_for_model(SubmissionDraft),
+                object_id__in=SubmissionDraft.objects.filter(worker_id__in=people).values("pk"),
+            )
+        ).count(),
         "filings.Filing": Filing.objects.filter(filings).count(),
     }
     return counts | {label: count for label, count in extra.items() if count}
