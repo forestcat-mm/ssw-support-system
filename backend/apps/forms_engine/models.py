@@ -372,6 +372,14 @@ BULK_FORM_IDS = {
 }
 
 
+# 手続 → 申請の書類の一覧（application_sets）の ID（T49）
+BULK_SET_IDS = {
+    BulkProcedure.COE: "coe",
+    BulkProcedure.EXTENSION: "ext",
+    BulkProcedure.CHANGE: "chg",
+}
+
+
 class BulkApplication(TrackedModel):
     """一括申請の 1 件（手続・基準日・取次者）。外国人ごとの行と、作った xlsm を持つ。"""
 

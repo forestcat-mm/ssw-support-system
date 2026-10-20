@@ -60,6 +60,15 @@
     </details>
     {% endif %}
   </section>
+  {% if bulk_rows %}
+  <section class="card stack" id="bulk-applications">
+    <div class="card__header"><h2 class="card__title">{% translate "Bulk applications including this worker" %}</h2></div>
+    <ul class="attachment-list">{% for row in bulk_rows %}{% with application=row.entry.application %}
+      <li data-bulk="{{ application.pk }}"><a href="{% url 'forms:bulk' application.pk %}">{{ application.get_procedure_display }} · {{ application.basis_on|date:"Y-m-d" }}{% if application.title %} · {{ application.title }}{% endif %}</a>
+        <span class="caption">{% if row.files %}{% blocktranslate count counter=row.files|length %}{{ counter }} file generated{% plural %}{{ counter }} files generated{% endblocktranslate %}{% else %}{% translate "not generated yet" %}{% endif %}{% if row.set_id != set_id %} · {% translate "another application" %}{% endif %}</span></li>
+    {% endwith %}{% endfor %}</ul>
+  </section>
+  {% endif %}
   {% if bundles %}
   <section class="card stack" id="submission-bundles">
     <div class="card__header"><h2 class="card__title">{% translate "PDFs for the submission" %}</h2></div>

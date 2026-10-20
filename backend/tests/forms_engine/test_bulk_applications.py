@@ -136,3 +136,22 @@ def test_inputs_default_to_the_previous_entry(loaded: None) -> None:
     entry = application.entries.get()
     defaults = bulk_application_data.default_inputs(entry.worker)
     assert defaults["occupation"] == "会社員"
+
+
+def test_bulk_application_and_the_application_set_link_each_other(loaded: None) -> None:
+    """T49: 一括申請の行から申請の書類の一覧・提出用の PDF へ、申請の書類の一覧から一括申請へ。"""
+    application = complete_application("extension", people=1)
+    entry = application.entries.get()
+    client = verified_client(make_user("kanri-bulk3", roles=("admin",)))
+    detail = client.get(f"/forms/bulk/{application.pk}/").content.decode()
+    query = f"set_id=ext&amp;basis_on={application.basis_on.isoformat()}"
+    assert f"/workers/{entry.worker_id}/documents/application/?{query}" in detail
+    assert f"/workers/{entry.worker_id}/documents/application/submission/?{query}" in detail
+    page = client.get(
+        f"/workers/{entry.worker_id}/documents/application/?set_id=ext&basis_on=2026-10-20"
+    ).content.decode()
+    assert 'id="bulk-applications"' in page and f'data-bulk="{application.pk}"' in page
+    assert bulk_applications.files_of_worker(entry) == []
+    bulk_applications.generate(application, by=None)
+    entry.refresh_from_db()
+    assert len(bulk_applications.files_of_worker(entry)) == 1

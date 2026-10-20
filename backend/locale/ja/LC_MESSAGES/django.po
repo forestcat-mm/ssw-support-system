@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 23:05+0900\n"
+"POT-Creation-Date: 2026-10-20 23:13+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -3812,6 +3812,20 @@ msgid "%(counter)s row does not apply"
 msgid_plural "%(counter)s rows do not apply"
 msgstr[0] "当てはまらない行（%(counter)s 行）"
 
+msgid "Bulk applications including this worker"
+msgstr "この外国人を入れた一括申請"
+
+#, python-format
+msgid "%(counter)s file generated"
+msgid_plural "%(counter)s files generated"
+msgstr[0] "作ったファイル %(counter)s 個"
+
+msgid "not generated yet"
+msgstr "まだ作っていない"
+
+msgid "another application"
+msgstr "別の申請"
+
 msgid "PDFs for the submission"
 msgstr "提出用の PDF"
 
@@ -3840,6 +3854,9 @@ msgstr[0] "不足 %(counter)s 件"
 
 msgid "OK"
 msgstr "問題なし"
+
+msgid "not made"
+msgstr "まだ作っていない"
 
 msgid "documents for the application"
 msgstr "申請の書類の一覧"

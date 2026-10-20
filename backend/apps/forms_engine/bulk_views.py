@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from typing import Any
+from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -120,12 +121,14 @@ class BulkDetailView(BulkView):
         by_entry: dict[int, list[bulk_applications.Problem]] = defaultdict(list)
         for problem in problems:
             by_entry[problem.entry.pk].append(problem)
+        set_id = bulk_applications.set_id_of(application)
         bundles = {
             bundle.worker_id: bundle
             for bundle in SubmissionBundle.objects.filter(
-                worker_id__in=[entry.worker_id for entry in entries]
+                worker_id__in=[entry.worker_id for entry in entries], set_id=set_id
             ).order_by("pk")
         }
+        query = urlencode({"set_id": set_id, "basis_on": application.basis_on.isoformat()})
         rows = [
             {
                 "entry": entry,
@@ -153,6 +156,7 @@ class BulkDetailView(BulkView):
             rows=rows,
             problem_count=len(problems),
             not_loaded=not_loaded,
+            query=query,
             files=files,
             add_form=extra.get("add_form") or AddWorkersForm(choices=choices),
         )

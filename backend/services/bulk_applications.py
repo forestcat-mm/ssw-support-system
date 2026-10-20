@@ -28,6 +28,7 @@ from django.utils.translation import gettext as _
 from apps.core.models import Action, AuditAction, User
 from apps.forms_engine.models import (
     BULK_FORM_IDS,
+    BULK_SET_IDS,
     BulkApplication,
     BulkApplicationEntry,
     BulkApplicationFile,
@@ -72,6 +73,27 @@ class Problem:
     entry: BulkApplicationEntry
     label: str
     message: str
+
+
+def set_id_of(application: BulkApplication) -> str:
+    """申請の書類の一覧（application_sets）の ID（T49）。"""
+    return BULK_SET_IDS[BulkProcedure(application.procedure)]
+
+
+def entries_of_worker(worker: ForeignWorker) -> list[BulkApplicationEntry]:
+    """その外国人を入れた一括申請の行（新しい順。T49）。"""
+    return list(
+        BulkApplicationEntry.objects.filter(worker=worker)
+        .select_related("application")
+        .prefetch_related("application__files")
+        .order_by("-application__basis_on", "-pk")
+    )
+
+
+def files_of_worker(entry: BulkApplicationEntry) -> list[BulkApplicationFile]:
+    return [
+        record for record in entry.application.files.all() if entry.worker_id in record.worker_ids
+    ]
 
 
 def template_of(application: BulkApplication) -> FormTemplate:

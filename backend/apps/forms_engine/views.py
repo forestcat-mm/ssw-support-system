@@ -44,6 +44,7 @@ from services import (
     attachments,
     audit,
     authorization,
+    bulk_applications,
     deliveries,
     form_data_application,
     form_data_consultation,
@@ -215,6 +216,15 @@ class ApplicationSetView(WorkerDetailView):
             can_generate=workers.is_active(self.worker)
             and authorization.has_action(user, Action.FORMS_GENERATE),
             query=urlencode({"set_id": set_id, "basis_on": on.isoformat()}),
+            # この外国人を入れた一括申請（T49）
+            bulk_rows=[
+                {
+                    "entry": entry,
+                    "set_id": bulk_applications.set_id_of(entry.application),
+                    "files": bulk_applications.files_of_worker(entry),
+                }
+                for entry in bulk_applications.entries_of_worker(self.worker)
+            ],
         )
         return {
             "shown": {

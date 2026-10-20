@@ -67,4 +67,10 @@ def test_check_inputs_and_generate(
         page.locator("#files a.attachment-list__name").first.click()
     assert download.value.suggested_filename.endswith(".xlsm")
     assert page.evaluate("document.documentElement.scrollWidth") <= width
+    # 申請の書類の一覧（同じ手続・基準日）へ行き、そこから一括申請へ戻れる（T49）
+    rows.first.locator("[data-application-set]").click()
+    expect(page.locator("#bulk-applications")).to_contain_text("在留期間更新許可申請")
+    assert page.evaluate("document.documentElement.scrollWidth") <= width
+    page.locator(f'#bulk-applications [data-bulk="{application.pk}"] a').click()
+    expect(page.get_by_role("heading", level=1)).to_contain_text("在留期間更新許可申請")
     assert admin_requests == []
