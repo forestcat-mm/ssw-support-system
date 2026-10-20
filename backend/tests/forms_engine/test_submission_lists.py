@@ -193,3 +193,24 @@ def test_self_support_documents_apply_without_full_support() -> None:
     other = make_case(full_support=False)
     overview = application_sets.overview(other.worker, "chg", BASIS)
     assert set(SELF_SUPPORT_ROWS) <= {state.row["id"] for state in overview.rows}
+
+
+def test_yu_fonts_are_drawn_with_noto_cjk() -> None:
+    """一覧表の既定の字体（游ゴシック）・日中併記の様式の游明朝は Noto CJK で描く。"""
+    import shutil
+    import subprocess
+
+    if shutil.which("fc-match") is None:
+        pytest.skip("fontconfig is not installed")
+    expected = {
+        "游ゴシック": "Noto Sans CJK JP",
+        "游ゴシック Light": "Noto Sans CJK JP",
+        "Yu Gothic": "Noto Sans CJK JP",
+        "游明朝": "Noto Serif CJK JP",
+        "Yu Mincho": "Noto Serif CJK JP",
+    }
+    for family, font in expected.items():
+        found = subprocess.run(
+            ["fc-match", "-f", "%{family[0]}", family], capture_output=True, text=True, check=True
+        )
+        assert found.stdout == font, family

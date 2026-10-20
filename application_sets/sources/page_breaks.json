@@ -1,21 +1,48 @@
 {
- "note": "入管の一覧表を Excel で印刷したときの改頁（各頁の最初の行。横の改頁は無い）。提出書類一覧表の PDF にする一時の写しで、横 1 頁に収める設定とあわせてこの行に改頁を置く（ADR-0032 の例外の一覧）。LibreOffice には一覧表の既定の字体（游ゴシック）が無く、列が Excel より広くなるため、元の縮小 70% のままでは右の列が別の頁にはみ出す。測り方: Microsoft Excel for Mac 16.114 で元のブックを開き、AppleScript でシートの horizontal page breaks の位置を読んだ（2026-10-20。tools/forms/make_application_sets.py がこの値を一覧の定義の sources に写す）。",
+ "note": "入管の一覧表を Excel で印刷したときの改頁（各頁の最初の行。横の改頁は無い）。提出書類一覧表の PDF にする一時の写しで、横 1 頁に収める設定とあわせてこの行に改頁を置く（ADR-0032 の例外の一覧）。一覧表の既定の字体（游ゴシック）は Noto Sans CJK JP で描く（backend/config/fonts/99-form-fonts.conf）が、それでも LibreOffice では第1表（認定・変更・更新）で頁に 1 行多く入り、更新の第3表は 7 頁 → 5 頁になるので、Excel と同じ行で割るためにこの値が要る（2026-10-20 に確かめた）。測り方: Microsoft Excel for Mac 16.114 で元のブックを開き、AppleScript でシートの horizontal page breaks の位置を読んだ（2026-10-20。tools/forms/make_application_sets.py がこの値を一覧の定義の sources に写す）。",
  "measured_with": "Microsoft Excel for Mac 16.114",
  "measured_on": "2026-10-20",
  "breaks": {
-  "coe_t1_001472567.xlsx": [49, 68],
+  "coe_t1_001472567.xlsx": [
+   49,
+   68
+  ],
   "coe_t2_1_001446501.xlsx": [],
-  "coe_t2_2_001468651.xlsx": [10],
-  "coe_t2_3_001468652.xlsx": [10, 15],
+  "coe_t2_2_001468651.xlsx": [
+   10
+  ],
+  "coe_t2_3_001468652.xlsx": [
+   10,
+   15
+  ],
   "coe_ind_001471186.xlsx": [],
   "coe_food_001471197.xlsx": [],
-  "chg_t1_001472570.xlsx": [49, 67, 72],
+  "chg_t1_001472570.xlsx": [
+   49,
+   67,
+   72
+  ],
   "chg_t2_1_001446575.xlsx": [],
-  "chg_t2_2_001468653.xlsx": [10],
-  "chg_t2_3_001468654.xlsx": [10, 15],
+  "chg_t2_2_001468653.xlsx": [
+   10
+  ],
+  "chg_t2_3_001468654.xlsx": [
+   10,
+   15
+  ],
   "chg_ind_001471202.xlsx": [],
   "chg_food_001471214.xlsx": [],
-  "ext_t1_001472573.xlsx": [49, 64],
-  "ext_t3_001472574.xlsx": [14, 16, 24, 32, 34, 43]
+  "ext_t1_001472573.xlsx": [
+   49,
+   64
+  ],
+  "ext_t3_001472574.xlsx": [
+   14,
+   16,
+   24,
+   32,
+   34,
+   43
+  ]
  }
 }
