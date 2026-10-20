@@ -192,9 +192,14 @@ class SubmissionBundleForm(StyledFormMixin, forms.Form):
         *args: Any,
         upload_rows: list[str] | None = None,
         mark_rows: list[str] | None = None,
+        saved_files: list[int] | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(*args, **kwargs)
+        for attachment_id in saved_files or []:
+            self.fields[f"remove-{attachment_id}"] = forms.BooleanField(
+                label=_("remove this file"), required=False
+            )
         for row_id in upload_rows or []:
             self.fields[f"upload-{row_id}"] = MultipleFileField(
                 label=_("file to include"), required=False
@@ -213,6 +218,18 @@ class SubmissionBundleForm(StyledFormMixin, forms.Form):
             if name.startswith(prefix)
         }
 
+    def removed(self) -> list[int]:
+        prefix = "remove-"
+        return [
+            int(name.removeprefix(prefix))
+            for name, value in self.cleaned_data.items()
+            if name.startswith(prefix) and value
+        ]
+
+    def remove_field(self, attachment_id: int) -> Any:
+        name = f"remove-{attachment_id}"
+        return self[name] if name in self.fields else None
+
     def mark_field(self, row_id: str) -> Any:
         name = f"mark-{row_id}"
         return self[name] if name in self.fields else None
@@ -228,3 +245,52 @@ class SubmissionBundleForm(StyledFormMixin, forms.Form):
     def upload_field(self, row_id: str) -> Any:
         name = f"upload-{row_id}"
         return self[name] if name in self.fields else None
+
+
+class PublicDutyPledgeForm(StyledFormMixin, forms.Form):
+    """第1-26号 公的義務履行に関する誓約書の生成（作成日・理由・警告。T42 の追加）。"""
+
+    RELIEF = "relief"
+    OTHER = "other"
+
+    basis_on = forms.DateField(
+        label=_("date of preparation (basis date)"),
+        widget=forms.DateInput,
+        help_text=_("Used to choose the form version and printed as the date."),
+    )
+    reason = forms.ChoiceField(
+        label=_("reason the obligations cannot be fulfilled promptly"),
+        choices=[
+            (RELIEF, _("relief measures (or exemption from social insurance) are applied for")),
+            (OTHER, _("another unavoidable reason")),
+        ],
+        widget=forms.RadioSelect,
+        required=False,
+    )
+    relief_on = forms.DateField(
+        label=_("date of the application for relief measures"),
+        widget=forms.DateInput,
+        required=False,
+    )
+    other_reason = forms.CharField(
+        label=_("specific reason"),
+        widget=forms.Textarea(attrs={"rows": 3}),
+        max_length=300,
+        required=False,
+    )
+    accept_warnings = forms.BooleanField(
+        label=_("I have checked the warnings and will generate the form anyway."), required=False
+    )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.style_fields()
+        self.enable_when("relief_on", reason=self.RELIEF)
+        self.enable_when("other_reason", reason=self.OTHER)
+
+    def data_values(self) -> tuple[Any, str]:
+        """(申請した日, 理由の文)。選ばなかった側は使わない。"""
+        reason = self.cleaned_data.get("reason")
+        relief_on = self.cleaned_data.get("relief_on") if reason == self.RELIEF else None
+        other = (self.cleaned_data.get("other_reason") or "") if reason == self.OTHER else ""
+        return relief_on, other

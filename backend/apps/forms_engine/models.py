@@ -289,3 +289,65 @@ class SubmissionBundle(TrackedModel):
 
     def delete(self, *args: Any, **kwargs: Any) -> tuple[int, dict[str, int]]:
         raise ImmutableRowError("submission PDFs cannot be deleted")
+
+
+class SubmissionDraft(TrackedModel):
+    """提出用の統合 PDF の下書き（外国人×申請の種類。T42-D3 の直し）。
+
+    統合 PDF の画面でアップロードしたシステムの外の書類を、行ごとに保存して、
+    作り直すときに使い回す。
+    ファイルは添付（種別「提出書類（システムの外）」）で、取り除くときは取消（行とファイルは残る）。
+    """
+
+    worker = models.ForeignKey(
+        "workers.ForeignWorker",
+        verbose_name=_("foreign worker"),
+        on_delete=models.PROTECT,
+        related_name="submission_drafts",
+    )
+    set_id = models.CharField(_("application type"), max_length=8)
+
+    class Meta:
+        verbose_name = _("draft of the submission PDF")
+        verbose_name_plural = _("drafts of the submission PDF")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["worker", "set_id"], name="forms_engine_submission_draft_unique"
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.set_id} #{self.pk}"
+
+    attachments = GenericRelation(Attachment)
+
+
+class SubmissionDraftFile(TrackedModel):
+    """下書きの行（申請の書類の一覧の行の ID）と添付の紐づけ（追記だけ）。"""
+
+    draft = models.ForeignKey(
+        SubmissionDraft,
+        verbose_name=_("draft of the submission PDF"),
+        on_delete=models.PROTECT,
+        related_name="files",
+    )
+    row_id = models.CharField(_("row"), max_length=64)
+    attachment = models.OneToOneField(
+        Attachment,
+        verbose_name=_("file"),
+        on_delete=models.PROTECT,
+        related_name="submission_draft_file",
+    )
+
+    class Meta:
+        verbose_name = _("file of the draft of the submission PDF")
+        verbose_name_plural = _("files of the draft of the submission PDF")
+        ordering = ["draft", "row_id", "pk"]
+
+    def __str__(self) -> str:
+        return f"{self.draft} {self.row_id}"
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        if not self._state.adding:
+            raise ImmutableRowError("draft files cannot be changed; void the attachment instead")
+        super().save(*args, **kwargs)

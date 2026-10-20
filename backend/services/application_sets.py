@@ -50,6 +50,8 @@ FOOD = "food_manufacturing"
 # 雇用契約を対象に生成する様式（契約タブ・申請の書類の一覧から生成する）
 CONTRACT_VERSION_FORMS = ("1-4", "1-5", "1-6")
 CONTRACT_FORMS = ("3-1", "13-1", "13-2", "5-10", "1-25")
+# 外国人を対象に、理由などを入れて 1 件ずつ生成する様式（第1-26号。T42 の追加）
+WORKER_FORMS = ("1-26",)
 
 
 class Status(enum.StrEnum):
@@ -226,8 +228,8 @@ def applies(row: dict[str, Any], facts: Facts) -> bool | None:
 
 
 def _condition(condition: str, facts: Facts) -> bool | None:
-    if condition == "track_record":
-        return None
+    if condition in ("track_record", "arrears"):
+        return None  # 実績のある機関・公的義務の滞納は、システムでは判断しない
     if condition.startswith("nationality:"):
         codes = condition.split(":", 1)[1].split(",")
         return facts.worker.nationality.code in codes
@@ -279,6 +281,8 @@ class RowState:
 
 def _generate_url(form_id: str, facts: Facts) -> str:
     worker, contract, version = facts.worker, facts.contract, facts.version
+    if form_id in WORKER_FORMS:
+        return reverse("workers:public_duty_pledge", args=[worker.pk])
     if form_id == "1-17":
         plan = SupportPlan.objects.filter(worker=worker).order_by("-pk").first()
         plan_version = (
@@ -525,7 +529,7 @@ def _state_of(row: dict[str, Any], facts: Facts) -> RowState:
     if "out" in how:
         return RowState(row, applicable, Status.OUTSIDE)
     if "generate" in how:
-        if facts.contract is None and how["generate"] != "1-17":
+        if facts.contract is None and how["generate"] not in ("1-17", *WORKER_FORMS):
             return RowState(row, applicable, Status.UNKNOWN, action_url=_generate_url("", facts))
         return _generated(row, applicable, facts)
     return _attachment_state(row, applicable, facts)

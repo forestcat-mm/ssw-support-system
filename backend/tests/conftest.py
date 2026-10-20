@@ -12,6 +12,7 @@ from tests.core.factories import make_user, verified_client
 SLOW_MODULES = {
     "tests/forms_engine/test_checks.py",
     "tests/forms_engine/test_form_1_17.py",
+    "tests/forms_engine/test_form_1_26.py",
     "tests/forms_engine/test_form_application.py",
     "tests/forms_engine/test_form_briefing.py",
     "tests/forms_engine/test_form_career.py",

@@ -15,6 +15,7 @@
       <dt>{% translate "representative" %}</dt><dd>{{ host.representative_title }} {{ host.representative_name }}</dd>
       <dt>{% translate "address" %}</dt><dd>〒{{ host.postal_code }} {{ host.address }}</dd>
       <dt>{% translate "phone number" %}</dt><dd class="mono">{{ host.phone_number|default:"—" }}</dd>
+      <dt>{% translate "already accepts specified skilled workers this fiscal year" %}</dt><dd id="host-accepts-ssw">{% if host.accepts_ssw_workers %}{% translate "yes" %}{% if host.accepts_ssw_workers_since %}（{% blocktranslate with day=host.accepts_ssw_workers_since|date:"Y-m-d" %}since {{ day }}{% endblocktranslate %}）{% endif %}{% else %}{% translate "no" %}{% endif %}</dd>
     </dl>
   </section>
 

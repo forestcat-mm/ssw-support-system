@@ -170,3 +170,18 @@ def _explanation_1_25(
             **_ymd("ends", support.ends_on),
         }
     return data
+
+
+def build_1_26(
+    made_on: datetime.date, *, relief_on: datetime.date | None, other_reason: str
+) -> dict[str, Any]:
+    """第1-26号 公的義務履行に関する誓約書（申請人が書く。T42 の追加）。
+
+    理由は、納付緩和措置・免除措置を申請した日（relief_on）か、やむを得ない理由の文。署名は手で書く。
+    """
+    data: dict[str, Any] = _ymd("made", made_on)
+    if relief_on is not None:
+        data |= {"relief": True, "other": False} | _ymd("relief", relief_on)
+    elif other_reason.strip():
+        data |= {"relief": False, "other": True, "other_reason": other_reason.strip()}
+    return {f"a.{key}": value for key, value in data.items()}

@@ -626,6 +626,26 @@ def _propriety_declared(context: CheckContext, params: Mapping[str, Any]) -> lis
     ]
 
 
+@check("public_duty_reason")
+def _public_duty_reason(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """第1-26号の理由（納付緩和措置・免除措置の申請日、またはやむを得ない理由の文）。"""
+    data = context.data
+    if data.get("a.relief") and data.get("a.relief_y"):
+        return []
+    if data.get("a.other") and str(data.get("a.other_reason") or "").strip():
+        return []
+    return [
+        Issue(
+            "public_duty_reason_missing",
+            _(
+                "Choose the reason: the date of the application for relief measures, or the "
+                "specific unavoidable reason."
+            ),
+            None,
+        )
+    ]
+
+
 @check("untranslated_values")
 def _untranslated_values(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
     """訳文の版で、訳の表に無い日本語の値（日本語のまま出す。T43-D5）。"""

@@ -140,6 +140,8 @@ class AttachmentKind(models.TextChoices):
     # 受入れ機関・事業所の書類の保管庫のファイル（協定書・年間カレンダー・賃金規程・就業規則・
     # 第2表の書類。T42 の追加）
     HOST_DOCUMENT = "host_document", _("Document of the host organization or site")
+    # 提出用の統合 PDF の画面でアップロードしたシステムの外の書類（下書きに保存。T42-D3 の直し）
+    SUBMISSION_UPLOAD = "submission_upload", _("Document prepared outside the system")
 
 
 # 要配慮の添付の種別（ダウンロードを担当者と管理者に限る。印は種別から自動で付く。ADR-0011）

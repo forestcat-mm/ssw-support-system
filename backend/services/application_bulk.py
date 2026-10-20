@@ -51,12 +51,16 @@ class Problem:
     NO_PLAN = "no_plan"  # 支援計画（の版）が無い
     NO_CONTRACT = "no_contract"  # 基準日の雇用契約が無い
     NOT_LOADED = "not_loaded"  # 様式が読み込まれていない
+    NEEDS_INPUT = "needs_input"  # 理由などを入れる様式（1 件ずつの画面で作る。第1-26号）
 
 
 PROBLEM_TEXTS = {
     Problem.NO_PLAN: _("There is no support plan."),
     Problem.NO_CONTRACT: _("There is no employment contract on the basis date."),
     Problem.NOT_LOADED: _("The form is not loaded."),
+    Problem.NEEDS_INPUT: _(
+        "This form needs input such as the reason. Generate it on its own page."
+    ),
 }
 
 
@@ -100,6 +104,8 @@ class Candidate:
 
 def _target(form_id: str, overview: Overview) -> tuple[models.Model | None, str]:
     facts = overview.facts
+    if form_id in application_sets.WORKER_FORMS:
+        return None, Problem.NEEDS_INPUT
     if form_id == "1-17":
         plan = SupportPlan.objects.filter(worker=facts.worker).order_by("-pk").first()
         version = (

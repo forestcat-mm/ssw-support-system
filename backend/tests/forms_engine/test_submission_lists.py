@@ -58,7 +58,9 @@ def test_marks_and_values_of_the_workbooks() -> None:
     assert "chg_t2_1_001446575.xlsx" not in files  # 印のある行が無い表は作らない
     values = books[0].values
     assert values["表紙!F47"] == "WANG LINA" and values["表紙!F48"] == "テスト株式会社"
-    assert values["表紙!H54"] == submission_lists.ERASE  # 有（一覧表の行）→ 無を消す
+    assert "表紙!H54" not in values and "表紙!G54" not in values  # 提出確認欄に値は書かない
+    assert "表紙!G54" in books[0].circles  # 有（一覧表の行）に〇
+    assert "表紙!H65" in books[0].circles  # 無（健康診断個人票）に〇
 
 
 def cell_text(path: Path, sheet: str, ref: str) -> str:
@@ -81,7 +83,14 @@ def test_render_writes_only_values(tmp_path: Path) -> None:
     assert len(pdfs) == len(books) and all(p.read_bytes().startswith(b"%PDF") for p in pdfs)
     filled = tmp_path / "list-0" / books[0].file
     assert cell_text(filled, "表紙", "F47") == "WANG LINA"
-    assert cell_text(filled, "表紙", "G54") == "有" and cell_text(filled, "表紙", "H54") == "　"
+    assert cell_text(filled, "表紙", "G54") == "有" and cell_text(filled, "表紙", "H54") == "無"
+    # 〇は変換の一時の写しにだけ図形で足す（書いたブックには無い）
+    copy = tmp_path / "list-0" / "for-pdf" / books[0].file
+    with zipfile.ZipFile(copy) as archive:
+        drawing = archive.read("xl/drawings/drawing1.xml").decode()
+    assert drawing.count('prst="ellipse"') == 2
+    with zipfile.ZipFile(filled) as archive:
+        assert 'prst="ellipse"' not in archive.read("xl/drawings/drawing1.xml").decode()
     source = submission_lists.sources_root() / books[0].file
     with zipfile.ZipFile(source) as original, zipfile.ZipFile(filled) as written:
         changed = [
@@ -124,7 +133,32 @@ def test_bundle_screen_offers_the_marks_and_the_list() -> None:
         "basis_on": "2026-10-18",
         "accept_warnings": "on",
         "make_list": "on",
+        "action": "make",
         **{name: form.initial.get(name, "") for name in form.fields if name.startswith("mark-")},
     }
     assert client.post(url, data).status_code == 302
     assert SubmissionBundle.objects.get().items[0]["source"] == "list"
+
+
+SELF_SUPPORT_ROWS: tuple[str, ...] = tuple(f"chg_t2_2-2-{n}" for n in range(1, 7))
+
+
+def test_full_support_excludes_the_self_support_documents_of_table2() -> None:
+    """全部委託の申請では、受入れ機関が自ら支援する場合の書類（第1-11-2号・1-11-3号・
+    1-20号・1-22号・同程度の説明書と立証資料）が、一覧・一覧表の印・統合 PDF の対象から外れる。"""
+    contract = make_case(full_support=True)
+    admin = make_user("admin42e", roles=("admin",))
+    overview = application_sets.overview(contract.worker, "chg", BASIS)
+    shown = {state.row["id"] for state in overview.rows}
+    excluded = {state.row["id"] for state in overview.not_applicable}
+    assert set(SELF_SUPPORT_ROWS) <= excluded and not set(SELF_SUPPORT_ROWS) & shown
+    outline = submission_bundles.outline(overview, admin)
+    assert not set(SELF_SUPPORT_ROWS) & {entry.row_id for entry in outline.entries}
+    assert not set(SELF_SUPPORT_ROWS) & set(outline.default_marks(True))
+
+
+def test_self_support_documents_apply_without_full_support() -> None:
+    """自ら支援する（全部委託しない）ときは当てはまる。"""
+    other = make_case(full_support=False)
+    overview = application_sets.overview(other.worker, "chg", BASIS)
+    assert set(SELF_SUPPORT_ROWS) <= {state.row["id"] for state in overview.rows}

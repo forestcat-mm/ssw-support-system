@@ -3,8 +3,10 @@
 入管の提出書類一覧・確認表の Excel（application_sets/sources）に値だけを書き（制約3）、
 LibreOffice で PDF にして、提出用の統合 PDF の先頭に綴じる。
 - 表紙: 申請人の氏名（F47）・特定技能所属機関の名称（F48）。
-- 提出確認欄: 行ごとの「有」「無」。選んだ側の文字を残し、ほかの側を全角空白で消す（〇で囲む代わり。
-  第1-17号の選択肢と同じ。T42-D18）。印を付けない行は書かない。
+- 提出確認欄: 行ごとの「有」「無」の選んだ側に〇を付ける（一覧表の表紙の留意事項３。
+  T42-D18 の直し）。
+  〇は PDF に変換する直前の一時の写しでだけ図形として足す（form_xlsx.with_circles。ADR-0032 の
+  例外の一覧）。値は表紙の氏名・名称だけを書く。印を付けない行には何も足さない。
 - 初期値（T42-D19）: 統合 PDF に綴じる書類がある行は「有」、当てはまるが綴じる書類が無い行は「無」、
   当てはまるかを判断しない行（実績のある機関の書類など）は空。人が画面で直せる。
 - 作る表（T42-D20）: 第1表（表紙を含む）は必ず。ほかの表は、印（有・無）の付いた行があるものだけ。
@@ -27,7 +29,6 @@ from apps.hosts.models import HostOrganization
 from services import form_convert, form_xlsx
 from services.application_sets import Overview, Status
 
-ERASE = "　"  # 選ばない側の印刷済みの「有」「無」を消す（T31-D3 と同じ）
 TABLE2 = "_t2_"  # 第2表のファイルの名前の印
 
 
@@ -45,15 +46,30 @@ def fiscal_year_start(on: datetime.date) -> datetime.date:
     return datetime.date(on.year if on.month >= 4 else on.year - 1, 4, 1)
 
 
-def already_accepting(host: HostOrganization, worker_id: int, on: datetime.date) -> bool:
-    """同じ年度に、ほかの外国人とその受入れ機関の雇用契約がある（第2表の書類は提出不要。T42-D25）。"""
+def already_accepting(host: HostOrganization, on: datetime.date) -> bool:
+    """受入れ機関の印（同一年度内に特定技能外国人を既に受け入れている。T42-D25 の直し）。
+
+    印が有り、受け入れ始めた日が無いか基準日以前なら、第2表の書類は提出不要（表紙の留意事項１）。
+    """
+    since = host.accepts_ssw_workers_since
+    return host.accepts_ssw_workers and (since is None or since <= on)
+
+
+def suggested_since(
+    host: HostOrganization, on: datetime.date, *, worker_id: int | None = None
+) -> datetime.date | None:
+    """台帳で、同じ年度にほかの外国人とその受入れ機関の雇用契約がある（印の初期値の提案だけ）。
+
+    台帳の外の外国人もいるので、判定には使わない。最も早い契約の開始日を返す。
+    """
     start = fiscal_year_start(on)
-    return (
-        EmploymentContract.objects.filter(host_organization=host, current_starts_on__lte=on)
-        .exclude(worker_id=worker_id)
-        .exclude(terminated_on__lt=start)
-        .exists()
-    )
+    contracts = EmploymentContract.objects.filter(
+        host_organization=host, current_starts_on__lte=on
+    ).exclude(terminated_on__lt=start)
+    if worker_id is not None:
+        contracts = contracts.exclude(worker_id=worker_id)
+    first = contracts.order_by("current_starts_on").values_list("current_starts_on", flat=True)
+    return first.first()
 
 
 def is_table2(row: Mapping[str, Any]) -> bool:
@@ -79,7 +95,8 @@ def default_marks(overview: Overview, bound_rows: set[str], *, skip_table2: bool
 @dataclass(frozen=True)
 class Workbook:
     file: str
-    values: dict[str, object]
+    values: dict[str, object]  # 表紙の氏名・名称（値だけ）
+    circles: tuple[str, ...] = ()  # 〇を付けるセル（「シート!セル」）
 
 
 def workbooks(
@@ -89,6 +106,7 @@ def workbooks(
     definition = overview.definition
     cover = definition.cover
     by_file: dict[str, dict[str, object]] = {}
+    circles: dict[str, list[str]] = {}
     order = list(definition.sources)
     by_file[cover["file"]] = {
         f"{cover['sheet']}!{cover['worker']}": worker_name,
@@ -99,10 +117,14 @@ def workbooks(
         check = row.get("check")
         if not check or mark == Mark.NONE:
             continue
-        values = by_file.setdefault(check["file"], {})
-        erased = check["no"] if mark == Mark.YES else check["yes"]
-        values[f"{check['sheet']}!{erased}"] = ERASE
-    return [Workbook(file, by_file[file]) for file in order if file in by_file]
+        by_file.setdefault(check["file"], {})
+        chosen = check["yes"] if mark == Mark.YES else check["no"]
+        circles.setdefault(check["file"], []).append(f"{check['sheet']}!{chosen}")
+    return [
+        Workbook(file, by_file[file], tuple(circles.get(file, ())))
+        for file in order
+        if file in by_file
+    ]
 
 
 def render(books: list[Workbook], workdir: Path) -> list[Path]:
@@ -113,5 +135,8 @@ def render(books: list[Workbook], workdir: Path) -> list[Path]:
         folder.mkdir(parents=True, exist_ok=True)
         filled = folder / book.file
         form_xlsx.write_cells(sources_root() / book.file, filled, book.values)
-        pdfs.append(form_convert.convert(filled))
+        # 〇は変換の直前の一時の写しでだけ足す（書いたブックは値だけ。ADR-0032 の例外の一覧）
+        copy = folder / "for-pdf" / book.file
+        form_xlsx.with_circles(filled, copy, list(book.circles))
+        pdfs.append(form_convert.convert(copy))
     return pdfs

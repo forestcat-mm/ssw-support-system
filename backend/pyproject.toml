@@ -20,6 +20,8 @@ dependencies = [
     "redis==8.1.0",
     "docxtpl==0.20.1",
     "openpyxl==3.1.5",
+    # 透過・インターレースの PNG と CMYK の JPEG を PDF の頁にする（提出用の統合 PDF。T42-D14 の直し）
+    "pillow==13.0.0",
     "pypdf==6.1.1",
 ]
 

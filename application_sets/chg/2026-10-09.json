@@ -513,9 +513,11 @@
     "no": "H75"
    },
    "how": {
-    "out": true
+    "generate": "1-26"
    },
-   "applies": []
+   "applies": [
+    "arrears"
+   ]
   },
   {
    "id": "chg_t1-18-1",

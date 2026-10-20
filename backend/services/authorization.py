@@ -89,6 +89,13 @@ DJANGO_PERMISSION_ACTIONS: dict[str, Action] = {
     **_model_permissions("forms_engine.formmapping", view=Action.FORMS_GENERATE),
     **_model_permissions("forms_engine.generateddocument", view=Action.FORMS_GENERATE),
     **_model_permissions("forms_engine.submissionbundle", view=Action.FORMS_GENERATE),
+    **_model_permissions(
+        "forms_engine.submissiondraft",
+        view=Action.FORMS_GENERATE,
+        add=Action.FORMS_GENERATE,
+        change=Action.FORMS_GENERATE,
+    ),
+    **_model_permissions("forms_engine.submissiondraftfile", view=Action.FORMS_GENERATE),
     # Django-Q2 の実行予定・結果（管理者のみ）
     **_model_permissions(
         "django_q.schedule",

@@ -29,6 +29,7 @@ from apps.forms_engine.forms import (
     ApplicationSetForm,
     BulkGenerateForm,
     ConsultationRecordForm,
+    PublicDutyPledgeForm,
     SignatureForm,
     SubmissionBundleForm,
 )
@@ -44,11 +45,13 @@ from services import (
     audit,
     authorization,
     deliveries,
+    form_data_application,
     form_data_consultation,
     form_generation,
     form_signatures,
     form_templates,
     submission_bundles,
+    submission_drafts,
     workers,
 )
 from services.files import FilePolicy, validate_file
@@ -222,7 +225,7 @@ class ApplicationSetView(WorkerDetailView):
         }
 
 
-def apply_errors(form: SignatureForm, error: ValidationError) -> None:
+def apply_errors(form: Any, error: ValidationError) -> None:
     """サービスのエラーを入力欄に戻す（確認書の添付の「confirmation」はファイルの欄）。"""
     if not hasattr(error, "error_dict"):
         form.add_error(None, error)
@@ -576,6 +579,10 @@ class SubmissionBundleCreateView(WorkerFormView):
                 {
                     "entry": entry,
                     "upload": form.upload_field(entry.row_id),
+                    "saved": [
+                        {"attachment": attachment, "remove": form.remove_field(attachment.pk)}
+                        for attachment in entry.saved
+                    ],
                     "mark": form.mark_field(entry.row_id),
                     "warnings": [submission_bundles.warning_text(code) for code in entry.warnings]
                     + [
@@ -597,7 +604,10 @@ class SubmissionBundleCreateView(WorkerFormView):
     ) -> SubmissionBundleForm:
         rows = [entry.row_id for entry in outline.entries if entry.can_upload]
         marks = [entry.row_id for entry in outline.entries if entry.row.get("check")]
-        return SubmissionBundleForm(*args, upload_rows=rows, mark_rows=marks, **kwargs)
+        saved = [attachment.pk for entry in outline.entries for attachment in entry.saved]
+        return SubmissionBundleForm(
+            *args, upload_rows=rows, mark_rows=marks, saved_files=saved, **kwargs
+        )
 
     def get(self, request: HttpRequest, pk: int) -> HttpResponse:
         worker = self.worker(request, pk)
@@ -610,6 +620,7 @@ class SubmissionBundleCreateView(WorkerFormView):
         return self.page(request, worker, outline, form)
 
     def post(self, request: HttpRequest, pk: int) -> HttpResponse:
+        """アップロードを下書きに保存し（取り除く印のファイルは取消）、「PDF を作る」なら作る。"""
         worker = self.worker(request, pk)
         set_id, on = _set_and_day(worker, request.POST)
         overview = application_sets.overview(worker, set_id, on)
@@ -625,13 +636,10 @@ class SubmissionBundleCreateView(WorkerFormView):
                     validate_file(file, policy)
                 except ValidationError as error:
                     form.add_error(f"upload-{row_id}", error)
-        if form.errors:
-            return self.page(request, worker, outline, form)
-        outline = submission_bundles.outline(overview, request.user, uploads)
-        for row_id in submission_bundles.upload_errors(outline):
+        for row_id in submission_drafts.readable_errors(uploads):
             form.add_error(
                 f"upload-{row_id}",
-                _("The file cannot be read as a PDF or an image (or it is a transparent PNG)."),
+                _("The file cannot be read as a PDF or an image (broken or password-protected)."),
             )
         if form.errors:
             return self.page(request, worker, outline, form)
@@ -640,16 +648,30 @@ class SubmissionBundleCreateView(WorkerFormView):
             return self.already_submitted(request, back)
         assert isinstance(request.user, User)
         try:
-            make_list = bool(form.cleaned_data.get("make_list"))
+            submission_drafts.save(worker, set_id, uploads, remove=form.removed(), by=request.user)
+        except ValidationError as error:
+            apply_errors(form, error)
+            return self.page(request, worker, outline, form)
+        overview = application_sets.overview(worker, set_id, on)
+        outline = submission_bundles.outline(overview, request.user)
+        if request.POST.get("action") != "make":
+            messages.success(request, _("Saved the files for the submission."))
+            return redirect(
+                reverse("workers:submission_bundle_create", args=[worker.pk])
+                + f"?{urlencode({'set_id': set_id, 'basis_on': on.isoformat()})}"
+            )
+        try:
             bundle = submission_bundles.build(
                 outline,
                 by=request.user,
                 accept_warnings=bool(form.cleaned_data.get("accept_warnings")),
-                make_list=make_list,
+                make_list=bool(form.cleaned_data.get("make_list")),
                 marks=form.marks(),
             )
         except ValidationError as error:
             field = "accept_warnings" if error.code == "warnings" else None
+            form = self.form(outline, request.POST)  # 保存したので、ファイルの欄は空にして出し直す
+            form.is_valid()
             form.add_error(field, error)
             return self.page(request, worker, outline, form)
         messages.success(request, _("Made the PDF for the submission."))
@@ -703,3 +725,78 @@ class SubmissionBundleDownloadView(View):
             context={"submission_bundle": True, "sensitive": bundle.contains_sensitive},
         )
         return response
+
+
+# --- 第1-26号 公的義務履行に関する誓約書（T42 の追加）----------------------------------------
+
+
+class PublicDutyPledgeView(WorkerFormView):
+    """申請人の公的義務履行に関する誓約書を生成する（理由を入れる。署名は申請人が手で書く）。"""
+
+    required_action = Action.FORMS_GENERATE
+    template_name = "forms_engine/public_duty_pledge.html"
+    form_id = "1-26"
+
+    def data(self, form: PublicDutyPledgeForm) -> dict[str, Any]:
+        relief_on, other = form.data_values()
+        return form_data_application.build_1_26(
+            form.cleaned_data["basis_on"], relief_on=relief_on, other_reason=other
+        )
+
+    def check(self, worker: Any, form: PublicDutyPledgeForm) -> Any:
+        try:
+            return form_generation.check(
+                self.form_id,
+                target=worker,
+                data=self.data(form),
+                basis_on=form.cleaned_data["basis_on"],
+            )
+        except form_templates.FormTemplateError:
+            form.add_error(None, NOT_LOADED)
+            return None
+
+    def page(self, request: HttpRequest, worker: Any, form: Any, result: Any) -> HttpResponse:
+        return self.render(
+            request,
+            worker=worker,
+            form=form,
+            result=result,
+            back_url=reverse("workers:application_set", args=[worker.pk]),
+        )
+
+    def get(self, request: HttpRequest, pk: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        form = PublicDutyPledgeForm(initial={"basis_on": timezone.localdate()})
+        return self.page(request, worker, form, None)
+
+    def post(self, request: HttpRequest, pk: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        form = PublicDutyPledgeForm(request.POST)
+        if not form.is_valid():
+            return self.page(request, worker, form, None)
+        if request.POST.get("action") != "generate":
+            return self.page(request, worker, form, self.check(worker, form))
+        if not consume_once_token(request):
+            return self.already_submitted(
+                request, reverse("workers:application_set", args=[worker.pk])
+            )
+        assert isinstance(request.user, User)
+        try:
+            document = form_generation.request(
+                self.form_id,
+                target=worker,
+                data=self.data(form),
+                basis_on=form.cleaned_data["basis_on"],
+                by=request.user,
+                accept_warnings=bool(form.cleaned_data.get("accept_warnings")),
+            )
+        except form_generation.GenerationBlocked as blocked:
+            return self.page(request, worker, form, blocked.result)
+        except form_templates.FormTemplateError:
+            form.add_error(None, NOT_LOADED)
+            return self.page(request, worker, form, None)
+        except form_generation.WarningsNotAccepted as pending:
+            form.add_error("accept_warnings", _("Check the warnings before generating."))
+            return self.page(request, worker, form, pending.result)
+        messages.success(request, _("Requested the generation of the form."))
+        return redirect("forms:document", pk=document.pk)

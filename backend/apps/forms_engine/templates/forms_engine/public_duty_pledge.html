@@ -1,0 +1,28 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Generate the pledge on the fulfillment of public obligations (form 1-26)" %} | {{ worker }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{{ back_url }}">← {{ worker }}</a></p>
+  <h1>{% translate "Generate the pledge on the fulfillment of public obligations (form 1-26)" %}</h1>
+  <p class="caption">{% translate "Needed only when the applicant has arrears of residence tax, national health insurance or national pension. The applicant signs the printed form by hand." %}</p>
+{% endblock %}
+{% block content %}
+<div class="stack form" data-modal-content>
+  {% if result %}{% include "forms_engine/components/findings.html" %}{% endif %}
+  <form class="form" method="post" novalidate id="generate-form">
+    {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+    {% include "ui/components/form_errors.html" %}
+    <section class="card stack">
+      {% form_field form.basis_on %}
+      {% form_field form.reason %}
+      {% form_field form.relief_on %}
+      {% form_field form.other_reason %}
+      {% if result.warnings and not result.blocking %}{% form_field form.accept_warnings %}{% endif %}
+    </section>
+    <div class="form-actions">
+      <button class="button button--neutral" type="submit" name="action" value="check">{% translate "Check again" %}</button>
+      {% if result and not result.blocking %}<button class="button button--primary" type="submit" name="action" value="generate">{% translate "Generate" %}</button>{% endif %}
+      <a class="button button--neutral" href="{{ back_url }}" data-modal-close>{% translate "Cancel" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

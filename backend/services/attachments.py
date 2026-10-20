@@ -12,7 +12,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.core.models import Action, Attachment, AttachmentKind, User
-from apps.forms_engine.models import GeneratedDocument
+from apps.forms_engine.models import GeneratedDocument, SubmissionDraft
 from services import authorization
 from services.authorization import AnyUser
 from services.files import MB, FilePolicy, sha256_of, validate_file
@@ -36,6 +36,10 @@ POLICIES: dict[AttachmentKind, FilePolicy] = {
     AttachmentKind.HEALTH_DECLARATION: DOCUMENT_POLICY,
     AttachmentKind.DOCTOR_OPINION: DOCUMENT_POLICY,
     AttachmentKind.HOST_DOCUMENT: DOCUMENT_POLICY,
+    # 統合 PDF のシステムの外の書類（1 つの大きさはオンラインの上限の 25MB まで）
+    AttachmentKind.SUBMISSION_UPLOAD: FilePolicy(
+        extensions=frozenset({"pdf", "png", "jpg", "jpeg"}), max_bytes=25 * 1_000_000
+    ),
 }
 
 
@@ -111,6 +115,11 @@ def can_view_target(user: AnyUser, attachment: Attachment) -> bool:
     target = attachment.target
     if target is None:
         return False
+    if isinstance(target, SubmissionDraft):
+        # 統合 PDF の下書きの書類は統合 PDF と同じ（forms.generate と外国人を見る権限。T42-D3）
+        from services import submission_bundles  # 循環を避ける
+
+        return submission_bundles.can_view_worker(user, target.worker_id)
     if isinstance(target, GeneratedDocument):
         # 生成物の添付（署名済みの帳票）は PDF と同じ（forms.generate と外国人を見る権限。T33）
         from services import form_generation  # 循環を避ける

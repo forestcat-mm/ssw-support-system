@@ -1,8 +1,9 @@
 """PDF の読み込みの確かめと、画像（JPEG・PNG）の 1 頁の PDF（提出用の統合 PDF。T42、ADR-0033）。
 
 - 画像は圧縮し直さない（T42-D7）。JPEG はそのまま（DCTDecode）、PNG は IDAT をそのまま
-  （FlateDecode と PNG の予測子）埋め込む。透過（アルファ）・インターレースの PNG、CMYK の JPEG は
-  扱わない（UnreadableFile。PDF か JPEG にしてから綴じてもらう）。
+  （FlateDecode と PNG の予測子）埋め込む。
+- 透過（アルファ）・インターレースの PNG と CMYK の JPEG は、Pillow で白の地に重ねた RGB の
+  可逆の PNG にしてから埋め込む（画素の数＝解像度は変えない。T42-D14 の直し）。
 - 頁は A4（横長の画像は A4 横）。画像の縦横比のまま、頁いっぱいに中央に置く。
 - PDF は pypdf で読めるか（壊れていない・パスワードが無い・頁がある）を確かめる。在留申請オンライン
   システムは、セキュリティの設定がある PDF をエラーファイルとして扱う（Q&A Q4-2）。
@@ -64,11 +65,34 @@ def as_pdf(data: bytes) -> bytes:
     if kind == "pdf":
         pdf_reader(data)
         return data
-    if kind == "jpeg":
-        return image_pdf(jpeg_image(data))
-    if kind == "png":
-        return image_pdf(png_image(data))
+    if kind in ("jpeg", "png"):
+        try:
+            return image_pdf(jpeg_image(data) if kind == "jpeg" else png_image(data))
+        except UnreadableFile as unreadable:
+            if unreadable.code != "unsupported_image":
+                raise
+            return image_pdf(png_image(flattened_png(data)))
     raise UnreadableFile("unsupported")
+
+
+def flattened_png(data: bytes) -> bytes:
+    """Pillow で白の地に重ねた RGB の PNG（インターレースなし・可逆。画素の数は変えない）。"""
+    from PIL import Image as PillowImage  # 透過・CMYK のときだけ使う
+
+    try:
+        with PillowImage.open(io.BytesIO(data)) as source:
+            source.load()
+            if source.mode in ("RGBA", "LA") or "transparency" in source.info:
+                rgba = source.convert("RGBA")
+                image = PillowImage.new("RGB", rgba.size, (255, 255, 255))
+                image.paste(rgba, mask=rgba.getchannel("A"))
+            else:
+                image = source.convert("RGB")
+            out = io.BytesIO()
+            image.save(out, format="PNG", interlace=False, dpi=source.info.get("dpi", (72, 72)))
+    except (OSError, ValueError) as error:
+        raise UnreadableFile("broken") from error
+    return out.getvalue()
 
 
 @dataclass(frozen=True)

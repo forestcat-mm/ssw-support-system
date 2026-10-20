@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 00:09+0900\n"
+"POT-Creation-Date: 2026-10-20 09:27+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -1328,6 +1328,9 @@ msgstr "医師の意見書（稼働に問題がない旨）"
 
 msgid "Document of the host organization or site"
 msgstr "受入れ機関・事業所の書類"
+
+msgid "Document prepared outside the system"
+msgstr "提出書類（システムの外で用意したもの）"
 
 msgid "size (bytes)"
 msgstr "サイズ（バイト）"
@@ -3192,11 +3195,35 @@ msgstr "なし"
 msgid "no mark"
 msgstr "印を付けない"
 
+msgid "remove this file"
+msgstr "このファイルを取り除く"
+
 msgid "file to include"
 msgstr "綴じるファイル"
 
 msgid "submission check"
 msgstr "提出確認欄"
+
+msgid "date of preparation (basis date)"
+msgstr "作成日（基準日）"
+
+msgid "Used to choose the form version and printed as the date."
+msgstr "様式の版を選ぶのに使い、日付として印字します。"
+
+msgid "reason the obligations cannot be fulfilled promptly"
+msgstr "速やかに義務を履行できない理由"
+
+msgid "relief measures (or exemption from social insurance) are applied for"
+msgstr "納付緩和措置（または社会保険料の納付免除措置）を申請している"
+
+msgid "another unavoidable reason"
+msgstr "ほかのやむを得ない理由"
+
+msgid "date of the application for relief measures"
+msgstr "措置を申請した日"
+
+msgid "specific reason"
+msgstr "具体的な理由"
 
 msgid "common"
 msgstr "共通"
@@ -3357,6 +3384,21 @@ msgstr "提出用の統合 PDF"
 
 msgid "submission PDFs"
 msgstr "提出用の統合 PDF"
+
+msgid "draft of the submission PDF"
+msgstr "提出用の PDF の下書き"
+
+msgid "drafts of the submission PDF"
+msgstr "提出用の PDF の下書き"
+
+msgid "row"
+msgstr "欄"
+
+msgid "file of the draft of the submission PDF"
+msgstr "提出用の PDF の下書きのファイル"
+
+msgid "files of the draft of the submission PDF"
+msgstr "提出用の PDF の下書きのファイル"
 
 msgid "Generate the missing documents"
 msgstr "不足の書類をまとめて生成"
@@ -3624,6 +3666,17 @@ msgstr "署名は不要"
 msgid "Warnings at generation"
 msgstr "生成のときの警告"
 
+msgid ""
+"Generate the pledge on the fulfillment of public obligations (form 1-26)"
+msgstr "公的義務履行に関する誓約書（第1-26号）を作る"
+
+msgid ""
+"Needed only when the applicant has arrears of residence tax, national health "
+"insurance or national pension. The applicant signs the printed form by hand."
+msgstr ""
+"申請人に住民税・国民健康保険・国民年金などの滞納がある場合だけ必要です。印刷"
+"したものに申請人が手で署名します。"
+
 msgid "PDF for the submission"
 msgstr "提出用の PDF"
 
@@ -3671,6 +3724,27 @@ msgstr ""
 "写真を含め合計 %(limit)s MB までです。"
 
 msgid ""
+"The host organization is marked as already accepting specified skilled "
+"workers this fiscal year, so the documents of table 2 are not required (they "
+"are not marked by default)."
+msgstr ""
+"受入れ機関に「同一年度内に特定技能外国人を受け入れている」の印があるので、第2"
+"表の書類は提出不要です（初期値では印を付けません）。"
+
+msgid ""
+"The ledger shows another worker employed by this host organization this "
+"fiscal year. If it already accepts specified skilled workers, check the mark "
+"on the host organization's page (the documents of table 2 are then not "
+"required)."
+msgstr ""
+"台帳では、この受入れ機関が同じ年度にほかの外国人を雇用しています。既に特定技"
+"能外国人を受け入れているなら、受入れ機関の画面で印を確かめてください（第2表の"
+"書類は提出不要になります）。"
+
+msgid "Edit the host organization"
+msgstr "受入れ機関の編集"
+
+msgid ""
 "The photo of the applicant is not put in this PDF: attach it separately as a "
 "JPEG file in the online application system (it counts toward the size "
 "limit), or paste it on the application form at the counter."
@@ -3684,11 +3758,21 @@ msgstr "見積もりの大きさ"
 msgid "included in the PDF of the row above (same document)"
 msgstr "上の行の PDF に含む（同じ書類）"
 
-msgid "prepared outside the system (not included unless you add the file)"
-msgstr "システムの外で用意する（ファイルを足さなければ綴じない）"
+msgid ""
+"prepared outside the system (not included unless you add the file; added "
+"files are kept for the next time)"
+msgstr ""
+"システムの外で用意する（ファイルを足さなければ綴じない。足したファイルは次も"
+"使える）"
 
 msgid "not included"
 msgstr "綴じない"
+
+msgid "remove"
+msgstr "取り除く"
+
+msgid "Save the files"
+msgstr "ファイルを保存"
 
 msgid "Make the PDF"
 msgstr "PDF を作る"
@@ -3729,9 +3813,11 @@ msgid "Skipped %(form)s because it cannot be generated."
 msgstr "%(form)s は生成できないため飛ばしました。"
 
 msgid ""
-"The file cannot be read as a PDF or an image (or it is a transparent PNG)."
-msgstr ""
-"PDF・画像として読めないファイルです（透過のある PNG も綴じられません）。"
+"The file cannot be read as a PDF or an image (broken or password-protected)."
+msgstr "PDF・画像として読めないファイルです（壊れている・パスワード付き）。"
+
+msgid "Saved the files for the submission."
+msgstr "提出用の書類を保存しました。"
 
 msgid "Made the PDF for the submission."
 msgstr "提出用の PDF を作りました。"
@@ -3863,9 +3949,6 @@ msgid "Created %(count)d notification task for: %(names)s."
 msgid_plural "Created %(count)d notification tasks for: %(names)s."
 msgstr[0] "届出タスクを %(count)d 件起票しました（対象: %(names)s）。"
 
-msgid "Edit the host organization"
-msgstr "受入れ機関の編集"
-
 msgid "Register a host organization"
 msgstr "受入れ機関を登録"
 
@@ -3991,6 +4074,22 @@ msgstr "支援委託契約書の追加"
 
 msgid "Example: a file of another host was attached."
 msgstr "例: ほかの受入れ機関のファイルを添付した。"
+
+msgid ""
+"If checked, the documents of table 2 of the list of documents to submit are "
+"not required (note 1 on the cover of the list)."
+msgstr ""
+"印を付けると、提出書類一覧表の第2表の書類は提出不要として扱います（一覧表の表"
+"紙の留意事項１）。"
+
+#, python-format
+msgid ""
+"Suggested from the ledger: a worker in the ledger has an employment contract "
+"with this host organization since %(day)s. Check it and save. (Workers "
+"outside the ledger may also exist.)"
+msgstr ""
+"台帳からの提案: 台帳の外国人が %(day)s からこの受入れ機関と雇用契約を結んでい"
+"ます。確かめて保存してください（台帳の外の外国人がいる場合もあります）。"
 
 msgid "Used for the furigana of the support plan."
 msgstr "支援計画書のふりがなに使います。"
@@ -4169,6 +4268,12 @@ msgstr "代表者の役職"
 
 msgid "representative name"
 msgstr "代表者の氏名"
+
+msgid "already accepts specified skilled workers this fiscal year"
+msgstr "同一年度内に特定技能外国人を受け入れている"
+
+msgid "accepts specified skilled workers since"
+msgstr "受け入れ始めた日"
 
 msgid "portal users"
 msgstr "ポータルのユーザー"
@@ -4423,6 +4528,13 @@ msgstr "前のファイル"
 msgid "Basic information"
 msgstr "基本情報"
 
+msgid "yes"
+msgstr "あり"
+
+#, python-format
+msgid "since %(day)s"
+msgstr "%(day)s から"
+
 msgid "Support contracts"
 msgstr "支援委託契約"
 
@@ -4661,9 +4773,6 @@ msgstr "ダミーデータの台帳"
 msgid "Support"
 msgstr "支援"
 
-msgid "yes"
-msgstr "あり"
-
 msgid "Holidays"
 msgstr "祝日"
 
@@ -4820,9 +4929,6 @@ msgstr "支援計画の項目"
 
 msgid "support plan items"
 msgstr "支援計画の項目"
-
-msgid "row"
-msgstr "欄"
 
 msgid "Only for the free-entry rows."
 msgstr "自由記入の欄だけ書きます。"
@@ -6552,6 +6658,9 @@ msgstr "基準日の雇用契約がありません。"
 msgid "The form is not loaded."
 msgstr "様式が読み込まれていません。"
 
+msgid "This form needs input such as the reason. Generate it on its own page."
+msgstr "理由などを入れる様式です。様式の画面で作ってください。"
+
 msgid "This attachment is already voided."
 msgstr "この添付は取り消し済みです。"
 
@@ -7320,6 +7429,12 @@ msgstr ""
 "Ⅲ欄７「支援の適正性を確保していることの有無」の申告が無いため、空のままにしま"
 "す。"
 
+msgid ""
+"Choose the reason: the date of the application for relief measures, or the "
+"specific unavoidable reason."
+msgstr ""
+"理由を選んでください（措置を申請した日、または具体的なやむを得ない理由）。"
+
 #, python-format
 msgid ""
 "%(count)s value has no registered translation and is printed in Japanese."
@@ -7777,11 +7892,9 @@ msgid "You cannot open this file, so it is not included."
 msgstr "このファイルを開く権限が無いため綴じません。"
 
 msgid ""
-"The file cannot be read as a PDF or an image (broken, password-protected, or "
-"a transparent PNG), so it is not included."
-msgstr ""
-"PDF・画像として読めない（壊れている・パスワード付き・透過のある PNG）ため綴じ"
-"ません。"
+"The file cannot be read as a PDF or an image (broken or password-protected), "
+"so it is not included."
+msgstr "PDF・画像として読めない（壊れている・パスワード付き）ため綴じません。"
 
 msgid ""
 "The worker's support language is Chinese, but the Chinese translation of "
@@ -7806,6 +7919,9 @@ msgstr "綴じる書類がありません。"
 
 msgid "List of documents to submit"
 msgstr "提出書類一覧表"
+
+msgid "Removed on the screen of the submission PDF."
+msgstr "提出用の PDF の画面で取り除いた。"
 
 msgid "pre-entry guidance"
 msgstr "事前ガイダンス"

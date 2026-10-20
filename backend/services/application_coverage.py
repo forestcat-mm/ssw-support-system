@@ -23,12 +23,13 @@ FORM_NUMBER = re.compile(
 class CoverageRow:
     set_id: str
     row: dict[str, Any]
-    way: str  # generate / record / host_document / upload / paper
+    way: str  # generate / list / record / host_document / upload / paper
     reference_form: str  # 生成できない参考様式の番号（無ければ空）
 
 
 WAYS = {
     "generate": "生成できる",
+    "list": "システムで作る（提出書類一覧表。統合 PDF の先頭）",
     "record": "記録の添付で綴じる",
     "host_document": "受入れ機関の書類の保管庫で綴じる",
     "upload": "その場でアップロードして綴じる",
@@ -45,6 +46,8 @@ def classify(row: dict[str, Any]) -> tuple[str, str]:
         number = found.group(1).translate(str.maketrans("０１２３４５６７８９－", "0123456789-"))
     if "generate" in how:
         return "generate", ""
+    if submission_bundles.LIST_MARK in str(row["document"]):
+        return "list", ""  # T42-D4 を「システムで作る」に変えた後の判定
     if host_documents.kinds_for_row(row):
         return "host_document", ""
     if "attachment" in how:

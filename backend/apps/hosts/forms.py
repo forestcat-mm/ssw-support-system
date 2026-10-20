@@ -55,11 +55,29 @@ class HostOrganizationForm(StyledFormMixin, forms.ModelForm[HostOrganization]):
             "postal_code",
             "address",
             "phone_number",
+            "accepts_ssw_workers",
+            "accepts_ssw_workers_since",
         )
+        widgets = {"accepts_ssw_workers_since": forms.DateInput}
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
+    def __init__(self, *args: Any, suggested_since: Any = None, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         allow_formatted_number_input(self.fields["corporate_number"])
+        self.fields["accepts_ssw_workers"].help_text = _(
+            "If checked, the documents of table 2 of the list of documents to submit are not "
+            "required (note 1 on the cover of the list)."
+        )
+        if suggested_since is not None and not self.is_bound:
+            # 台帳に同じ年度の別の外国人の契約がある: 初期値として提案するだけ（保存は人が確かめて）
+            if not (self.instance and self.instance.accepts_ssw_workers):
+                self.initial["accepts_ssw_workers"] = True
+                if not self.initial.get("accepts_ssw_workers_since"):
+                    self.initial["accepts_ssw_workers_since"] = suggested_since
+                self.fields["accepts_ssw_workers"].help_text = _(
+                    "Suggested from the ledger: a worker in the ledger has an employment "
+                    "contract with this host organization since %(day)s. Check it and save. "
+                    "(Workers outside the ledger may also exist.)"
+                ) % {"day": suggested_since.isoformat()}
         self.fields["name_kana"].help_text = _("Used for the furigana of the support plan.")
         self.fields["address"].help_text = _("Head office or principal office.")
         self.style_fields()

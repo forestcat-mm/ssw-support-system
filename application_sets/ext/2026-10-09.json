@@ -375,9 +375,11 @@
     "no": "H69"
    },
    "how": {
-    "out": true
+    "generate": "1-26"
    },
-   "applies": []
+   "applies": [
+    "arrears"
+   ]
   },
   {
    "id": "ext_t3-industrial-1-1",

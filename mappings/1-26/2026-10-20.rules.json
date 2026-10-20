@@ -1,0 +1,8 @@
+{
+  "form_id": "1-26",
+  "valid_from": "2026-10-20",
+  "note": "第1-26号の規則（T42 の追加）。理由（納付緩和措置・免除措置の申請と申請した日、またはやむを得ない理由の文）が無ければ生成不可。",
+  "rules": [
+    {"id": "reason", "type": "check", "name": "public_duty_reason", "severity": "block"}
+  ]
+}

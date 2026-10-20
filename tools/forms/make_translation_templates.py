@@ -2,12 +2,13 @@
 
 日本語の版の写しの固定の文だけを、訳の表（tools/forms/translations/<様式>.zh-hans.json）の中国語に置き換える。
 欄の位置・差込タグ・セル・結合・罫線・入力規則は日本語の版と同じ。
-- 第1-6号（Word）: template.docx の段落ごとに、差込タグを {1}・{2}… にした文で表を引き、段落の最初の文字の
-  要素に訳を入れ、ほかの文字の要素は空にする（書式は最初の文字の要素のもの。段落の途中の下線は残らない）。
-  字体は日本語の版のまま（簡体字だけの字は LibreOffice が代わりの字体で出す。SimSun → Noto Serif CJK SC
-  にすると行の高さが変わり頁が増えたため。T43-D7）。差込タグの空のときの文（or の後）も表で訳す。
-- 第1-17号（Excel）: 共有の文字列（xl/sharedStrings.xml）だけを訳す（ふりがなを外す）。シート・スタイル・
-  数式は変えない（日本語の版と同じフォント。T43-D7）。
+- 第1-6号（Word）: template.docx の段落ごとに、差込タグを {1}・{2}… にした文で表を引き、最初の文字の要素の
+  書式で文を入れ、差込タグだけの文字の要素（下線つきの記入欄など）は元の書式のまま残す（T43-D9 の直し）。
+  字体は中国語の字体（Noto Serif CJK SC）にそろえる（styles.xml の既定も。T43-D7 の直し。頁が増えてよい）。
+  差込タグの空のときの文（or の後）も表で訳す。
+- 第1-17号（Excel）: 共有の文字列（xl/sharedStrings.xml）を訳し（ふりがなを外す）、字体を中国語の字体にする
+  （styles.xml の字体の名前・文字セットだけ。明朝は Noto Serif CJK SC、ほかは Noto Sans CJK SC）。
+  シート・結合・罫線・数式は変えない。
 - マッピングは日本語の版の写しで、印刷済みの文に差し込む template の文だけを訳す。規則は日本語の版の写しに
   「訳の無い日本語の値」の警告を足す。manifest は自作の様式（source.self_made）で、訳の元の版を書く。
 - 対照表（docs/translations/<様式>.zh-hans.md・values.zh-hans.md）を訳の表から作る。
@@ -110,33 +111,137 @@ def _translated_text(text: str, data: dict[str, Any]) -> str:
     return result
 
 
+FONT = "Noto Serif CJK SC"  # 訳文の字体（中国語の字体にそろえる。T43-D7 の直し）
+SANS = "Noto Sans CJK SC"
+RUN = re.compile(r"<w:r(?:\s[^>]*)?>.*?</w:r>", re.S)
+RFONTS = re.compile(r"<w:rFonts\b[^>]*/>")
+SC_FONTS = f'<w:rFonts w:ascii="{FONT}" w:hAnsi="{FONT}" w:eastAsia="{FONT}" w:cs="{FONT}"/>'
+
+
+def _sc_fonts(run: str) -> str:
+    """文字の要素の字体を中国語の字体にする。"""
+    if RFONTS.search(run):
+        return RFONTS.sub(SC_FONTS, run, count=1)
+    if "<w:rPr>" in run:
+        return run.replace("<w:rPr>", "<w:rPr>" + SC_FONTS, 1)
+    head = re.match(r"<w:r(?:\s[^>]*)?>", run)
+    assert head is not None
+    return run[: head.end()] + "<w:rPr>" + SC_FONTS + "</w:rPr>" + run[head.end() :]
+
+
+def _run_text(run: str) -> str:
+    return "".join(unescape(body) for _, body, _ in TEXT.findall(run))
+
+
+def _text_run(properties: str, text: str) -> str:
+    return f'<w:r>{properties}<w:t xml:space="preserve">{escape(text)}</w:t></w:r>'
+
+
+def _underlined_tail(runs: list[re.Match[str]]) -> tuple[int, str, str] | None:
+    """段落の終わりの、下線の付いた文字の要素の続き（例「約｛タグ｝円（合計）」）。
+
+    (元の続きの中で最初のタグの前の字数, 続きの書式, 続きの最初のタグ) を返す。無ければ None。
+    """
+    texts = [(_run_text(run.group(0)), run.group(0)) for run in runs]
+    index = len(texts)
+    while index > 0 and (not texts[index - 1][0] or "<w:u " in texts[index - 1][1]):
+        index -= 1
+    tail = [item for item in texts[index:] if item[0]]
+    joined = "".join(text for text, _ in tail)
+    tag = TAG.search(joined)
+    if not tail or tag is None or TAG.fullmatch(joined):
+        return None
+    found = re.search(r"<w:rPr>.*?</w:rPr>", tail[0][1], re.S)
+    return tag.start(), found.group(0) if found else "", tag.group(0)
+
+
+def _pieces(new: str, tag_runs: dict[str, str], properties: str) -> list[str]:
+    pieces: list[str] = []
+    literal = ""
+    position = 0
+    for match in TAG.finditer(new):
+        literal += new[position : match.start()]
+        position = match.end()
+        kept = tag_runs.pop(match.group(0), None)
+        if kept is None:
+            literal += match.group(0)
+            continue
+        if literal:
+            pieces.append(_text_run(properties, literal))
+            literal = ""
+        pieces.append(kept)
+    literal += new[position:]
+    if literal:
+        pieces.append(_text_run(properties, literal))
+    return pieces
+
+
 def _translate_paragraph(paragraph: str, data: dict[str, Any]) -> str:
-    texts = TEXT.findall(paragraph)
-    if not texts:
+    """段落を訳して組み直す。差込タグだけの文字の要素（下線つきの記入欄など）は元の書式のまま残し、
+    段落の終わりの下線の続き（「約｛タグ｝円（合計）」など）は訳でも同じ書式にする（T43-D9 の直し）。
+    ほかの文は最初の文字の要素の書式で入れる。字体は中国語の字体にする。"""
+    runs = list(RUN.finditer(paragraph))
+    if not runs:
         return paragraph
-    text = "".join(unescape(body) for _, body, _ in texts)
+    text = "".join(_run_text(run.group(0)) for run in runs)
     if not JAPANESE.search(text):
-        return paragraph
+        return RUN.sub(lambda m: _sc_fonts(m.group(0)), paragraph)
     new = _translated_text(text, data)
-    first = [True]
+    tag_runs: dict[str, str] = {}
+    base = ""
+    for run in runs:
+        body = _run_text(run.group(0))
+        if TAG.fullmatch(body):
+            tag_runs.setdefault(body, run.group(0))
+        elif body and not base:
+            base = run.group(0)
+    base = base or runs[0].group(0)
+    found = re.search(r"<w:rPr>.*?</w:rPr>", base, re.S)
+    properties = found.group(0) if found else ""
+    tail = _underlined_tail(runs)
+    if tail is not None and tail[2] in new:
+        before, tail_properties, tag = tail
+        start = max(0, new.index(tag) - before)
+        pieces = _pieces(new[:start], tag_runs, properties)
+        pieces.append(_text_run(tail_properties, new[start:]))
+    else:
+        pieces = _pieces(new, tag_runs, properties)
+    between = "".join(
+        paragraph[runs[index].end() : runs[index + 1].start()] for index in range(len(runs) - 1)
+    )
+    rebuilt = "".join(_sc_fonts(piece) for piece in pieces)
+    return paragraph[: runs[0].start()] + rebuilt + between + paragraph[runs[-1].end() :]
 
-    def put(match: re.Match[str]) -> str:
-        if first[0]:
-            first[0] = False
-            return '<w:t xml:space="preserve">' + escape(new) + match.group(3)
-        return match.group(1) + match.group(3)
 
-    return TEXT.sub(put, paragraph)
+def _sc_styles(styles: str) -> str:
+    """styles.xml の字体を中国語の字体にし（既定の字体も）、東アジアの言語を中国語にする。"""
+    result = RFONTS.sub(SC_FONTS, styles)
+    result = re.sub(r'(<w:lang\b[^>]*w:eastAsia=")[^"]*(")', r"\1zh-CN\2", result)
+    if "<w:rPrDefault>" in result and SC_FONTS not in result.split("</w:rPrDefault>")[0]:
+        result = result.replace("<w:rPrDefault><w:rPr>", "<w:rPrDefault><w:rPr>" + SC_FONTS, 1)
+    return result
 
 
 def translate_docx(source: Path, target: Path, data: dict[str, Any]) -> None:
     with zipfile.ZipFile(source) as archive:
         xml = archive.read("word/document.xml").decode("utf-8")
     result = PARAGRAPH.sub(lambda m: _translate_paragraph(m.group(0), data), xml)
+    # 段落の印などに残る字体の指定も中国語の字体に、東アジアの言語を中国語にする
+    result = RFONTS.sub(SC_FONTS, result)
+    result = re.sub(r'(<w:lang\b[^>]*w:eastAsia=")[^"]*(")', r"\1zh-CN\2", result)
     left = [unescape(body) for _, body, _ in TEXT.findall(result) if KANA.search(unescape(body))]
     if left:
         raise TranslationError(f"Japanese text is left: {left[:3]!r}")
-    copy_zip(source, target, {"word/document.xml": result.encode("utf-8")})
+    with zipfile.ZipFile(source) as archive:
+        styles = archive.read("word/styles.xml").decode("utf-8")
+    copy_zip(
+        source,
+        target,
+        {
+            "word/document.xml": result.encode("utf-8"),
+            "word/styles.xml": _sc_styles(styles).encode("utf-8"),
+        },
+    )
 
 
 def blank_docx(template: Path, target: Path) -> None:
@@ -185,7 +290,37 @@ def translate_xlsx(source: Path, target: Path, data: dict[str, Any]) -> None:
         return '<si><t xml:space="preserve">' + escape(data["strings"][text]) + "</t></si>"
 
     result = SI.sub(put, xml)
-    copy_zip(source, target, {"xl/sharedStrings.xml": result.encode("utf-8")})
+    with zipfile.ZipFile(source) as archive:
+        styles = archive.read("xl/styles.xml").decode("utf-8")
+    copy_zip(
+        source,
+        target,
+        {
+            "xl/sharedStrings.xml": _sc_rich_fonts(result).encode("utf-8"),
+            "xl/styles.xml": _sc_xlsx_styles(styles).encode("utf-8"),
+        },
+    )
+
+
+def _sc_font_name(name: str) -> str:
+    """明朝は Noto Serif CJK SC、ほか（ゴシックなど）は Noto Sans CJK SC。"""
+    return FONT if ("明朝" in name or "Mincho" in name) else SANS
+
+
+def _sc_xlsx_styles(styles: str) -> str:
+    """Excel の字体を中国語の字体にする（文字セットを中国語にし、テーマの字体の指定を外す）。"""
+    result = re.sub(
+        r'<name val="([^"]*)"/>', lambda m: f'<name val="{_sc_font_name(m.group(1))}"/>', styles
+    )
+    result = re.sub(r'<charset val="\d+"/>', '<charset val="134"/>', result)
+    return re.sub(r'<scheme val="[^"]*"/>', "", result)
+
+
+def _sc_rich_fonts(shared: str) -> str:
+    result = re.sub(
+        r'<rFont val="([^"]*)"/>', lambda m: f'<rFont val="{_sc_font_name(m.group(1))}"/>', shared
+    )
+    return re.sub(r'<charset val="\d+"/>', '<charset val="134"/>', result)
 
 
 # --- マッピング・規則・manifest -----------------------------------------------------------

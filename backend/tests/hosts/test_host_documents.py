@@ -19,6 +19,7 @@ from services import application_sets, host_documents, submission_bundles
 from tests.contracts.factories import make_contract
 from tests.core.factories import make_user, verified_client
 from tests.forms_engine.test_form_application import make_case
+from tests.hosts.factories import make_host
 from tests.workers.factories import make_worker
 
 pytestmark = pytest.mark.django_db
@@ -143,13 +144,37 @@ def test_bundle_binds_host_documents_and_warns_about_table2() -> None:
     entry = next(e for e in outline.entries if e.row_id == "chg_t2_2-3-1")
     assert [p.source for p in entry.bound] == [submission_bundles.Source.HOST_DOCUMENT]
     assert host_documents.Issue.TABLE2_NOT_NEEDED not in entry.warnings
-    # 同じ年度にほかの外国人を受け入れている機関
+    # 台帳に同じ年度のほかの外国人の契約があるだけでは判定しない（印の提案だけ。T42-D25）
     make_contract(make_worker(name_romaji="OTHER"), site=contract.versions.get().site)
+    outline = submission_bundles.outline(overview, admin)
+    entry = next(e for e in outline.entries if e.row_id == "chg_t2_2-3-1")
+    assert host_documents.Issue.TABLE2_NOT_NEEDED not in entry.warnings
+    assert outline.accepting_suggested and not outline.skip_table2
+    # 受入れ機関の印で判定する
+    host.accepts_ssw_workers = True
+    host.accepts_ssw_workers_since = datetime.date(2026, 4, 1)
+    host.save()
+    overview = application_sets.overview(contract.worker, "chg", BASIS)
     outline = submission_bundles.outline(overview, admin)
     entry = next(e for e in outline.entries if e.row_id == "chg_t2_2-3-1")
     assert host_documents.Issue.TABLE2_NOT_NEEDED in entry.warnings
     assert outline.skip_table2
     assert outline.default_marks(True)["chg_t2_2-3-1"] == ""
+
+
+def test_host_form_suggests_the_mark_from_the_ledger() -> None:
+    """台帳の雇用契約（始まっているもの）から、印の初期値を提案する（保存は人が確かめて）。"""
+    client = verified_client(make_user("tanto42d", roles=("support_staff",)))
+    empty = make_host(name="契約の無い会社", corporate_number="", entity_type="sole_proprietor")
+    form = client.get(f"/hosts/{empty.pk}/edit/").context["form"]
+    assert not form.initial.get("accepts_ssw_workers")
+    contract = make_case()
+    host = contract.host_organization
+    form = client.get(f"/hosts/{host.pk}/edit/").context["form"]
+    assert form.initial["accepts_ssw_workers"] is True
+    assert form.initial["accepts_ssw_workers_since"] == contract.current_starts_on
+    host.refresh_from_db()
+    assert host.accepts_ssw_workers is False  # 保存するまでは変わらない
 
 
 def test_screens_add_and_void_with_audit() -> None:

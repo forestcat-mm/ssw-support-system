@@ -67,6 +67,11 @@ urlpatterns = [
         name="application_set",
     ),
     path(
+        "<int:pk>/documents/public-duty-pledge/",
+        forms_views.PublicDutyPledgeView.as_view(),
+        name="public_duty_pledge",
+    ),
+    path(
         "<int:pk>/documents/application/generate/",
         forms_views.ApplicationBulkView.as_view(),
         name="application_bulk",

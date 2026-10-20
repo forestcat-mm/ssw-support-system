@@ -113,6 +113,14 @@ class HostOrganization(TrackedModel):
     address = models.CharField(_("address"), max_length=255)
     phone_number = models.CharField(_("phone number"), max_length=20, blank=True)
     is_active = models.BooleanField(_("active"), default=True)
+    # 同一年度内に特定技能外国人を既に受け入れている（提出書類一覧表 第2表の書類は提出不要。表紙の
+    # 留意事項１）。台帳の外の外国人もいるので、人が印を付ける（T42-D25 の直し）
+    accepts_ssw_workers = models.BooleanField(
+        _("already accepts specified skilled workers this fiscal year"), default=False
+    )
+    accepts_ssw_workers_since = models.DateField(
+        _("accepts specified skilled workers since"), null=True, blank=True
+    )
     # 将来の受入れ機関ポータル用（MVP では空のまま）
     users = models.ManyToManyField(
         settings.AUTH_USER_MODEL,

@@ -13,9 +13,11 @@ import subprocess
 import sys
 import zipfile
 from pathlib import Path
+from typing import Any
 
 import pytest
 from django.conf import settings
+from pypdf import PdfReader
 
 from apps.forms_engine.models import FormTemplate, GeneratedDocument, GenerationStatus
 from apps.support.models import SupportPlanVersion
@@ -78,6 +80,22 @@ def test_word_translation_keeps_the_tags_and_has_no_japanese() -> None:
     japanese = texts_of(ROOT / "1-6" / "2026-10-18" / "template.docx")
     chinese = texts_of(ROOT / "1-6" / "2026-10-18.zh-hans" / "template.docx")
     assert sorted(TAG.findall(japanese)) == sorted(TAG.findall(chinese))
+    with zipfile.ZipFile(ROOT / "1-6" / "2026-10-18.zh-hans" / "template.docx") as archive:
+        xml = archive.read("word/document.xml").decode()
+        styles = archive.read("word/styles.xml").decode()
+    # 字体は中国語の字体にそろえる（T43-D7 の直し）
+    fonts = {
+        font
+        for tag in re.findall(r"<w:rFonts\b[^>]*>", xml + styles)
+        for font in re.findall(r'w:(?:ascii|hAnsi|eastAsia|cs)="([^"]+)"', tag)
+    }
+    assert fonts == {"Noto Serif CJK SC"}
+    assert set(re.findall(r'<w:lang\b[^>]*w:eastAsia="([^"]+)"', xml + styles)) <= {"zh-CN"}
+    # 下線の付いた差込タグだけの文字の要素は元の書式のまま残る（T43-D9 の直し）
+    host_run = re.search(r"<w:r[ >](?:(?!</w:r>).)*\{\{ host_name or[^<]*</w:t></w:r>", xml, re.S)
+    assert host_run is not None and "<w:u " in host_run.group(0)
+    total = re.search(r"<w:r[ >](?:(?!</w:r>).)*约\{\{ monthly_total[^<]*</w:t></w:r>", xml, re.S)
+    assert total is not None and "<w:u " in total.group(0)
     assert not KANA.search(TAG.sub("", chinese))
     assert "雇佣条件书" in chinese and "（译文 / 翻訳文）" in chinese
 
@@ -88,8 +106,22 @@ def test_excel_translation_changes_only_the_shared_strings() -> None:
     with zipfile.ZipFile(japanese) as ja, zipfile.ZipFile(chinese) as zh:
         assert ja.namelist() == zh.namelist()
         for name in ja.namelist():
-            if name != "xl/sharedStrings.xml":
+            if name not in ("xl/sharedStrings.xml", "xl/styles.xml"):
                 assert ja.read(name) == zh.read(name), name
+
+        # スタイルは字体の名前・文字セット・テーマの指定だけが違う（T43-D7 の直し）
+        def fontless(xml: bytes) -> str:
+            text = xml.decode()
+            text = re.sub(
+                r'<name val="[^"]*"/>|<charset val="\d+"/>|<scheme val="[^"]*"/>', "", text
+            )
+            return text
+
+        assert fontless(ja.read("xl/styles.xml")) == fontless(zh.read("xl/styles.xml"))
+        assert set(re.findall(r'<name val="([^"]*)"/>', zh.read("xl/styles.xml").decode())) <= {
+            "Noto Serif CJK SC",
+            "Noto Sans CJK SC",
+        }
         strings = zh.read("xl/sharedStrings.xml").decode()
     assert not KANA.search(re.sub(r"<[^>]+>", "", strings))
     assert "支援计划书（译文 / 翻訳文）" in strings
@@ -140,6 +172,16 @@ def test_languages_and_delivery_codes() -> None:
 # --- 生成 -----------------------------------------------------------------------------
 
 
+def pdf_fonts(document: GeneratedDocument) -> set[str]:
+    """PDF に埋め込んだ字体の名前（Noto CJK の集まりは、どの言語の face でも名前が jp になる）。"""
+    found: set[str] = set()
+    for page in PdfReader(document.pdf_file.path).pages:
+        resources: Any = page["/Resources"]
+        fonts: Any = resources.get("/Font") or {}
+        found |= {str(font.get_object()["/BaseFont"]) for font in fonts.values()}
+    return found
+
+
 def pages(document: GeneratedDocument) -> int:
     assert document.page_count is not None
     return document.page_count
@@ -166,7 +208,8 @@ def test_generation_of_both_translations(seeded: list[ForeignWorker]) -> None:
     chinese.refresh_from_db()
     assert chinese.status == GenerationStatus.COMPLETED, chinese.failure_reason
     assert chinese.template.language == "zh-hans" and not chinese.template.requires_signed_copy
-    assert pages(chinese) == pages(japanese)
+    assert pages(chinese) >= pages(japanese)  # 中国語の字体で頁が増えてよい（T43-D7 の直し）
+    assert all("NotoSerifCJK" in f or "NotoSansCJK" in f for f in pdf_fonts(chinese))
     snapshot = json.loads(chinese.snapshot)
     assert snapshot["language"] == "zh-hans"
     assert snapshot["data"]["plan.3a.a.yes_note"] == "入境后尽快"
@@ -192,8 +235,9 @@ def test_generation_of_both_translations(seeded: list[ForeignWorker]) -> None:
     zh_1_6.refresh_from_db()
     ja_1_6.refresh_from_db()
     assert zh_1_6.status == GenerationStatus.COMPLETED, zh_1_6.failure_reason
-    assert pages(zh_1_6) == pages(ja_1_6)
-    # 代わりの字体の字は PDF の文字の取り出しで順が崩れるので、字体を変えない語で確かめる
+    assert pages(zh_1_6) >= pages(ja_1_6)
+    # 簡体字だけの字も中国語の字体で描く（IPA など日本語の字体が混ざらない。T43-D7 の直し）
+    assert all("NotoSerifCJK" in f for f in pdf_fonts(zh_1_6))
     assert "翻訳文" in "".join(pdfcheck.pdf_text(Path(zh_1_6.pdf_file.path)))
 
     # 申請の書類の一覧: 訳文は生成の有無に数えない。統合 PDF は日本語の直後に訳文

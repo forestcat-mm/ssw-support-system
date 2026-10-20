@@ -37,7 +37,7 @@ NATIONALITIES = {"カンボジア": "KH", "タイ": "TH", "ベトナム": "VN", 
 GENERATED = [
     ("第1-17号", "1-17"), ("第1-25号", "1-25"), ("第1-4号", "1-4"), ("第1-5号", "1-5"),
     ("第1-6号別紙", "1-6"), ("第1-6号", "1-6"), ("第3-1号", "3-1"), ("第13-1号", "13-1"),
-    ("第13-2号", "13-2"),
+    ("第13-2号", "13-2"), ("第1-26号", "1-26"),
 ]
 REF = re.compile(r"([A-Z]+)(\d+)$")
 
@@ -195,6 +195,8 @@ def applies(key: str, row: dict) -> list[str]:
         result.append("full_support")
     if "１年単位の変形労働時間制" in note:
         result.append("variable_one_year")
+    if "滞納がある場合" in note:  # 公的義務の滞納（台帳に無いので判断しない。第1-26号）
+        result.append("arrears")
     if "対象の国籍" in note:
         codes = sorted({code for name, code in NATIONALITIES.items() if name in note})
         result.append("nationality:" + ",".join(codes))

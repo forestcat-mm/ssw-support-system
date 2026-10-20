@@ -72,6 +72,13 @@ def test_keep_a_calendar_and_make_the_list(
     ).to_contain_text("年間カレンダー")
     assert page.evaluate("document.documentElement.scrollWidth") <= width
 
+    # 受入れ機関の印（同一年度内に受け入れている）は、台帳からの提案を確かめて保存する
+    # （T42-D25 の直し）
+    page.goto(f"{base}/hosts/{contract.host_organization_id}/edit/")
+    expect(page.locator("#id_accepts_ssw_workers")).to_be_checked()
+    page.get_by_role("button", name="保存する").click()
+    expect(page.locator("#host-accepts-ssw")).to_contain_text("あり")
+
     # 申請の書類の一覧: 年間カレンダーの行は保管庫から
     list_url = (
         f"{base}/workers/{contract.worker_id}/documents/application/?set_id=chg&basis_on=2026-10-18"
@@ -85,6 +92,7 @@ def test_keep_a_calendar_and_make_the_list(
     page.locator("#submission-bundle-link").click()
     expect(page.locator("#id_make_list")).to_be_checked()
     expect(page.locator("#submission-photo")).to_be_visible()
+    expect(page.locator("#submission-table2")).to_be_visible()  # 第2表は提出不要
     mark = page.locator("#id_mark-chg_t1-6-3")
     expect(mark).to_have_value("yes")
     page.locator("#id_mark-chg_t1-8-1").select_option("no")

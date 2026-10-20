@@ -36,6 +36,7 @@ from services import (
     form_templates,
     pdf_pages,
     submission_bundles,
+    submission_drafts,
 )
 from services.attachments import create_attachment
 from tests.core.factories import make_staff, make_user, verified_client
@@ -96,10 +97,27 @@ def test_images_become_one_a4_page_without_recompression() -> None:
     assert image_of(page)._data == data  # そのまま
 
 
+def cmyk_jpeg() -> bytes:
+    from PIL import Image as PillowImage
+
+    out = io.BytesIO()
+    PillowImage.new("CMYK", (40, 30), (0, 128, 255, 0)).save(out, format="JPEG")
+    return out.getvalue()
+
+
+def test_transparent_png_and_cmyk_jpeg_become_pages_without_losing_pixels() -> None:
+    """透過の PNG・CMYK の JPEG も白の地の RGB にして綴じる（画素の数は同じ。T42-D14）。"""
+    cases = ((png(width=30, height=20, color_type=6), (30, 20)), (cmyk_jpeg(), (40, 30)))
+    for data, size in cases:
+        page = PdfReader(io.BytesIO(pdf_pages.as_pdf(data))).pages[0]
+        image = image_of(page)
+        assert (image["/Width"], image["/Height"]) == size
+        assert image["/ColorSpace"] == "/DeviceRGB"
+
+
 @pytest.mark.parametrize(
     ("data", "code"),
     [
-        (png(color_type=6), "unsupported_image"),  # 透過の PNG
         (b"%PDF-1.4\n%broken\n", "broken"),
         (b"GIF89a", "unsupported"),
     ],
@@ -261,7 +279,8 @@ def test_outline_order_parts_and_permissions(loaded: None) -> None:
     overview = application_sets.overview(worker, "chg", BASIS)
     admin = make_user("admin42", roles=("admin",))
     listing = SimpleUploadedFile("list.pdf", one_page("list"), content_type="application/pdf")
-    outline = submission_bundles.outline(overview, admin, {"chg_t1-2-1": [listing]})
+    submission_drafts.save(worker, "chg", {"chg_t1-2-1": [listing]}, by=None)
+    outline = submission_bundles.outline(overview, admin)
     ids = [entry.row_id for entry in outline.entries]
     assert ids[0] == "chg_t1-2-1"  # 提出書類一覧表を先頭に
     entries = {entry.row_id: entry for entry in outline.entries}
@@ -353,21 +372,55 @@ def test_screen_with_an_upload(loaded: None) -> None:
         "basis_on": "2026-10-18",
         "accept_warnings": "on",
         "upload-chg_t1-2-1": SimpleUploadedFile("list.png", png(), content_type="image/png"),
+        "action": "save",
     }
+    # 保存だけ: 下書きに残り、統合 PDF はまだ作らない
+    response = client.post(url, data)
+    assert response.status_code == 302 and not SubmissionBundle.objects.exists()
+    draft = submission_drafts.draft_for(worker, "chg")
+    saved = submission_drafts.files_by_row(draft)["chg_t1-2-1"]
+    assert len(saved) == 1
+    assert AuditLog.objects.filter(
+        action=AuditAction.CREATE, content_type__model="submissiondraftfile"
+    ).exists()
+    # 作る: 保存したファイルを使う（アップロードし直さない）
+    page = client.get(url)
+    assert f'data-saved-file="{saved[0].pk}"' in page.content.decode()
+    data[page.context["once_field"]] = page.context["once_token"]
+    data["action"] = "make"
+    del data["upload-chg_t1-2-1"]
     response = client.post(url, data)
     assert response.status_code == 302
     bundle = SubmissionBundle.objects.get()
     assert bundle.items[0]["row"] == "chg_t1-2-1" and bundle.items[0]["source"] == "upload"
+    assert bundle.items[0]["object_id"] == saved[0].pk
     listing = client.get(
         f"/workers/{worker.pk}/documents/application/?set_id=chg&basis_on=2026-10-18"
     ).content.decode()
     assert f'data-bundle="{bundle.pk}"' in listing
-    # 透過の PNG はアップロードの欄のエラー（作らない）
+    # 読めないファイルはアップロードの欄のエラー（保存しない）
     page = client.get(url)
     data[page.context["once_field"]] = page.context["once_token"]
-    data["upload-chg_t1-2-1"] = SimpleUploadedFile("list.png", png(color_type=6))
+    data["upload-chg_t1-2-1"] = SimpleUploadedFile("list.pdf", b"%PDF-1.4\n%broken\n")
     response = client.post(url, data)
     assert response.status_code == 200 and SubmissionBundle.objects.count() == 1
+    assert len(submission_drafts.files_by_row(draft)["chg_t1-2-1"]) == 1
+    # 取り除く（取消。行とファイルは残る）
+    page = client.get(url)
+    response = client.post(
+        url,
+        {
+            page.context["once_field"]: page.context["once_token"],
+            "set_id": "chg",
+            "basis_on": "2026-10-18",
+            f"remove-{saved[0].pk}": "on",
+            "action": "save",
+        },
+    )
+    assert response.status_code == 302
+    assert "chg_t1-2-1" not in submission_drafts.files_by_row(draft)
+    saved[0].refresh_from_db()
+    assert saved[0].voided_at is not None
 
 
 def test_form_data_application_is_unchanged(loaded: None) -> None:

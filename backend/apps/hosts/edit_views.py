@@ -45,7 +45,14 @@ from apps.hosts.models import (
     SupportContract,
 )
 from apps.support.record_forms import AttachmentForm, ReasonForm
-from services import attachments, authorization, filings, host_records, support_filings
+from services import (
+    attachments,
+    authorization,
+    filings,
+    host_records,
+    submission_lists,
+    support_filings,
+)
 
 
 def _actor(request: HttpRequest) -> User:
@@ -164,7 +171,10 @@ class HostEditView(HostFormView):
 
     def get(self, request: HttpRequest, pk: int | None = None) -> HttpResponse:
         host = self.host(request, pk) if pk is not None else None
-        return self.page(request, host, HostOrganizationForm(instance=host))
+        suggested = submission_lists.suggested_since(host, timezone.localdate()) if host else None
+        return self.page(
+            request, host, HostOrganizationForm(instance=host, suggested_since=suggested)
+        )
 
     def post(self, request: HttpRequest, pk: int | None = None) -> HttpResponse:
         host = self.host(request, pk) if pk is not None else None

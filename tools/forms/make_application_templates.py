@@ -25,6 +25,11 @@ import docx_tags  # noqa: E402
 from make_contract_templates import SP, apply, width  # noqa: E402
 
 VALID_FROM = "2026-10-18"
+VALID_FROMS = {"1-26": "2026-10-20"}  # 第1-26号の取得日（改正日の記載なし）
+NOTES = {
+    "1-26": "第1-26号の全欄（T42 の追加）。値は services/form_data_application.py が作る。"
+    "署名の欄は申請人が手で書く（値を入れない）。",
+}
 FEE_ROWS = 10
 
 PERSON = [  # 所属機関・外国人（第3-1号・第13-1号・第13-2号で同じ）
@@ -66,6 +71,12 @@ SPECS: dict[str, list[str]] = {
         "[concluded_y:4]年[concluded_m:2]月[concluded_d:2]日＿＿締結",
         "（甲）[host_signature:18]㊞（乙）[organization_signature:18]㊞＿",
     ],
+    "1-26": [
+        "[relief:□][relief_y:5]年[relief_m:2]月[relief_d:2]日、納付緩和措置（換価の猶予、納税（納付）の猶予又は"
+        "納付受託等）又は社会保険料の納付免除措置の申請しているため。",
+        "[other:□]＿上記以外にやむを得ない理由がある場合は、以下に具体的な理由を記載。",
+        "＿＿＿＿＿[made_y:5]年[made_m:5]月[made_d:5]日",
+    ],
     "1-25": [
         "（[registration_year:2]登－[registration_serial:5]）",
         "[concluded_y:]年[concluded_m:3]月[concluded_d:3]日",
@@ -76,6 +87,10 @@ SPECS: dict[str, list[str]] = {
     ],
 }
 # 中身の無い段落（見出しの段落の次）に置くタグ
+EMPTY_AFTER_SPEC = {
+    # 第1-26号: 「上記以外に…記載。」の次の空の段落に理由の文
+    "1-26": [("上記以外にやむを得ない理由がある場合は", "other_reason")],
+}
 EMPTY_AFTER = {
     "1-25": [
         ("申請人（支援対象者）", "worker_name"),
@@ -86,7 +101,7 @@ EMPTY_AFTER = {
 TEXT = {
     "host_name", "host_address", "worker_name", "worker_sex", "worker_nationality",
     "worker_birth_date", "author", "organization_name", "organization_address", "field",
-    "court", "host_signature", "organization_signature", "full_support",
+    "court", "host_signature", "organization_signature", "full_support", "other_reason",
 }
 ZEN_TEXT = {"monthly_fee_text", "registration_serial"}
 YEN = {"monthly_fee"}
@@ -115,10 +130,18 @@ LABELS = {
     "full_support": "委託する支援業務（全部であること）",
     "fee": "別紙 委託料の内訳",
     "fee_total": "別紙 合計",
+    "relief": "納付緩和措置・納付免除措置を申請している",
+    "relief_y": "申請した日（年）",
+    "relief_m": "申請した日（月）",
+    "relief_d": "申請した日（日）",
+    "other": "上記以外のやむを得ない理由",
+    "other_reason": "具体的な理由",
 }
 
 
 def label_of(name: str) -> str:
+    if name in LABELS:
+        return LABELS[name]
     for suffix, word in (("_y", "（年）"), ("_m", "（月）"), ("_d", "（日）")):
         if name.endswith(suffix) and name[: -len(suffix)] in LABELS:
             return LABELS[name[: -len(suffix)]] + word
@@ -198,6 +221,10 @@ def make(form_id: str, document: docx_tags.Document) -> list[dict]:
         slots.append({"name": name, "original": ""})
         start = index + 1
     slots += apply(document, SPECS[form_id])
+    for heading, name in EMPTY_AFTER_SPEC.get(form_id, []):
+        index = document.find(heading)
+        document.append_to_empty(index + 1, docx_tags.default_tag(name, ""))
+        slots.append({"name": name, "original": ""})
     if form_id == "5-10":
         slots += fee_rows(document)
     if form_id == "1-25":
@@ -221,8 +248,10 @@ def main(form_id: str, folder: str) -> None:
                     out.writestr(item, original.read(item.filename))
     mapping = {
         "form_id": form_id,
-        "valid_from": VALID_FROM,
-        "note": f"T37 の全欄（ADR-0026）。値は services/form_data_application.py が作る。",
+        "valid_from": VALID_FROMS.get(form_id, VALID_FROM),
+        "note": NOTES.get(
+            form_id, "T37 の全欄（ADR-0026）。値は services/form_data_application.py が作る。"
+        ),
         "fields": items,
         "rules": [],
     }
@@ -231,5 +260,7 @@ def main(form_id: str, folder: str) -> None:
 
 if __name__ == "__main__":
     if len(sys.argv) != 3 or sys.argv[1] not in SPECS:
-        raise SystemExit("usage: make_application_templates.py <3-1|13-1|13-2|5-10|1-25> <folder>")
+        raise SystemExit(
+            "usage: make_application_templates.py <3-1|13-1|13-2|5-10|1-25|1-26> <folder>"
+        )
     main(sys.argv[1], sys.argv[2])

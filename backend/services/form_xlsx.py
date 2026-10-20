@@ -484,6 +484,164 @@ MAX_DIGIT_WIDTH_PX = 7  # 既定のフォント（ＭＳ Ｐゴシック 11pt）
 PADDING_PT = 3.0  # セルの左右の余白の近似
 
 
+# --- PDF に変換するための一時の〇（提出書類一覧表の提出確認欄。ADR-0032 の例外の一覧）-------------
+# 提出確認欄の「有」「無」の選んだ側に〇を付ける（一覧表の表紙の留意事項３）。
+# 保存するブックは変えず、変換の直前の一時の写しでだけ、セルを囲む楕円の図形を足す。
+
+DRAWING_TYPE = "application/vnd.openxmlformats-officedocument.drawing+xml"
+DRAWING_REL = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing"
+DRAWING_NS = (
+    'xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" '
+    'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"'
+)
+SHEET_AFTER_DRAWING = (
+    "<legacyDrawing",
+    "<legacyDrawingHF",
+    "<drawingHF",
+    "<picture",
+    "<oleObjects",
+    "<controls",
+    "<webPublishItems",
+    "<tableParts",
+    "<extLst",
+    "</worksheet>",
+)
+
+
+EMU_PER_PT = 12700
+CIRCLE_MAX_PT = 16.0  # 〇の直径の上限（字の大きさ程度）
+
+
+def _circle(shape_id: int, box: tuple[int, int, int, int], sheet_xml: str) -> str:
+    """セルの範囲（列・行の始めと終わり。1 始まり）の中央に置く円（線だけ、塗りなし）。
+
+    直径は範囲の幅と高さの小さい方の 9 割（上限 16pt）。行の高い欄でも縦長にならない。
+    """
+    left, top, right, bottom = box
+    widths, default_width = _column_widths(sheet_xml)
+    heights, default_height = _row_heights(sheet_xml)
+    column_pt = [_width_pt(widths.get(c, default_width)) for c in range(left, right + 1)]
+    row_pt = [heights.get(r, default_height) for r in range(top, bottom + 1)]
+    diameter = min(sum(column_pt), sum(row_pt), CIRCLE_MAX_PT / 0.9) * 0.9
+
+    def start(sizes: list[float], first: int) -> tuple[int, float]:
+        offset = (sum(sizes) - diameter) / 2
+        index = 0
+        while index < len(sizes) - 1 and offset >= sizes[index]:
+            offset -= sizes[index]
+            index += 1
+        return first + index, offset
+
+    column, column_offset = start(column_pt, left)
+    row, row_offset = start(row_pt, top)
+    size = round(diameter * EMU_PER_PT)
+    return (
+        "<xdr:oneCellAnchor>"
+        f"<xdr:from><xdr:col>{column - 1}</xdr:col>"
+        f"<xdr:colOff>{round(column_offset * EMU_PER_PT)}</xdr:colOff>"
+        f"<xdr:row>{row - 1}</xdr:row><xdr:rowOff>{round(row_offset * EMU_PER_PT)}</xdr:rowOff>"
+        f'</xdr:from><xdr:ext cx="{size}" cy="{size}"/>'
+        '<xdr:sp macro="" textlink="">'
+        f'<xdr:nvSpPr><xdr:cNvPr id="{shape_id}" name="circle {shape_id}"/><xdr:cNvSpPr/>'
+        "</xdr:nvSpPr><xdr:spPr>"
+        '<a:prstGeom prst="ellipse"><a:avLst/></a:prstGeom><a:noFill/>'
+        '<a:ln w="12700"><a:solidFill><a:srgbClr val="000000"/></a:solidFill></a:ln>'
+        "</xdr:spPr></xdr:sp><xdr:clientData/></xdr:oneCellAnchor>"
+    )
+
+
+def _cell_box(sheet_xml: str, ref: str) -> tuple[int, int, int, int]:
+    letters, row = split_ref(ref)
+    column = column_index(letters)
+    for left, top, right, bottom in merged_ranges(sheet_xml):
+        if left <= column <= right and top <= row <= bottom:
+            return left, top, right, bottom
+    return column, row, column, row
+
+
+def with_circles(source: Path, destination: Path, targets: list[str]) -> None:
+    """source を destination に写し、targets（「シート!A1」）のセルを囲む〇の図形を足す。"""
+    by_sheet: dict[str, list[str]] = {}
+    for target in targets:
+        sheet, ref = split_target(target)
+        by_sheet.setdefault(sheet, []).append(ref)
+    with zipfile.ZipFile(source) as archive:
+        names = set(archive.namelist())
+        paths = sheet_paths(archive)
+        edited: dict[str, bytes] = {}
+        types = archive.read("[Content_Types].xml").decode("utf-8")
+        for sheet, refs in by_sheet.items():
+            if sheet not in paths:
+                raise XlsxWriteError(f"sheet not found: {sheet}")
+            sheet_path = paths[sheet]
+            sheet_xml = archive.read(sheet_path).decode("utf-8")
+            rels_path = posixpath.join(
+                posixpath.dirname(sheet_path), "_rels", posixpath.basename(sheet_path) + ".rels"
+            )
+            rels = (
+                archive.read(rels_path).decode("utf-8")
+                if rels_path in names
+                else '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+                '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/'
+                'relationships"></Relationships>'
+            )
+            existing = re.search(r'<drawing r:id="([^"]+)"/>', sheet_xml)
+            if existing:
+                relation = re.search(
+                    rf'<Relationship [^>]*Id="{existing.group(1)}"[^>]*Target="([^"]+)"', rels
+                ) or re.search(
+                    rf'<Relationship [^>]*Target="([^"]+)"[^>]*Id="{existing.group(1)}"', rels
+                )
+                assert relation is not None
+                drawing_path = posixpath.normpath(
+                    posixpath.join(posixpath.dirname(sheet_path), relation.group(1))
+                )
+                drawing = archive.read(drawing_path).decode("utf-8")
+            else:
+                number = 1
+                while f"xl/drawings/drawing{number}.xml" in names | set(edited):
+                    number += 1
+                drawing_path = f"xl/drawings/drawing{number}.xml"
+                drawing = (
+                    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+                    f"<xdr:wsDr {DRAWING_NS}></xdr:wsDr>"
+                )
+                ids = {int(i) for i in re.findall(r'Id="rId(\d+)"', rels)}
+                rid = f"rId{max(ids, default=0) + 1}"
+                rels = rels.replace(
+                    "</Relationships>",
+                    f'<Relationship Id="{rid}" Type="{DRAWING_REL}" '
+                    f'Target="../drawings/drawing{number}.xml"/></Relationships>',
+                )
+                position = min(
+                    index
+                    for index in (sheet_xml.find(tag) for tag in SHEET_AFTER_DRAWING)
+                    if index >= 0
+                )
+                sheet_xml = sheet_xml[:position] + f'<drawing r:id="{rid}"/>' + sheet_xml[position:]
+                types = types.replace(
+                    "</Types>",
+                    f'<Override PartName="/{drawing_path}" ContentType="{DRAWING_TYPE}"/></Types>',
+                )
+                edited[sheet_path] = sheet_xml.encode("utf-8")
+                edited[rels_path] = rels.encode("utf-8")
+            next_id = max((int(i) for i in re.findall(r'cNvPr id="(\d+)"', drawing)), default=1)
+            shapes = ""
+            for ref in refs:
+                next_id += 1
+                shapes += _circle(next_id, _cell_box(sheet_xml, ref), sheet_xml)
+            drawing = drawing.replace("</xdr:wsDr>", shapes + "</xdr:wsDr>")
+            edited[drawing_path] = drawing.encode("utf-8")
+        edited["[Content_Types].xml"] = types.encode("utf-8")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        with zipfile.ZipFile(destination, "w", zipfile.ZIP_DEFLATED) as output:
+            for item in archive.infolist():
+                output.writestr(item, edited.get(item.filename, archive.read(item.filename)))
+            for name, data in edited.items():
+                if name not in names:
+                    output.writestr(name, data)
+
+
 def _column_widths(sheet_xml: str) -> tuple[dict[int, float], float]:
     default = re.search(r'defaultColWidth="([\d.]+)"', sheet_xml)
     widths: dict[int, float] = {}

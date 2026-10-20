@@ -84,6 +84,11 @@ def test_bulk_generation_and_submission_pdf(
         {"name": "一覧表.pdf", "mimeType": "application/pdf", "buffer": one_page()}
     )
     assert page.evaluate("document.documentElement.scrollWidth") <= width
+    # まず保存だけ（下書きに残る）→ 作り直すときに使い回せる（T42-D3 の直し）
+    page.locator("#submission-save").click()
+    expect(page.get_by_text("提出用の書類を保存しました。")).to_be_visible()
+    first = page.locator(".submission-item").first
+    expect(first.locator("[data-saved-file]")).to_have_count(1)
     page.locator("#id_accept_warnings").check()
     page.locator("#submission-make").click()
     expect(page.get_by_text("提出用の PDF を作りました。")).to_be_visible()

@@ -45,6 +45,7 @@ from services import (
     form_signatures,
     host_documents,
     pdf_pages,
+    submission_drafts,
     submission_lists,
 )
 from services.application_sets import Overview, RowState, Status
@@ -100,8 +101,8 @@ WARNING_TEXTS: Mapping[str, Any] = {
     ),
     Warn.NOT_ALLOWED: gettext_lazy("You cannot open this file, so it is not included."),
     Warn.UNREADABLE: gettext_lazy(
-        "The file cannot be read as a PDF or an image (broken, password-protected, or a "
-        "transparent PNG), so it is not included."
+        "The file cannot be read as a PDF or an image (broken or password-protected), so it "
+        "is not included."
     ),
     Warn.TRANSLATION_MISSING: gettext_lazy(
         "The worker's support language is Chinese, but the Chinese translation of this form is "
@@ -182,6 +183,7 @@ class Entry:
     warnings: list[str] = field(default_factory=list)
     same_as: str = ""  # 同じ生成物を先に綴じる行の ID
     can_upload: bool = False
+    saved: list[Attachment] = field(default_factory=list)  # 下書きに保存したシステムの外の書類
 
     @property
     def row(self) -> dict[str, Any]:
@@ -210,7 +212,9 @@ class Entry:
 class Outline:
     overview: Overview
     entries: list[Entry]
-    skip_table2: bool = False  # 既に受け入れている機関（第2表は提出不要。T42-D25）
+    skip_table2: bool = False  # 既に受け入れている機関（受入れ機関の印。第2表は提出不要。T42-D25）
+    # 印は無いが、台帳では同じ年度にほかの外国人の契約がある（受入れ機関の画面で確かめる案内）
+    accepting_suggested: bool = False
 
     @property
     def list_row_id(self) -> str:
@@ -337,22 +341,29 @@ def _ordered(states: Sequence[RowState]) -> list[RowState]:
     return head + [state for state in states if state not in head]
 
 
-def outline(
-    overview: Overview, user: AnyUser, uploads: Mapping[str, Sequence[Any]] | None = None
-) -> Outline:
-    """綴じる順と中身（ファイルは読み込んで、読めるかを確かめる）。"""
-    uploads = uploads or {}
+def outline(overview: Overview, user: AnyUser) -> Outline:
+    """綴じる順と中身（ファイルは読み込んで、読めるかを確かめる）。
+
+    システムの外の行は、下書きに保存したファイル（submission_drafts）を綴じる。
+    """
+    saved = submission_drafts.files_by_row(
+        submission_drafts.draft_for(overview.facts.worker, overview.definition.id)
+    )
     entries: list[Entry] = []
     bound_documents: dict[int, str] = {}
     facts = overview.facts
-    accepting = facts.contract is not None and submission_lists.already_accepting(
-        facts.contract.host_organization, facts.worker.pk, facts.on
+    host = facts.contract.host_organization if facts.contract is not None else None
+    accepting = host is not None and submission_lists.already_accepting(host, facts.on)
+    suggested = (
+        host is not None
+        and not accepting
+        and submission_lists.suggested_since(host, facts.on, worker_id=facts.worker.pk) is not None
     )
     for state in _ordered(overview.rows):
         entry = Entry(state=state)
         entries.append(entry)
         how = state.row["how"]
-        if state.status in STATUS_WARNINGS and state.applicable is not False:
+        if state.status in STATUS_WARNINGS and state.applicable is True:
             entry.warnings.append(STATUS_WARNINGS[state.status])
         if state.status in STATUS_NOTES:
             entry.warnings.append(STATUS_NOTES[state.status])
@@ -364,10 +375,9 @@ def outline(
             ]
         if "out" in how:
             entry.can_upload = NOT_BOUND_MARK not in str(state.row["document"])
-            for file in uploads.get(entry.row_id, ()):
-                entry.parts.append(
-                    Part(Source.UPLOAD, None, file.size or 0, False, _upload_reader(file))
-                )
+            for attachment in saved.get(entry.row_id, ()):
+                entry.parts.append(_attachment_part(attachment, user, entry, Source.UPLOAD))
+            entry.saved = list(saved.get(entry.row_id, ()))
         elif "generate" in how:
             document = state.document
             if state.status == Status.GENERATED and document is not None:
@@ -384,29 +394,12 @@ def outline(
             ]
         if accepting and entry.parts and submission_lists.is_table2(state.row):
             entry.warnings.append(host_documents.Issue.TABLE2_NOT_NEEDED)
-    found = Outline(overview=overview, entries=entries, skip_table2=accepting)
+    found = Outline(
+        overview=overview, entries=entries, skip_table2=accepting, accepting_suggested=suggested
+    )
     for part in found.bound_parts:
         part.load()
     return found
-
-
-def _upload_reader(file: Any) -> Callable[[], bytes]:
-    def read() -> bytes:
-        file.seek(0)
-        data: bytes = file.read()
-        return data
-
-    return read
-
-
-def upload_errors(outline_: Outline) -> dict[str, str]:
-    """その場でアップロードしたファイルのうち、読めないもの（行の ID → 理由）。"""
-    return {
-        entry.row_id: part.error
-        for entry in outline_.entries
-        for part in entry.parts
-        if part.source == Source.UPLOAD and part.error
-    }
 
 
 def build(
@@ -523,11 +516,15 @@ def bundles_of(worker: ForeignWorker) -> list[SubmissionBundle]:
 
 def can_view(user: AnyUser, bundle: SubmissionBundle) -> bool:
     """統合 PDF を見られるか（forms.generate と、対象の外国人を見る権限）。"""
+    return can_view_worker(user, bundle.worker_id)
+
+
+def can_view_worker(user: AnyUser, worker_id: int) -> bool:
     if not authorization.has_action(user, Action.FORMS_GENERATE):
         return False
     if not authorization.has_action(user, Action.WORKERS_VIEW):
         return False
-    return authorization.scope(user, ForeignWorker.objects.filter(pk=bundle.worker_id)).exists()
+    return authorization.scope(user, ForeignWorker.objects.filter(pk=worker_id)).exists()
 
 
 def is_assigned_staff(user: AnyUser, worker: ForeignWorker) -> bool:

@@ -1,0 +1,21 @@
+{
+  "form_id": "1-26",
+  "name": "公的義務履行に関する誓約書（参考様式第1-26号）",
+  "valid_from": "2026-10-20",
+  "language": "ja",
+  "owner": "common",
+  "method": "docx-tags",
+  "requires_signed_copy": true,
+  "original": "original.docx",
+  "template": "template.docx",
+  "source": {
+    "url": "https://www.moj.go.jp/isa/content/001459166.docx",
+    "page": "https://www.moj.go.jp/isa/applications/ssw/10_00020.html",
+    "retrieved_on": "2026-10-20",
+    "revision_date": null,
+    "revision_date_unknown": true,
+    "original_sha256": "5e6295e4da25c4d98e1379de867ca2b33cd41c7b10862bb9a6c7a355a64c09eb",
+    "template_sha256": "3711056c7965edf747913dd1c7635922c996a7259ee689d39f8870f73929954c",
+    "adr": "ADR-0033 の追記（取得日 2026-10-20（Last-Modified 2026-03-24。改正日の記載なし））、ADR-0018"
+  }
+}

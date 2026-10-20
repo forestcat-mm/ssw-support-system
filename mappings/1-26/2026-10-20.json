@@ -1,0 +1,74 @@
+{
+ "form_id": "1-26",
+ "valid_from": "2026-10-20",
+ "note": "第1-26号の全欄（T42 の追加）。値は services/form_data_application.py が作る。署名の欄は申請人が手で書く（値を入れない）。",
+ "fields": [
+  {
+   "key": "a.relief",
+   "target": "relief",
+   "format": "check",
+   "label": "納付緩和措置・納付免除措置を申請している"
+  },
+  {
+   "key": "a.relief_y",
+   "target": "relief_y",
+   "format": "zen",
+   "label": "申請した日（年）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "a.relief_m",
+   "target": "relief_m",
+   "format": "zen",
+   "label": "申請した日（月）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "a.relief_d",
+   "target": "relief_d",
+   "format": "zen",
+   "label": "申請した日（日）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "a.other",
+   "target": "other",
+   "format": "check",
+   "label": "上記以外のやむを得ない理由"
+  },
+  {
+   "key": "a.made_y",
+   "target": "made_y",
+   "format": "zen",
+   "label": "作成年月日（年）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "a.made_m",
+   "target": "made_m",
+   "format": "zen",
+   "label": "作成年月日（月）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "a.made_d",
+   "target": "made_d",
+   "format": "zen",
+   "label": "作成年月日（日）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "a.other_reason",
+   "target": "other_reason",
+   "format": "text",
+   "label": "具体的な理由"
+  }
+ ],
+ "rules": []
+}
