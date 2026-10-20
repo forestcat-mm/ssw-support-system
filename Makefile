@@ -69,7 +69,10 @@ gate3:      ## 段階3の受け入れ確認（seed → seed_documents → 署名
 gate4:      ## 段階4の受け入れ確認（seed → 一括申請 3 種・一括届出 7 種の xlsm を画面で作り、写した入力チェックと構造を確かめる）
 	$(COMPOSE) --profile e2e run --rm -e GATE4=1 e2e pytest -s e2e/test_phase4_gate.py
 
-CHECKS_LOG ?= .checks/checks.log
+# ログは .checks/logs/<日時>_<名前>_checks.log（CHECKS_NAME=phase4-blockD のように名前を付ける）。
+# いちばん新しいログは .checks/logs/latest.log でも開ける。
+CHECKS_NAME ?=
+CHECKS_LOG ?= .checks/logs/$(shell date +%Y-%m-%d_%H%M)_$(if $(CHECKS_NAME),$(CHECKS_NAME)_,)checks.log
 CHECK_LIMIT ?= 900
 # gate2 は既定で 1 つの基準日。期限の計算・届出の起票にさわったときは 3 つの基準日にする:
 #   make checks GATE2_DATES="2026-10-17 2026-11-30 2026-12-28"
