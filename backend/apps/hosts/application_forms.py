@@ -32,13 +32,24 @@ class FinancialYearForm(StyledFormMixin, forms.ModelForm[HostFinancialYear]):
 class OfficerForm(StyledFormMixin, forms.ModelForm[HostOfficer]):
     class Meta:
         model = HostOfficer
-        fields = ("name", "name_kana", "position", "address", "appointed_on", "resigned_on")
+        fields = (
+            "name",
+            "name_kana",
+            "position",
+            "address",
+            "appointed_on",
+            "resigned_on",
+            "not_involved_in_acceptance",
+        )
         widgets = {"appointed_on": forms.DateInput, "resigned_on": forms.DateInput}
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.fields["resigned_on"].help_text = _(
             "Enter it when the officer resigns. The row stays."
+        )
+        self.fields["not_involved_in_acceptance"].help_text = _(
+            "The officer is listed in the pledge on officers (form 1-23)."
         )
         self.style_fields()
 

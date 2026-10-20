@@ -1,5 +1,6 @@
-"""受入れ機関・分野の書類（第3-1号・第13-1号・第13-2号・第5-10号・第1-25号・第1-11-1号）のデータ
-（T37、ADR-0026。第1-11-1号は T46b、ADR-0038）。
+"""受入れ機関・分野の書類（第3-1号・第13-1号・第13-2号・第5-10号・第1-25号・第1-11-1号・第1-16号・
+第1-23号・第1-29号）のデータ（T37、ADR-0026。第1-11-1号は T46b、ADR-0038。第1-16号・1-23号・1-29号は
+T54、ADR-0043）。
 
 対象は雇用契約（外国人×受入れ機関）。支援委託契約は基準日に有効なもの（受入れ機関ごと。ADR-0015）で、
 第5-10号・第1-25号は対象の外国人ごとに作る（T37-D6）。作成責任者は生成の画面で入れる（初期値は
@@ -10,11 +11,13 @@ tools/forms/make_application_templates.py の欄の名前に「a.」を付けた
 from __future__ import annotations
 
 import datetime
+import json
 import re
 from typing import Any
 
 from apps.contracts.models import EmploymentContract
 from apps.core.models import Organization
+from apps.forms_engine.models import GeneratedDocument
 from apps.hosts.models import (
     FeeTiming,
     HostOfficer,
@@ -22,9 +25,11 @@ from apps.hosts.models import (
     SupportContract,
     SupportScope,
 )
+from apps.support.models import Briefing
 from apps.workers.models import Sex
 from services import contracts, hosts
 from services.form_data_contract import representative
+from services.support_catalog import SupportItem
 
 SP = "　"
 SEX_WORDS: dict[str, str] = {Sex.MALE: "男", Sex.FEMALE: "女"}
@@ -103,6 +108,152 @@ def build(
         data |= _explanation_1_25(contract, on, organization, author)
     elif form_id == "1-11-1":
         data |= overview_1_11_1(contract.host_organization, on, author)
+    elif form_id == "1-29":
+        data |= {"host_name": contract.host_organization.name} | _ymd("made", on)
+    elif form_id == "1-23":
+        data |= pledge_1_23(contract.host_organization, on, author)
+    return {f"a.{key}": value for key, value in data.items()}
+
+
+# --- 第1-23号・第1-16号（T54、ADR-0043）-------------------------------------------------
+
+PLEDGE_OFFICERS = 8  # 第1-23号の表の行数
+
+
+def uninvolved_officers(host: HostOrganization, on: datetime.date) -> list[HostOfficer]:
+    """基準日に在任の役員のうち、受入れ業務の執行に直接関与しない役員（T54-D2）。"""
+    return [
+        officer for officer in overview_officers(host, on) if officer.not_involved_in_acceptance
+    ]
+
+
+def pledge_1_23(host: HostOrganization, on: datetime.date, author: str) -> dict[str, Any]:
+    data: dict[str, Any] = {"host_name": host.name, "author": author} | _ymd("made", on)
+    for number, officer in enumerate(uninvolved_officers(host, on)[:PLEDGE_OFFICERS], start=1):
+        data |= {f"officer{number}_kana": officer.name_kana, f"officer{number}_name": officer.name}
+    return data
+
+
+HIRING_FORM_ID = "1-16"
+PAID_ROWS = 5
+YES, NO = "yes", "no"
+
+
+def hiring_defaults(contract: EmploymentContract, on: datetime.date) -> dict[str, Any]:
+    """第1-16号の入力の初期値。前の生成の入力、無ければ事前ガイダンスの記録から（T54-D3）。
+
+    3 事前ガイダンスの実施は記録があれば「有」。4 自国等の機関に支払った費用は、事前ガイダンスで
+    確かめた外国の機関の費用（円の額）。
+    """
+    previous = (
+        GeneratedDocument.objects.filter(template__form_id=HIRING_FORM_ID, worker=contract.worker)
+        .order_by("-created_at", "-pk")
+        .first()
+    )
+    if previous is not None:
+        inputs = json.loads(previous.snapshot).get("data", {}).get("a.inputs")
+        if isinstance(inputs, dict):
+            return inputs
+    briefing = (
+        Briefing.objects.filter(
+            worker=contract.worker,
+            record__kind=SupportItem.PRE_GUIDANCE,
+            record__voided_at__isnull=True,
+        )
+        .order_by("-record__occurred_on", "-pk")
+        .first()
+    )
+    values: dict[str, Any] = {"guidance": YES if briefing is not None else ""}
+    if briefing is not None:
+        for number, fee in enumerate(briefing.fees.all()[:PAID_ROWS], start=1):
+            values |= {
+                f"paid{number}_name": fee.organization_name,
+                f"paid{number}_purpose": fee.breakdown[:40],
+                f"paid{number}_date": fee.paid_on.isoformat(),
+                f"paid{number}_yen": fee.amount_jpy,
+            }
+    return values
+
+
+def _day(value: Any) -> datetime.date | None:
+    if isinstance(value, datetime.date):
+        return value
+    if isinstance(value, str) and value:
+        return datetime.date.fromisoformat(value)
+    return None
+
+
+def build_1_16(
+    contract: EmploymentContract, on: datetime.date, *, author: str, inputs: dict[str, Any]
+) -> dict[str, Any]:
+    """第1-16号 雇用の経緯に係る説明書の値（1・2・4 は入力、3 は入力〔初期値は記録〕）。"""
+    data: dict[str, Any] = {
+        "worker_name": contract.worker.name_romaji,
+        "host_name": contract.host_organization.name,
+        "author": author,
+    } | _ymd("made", on)
+    placement = inputs.get("placement")
+    if placement in (YES, NO):
+        data |= {"placement_yes": placement == YES, "placement_no": placement == NO}
+    if placement == YES:
+        kind = inputs.get("placement_kind")
+        if kind in ("paid", "free"):
+            data |= {"placement_paid": kind == "paid", "placement_free": kind == "free"}
+        data |= _ymd("license", _day(inputs.get("license_accepted_on")))
+        postal = inputs.get("placement_postal", "")
+        for key in (
+            "license_number",
+            "placement_name",
+            "placement_address",
+            "placement_phone",
+            "placement_applicant_amount",
+            "placement_applicant_yen",
+            "placement_applicant_purpose",
+            "placement_host_amount",
+            "placement_host_purpose",
+        ):
+            data[key] = inputs.get(key, "")
+        data["placement_postal"] = postal
+        agency = inputs.get("agency")
+        if agency in (YES, NO):
+            data |= {"agency_yes": agency == YES, "agency_no": agency == NO}
+        if agency == YES:
+            for key in (
+                "agency_name",
+                "agency_country",
+                "agency_address",
+                "agency_phone",
+                "agency_applicant_amount",
+                "agency_applicant_yen",
+                "agency_applicant_purpose",
+                "agency_host_amount",
+                "agency_host_yen",
+                "agency_host_purpose",
+            ):
+                data[key] = inputs.get(key, "")
+    guidance = inputs.get("guidance")
+    if guidance in (YES, NO):
+        data["guidance"] = "有" if guidance == YES else "無"
+    total = 0
+    for number in range(1, PAID_ROWS + 1):
+        day = _day(inputs.get(f"paid{number}_date"))
+        data |= {
+            f"paid{number}_name": inputs.get(f"paid{number}_name", ""),
+            f"paid{number}_purpose": inputs.get(f"paid{number}_purpose", ""),
+            f"paid{number}_date": japanese(day) if day else "",
+            f"paid{number}_amount": inputs.get(f"paid{number}_amount", ""),
+        }
+        yen = inputs.get(f"paid{number}_yen")
+        if isinstance(yen, int):
+            data[f"paid{number}_yen"] = yen
+            total += yen
+    if total:
+        data["paid_total_yen"] = total
+    data = {key: value for key, value in data.items() if value not in ("", None)}
+    data["inputs"] = {
+        key: (value.isoformat() if isinstance(value, datetime.date) else value)
+        for key, value in inputs.items()
+    }
     return {f"a.{key}": value for key, value in data.items()}
 
 

@@ -9,7 +9,7 @@ SPEC から、original の段落と照らしてタグを置く。タグは値が
 使い方（リポジトリの直下で）:
     python3 tools/forms/make_application_templates.py 3-1 templates/forms/3-1/2026-10-18 \\
         > mappings/3-1/2026-10-18.json
-    （13-1・13-2・5-10・1-25 も同じ）
+    （13-1・13-2・5-10・1-25・1-26・1-11-1・1-16・1-23・1-29 も同じ）
 """
 
 from __future__ import annotations
@@ -26,12 +26,23 @@ from make_contract_templates import SP, apply, width  # noqa: E402
 
 VALID_FROM = "2026-10-18"
 # 第1-26号・第1-11-1号の取得日（改正日の記載なし）
-VALID_FROMS = {"1-26": "2026-10-20", "1-11-1": "2026-10-20"}
+VALID_FROMS = {
+    "1-26": "2026-10-20",
+    "1-11-1": "2026-10-20",
+    "1-16": "2026-10-21",
+    "1-23": "2026-10-21",
+    "1-29": "2026-10-21",
+}
 NOTES = {
     "1-26": "第1-26号の全欄（T42 の追加）。値は services/form_data_application.py が作る。"
     "署名の欄は申請人が手で書く（値を入れない）。",
     "1-11-1": "第1-11-1号の 1〜3 と末尾（T46b、ADR-0038）。値は services/form_data_application.py が"
     "作る。4・5 は支援計画の全部を委託するので記載不要（空のまま）。",
+    "1-16": "第1-16号の全欄（T54、ADR-0043）。値は services/form_data_application.py が作る"
+    "（1・2・4 は生成の画面の入力、3 は事前ガイダンスの記録）。申請人の署名は人が書く。",
+    "1-23": "第1-23号の全欄（T54、ADR-0043）。値は services/form_data_application.py が作る"
+    "（受入れ業務の執行に直接関与しない役員。8 人まで）。",
+    "1-29": "第1-29号の全欄（T54、ADR-0043）。値は services/form_data_application.py が作る。",
 }
 FEE_ROWS = 10
 
@@ -84,6 +95,38 @@ SPECS: dict[str, list[str]] = {
         "＿＿＿＿＿＿＿＿＿＿[made_y:]年[made_m:5]月[made_d:4]日",
         "＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿特定技能所属機関の氏名又は名称[host_name:]",
     ],
+    "1-29": [
+        "[made_y:]年[made_m:3]月[made_d:3]日",
+        "特定技能所属機関名[host_name:18]",
+    ],
+    "1-23": [
+        "＿＿＿＿＿＿＿＿＿＿[made_y:]年[made_m:4]月[made_d:3]日＿＿作成",
+        "＿＿＿＿＿＿＿＿＿＿＿＿特定技能所属機関の氏名又は名称[host_name:14]",
+        "＿＿＿＿＿＿＿＿＿＿＿＿作＿成＿責＿任＿者＿役職・氏名[author:14]",
+    ],
+    "1-16": [
+        "特定技能外国人[worker_name:15]との間で特定技能雇用契約を締結するに当たっての雇用の経緯は以下の"
+        "とおりです。",
+        "[placement_yes:□]＿有＿＿＿＿＿＿＿＿＿＿＿[placement_no:□]＿無",
+        "[license_number:－＿＿＿－＿＿＿＿＿＿]（[license_y:2]年[license_m:2]月[license_d:2]日）",
+        "[placement_paid:□]＿有料職業紹介事業者＿＿＿＿[placement_free:□]＿無料職業紹介事業者",
+        "〒[placement_postal:＿＿＿－＿＿＿]",
+        "（電話番号[placement_phone:＿＿＿－＿＿＿＿－＿＿＿＿]）",
+        "[placement_applicant_amount:6]（[placement_applicant_yen:9]円）",
+        "[placement_applicant_purpose:14]として",
+        "[placement_host_amount:16]円",
+        "[placement_host_purpose:14]として",
+        "[agency_yes:□]＿有＿＿＿＿＿＿＿＿＿＿＿[agency_no:□]無",
+        "（電話番号[agency_phone:＿＿＿－＿＿＿＿－＿＿＿＿]）",
+        "[agency_applicant_amount:8]（[agency_applicant_yen:6]円）",
+        "[agency_applicant_purpose:13]として",
+        "[agency_host_amount:8]（[agency_host_yen:6]円）",
+        "[agency_host_purpose:]として",
+        "[guidance:有＿・＿無]",
+        "作成年月日：[made_y:4]年[made_m:3]月[made_d:3]日",
+        "特定技能所属機関の氏名又は名称[host_name:22]",
+        "作成責任者の氏名及び役職[author:22]",
+    ],
     "1-25": [
         "（[registration_year:2]登－[registration_serial:5]）",
         "[concluded_y:]年[concluded_m:3]月[concluded_d:3]日",
@@ -99,6 +142,13 @@ EMPTY_AFTER_SPEC = {
     "1-26": [("上記以外にやむを得ない理由がある場合は", "other_reason")],
 }
 EMPTY_AFTER = {
+    "1-16": [
+        ("４＿職業紹介事業者の氏名".replace("＿", SP), "placement_name"),
+        ("〒", "placement_address"),
+        ("２＿氏名又は名称".replace("＿", SP), "agency_name"),
+        ("３＿所在国".replace("＿", SP), "agency_country"),
+        ("４＿所在地".replace("＿", SP), "agency_address"),
+    ],
     "1-25": [
         ("申請人（支援対象者）", "worker_name"),
         ("契約の相手方（登録支援機関）", "organization_name"),
@@ -109,9 +159,15 @@ TEXT = {
     "host_name", "host_address", "worker_name", "worker_sex", "worker_nationality",
     "worker_birth_date", "author", "organization_name", "organization_address", "field",
     "court", "host_signature", "organization_signature", "full_support", "other_reason",
+    # 第1-16号（外国の通貨の額・電話・住所も文字のまま）
+    "license_number", "placement_postal", "placement_address", "placement_phone",
+    "placement_applicant_amount", "placement_applicant_purpose", "placement_host_amount",
+    "placement_host_purpose", "agency_country", "agency_address", "agency_phone",
+    "agency_applicant_amount", "agency_applicant_purpose", "agency_host_amount",
+    "agency_host_purpose", "guidance", "paid_total",
 }
 ZEN_TEXT = {"monthly_fee_text", "registration_serial"}
-YEN = {"monthly_fee"}
+YEN = {"monthly_fee", "placement_applicant_yen", "agency_applicant_yen", "agency_host_yen", "paid_total_yen"}
 LABELS = {
     "host_name": "特定技能所属機関の氏名又は名称",
     "host_address": "特定技能所属機関の住所",
@@ -143,6 +199,37 @@ LABELS = {
     "relief_d": "申請した日（日）",
     "other": "上記以外のやむを得ない理由",
     "other_reason": "具体的な理由",
+    # 第1-16号
+    "placement_yes": "1 職業紹介事業者のあっせん 有",
+    "placement_no": "1 職業紹介事業者のあっせん 無",
+    "license_number": "1 許可・届出受理番号",
+    "license": "1 受理受付年月日",
+    "placement_paid": "1 有料職業紹介事業者",
+    "placement_free": "1 無料職業紹介事業者",
+    "placement_name": "1 職業紹介事業者の氏名",
+    "placement_postal": "1 職業紹介事業者の郵便番号",
+    "placement_address": "1 職業紹介事業者の住所",
+    "placement_phone": "1 職業紹介事業者の電話番号",
+    "placement_applicant_amount": "1 求職者が支払った額",
+    "placement_applicant_yen": "1 求職者が支払った額（円）",
+    "placement_applicant_purpose": "1 求職者が支払った名目",
+    "placement_host_amount": "1 求人者が支払った額",
+    "placement_host_purpose": "1 求人者が支払った名目",
+    "agency_yes": "2 取次ぎ 有",
+    "agency_no": "2 取次ぎ 無",
+    "agency_name": "2 取次機関の氏名又は名称",
+    "agency_country": "2 取次機関の所在国",
+    "agency_address": "2 取次機関の所在地",
+    "agency_phone": "2 取次機関の電話番号",
+    "agency_applicant_amount": "2 求職者が支払った額",
+    "agency_applicant_yen": "2 求職者が支払った額（円）",
+    "agency_applicant_purpose": "2 求職者が支払った名目",
+    "agency_host_amount": "2 求人者が支払った額",
+    "agency_host_yen": "2 求人者が支払った額（円）",
+    "agency_host_purpose": "2 求人者が支払った名目",
+    "guidance": "3 事前ガイダンスの実施の有無",
+    "paid_total": "4 計",
+    "paid_total_yen": "4 計（円）",
 }
 
 
@@ -152,6 +239,14 @@ def label_of(name: str) -> str:
     for suffix, word in (("_y", "（年）"), ("_m", "（月）"), ("_d", "（日）")):
         if name.endswith(suffix) and name[: -len(suffix)] in LABELS:
             return LABELS[name[: -len(suffix)]] + word
+    if name.startswith("paid") and name[4:5].isdigit():
+        row, _, part = name[4:].partition("_")
+        words = {"name": "支払先機関の名称", "purpose": "名目", "date": "支払年月日", "amount": "支払金額",
+                 "yen": "支払金額（円）"}
+        return f"4 {row} 行目 {words[part]}"
+    if name.startswith("officer") and name[7:8].isdigit():
+        row, _, part = name[7:].partition("_")
+        return f"役員{row}（{'ふりがな' if part == 'kana' else '氏名'}）"
     if name.startswith("fee") and name[3:4].isdigit():
         row, _, part = name[3:].partition("_")
         words = {"name": "名目", "amount": "金額", "occasional": "随時", "regular": "定期"}
@@ -167,9 +262,11 @@ def fields_of(slots: list[dict]) -> list[dict]:
             fmt, align = "check", ""
         elif name in ZEN_TEXT:
             fmt, align = "zen_text", "left"
-        elif name in TEXT or name.endswith("_name"):
+        elif name in TEXT or name.endswith(("_name", "_kana", "_purpose", "_date")) or (
+            name.startswith("paid") and name.endswith("_amount")
+        ):
             fmt, align = "text", "left"
-        elif name in YEN or name.endswith("_amount") or name == "fee_total":
+        elif name in YEN or name.endswith(("_amount", "_yen")) or name == "fee_total":
             fmt, align = "zen_yen", "right"
         else:
             fmt, align = "zen", "right"
@@ -301,6 +398,58 @@ def overview_1_11_1(document: docx_tags.Document) -> list[dict]:
     return slots
 
 
+OFFICER_ROWS = 8  # 第1-23号の表（ふりがなと氏名の 2 行で 1 人。8 人）
+PAID_ROWS = 5  # 第1-16号 4 の表
+
+
+def officers_1_23(document: docx_tags.Document) -> list[dict]:
+    """第1-23号の役員の表: 見出しの段落の次から、右の欄の段落がふりがな・氏名の順に並ぶ。
+
+    1 行目の右の欄の段落、2 行目以降は（結合した左の欄の段落, 右の欄の段落）の順。
+    """
+    heading = document.find("役員の氏名")
+    slots: list[dict] = []
+    for number in range(1, OFFICER_ROWS + 1):
+        kana = heading + 1 + 2 * (2 * number - 2)
+        name = heading + 1 + 2 * (2 * number - 1)
+        slots.append(_slot(document, kana, f"officer{number}_kana", f"役員{number}（ふりがな）"))
+        slots.append(_slot(document, name, f"officer{number}_name", f"役員{number}（氏名）"))
+    return slots
+
+
+def paid_1_16(document: docx_tags.Document) -> list[dict]:
+    """第1-16号 4 の表（番号の段落の次が名称・名目・支払年月日・支払金額・円）と計。"""
+    slots: list[dict] = []
+    start = document.find("支払金額")
+    for row in range(1, PAID_ROWS + 1):
+        mark = str(row).translate(str.maketrans("0123456789", "０１２３４５６７８９"))
+        index = next(
+            i for i in range(start, len(document.paragraphs())) if document.text(i) == mark
+        )
+        slots.append(_slot(document, index + 1, f"paid{row}_name", f"4 {row} 行目 支払先機関の名称"))
+        slots.append(_slot(document, index + 2, f"paid{row}_purpose", f"4 {row} 行目 名目"))
+        date_text = document.text(index + 3)
+        if "年" not in date_text:
+            raise docx_tags.TagError(f"paid row {row}: {date_text!r}")
+        document.put_range(
+            index + 3, 0, len(date_text), docx_tags.default_tag(f"paid{row}_date", date_text)
+        )
+        slots.append({"name": f"paid{row}_date", "original": date_text})
+        slots.append(_slot(document, index + 4, f"paid{row}_amount", f"4 {row} 行目 支払金額"))
+        yen_text = document.text(index + 5)
+        blank = SP * 5
+        position = yen_text.index("（" + blank) + 1
+        document.put_range(
+            index + 5, position, position + 5, docx_tags.default_tag(f"paid{row}_yen", blank)
+        )
+        slots.append({"name": f"paid{row}_yen", "original": blank})
+        start = index + 1
+    total = document.find("計" + SP * 5, start=start)
+    slots += _apply_at(document, total, "計[paid_total:5]")
+    slots += _apply_at(document, total + 1, "（[paid_total_yen:5]円）")
+    return slots
+
+
 def make(form_id: str, document: docx_tags.Document) -> list[dict]:
     slots: list[dict] = []
     start = 0
@@ -320,6 +469,10 @@ def make(form_id: str, document: docx_tags.Document) -> list[dict]:
         slots += author_1_25(document)
     if form_id == "1-11-1":
         slots = overview_1_11_1(document) + slots
+    if form_id == "1-23":
+        slots = officers_1_23(document) + slots
+    if form_id == "1-16":
+        slots += paid_1_16(document)
     return fields_of(slots)
 
 
@@ -352,6 +505,7 @@ def main(form_id: str, folder: str) -> None:
 if __name__ == "__main__":
     if len(sys.argv) != 3 or sys.argv[1] not in SPECS:
         raise SystemExit(
-            "usage: make_application_templates.py <3-1|13-1|13-2|5-10|1-25|1-26|1-11-1> <folder>"
+            "usage: make_application_templates.py "
+            "<3-1|13-1|13-2|5-10|1-25|1-26|1-11-1|1-16|1-23|1-29> <folder>"
         )
     main(sys.argv[1], sys.argv[2])

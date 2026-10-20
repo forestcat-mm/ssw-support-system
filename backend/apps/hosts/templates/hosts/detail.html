@@ -45,7 +45,7 @@
     {% if application.officers %}<div class="table-scroll"><table class="table table--list" id="officers">
       <thead><tr><th>{% translate "full name" %}</th><th>{% translate "position" %}</th><th>{% translate "appointed on" %}</th><th>{% translate "resigned on" %}</th>{% if can_manage %}<th>{% translate "Actions" %}</th>{% endif %}</tr></thead>
       <tbody>{% for row in application.officers %}<tr{% if row.voided_at or row.resigned_on %} class="is-voided"{% endif %}>
-        <td>{{ row.name }}{% if row.name_kana %} <span class="caption">{{ row.name_kana }}</span>{% endif %}</td><td>{{ row.position }}</td><td class="mono">{{ row.appointed_on|date:"Y-m-d"|default:"—" }}</td><td class="mono">{{ row.resigned_on|date:"Y-m-d"|default:"—" }}</td>
+        <td>{{ row.name }}{% if row.name_kana %} <span class="caption">{{ row.name_kana }}</span>{% endif %}</td><td>{{ row.position }}{% if row.not_involved_in_acceptance %} <span class="caption" data-not-involved>{% translate "not involved in the acceptance" %}</span>{% endif %}</td><td class="mono">{{ row.appointed_on|date:"Y-m-d"|default:"—" }}</td><td class="mono">{{ row.resigned_on|date:"Y-m-d"|default:"—" }}</td>
         {% if can_manage %}<td>{% if row.voided_at %}<span class="caption">{{ row.void_reason }}</span>{% else %}<div class="actions"><a class="button button--neutral button--small" href="{% url 'hosts:application_row_edit' host.pk 'officers' row.pk %}">{% translate "Edit" %}</a><a class="button button--danger button--small" href="{% url 'hosts:application_row_void' host.pk 'officers' row.pk %}">{% translate "Void" %}</a></div>{% endif %}</td>{% endif %}
       </tr>{% endfor %}</tbody></table></div>{% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}
 

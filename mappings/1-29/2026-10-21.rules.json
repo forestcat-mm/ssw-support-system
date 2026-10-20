@@ -1,0 +1,8 @@
+{
+ "form_id": "1-29",
+ "valid_from": "2026-10-21",
+ "note": "T54 の規則（ADR-0043）。受入れ機関の名称が無ければ生成不可。",
+ "rules": [
+    {"id": "host_required", "type": "required", "key": "a.host_name", "label": "特定技能所属機関名", "severity": "block"}
+  ]
+}

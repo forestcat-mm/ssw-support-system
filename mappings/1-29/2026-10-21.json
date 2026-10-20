@@ -1,0 +1,38 @@
+{
+ "form_id": "1-29",
+ "valid_from": "2026-10-21",
+ "note": "第1-29号の全欄（T54、ADR-0043）。値は services/form_data_application.py が作る。",
+ "fields": [
+  {
+   "key": "a.made_y",
+   "target": "made_y",
+   "format": "zen",
+   "label": "作成年月日（年）"
+  },
+  {
+   "key": "a.made_m",
+   "target": "made_m",
+   "format": "zen",
+   "label": "作成年月日（月）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "a.made_d",
+   "target": "made_d",
+   "format": "zen",
+   "label": "作成年月日（日）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "a.host_name",
+   "target": "host_name",
+   "format": "text",
+   "label": "特定技能所属機関の氏名又は名称",
+   "pad": 18,
+   "align": "left"
+  }
+ ],
+ "rules": []
+}

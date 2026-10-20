@@ -1,0 +1,21 @@
+{
+  "form_id": "1-23",
+  "name": "特定技能所属機関の役員に関する誓約書（参考様式第1-23号）",
+  "valid_from": "2026-10-21",
+  "language": "ja",
+  "owner": "common",
+  "method": "docx-tags",
+  "requires_signed_copy": false,
+  "original": "original.docx",
+  "template": "template.docx",
+  "source": {
+    "url": "https://www.moj.go.jp/isa/content/001440288.docx",
+    "page": "https://www.moj.go.jp/isa/applications/ssw/10_00020.html",
+    "retrieved_on": "2026-10-21",
+    "revision_date": null,
+    "revision_date_unknown": true,
+    "original_sha256": "b9ba7c167c8dbf145632be70be52c77b0d69c3a393db6d265494a1a2dd9292fa",
+    "template_sha256": "ecd8155c97477625c666206fc1dd979bf3cd8bc3fa9be31e71d3ac85df50ab54",
+    "adr": "ADR-0043（取得日 2026-10-21（Last-Modified 2025-06-01。改正日の記載なし））、ADR-0018"
+  }
+}

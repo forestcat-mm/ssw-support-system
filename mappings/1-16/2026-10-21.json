@@ -1,0 +1,438 @@
+{
+ "form_id": "1-16",
+ "valid_from": "2026-10-21",
+ "note": "第1-16号の全欄（T54、ADR-0043）。値は services/form_data_application.py が作る（1・2・4 は生成の画面の入力、3 は事前ガイダンスの記録）。申請人の署名は人が書く。",
+ "fields": [
+  {
+   "key": "a.placement_name",
+   "target": "placement_name",
+   "format": "text",
+   "label": "1 職業紹介事業者の氏名"
+  },
+  {
+   "key": "a.placement_address",
+   "target": "placement_address",
+   "format": "text",
+   "label": "1 職業紹介事業者の住所"
+  },
+  {
+   "key": "a.agency_name",
+   "target": "agency_name",
+   "format": "text",
+   "label": "2 取次機関の氏名又は名称"
+  },
+  {
+   "key": "a.agency_country",
+   "target": "agency_country",
+   "format": "text",
+   "label": "2 取次機関の所在国"
+  },
+  {
+   "key": "a.agency_address",
+   "target": "agency_address",
+   "format": "text",
+   "label": "2 取次機関の所在地"
+  },
+  {
+   "key": "a.worker_name",
+   "target": "worker_name",
+   "format": "text",
+   "label": "特定技能外国人の氏名",
+   "pad": 15,
+   "align": "left"
+  },
+  {
+   "key": "a.placement_yes",
+   "target": "placement_yes",
+   "format": "check",
+   "label": "1 職業紹介事業者のあっせん 有"
+  },
+  {
+   "key": "a.placement_no",
+   "target": "placement_no",
+   "format": "check",
+   "label": "1 職業紹介事業者のあっせん 無"
+  },
+  {
+   "key": "a.license_number",
+   "target": "license_number",
+   "format": "text",
+   "label": "1 許可・届出受理番号"
+  },
+  {
+   "key": "a.license_y",
+   "target": "license_y",
+   "format": "zen",
+   "label": "1 受理受付年月日（年）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "a.license_m",
+   "target": "license_m",
+   "format": "zen",
+   "label": "1 受理受付年月日（月）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "a.license_d",
+   "target": "license_d",
+   "format": "zen",
+   "label": "1 受理受付年月日（日）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "a.placement_paid",
+   "target": "placement_paid",
+   "format": "check",
+   "label": "1 有料職業紹介事業者"
+  },
+  {
+   "key": "a.placement_free",
+   "target": "placement_free",
+   "format": "check",
+   "label": "1 無料職業紹介事業者"
+  },
+  {
+   "key": "a.placement_postal",
+   "target": "placement_postal",
+   "format": "text",
+   "label": "1 職業紹介事業者の郵便番号"
+  },
+  {
+   "key": "a.placement_phone",
+   "target": "placement_phone",
+   "format": "text",
+   "label": "1 職業紹介事業者の電話番号"
+  },
+  {
+   "key": "a.placement_applicant_amount",
+   "target": "placement_applicant_amount",
+   "format": "text",
+   "label": "1 求職者が支払った額",
+   "pad": 6,
+   "align": "left"
+  },
+  {
+   "key": "a.placement_applicant_yen",
+   "target": "placement_applicant_yen",
+   "format": "zen_yen",
+   "label": "1 求職者が支払った額（円）",
+   "pad": 9,
+   "align": "right"
+  },
+  {
+   "key": "a.placement_applicant_purpose",
+   "target": "placement_applicant_purpose",
+   "format": "text",
+   "label": "1 求職者が支払った名目",
+   "pad": 14,
+   "align": "left"
+  },
+  {
+   "key": "a.placement_host_amount",
+   "target": "placement_host_amount",
+   "format": "text",
+   "label": "1 求人者が支払った額",
+   "pad": 16,
+   "align": "left"
+  },
+  {
+   "key": "a.placement_host_purpose",
+   "target": "placement_host_purpose",
+   "format": "text",
+   "label": "1 求人者が支払った名目",
+   "pad": 14,
+   "align": "left"
+  },
+  {
+   "key": "a.agency_yes",
+   "target": "agency_yes",
+   "format": "check",
+   "label": "2 取次ぎ 有"
+  },
+  {
+   "key": "a.agency_no",
+   "target": "agency_no",
+   "format": "check",
+   "label": "2 取次ぎ 無"
+  },
+  {
+   "key": "a.agency_phone",
+   "target": "agency_phone",
+   "format": "text",
+   "label": "2 取次機関の電話番号"
+  },
+  {
+   "key": "a.agency_applicant_amount",
+   "target": "agency_applicant_amount",
+   "format": "text",
+   "label": "2 求職者が支払った額",
+   "pad": 8,
+   "align": "left"
+  },
+  {
+   "key": "a.agency_applicant_yen",
+   "target": "agency_applicant_yen",
+   "format": "zen_yen",
+   "label": "2 求職者が支払った額（円）",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "a.agency_applicant_purpose",
+   "target": "agency_applicant_purpose",
+   "format": "text",
+   "label": "2 求職者が支払った名目",
+   "pad": 13,
+   "align": "left"
+  },
+  {
+   "key": "a.agency_host_amount",
+   "target": "agency_host_amount",
+   "format": "text",
+   "label": "2 求人者が支払った額",
+   "pad": 8,
+   "align": "left"
+  },
+  {
+   "key": "a.agency_host_yen",
+   "target": "agency_host_yen",
+   "format": "zen_yen",
+   "label": "2 求人者が支払った額（円）",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "a.agency_host_purpose",
+   "target": "agency_host_purpose",
+   "format": "text",
+   "label": "2 求人者が支払った名目"
+  },
+  {
+   "key": "a.guidance",
+   "target": "guidance",
+   "format": "text",
+   "label": "3 事前ガイダンスの実施の有無"
+  },
+  {
+   "key": "a.made_y",
+   "target": "made_y",
+   "format": "zen",
+   "label": "作成年月日（年）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "a.made_m",
+   "target": "made_m",
+   "format": "zen",
+   "label": "作成年月日（月）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "a.made_d",
+   "target": "made_d",
+   "format": "zen",
+   "label": "作成年月日（日）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "a.host_name",
+   "target": "host_name",
+   "format": "text",
+   "label": "特定技能所属機関の氏名又は名称",
+   "pad": 22,
+   "align": "left"
+  },
+  {
+   "key": "a.author",
+   "target": "author",
+   "format": "text",
+   "label": "作成責任者",
+   "pad": 22,
+   "align": "left"
+  },
+  {
+   "key": "a.paid1_name",
+   "target": "paid1_name",
+   "format": "text",
+   "label": "4 1 行目 支払先機関の名称"
+  },
+  {
+   "key": "a.paid1_purpose",
+   "target": "paid1_purpose",
+   "format": "text",
+   "label": "4 1 行目 名目"
+  },
+  {
+   "key": "a.paid1_date",
+   "target": "paid1_date",
+   "format": "text",
+   "label": "4 1 行目 支払年月日"
+  },
+  {
+   "key": "a.paid1_amount",
+   "target": "paid1_amount",
+   "format": "text",
+   "label": "4 1 行目 支払金額"
+  },
+  {
+   "key": "a.paid1_yen",
+   "target": "paid1_yen",
+   "format": "zen_yen",
+   "label": "4 1 行目 支払金額（円）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "a.paid2_name",
+   "target": "paid2_name",
+   "format": "text",
+   "label": "4 2 行目 支払先機関の名称"
+  },
+  {
+   "key": "a.paid2_purpose",
+   "target": "paid2_purpose",
+   "format": "text",
+   "label": "4 2 行目 名目"
+  },
+  {
+   "key": "a.paid2_date",
+   "target": "paid2_date",
+   "format": "text",
+   "label": "4 2 行目 支払年月日"
+  },
+  {
+   "key": "a.paid2_amount",
+   "target": "paid2_amount",
+   "format": "text",
+   "label": "4 2 行目 支払金額"
+  },
+  {
+   "key": "a.paid2_yen",
+   "target": "paid2_yen",
+   "format": "zen_yen",
+   "label": "4 2 行目 支払金額（円）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "a.paid3_name",
+   "target": "paid3_name",
+   "format": "text",
+   "label": "4 3 行目 支払先機関の名称"
+  },
+  {
+   "key": "a.paid3_purpose",
+   "target": "paid3_purpose",
+   "format": "text",
+   "label": "4 3 行目 名目"
+  },
+  {
+   "key": "a.paid3_date",
+   "target": "paid3_date",
+   "format": "text",
+   "label": "4 3 行目 支払年月日"
+  },
+  {
+   "key": "a.paid3_amount",
+   "target": "paid3_amount",
+   "format": "text",
+   "label": "4 3 行目 支払金額"
+  },
+  {
+   "key": "a.paid3_yen",
+   "target": "paid3_yen",
+   "format": "zen_yen",
+   "label": "4 3 行目 支払金額（円）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "a.paid4_name",
+   "target": "paid4_name",
+   "format": "text",
+   "label": "4 4 行目 支払先機関の名称"
+  },
+  {
+   "key": "a.paid4_purpose",
+   "target": "paid4_purpose",
+   "format": "text",
+   "label": "4 4 行目 名目"
+  },
+  {
+   "key": "a.paid4_date",
+   "target": "paid4_date",
+   "format": "text",
+   "label": "4 4 行目 支払年月日"
+  },
+  {
+   "key": "a.paid4_amount",
+   "target": "paid4_amount",
+   "format": "text",
+   "label": "4 4 行目 支払金額"
+  },
+  {
+   "key": "a.paid4_yen",
+   "target": "paid4_yen",
+   "format": "zen_yen",
+   "label": "4 4 行目 支払金額（円）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "a.paid5_name",
+   "target": "paid5_name",
+   "format": "text",
+   "label": "4 5 行目 支払先機関の名称"
+  },
+  {
+   "key": "a.paid5_purpose",
+   "target": "paid5_purpose",
+   "format": "text",
+   "label": "4 5 行目 名目"
+  },
+  {
+   "key": "a.paid5_date",
+   "target": "paid5_date",
+   "format": "text",
+   "label": "4 5 行目 支払年月日"
+  },
+  {
+   "key": "a.paid5_amount",
+   "target": "paid5_amount",
+   "format": "text",
+   "label": "4 5 行目 支払金額"
+  },
+  {
+   "key": "a.paid5_yen",
+   "target": "paid5_yen",
+   "format": "zen_yen",
+   "label": "4 5 行目 支払金額（円）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "a.paid_total",
+   "target": "paid_total",
+   "format": "text",
+   "label": "4 計",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "a.paid_total_yen",
+   "target": "paid_total_yen",
+   "format": "zen_yen",
+   "label": "4 計（円）",
+   "pad": 5,
+   "align": "right"
+  }
+ ],
+ "rules": []
+}

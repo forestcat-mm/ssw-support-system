@@ -1,0 +1,21 @@
+{
+  "form_id": "1-16",
+  "name": "雇用の経緯に係る説明書（参考様式第1-16号）",
+  "valid_from": "2026-10-21",
+  "language": "ja",
+  "owner": "common",
+  "method": "docx-tags",
+  "requires_signed_copy": false,
+  "original": "original.docx",
+  "template": "template.docx",
+  "source": {
+    "url": "https://www.moj.go.jp/isa/content/001338986.docx",
+    "page": "https://www.moj.go.jp/isa/applications/ssw/10_00020.html",
+    "retrieved_on": "2026-10-21",
+    "revision_date": null,
+    "revision_date_unknown": true,
+    "original_sha256": "51d36c7cf5fc597318010d1f8759595cfd11d35850232c9e7c13a9714b2aa800",
+    "template_sha256": "ed0a466385190b7ee768c4363da2206625f4bbb547265a891046e0ac7943468d",
+    "adr": "ADR-0043（取得日 2026-10-21（Last-Modified 2024-03-03。改正日の記載なし））、ADR-0018"
+  }
+}

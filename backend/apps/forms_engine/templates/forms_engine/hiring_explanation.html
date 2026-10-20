@@ -1,0 +1,46 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Generate the explanation of the hiring process (form 1-16)" %} | {{ worker }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{{ back_url }}">← {{ worker }}</a></p>
+  <h1>{% translate "Generate the explanation of the hiring process (form 1-16)" %}</h1>
+  <p class="caption">{% translate "Items 1, 2 and 4 are not in the ledger; enter them here. The values of the previous generation (or the fees confirmed in the pre-arrival guidance) are filled in first. The applicant signs the printed form, and it must be written in a language the applicant understands." %}</p>
+{% endblock %}
+{% block content %}
+<div class="stack form">
+  {% if result %}{% include "forms_engine/components/findings.html" %}{% endif %}
+  <form class="form" method="post" novalidate id="generate-form">
+    {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+    {% include "ui/components/form_errors.html" %}
+    <section class="card stack">
+      {% form_field form.basis_on %}{% form_field form.author %}
+    </section>
+    <section class="card stack" id="hiring-placement">
+      <h2 class="card__title">{% translate "1 Employment placement business (in Japan)" %}</h2>
+      {% form_field form.placement %}{% form_field form.license_number %}{% form_field form.license_accepted_on %}{% form_field form.placement_kind %}
+      {% form_field form.placement_name %}{% form_field form.placement_postal %}{% form_field form.placement_address %}{% form_field form.placement_phone %}
+      {% form_field form.placement_applicant_amount %}{% form_field form.placement_applicant_yen %}{% form_field form.placement_applicant_purpose %}
+      {% form_field form.placement_host_amount %}{% form_field form.placement_host_purpose %}
+    </section>
+    <section class="card stack" id="hiring-agency">
+      <h2 class="card__title">{% translate "2 Intermediary organization (abroad)" %}</h2>
+      {% form_field form.agency %}{% form_field form.agency_name %}{% form_field form.agency_country %}{% form_field form.agency_address %}{% form_field form.agency_phone %}
+      {% form_field form.agency_applicant_amount %}{% form_field form.agency_applicant_yen %}{% form_field form.agency_applicant_purpose %}
+      {% form_field form.agency_host_amount %}{% form_field form.agency_host_yen %}{% form_field form.agency_host_purpose %}
+    </section>
+    <section class="card stack" id="hiring-guidance">
+      <h2 class="card__title">{% translate "3 Pre-arrival guidance" %}</h2>
+      {% form_field form.guidance %}
+    </section>
+    <section class="card stack" id="hiring-paid">
+      <h2 class="card__title">{% translate "4 Fees the applicant paid to organizations in the home country" %}</h2>
+      {% for row in form.paid_rows %}<div class="stack" data-paid-row="{{ forloop.counter }}">{% for field in row %}{% form_field field %}{% endfor %}</div>{% endfor %}
+    </section>
+    {% if result.warnings and not result.blocking %}<section class="card stack">{% form_field form.accept_warnings %}</section>{% endif %}
+    <div class="form-actions">
+      <button class="button button--neutral" type="submit" name="action" value="check">{% translate "Check again" %}</button>
+      {% if result and not result.blocking %}<button class="button button--primary" type="submit" name="action" value="generate">{% translate "Generate" %}</button>{% endif %}
+      <a class="button button--neutral" href="{{ back_url }}">{% translate "Cancel" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{
+  "form_id": "1-29",
+  "name": "書類省略に当たっての誓約書（参考様式第1-29号）",
+  "valid_from": "2026-10-21",
+  "language": "ja",
+  "owner": "common",
+  "method": "docx-tags",
+  "requires_signed_copy": false,
+  "original": "original.docx",
+  "template": "template.docx",
+  "source": {
+    "url": "https://www.moj.go.jp/isa/content/001459167.docx",
+    "page": "https://www.moj.go.jp/isa/applications/ssw/10_00020.html",
+    "retrieved_on": "2026-10-21",
+    "revision_date": null,
+    "revision_date_unknown": true,
+    "original_sha256": "b4517804cc51476b19e09f18edbdaa85ba46a508f0894475dec30159cebf14e1",
+    "template_sha256": "b733d253221eb4953147d1a249d90849635705c9c017ee62a38313b86dc3c0c8",
+    "adr": "ADR-0043（取得日 2026-10-21（Last-Modified 2026-03-24。改正日の記載なし））、ADR-0018"
+  }
+}

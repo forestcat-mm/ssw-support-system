@@ -1,0 +1,142 @@
+{
+ "form_id": "1-23",
+ "valid_from": "2026-10-21",
+ "note": "第1-23号の全欄（T54、ADR-0043）。値は services/form_data_application.py が作る（受入れ業務の執行に直接関与しない役員。8 人まで）。",
+ "fields": [
+  {
+   "key": "a.officer1_kana",
+   "target": "officer1_kana",
+   "format": "text",
+   "label": "役員1（ふりがな）"
+  },
+  {
+   "key": "a.officer1_name",
+   "target": "officer1_name",
+   "format": "text",
+   "label": "役員1（氏名）"
+  },
+  {
+   "key": "a.officer2_kana",
+   "target": "officer2_kana",
+   "format": "text",
+   "label": "役員2（ふりがな）"
+  },
+  {
+   "key": "a.officer2_name",
+   "target": "officer2_name",
+   "format": "text",
+   "label": "役員2（氏名）"
+  },
+  {
+   "key": "a.officer3_kana",
+   "target": "officer3_kana",
+   "format": "text",
+   "label": "役員3（ふりがな）"
+  },
+  {
+   "key": "a.officer3_name",
+   "target": "officer3_name",
+   "format": "text",
+   "label": "役員3（氏名）"
+  },
+  {
+   "key": "a.officer4_kana",
+   "target": "officer4_kana",
+   "format": "text",
+   "label": "役員4（ふりがな）"
+  },
+  {
+   "key": "a.officer4_name",
+   "target": "officer4_name",
+   "format": "text",
+   "label": "役員4（氏名）"
+  },
+  {
+   "key": "a.officer5_kana",
+   "target": "officer5_kana",
+   "format": "text",
+   "label": "役員5（ふりがな）"
+  },
+  {
+   "key": "a.officer5_name",
+   "target": "officer5_name",
+   "format": "text",
+   "label": "役員5（氏名）"
+  },
+  {
+   "key": "a.officer6_kana",
+   "target": "officer6_kana",
+   "format": "text",
+   "label": "役員6（ふりがな）"
+  },
+  {
+   "key": "a.officer6_name",
+   "target": "officer6_name",
+   "format": "text",
+   "label": "役員6（氏名）"
+  },
+  {
+   "key": "a.officer7_kana",
+   "target": "officer7_kana",
+   "format": "text",
+   "label": "役員7（ふりがな）"
+  },
+  {
+   "key": "a.officer7_name",
+   "target": "officer7_name",
+   "format": "text",
+   "label": "役員7（氏名）"
+  },
+  {
+   "key": "a.officer8_kana",
+   "target": "officer8_kana",
+   "format": "text",
+   "label": "役員8（ふりがな）"
+  },
+  {
+   "key": "a.officer8_name",
+   "target": "officer8_name",
+   "format": "text",
+   "label": "役員8（氏名）"
+  },
+  {
+   "key": "a.made_y",
+   "target": "made_y",
+   "format": "zen",
+   "label": "作成年月日（年）"
+  },
+  {
+   "key": "a.made_m",
+   "target": "made_m",
+   "format": "zen",
+   "label": "作成年月日（月）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "a.made_d",
+   "target": "made_d",
+   "format": "zen",
+   "label": "作成年月日（日）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "a.host_name",
+   "target": "host_name",
+   "format": "text",
+   "label": "特定技能所属機関の氏名又は名称",
+   "pad": 14,
+   "align": "left"
+  },
+  {
+   "key": "a.author",
+   "target": "author",
+   "format": "text",
+   "label": "作成責任者",
+   "pad": 14,
+   "align": "left"
+  }
+ ],
+ "rules": []
+}

@@ -300,7 +300,7 @@
     "no": "H64"
    },
    "how": {
-    "out": true
+    "generate": "1-16"
    },
    "applies": [
     "not_accepting"
@@ -594,7 +594,7 @@
     "no": "I11"
    },
    "how": {
-    "out": true
+    "generate": "1-29"
    },
    "applies": [
     "track_record"
@@ -830,10 +830,11 @@
     "no": "I14"
    },
    "how": {
-    "out": true
+    "generate": "1-23"
    },
    "applies": [
-    "corporate"
+    "corporate",
+    "uninvolved_officer"
    ]
   },
   {

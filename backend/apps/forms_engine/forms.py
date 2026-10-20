@@ -163,6 +163,137 @@ class RegenerateForm(forms.Form):
         field.queryset = choices
 
 
+YES_NO = [("", "---------"), ("yes", _("yes")), ("no", _("no"))]
+
+
+class HiringExplanationForm(StyledFormMixin, forms.Form):
+    """第1-16号 雇用の経緯に係る説明書の生成（T54-D3）。1・2・4 は台帳に無いのでここで入れる。"""
+
+    basis_on = forms.DateField(
+        label=_("date of preparation (basis date)"),
+        widget=forms.DateInput,
+        help_text=_("Used to choose the form version and printed as the date."),
+    )
+    author = forms.CharField(label=_("person responsible (title and name)"), max_length=60)
+    placement = forms.ChoiceField(
+        label=_("placement by an employment placement business"), choices=YES_NO, required=False
+    )
+    license_number = forms.CharField(
+        label=_("license or notification number"), max_length=30, required=False
+    )
+    license_accepted_on = forms.DateField(
+        label=_("date of license or acceptance"), widget=forms.DateInput, required=False
+    )
+    placement_kind = forms.ChoiceField(
+        label=_("type of placement business"),
+        choices=[("", "---------"), ("paid", _("fee-charging")), ("free", _("free of charge"))],
+        required=False,
+    )
+    placement_name = forms.CharField(
+        label=_("name of the placement business"), max_length=100, required=False
+    )
+    placement_postal = forms.CharField(label=_("postal code"), max_length=10, required=False)
+    placement_address = forms.CharField(label=_("address"), max_length=200, required=False)
+    placement_phone = forms.CharField(label=_("phone number"), max_length=20, required=False)
+    placement_applicant_amount = forms.CharField(
+        label=_("amount paid by the applicant (currency)"), max_length=20, required=False
+    )
+    placement_applicant_yen = forms.IntegerField(
+        label=_("amount paid by the applicant (yen)"), min_value=0, required=False
+    )
+    placement_applicant_purpose = forms.CharField(
+        label=_("purpose of the payment by the applicant"), max_length=40, required=False
+    )
+    placement_host_amount = forms.CharField(
+        label=_("amount paid by the host organization"), max_length=20, required=False
+    )
+    placement_host_purpose = forms.CharField(
+        label=_("purpose of the payment by the host organization"), max_length=40, required=False
+    )
+    agency = forms.ChoiceField(
+        label=_("intermediary organization abroad"), choices=YES_NO, required=False
+    )
+    agency_name = forms.CharField(
+        label=_("name of the intermediary"), max_length=100, required=False
+    )
+    agency_country = forms.CharField(label=_("country"), max_length=50, required=False)
+    agency_address = forms.CharField(label=_("address"), max_length=200, required=False)
+    agency_phone = forms.CharField(label=_("phone number"), max_length=30, required=False)
+    agency_applicant_amount = forms.CharField(
+        label=_("amount paid by the applicant (currency)"), max_length=20, required=False
+    )
+    agency_applicant_yen = forms.IntegerField(
+        label=_("amount paid by the applicant (yen)"), min_value=0, required=False
+    )
+    agency_applicant_purpose = forms.CharField(
+        label=_("purpose of the payment by the applicant"), max_length=40, required=False
+    )
+    agency_host_amount = forms.CharField(
+        label=_("amount paid by the host organization (currency)"), max_length=20, required=False
+    )
+    agency_host_yen = forms.IntegerField(
+        label=_("amount paid by the host organization (yen)"), min_value=0, required=False
+    )
+    agency_host_purpose = forms.CharField(
+        label=_("purpose of the payment by the host organization"), max_length=40, required=False
+    )
+    guidance = forms.ChoiceField(
+        label=_("pre-arrival guidance carried out as in the support plan"),
+        choices=YES_NO,
+        required=False,
+    )
+    accept_warnings = forms.BooleanField(
+        label=_("I have checked the warnings and will generate the form anyway."), required=False
+    )
+
+    PAID_ROWS = 5
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        for number in range(1, self.PAID_ROWS + 1):
+            self.fields[f"paid{number}_name"] = forms.CharField(
+                label=_("organization paid (row %(number)s)") % {"number": number},
+                max_length=60,
+                required=False,
+            )
+            self.fields[f"paid{number}_purpose"] = forms.CharField(
+                label=_("purpose (row %(number)s)") % {"number": number},
+                max_length=40,
+                required=False,
+            )
+            self.fields[f"paid{number}_date"] = forms.DateField(
+                label=_("date paid (row %(number)s)") % {"number": number},
+                widget=forms.DateInput,
+                required=False,
+            )
+            self.fields[f"paid{number}_amount"] = forms.CharField(
+                label=_("amount in local currency or US dollars (row %(number)s)")
+                % {"number": number},
+                max_length=20,
+                required=False,
+            )
+            self.fields[f"paid{number}_yen"] = forms.IntegerField(
+                label=_("amount in yen (row %(number)s)") % {"number": number},
+                min_value=0,
+                required=False,
+            )
+        self.style_fields()
+
+    def inputs(self) -> dict[str, Any]:
+        skipped = {"basis_on", "author", "accept_warnings"}
+        return {
+            name: value
+            for name, value in self.cleaned_data.items()
+            if name not in skipped and value not in (None, "")
+        }
+
+    def paid_rows(self) -> list[list[Any]]:
+        return [
+            [self[f"paid{number}_{part}"] for part in ("name", "purpose", "date", "amount", "yen")]
+            for number in range(1, self.PAID_ROWS + 1)
+        ]
+
+
 class ApplicationSetForm(StyledFormMixin, forms.Form):
     """申請の書類の一覧の条件（申請の種類・基準日。T37-D3）。"""
 

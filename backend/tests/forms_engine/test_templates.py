@@ -26,10 +26,13 @@ def test_loading_is_idempotent_and_records_the_sources(loaded: None) -> None:
     assert report.created == [] and report.updated == []
     assert sorted(report.unchanged) == [
         "1-11-1 2026-10-20 ja",
+        "1-16 2026-10-21 ja",
         "1-17 2026-10-17 ja",
         "1-17 2026-10-17 zh-hans",
+        "1-23 2026-10-21 ja",
         "1-25 2026-10-18 ja",
         "1-26 2026-10-20 ja",
+        "1-29 2026-10-21 ja",
         "1-4 2026-10-18 ja",
         "1-5 2026-10-18 ja",
         "1-5 2026-10-18 ja-zh",
@@ -63,7 +66,7 @@ def test_loading_is_idempotent_and_records_the_sources(loaded: None) -> None:
         "efile-4-3 2026-04-01 ja",
         "experience-certificate 2026-10-18 ja",
     ]
-    assert FormTemplate.objects.count() == 37 and FormMapping.objects.count() == 37
+    assert FormTemplate.objects.count() == 40 and FormMapping.objects.count() == 40
 
 
 def test_changed_original_stops_loading(repo_copy: tuple[Path, Path]) -> None:

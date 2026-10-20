@@ -37,6 +37,7 @@ from apps.workers.models import (
 from services import (
     contracts,
     deadlines,
+    form_data_application,
     form_languages,
     form_signatures,
     host_documents,
@@ -49,7 +50,7 @@ INDUSTRIAL = "industrial_products"
 FOOD = "food_manufacturing"
 # 雇用契約を対象に生成する様式（契約タブ・申請の書類の一覧から生成する）
 CONTRACT_VERSION_FORMS = ("1-4", "1-5", "1-6")
-CONTRACT_FORMS = ("3-1", "13-1", "13-2", "5-10", "1-25", "1-11-1")
+CONTRACT_FORMS = ("3-1", "13-1", "13-2", "5-10", "1-25", "1-11-1", "1-16", "1-23", "1-29")
 # 外国人を対象に、理由などを入れて 1 件ずつ生成する様式（第1-26号。T42 の追加）
 WORKER_FORMS = ("1-26",)
 
@@ -260,6 +261,9 @@ def _condition(condition: str, facts: Facts) -> bool | None:
         return None if facts.full_support is None else not facts.full_support
     if condition == "variable_one_year":
         return version.variable_hours_unit == VariableHoursUnit.ONE_YEAR
+    if condition == "uninvolved_officer":
+        # 第1-23号: 受入れ業務の執行に直接関与しない役員がいる場合（受入れ機関の役員の印。T54-D2）
+        return bool(form_data_application.uninvolved_officers(contract.host_organization, facts.on))
     if condition == "not_accepting":
         # 「同一年度内に既に受け入れている機関…は省略可」の△の行: 受入れ継続の印が無ければ要る
         host = contract.host_organization
@@ -316,6 +320,8 @@ def _generate_url(form_id: str, facts: Facts) -> str:
         return reverse(
             "workers:contract_generate", args=[worker.pk, contract.pk, version.version, form_id]
         )
+    if form_id == "1-16":
+        return reverse("workers:hiring_explanation", args=[worker.pk, contract.pk])
     return reverse("workers:contract_own_document", args=[worker.pk, contract.pk, form_id])
 
 
@@ -540,7 +546,13 @@ def _state_of(row: dict[str, Any], facts: Facts) -> RowState:
     applicable = applies(row, facts)
     how = row["how"]
     if "track_record" in row["applies"]:
-        return RowState(row, applicable, Status.ALTERNATIVE)
+        # 実績のある機関の書類（システムでは判断しない）。作れる様式なら生成の画面へ行ける（T54）
+        url = (
+            _generate_url(how["generate"], facts)
+            if "generate" in how and facts.contract is not None
+            else ""
+        )
+        return RowState(row, applicable, Status.ALTERNATIVE, action_url=url)
     if "out" in how:
         if applicable is True and "not_accepting" in row["applies"]:
             # 省略できない△の行で、システムでは作れない書類（提出用の PDF の画面でアップロード）

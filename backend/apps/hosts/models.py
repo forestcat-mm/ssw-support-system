@@ -812,6 +812,10 @@ class HostOfficer(Officer):
         on_delete=models.CASCADE,
         related_name="officers",
     )
+    # 特定技能外国人の受入れ業務の執行に直接関与しない役員（第1-23号に載せる。T54-D2）
+    not_involved_in_acceptance = models.BooleanField(
+        _("not directly involved in the acceptance of the workers"), default=False
+    )
 
     class Meta:
         verbose_name = _("officer of the host organization")

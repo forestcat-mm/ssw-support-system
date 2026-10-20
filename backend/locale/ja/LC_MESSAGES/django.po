@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 01:30+0900\n"
+"POT-Creation-Date: 2026-10-21 01:46+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -249,6 +249,12 @@ msgstr "支援委託契約に関する説明書（第1-25号）"
 
 msgid "overview of the host organization (form 1-11-1)"
 msgstr "特定技能所属機関概要書（第1-11-1号）"
+
+msgid "pledge on officers of the host organization (form 1-23)"
+msgstr "特定技能所属機関の役員に関する誓約書（第1-23号）"
+
+msgid "pledge on the omission of documents (form 1-29)"
+msgstr "書類省略に当たっての誓約書（第1-29号）"
 
 msgid "Printed in the form. The default is the representative."
 msgstr "様式に印字します。初期値は代表者です。"
@@ -3459,6 +3465,89 @@ msgstr "年度"
 msgid "The period from April 1 of this year to March 31 of the next year."
 msgstr "この年の4月1日から翌年の3月31日までの期間です。"
 
+msgid "date of preparation (basis date)"
+msgstr "作成日（基準日）"
+
+msgid "Used to choose the form version and printed as the date."
+msgstr "様式の版を選ぶのに使い、日付として印字します。"
+
+msgid "person responsible (title and name)"
+msgstr "作成責任者（氏名及び役職）"
+
+msgid "placement by an employment placement business"
+msgstr "職業紹介事業者のあっせん"
+
+msgid "license or notification number"
+msgstr "許可・届出受理番号"
+
+msgid "date of license or acceptance"
+msgstr "受理受付年月日"
+
+msgid "type of placement business"
+msgstr "職業紹介事業者の区分"
+
+msgid "fee-charging"
+msgstr "有料職業紹介事業者"
+
+msgid "free of charge"
+msgstr "無料職業紹介事業者"
+
+msgid "name of the placement business"
+msgstr "職業紹介事業者の氏名"
+
+msgid "amount paid by the applicant (currency)"
+msgstr "求職者（申請人）が支払った額（通貨）"
+
+msgid "amount paid by the applicant (yen)"
+msgstr "求職者（申請人）が支払った額（円）"
+
+msgid "purpose of the payment by the applicant"
+msgstr "求職者（申請人）が支払った名目"
+
+msgid "amount paid by the host organization"
+msgstr "求人者（所属機関）が支払った額"
+
+msgid "purpose of the payment by the host organization"
+msgstr "求人者（所属機関）が支払った名目"
+
+msgid "intermediary organization abroad"
+msgstr "取次機関（国外）の取次ぎ"
+
+msgid "name of the intermediary"
+msgstr "取次機関の氏名又は名称"
+
+msgid "country"
+msgstr "所在国"
+
+msgid "amount paid by the host organization (currency)"
+msgstr "求人者（所属機関）が支払った額（通貨）"
+
+msgid "amount paid by the host organization (yen)"
+msgstr "求人者（所属機関）が支払った額（円）"
+
+msgid "pre-arrival guidance carried out as in the support plan"
+msgstr "事前ガイダンスを支援計画に定めるとおりに実施"
+
+#, python-format
+msgid "organization paid (row %(number)s)"
+msgstr "支払先機関の名称（%(number)s 行目）"
+
+#, python-format
+msgid "purpose (row %(number)s)"
+msgstr "名目（%(number)s 行目）"
+
+#, python-format
+msgid "date paid (row %(number)s)"
+msgstr "支払年月日（%(number)s 行目）"
+
+#, python-format
+msgid "amount in local currency or US dollars (row %(number)s)"
+msgstr "支払金額（現地通貨又は米ドル。%(number)s 行目）"
+
+#, python-format
+msgid "amount in yen (row %(number)s)"
+msgstr "支払金額（円。%(number)s 行目）"
+
 msgid "application"
 msgstr "申請"
 
@@ -3504,12 +3593,6 @@ msgstr "綴じるファイル"
 
 msgid "submission check"
 msgstr "提出確認欄"
-
-msgid "date of preparation (basis date)"
-msgstr "作成日（基準日）"
-
-msgid "Used to choose the form version and printed as the date."
-msgstr "様式の版を選ぶのに使い、日付として印字します。"
 
 msgid "reason the obligations cannot be fulfilled promptly"
 msgstr "速やかに義務を履行できない理由"
@@ -4292,6 +4375,30 @@ msgid ""
 "files already generated stay."
 msgstr "%(name)s の行を一括届出から外します。届出タスクと、作ったファイルは残ります。"
 
+msgid "Generate the explanation of the hiring process (form 1-16)"
+msgstr "雇用の経緯に係る説明書を作る（第1-16号）"
+
+msgid ""
+"Items 1, 2 and 4 are not in the ledger; enter them here. The values of the "
+"previous generation (or the fees confirmed in the pre-arrival guidance) are "
+"filled in first. The applicant signs the printed form, and it must be "
+"written in a language the applicant understands."
+msgstr ""
+"1・2・4 "
+"は台帳に無いので、ここで入れます。前に作ったときの値（無ければ事前ガイダンスで確かめた費用）が初めに入っています。印刷した様式に申請人が署名します。申請人が十分に理解できる言語での記載が要ります。"
+
+msgid "1 Employment placement business (in Japan)"
+msgstr "１ 職業紹介事業者（国内）"
+
+msgid "2 Intermediary organization (abroad)"
+msgstr "２ 取次機関（国外）"
+
+msgid "3 Pre-arrival guidance"
+msgstr "３ 事前ガイダンスの実施"
+
+msgid "4 Fees the applicant paid to organizations in the home country"
+msgstr "４ 求職者（申請人）が自国等の機関に支払った費用"
+
 msgid "suspended"
 msgstr "停止中"
 
@@ -4581,6 +4688,9 @@ msgstr "円。一括申請の年間売上金額に使います。"
 
 msgid "Enter it when the officer resigns. The row stays."
 msgstr "退任したときに入れます。行は残ります。"
+
+msgid "The officer is listed in the pledge on officers (form 1-23)."
+msgstr "役員に関する誓約書（第1-23号）に載せます。"
 
 msgid "The resignation date is before the appointment date."
 msgstr "退任日が就任日より前です。"
@@ -5315,6 +5425,9 @@ msgstr "受入れ機関の申告"
 msgid "declarations of the host organization"
 msgstr "受入れ機関の申告"
 
+msgid "not directly involved in the acceptance of the workers"
+msgstr "特定技能外国人の受入れ業務の執行に直接関与しない"
+
 msgid "officer of the host organization"
 msgstr "受入れ機関の役員"
 
@@ -5434,6 +5547,9 @@ msgstr "最新の版: %(day)s の申告"
 msgid "%(counter)s required item is not answered."
 msgid_plural "%(counter)s required items are not answered."
 msgstr[0] "必須の項目のうち %(counter)s 件が未回答です。"
+
+msgid "not involved in the acceptance"
+msgstr "受入れ業務に関与しない"
 
 msgid "Applicant contacts (agent of the bulk application)"
 msgstr "申請担当者（一括申請の代理人）"

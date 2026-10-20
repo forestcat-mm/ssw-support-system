@@ -31,6 +31,7 @@ from apps.forms_engine.forms import (
     ApplicationSetForm,
     BulkGenerateForm,
     ConsultationRecordForm,
+    HiringExplanationForm,
     PeriodicReportForm,
     PublicDutyPledgeForm,
     RegenerateForm,
@@ -1002,6 +1003,90 @@ class PublicDutyPledgeView(WorkerFormView):
                 self.form_id,
                 target=worker,
                 data=self.data(form),
+                basis_on=form.cleaned_data["basis_on"],
+                by=request.user,
+                accept_warnings=bool(form.cleaned_data.get("accept_warnings")),
+            )
+        except form_generation.GenerationBlocked as blocked:
+            return self.page(request, worker, form, blocked.result)
+        except form_templates.FormTemplateError:
+            form.add_error(None, NOT_LOADED)
+            return self.page(request, worker, form, None)
+        except form_generation.WarningsNotAccepted as pending:
+            form.add_error("accept_warnings", _("Check the warnings before generating."))
+            return self.page(request, worker, form, pending.result)
+        messages.success(request, _("Requested the generation of the form."))
+        return redirect("forms:document", pk=document.pk)
+
+
+# --- 第1-16号 雇用の経緯に係る説明書（T54、ADR-0043）-------------------------------------------
+
+
+class HiringExplanationView(WorkerFormView):
+    """第1-16号を生成する（雇用契約が対象。1・2・4 を画面で入れる。T54-D3）。"""
+
+    required_action = Action.FORMS_GENERATE
+    template_name = "forms_engine/hiring_explanation.html"
+    form_id = form_data_application.HIRING_FORM_ID
+
+    def target(self, request: HttpRequest, pk: int, contract_id: int) -> tuple[Any, Any]:
+        worker = self.worker(request, pk)
+        return worker, get_object_or_404(worker.employment_contracts, pk=contract_id)
+
+    def data(self, contract: Any, form: HiringExplanationForm) -> dict[str, Any]:
+        return form_data_application.build_1_16(
+            contract,
+            form.cleaned_data["basis_on"],
+            author=form.cleaned_data["author"].strip(),
+            inputs=form.inputs(),
+        )
+
+    def check(self, contract: Any, form: HiringExplanationForm) -> Any:
+        try:
+            return form_generation.check(
+                self.form_id,
+                target=contract,
+                data=self.data(contract, form),
+                basis_on=form.cleaned_data["basis_on"],
+            )
+        except form_templates.FormTemplateError:
+            form.add_error(None, NOT_LOADED)
+            return None
+
+    def page(self, request: HttpRequest, worker: Any, form: Any, result: Any) -> HttpResponse:
+        return self.render(
+            request,
+            worker=worker,
+            form=form,
+            result=result,
+            back_url=reverse("workers:application_set", args=[worker.pk]),
+        )
+
+    def get(self, request: HttpRequest, pk: int, contract_id: int) -> HttpResponse:
+        worker, contract = self.target(request, pk, contract_id)
+        today = timezone.localdate()
+        initial = form_data_application.hiring_defaults(contract, today) | {
+            "basis_on": today,
+            "author": form_data_application.default_author(self.form_id, contract),
+        }
+        return self.page(request, worker, HiringExplanationForm(initial=initial), None)
+
+    def post(self, request: HttpRequest, pk: int, contract_id: int) -> HttpResponse:
+        worker, contract = self.target(request, pk, contract_id)
+        form = HiringExplanationForm(request.POST)
+        if not form.is_valid():
+            return self.page(request, worker, form, None)
+        if request.POST.get("action") != "generate":
+            return self.page(request, worker, form, self.check(contract, form))
+        back = reverse("workers:application_set", args=[worker.pk])
+        if not consume_once_token(request):
+            return self.already_submitted(request, back)
+        assert isinstance(request.user, User)
+        try:
+            document = form_generation.request(
+                self.form_id,
+                target=contract,
+                data=self.data(contract, form),
                 basis_on=form.cleaned_data["basis_on"],
                 by=request.user,
                 accept_warnings=bool(form.cleaned_data.get("accept_warnings")),

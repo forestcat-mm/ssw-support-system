@@ -1,0 +1,9 @@
+{
+ "form_id": "1-23",
+ "valid_from": "2026-10-21",
+ "note": "T54 の規則（ADR-0043）。作成責任者と、受入れ業務の執行に直接関与しない役員（受入れ機関の役員の印）が無ければ生成不可。",
+ "rules": [
+    {"id": "author_required", "type": "required", "key": "a.author", "label": "作成責任者", "severity": "block"},
+    {"id": "officer_required", "type": "required", "key": "a.officer1_name", "label": "受入れ業務の執行に直接関与しない役員（受入れ機関の役員の印）", "severity": "block"}
+  ]
+}
