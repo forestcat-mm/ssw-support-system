@@ -1,7 +1,7 @@
 COMPOSE := docker compose
 MANAGE := $(COMPOSE) exec web python manage.py
 
-.PHONY: checks check-quick test-lf test-db e2e gate2 gate3 design-shots seed seed-reset seed-scenario filings env up down build logs migrate admin shell psql lock test lint format messages
+.PHONY: checks check-quick test-lf test-db e2e gate2 gate3 gate4 design-shots seed seed-reset seed-scenario filings env up down build logs migrate admin shell psql lock test lint format messages
 
 env:        ## .env を作る・足りないキーを補う・鍵を生成する（既存の値は変えない）
 	python3 scripts/init_env.py
@@ -66,14 +66,17 @@ gate2:      ## 段階2の受け入れ確認（seed → 担当者 2 人が定期�
 gate3:      ## 段階3の受け入れ確認（seed → seed_documents → 署名・生成・併記・警告・生成不可を画面で。DATE=YYYY-MM-DD で基準日）
 	$(COMPOSE) --profile e2e run --rm -e GATE3=1 $(if $(DATE),-e GATE_DATE=$(DATE),) e2e pytest -s e2e/test_phase3_gate.py
 
+gate4:      ## 段階4の受け入れ確認（seed → 一括申請 3 種・一括届出 7 種の xlsm を画面で作り、写した入力チェックと構造を確かめる）
+	$(COMPOSE) --profile e2e run --rm -e GATE4=1 e2e pytest -s e2e/test_phase4_gate.py
+
 CHECKS_LOG ?= .checks/checks.log
 CHECK_LIMIT ?= 900
 # gate2 は既定で 1 つの基準日。期限の計算・届出の起票にさわったときは 3 つの基準日にする:
 #   make checks GATE2_DATES="2026-10-17 2026-11-30 2026-12-28"
 GATE2_DATES ?= 2026-10-17
 GATE3 ?= 1
-checks:     ## push の前に 1 回: lint・test・e2e・gate2（GATE2_DATES）・gate3（GATE3= で外す）を順に流し、終了コードと === DONE を CHECKS_LOG に書く
-	tools/run_checks.sh $(CHECKS_LOG) $(CHECK_LIMIT) "LINT::make lint" "TEST::make test" "E2E::make e2e" $(foreach d,$(GATE2_DATES),"GATE2 $(d)::make gate2 DATE=$(d)") $(if $(GATE3),"GATE3::make gate3",)
+checks:     ## push の前に 1 回: lint・test・e2e・gate2（GATE2_DATES）・gate3（GATE3= で外す）・gate4（GATE4=1）を順に流し、終了コードと === DONE を CHECKS_LOG に書く
+	tools/run_checks.sh $(CHECKS_LOG) $(CHECK_LIMIT) "LINT::make lint" "TEST::make test" "E2E::make e2e" $(foreach d,$(GATE2_DATES),"GATE2 $(d)::make gate2 DATE=$(d)") $(if $(GATE3),"GATE3::make gate3",) $(if $(GATE4),"GATE4::make gate4",)
 
 design-shots: ## 見本画面（/ui/）のスクリーンショットを docs/design/ に保存する
 	$(COMPOSE) --profile e2e run --rm -e DESIGN_SHOTS=1 e2e pytest e2e/test_design_shots.py

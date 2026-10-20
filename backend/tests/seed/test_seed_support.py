@@ -84,11 +84,16 @@ EXPECTED_DASHBOARD = [
     (9, "periodic_interview", "open"),
     (10, "contract_expiry_check", "open"),
     (10, "periodic_interview", "overdue"),
+    (10, "support_plan_change", "within_14"),  # 一括届出の場面（段階4 T55）
     (11, "periodic_interview", "within_7"),
+    (11, "support_contract_change", "within_14"),  # 一括届出の場面
+    (12, "missing", "within_14"),  # 一括届出の場面（受入れ困難の行方不明）
     (12, "passport_check", "open"),
     (12, "periodic_interview", "within_14"),
     (13, "periodic_interview", "open"),
+    (13, "standard_nonconformity", "within_14"),  # 一括届出の場面
     (14, "periodic_interview", "open"),
+    (14, "support_plan_difficulty", "within_14"),  # 一括届出の場面
     (15, "contract_change", "within_14"),  # 減給
     (15, "periodic_interview", "open"),
     (16, "periodic_interview", "overdue"),

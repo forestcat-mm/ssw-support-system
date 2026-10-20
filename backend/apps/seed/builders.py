@@ -47,20 +47,25 @@ from apps.core.models import (
     UserRole,
 )
 from apps.filings.models import Filing, FilingStatus
+from apps.forms_engine.models import BulkApplicationEntry, BulkFilingRow
 from apps.hosts.models import (
     CareerPlan,
     CareerPlanLevel,
     CareerPlanVersion,
     FeeTiming,
+    HostApplicantContact,
     HostCooperationConfirmation,
+    HostDeclaration,
+    HostFinancialYear,
     HostMembership,
+    HostOfficer,
     HostOrganization,
     HostSite,
     OperationCategory,
     SpecifiedSkillField,
     SupportContract,
 )
-from apps.seed import support_builders
+from apps.seed import bulk_builders, support_builders
 from apps.seed.context import (
     DUMMY_MARK,
     DUMMY_USERNAME,
@@ -80,6 +85,7 @@ from apps.workers.models import (
     StatusOfResidence,
     WorkerAddress,
     WorkerContact,
+    WorkerQualification,
     WorkerStatus,
 )
 from services import (
@@ -1131,6 +1137,8 @@ STEPS: tuple[Step, ...] = (
     seed_condition_templates,  # 雇用条件のひな形（T41）
     support_builders.seed_support,  # 段階2（支援計画・実績・相談・ガイダンス・交付・要配慮添付）
     seed_uncertified_host,  # 加入証明なしの場面（T39）
+    bulk_builders.seed_ledger_items,  # 一括申請の台帳の項目と役員（段階4 T55）
+    bulk_builders.seed_efile_filings,  # 一括届出の場面（段階4 T55）
     seed_filings,
 )
 
@@ -1154,6 +1162,11 @@ def run(base: date) -> SeedContext:
 # 消す順番（依存の逆順）。台帳に無い行（届出タスク）は対象から辿って消す
 DELETE_ORDER: tuple[type[models.Model], ...] = (
     Attachment,
+    WorkerQualification,  # 段階4 T55
+    HostOfficer,
+    HostApplicantContact,
+    HostDeclaration,
+    HostFinancialYear,
     CareerPlanLevel,
     CareerPlanVersion,
     CareerPlan,
@@ -1233,6 +1246,13 @@ def delete_rows(by_model: dict[type[models.Model], list[int]]) -> int:
     filings_query = models.Q(worker_id__in=by_model.get(ForeignWorker, []))
     for content_type, ids in targets:
         filings_query |= models.Q(content_type=content_type, object_id__in=ids)
+    # 一括申請・一括届出の行（外国人・届出タスクを参照する。段階4）
+    worker_ids = by_model.get(ForeignWorker, [])
+    deleted_support += BulkFilingRow.objects.filter(
+        models.Q(worker_id__in=worker_ids)
+        | models.Q(filing__in=Filing.objects.filter(filings_query))
+    ).delete()[0]
+    deleted_support += BulkApplicationEntry.objects.filter(worker_id__in=worker_ids).delete()[0]
     deleted = Filing.objects.filter(filings_query).delete()[0]
     for attachment in Attachment.objects.filter(pk__in=by_model.get(Attachment, [])):
         attachment.file.delete(save=False)
