@@ -54,6 +54,7 @@ from services import (
     attachments,
     audit,
     authorization,
+    books,
     briefings,
     consultations,
     deliveries,
@@ -487,6 +488,8 @@ class InterviewDetailView(RecordTabMixin, WorkerDetailView):
                 and authorization.has_action(self.request.user, Action.FORMS_GENERATE)
             ),
             interview_warnings=support_interviews.warnings(interview),
+            # 録画・上司の同意の書面の保管の目安（雇用契約の終了の日から 1 年以上。別冊 32頁。T44）
+            retention_until=books.retention_until(self.worker),
             can_void_interview=self.can_manage_support() and interview.voided_at is None,
             support_subtab="records",
         )

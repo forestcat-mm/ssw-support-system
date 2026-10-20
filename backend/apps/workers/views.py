@@ -39,6 +39,7 @@ from apps.workers.models import (
 from services import (
     audit,
     authorization,
+    books,
     contracts,
     deadlines,
     wage_explanations,
@@ -169,7 +170,11 @@ class WorkerDetailView(ActionRequiredMixin, TemplateView):
         """タブの中身を context に足し、監査ログの context（表示した行の ID など）を返す。"""
         info = worker_detail.basic_info(self.worker)
         documents = worker_documents.rows_for(self.request.user, self.worker)
-        context.update(info=info, health_documents=documents)
+        context.update(
+            info=info,
+            health_documents=documents,
+            retention_until=books.retention_until(self.worker),  # 帳簿の保存義務の満了日（T44）
+        )
         shown = info.shown_ids() | {"health_documents": [row.attachment.pk for row in documents]}
         return {"shown": shown, "decrypted": info.decrypted_fields()}
 

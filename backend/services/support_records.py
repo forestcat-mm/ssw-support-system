@@ -122,6 +122,10 @@ DETAIL_FIELDS: dict[SupportItem, tuple[DetailField, ...]] = {
             "choice",
             choices=tuple((choice.value, choice.label) for choice in PropertyType),
         ),
+        # 帳簿④ⅲ「保証人契約の内容」（任意。T44）
+        DetailField(
+            "guarantor", gettext_lazy("guarantor contract (details)"), "text", max_length=300
+        ),
     ),
     SupportItem.PUBLIC_PROCEDURES: (
         DetailField(
@@ -145,6 +149,8 @@ DETAIL_FIELDS: dict[SupportItem, tuple[DetailField, ...]] = {
                 OTHER,
             ),
         ),
+        # 帳簿④ⅵ「担当者（委託先の講師を含む）」（任意。T44）
+        DetailField("instructor", gettext_lazy("contracted teacher (name and title)"), "text"),
     ),
     SupportItem.EXCHANGE: (
         DetailField("event", gettext_lazy("event or activity"), "text", required=True),
@@ -157,6 +163,7 @@ DETAIL_FIELDS: dict[SupportItem, tuple[DetailField, ...]] = {
                 ("7.b", gettext_lazy("local events and Japanese culture")),
             ),
         ),
+        DetailField("place", gettext_lazy("place"), "text"),  # 帳簿④ⅷ（任意。T44）
     ),
     SupportItem.JOB_CHANGE: (
         # 離職の区分（非自発的のときだけ第4-3号のタスクを起票する。T24a）。既存の記録は空のまま
@@ -186,6 +193,15 @@ DETAIL_FIELDS: dict[SupportItem, tuple[DetailField, ...]] = {
                 OTHER,
             ),
         ),
+        # 帳簿④ⅸ（任意。T44）
+        DetailField("place", gettext_lazy("place"), "text"),
+        DetailField(
+            "candidates",
+            gettext_lazy("candidate employers (name, address and contact)"),
+            "text",
+            max_length=500,
+        ),
+        DetailField("interpreter", gettext_lazy("interpreter (name and affiliation)"), "text"),
     ),
 }
 
@@ -212,6 +228,7 @@ class RecordInput:
     counterpart_name: str = ""
     languages: Sequence[SupportLanguage] = ()
     details: dict[str, Any] | None = None
+    declined_by_worker: bool = False  # 本人の申出により実施しなかった（T44）
 
 
 def body_language_for(worker: ForeignWorker) -> str:
@@ -415,6 +432,9 @@ def save_record(
         staff=data.staff,
         counterpart=data.counterpart,
         counterpart_name=data.counterpart_name.strip(),
+        # 帳簿の「担当者の氏名・役職」の当時の役職（T44-D6）
+        staff_position=(data.staff.position if data.staff is not None else "")[:50],
+        declined_by_worker=data.declined_by_worker,
         body=data.body.strip(),
         body_language=data.body_language,
         details=details,

@@ -13,6 +13,7 @@ import datetime
 from dataclasses import dataclass, field, replace
 from typing import Any
 
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db import transaction
@@ -20,7 +21,7 @@ from django.db.models import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from apps.core.models import User
+from apps.core.models import Attachment, AttachmentKind, User
 from apps.filings.models import Filing, FilingKind, FilingStatus, Trigger
 from apps.support.models import (
     Counterpart,
@@ -31,6 +32,7 @@ from apps.support.models import (
 )
 from apps.workers.models import ForeignWorker
 from services import (
+    attachments,
     deadlines,
     filings,
     incident_reports,
@@ -236,6 +238,10 @@ def create_interview(
             uploads[name] = support_records.validate_files((files or {}).get(name, []))
         except ValidationError as error:
             raise ValidationError({f"{name}.uploads": error.error_dict["files"]}) from error
+    try:  # 上司のオンライン面談の同意の書面（T44。別冊 32頁）
+        consent = support_records.validate_files((files or {}).get("consent", []))
+    except ValidationError as error:
+        raise ValidationError({"consent_uploads": error.error_dict["files"]}) from error
     basis = basis_of(rows)
     with transaction.atomic():
         newer_exists = PeriodicInterview.objects.filter(
@@ -263,6 +269,14 @@ def create_interview(
             answer_set = answers[name]
             if answer_set is not None:
                 interview_answers.save_answers(record, answer_set, by=by)
+            if name == "supervisor":
+                for file in consent:
+                    attachments.create_attachment(
+                        target=record,
+                        kind=AttachmentKind.ONLINE_INTERVIEW_CONSENT,
+                        file=file,
+                        created_by=by,
+                    )
         if data.nonconformity is not None:
             interview_answers.save_nonconformity(interview, data.nonconformity, by=by)
         if not newer_exists:
@@ -362,6 +376,13 @@ def warnings(interview: PeriodicInterview) -> list[str]:
     result = []
     if interview.report_required and interview.reported_on is None:
         result.append(_("A report is required but has not been made yet."))
+    if any(_online_without_consent(record) for record in interview.records.all()):
+        result.append(
+            _(
+                "The interview with the supervisor was held online, but the consent of the "
+                "supervisor is not attached."
+            )
+        )
     if any(_online_against_plan(record) for record in interview.records.all()):
         result.append(
             _(
@@ -370,6 +391,24 @@ def warnings(interview: PeriodicInterview) -> list[str]:
             )
         )
     return result
+
+
+def _online_without_consent(record: SupportRecord) -> bool:
+    """上司の行をオンラインで行ったが、その日までの上司の行のどれにも同意の書面の添付が無い
+    （同意は最初のオンライン面談で 1 回もらう。取消したものは数えない。T44）。"""
+    if record.method != RecordMethod.ONLINE or record.counterpart != Counterpart.SUPERVISOR:
+        return False
+    supervisor_rows = SupportRecord.objects.filter(
+        worker_id=record.worker_id,
+        counterpart=Counterpart.SUPERVISOR,
+        occurred_on__lte=record.occurred_on,
+    ).values("pk")
+    return not Attachment.objects.filter(
+        content_type=ContentType.objects.get_for_model(SupportRecord),
+        object_id__in=supervisor_rows,
+        kind=AttachmentKind.ONLINE_INTERVIEW_CONSENT,
+        voided_at__isnull=True,
+    ).exists()
 
 
 def _online_against_plan(record: SupportRecord) -> bool:

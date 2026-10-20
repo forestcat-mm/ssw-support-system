@@ -112,6 +112,12 @@ class RecordForm(StyledFormMixin, forms.Form):
         label=_("language of the details"), choices=BodyLanguage.choices
     )
     body = forms.CharField(label=_("details"), widget=forms.Textarea(attrs={"rows": 6}))
+    # 本人の申出により実施しなかった（記録として保管する。運用要領 本体 印刷163。T44）
+    declined_by_worker = forms.BooleanField(
+        label=_("not carried out at the worker's request"),
+        required=False,
+        help_text=_("Write the request and the reason in the details."),
+    )
     uploads = MultipleFileField(
         label=_("attachments"),
         required=False,
@@ -129,7 +135,7 @@ class RecordForm(StyledFormMixin, forms.Form):
         "counterpart_name",
         "languages",
     )
-    BODY = ("body_language", "body")
+    BODY = ("body_language", "body", "declined_by_worker")
 
     def __init__(
         self,
@@ -151,6 +157,7 @@ class RecordForm(StyledFormMixin, forms.Form):
                 name.help_text = ""
             else:
                 del self.fields["counterpart_name"]
+            del self.fields["declined_by_worker"]  # 定期面談の行には出さない
         allowed = methods if methods is not None else support_records.methods_for(kind)
         method = self.fields["method"]
         assert isinstance(method, forms.ChoiceField)
@@ -191,7 +198,7 @@ class RecordForm(StyledFormMixin, forms.Form):
         return [self[name] for name in self.fields if name.startswith(DETAIL_PREFIX)]
 
     def body_fields(self) -> list[forms.BoundField]:
-        return [self[name] for name in self.BODY]
+        return [self[name] for name in self.BODY if name in self.fields]
 
     def to_input(self) -> RecordInput:
         data = self.cleaned_data
@@ -208,6 +215,7 @@ class RecordForm(StyledFormMixin, forms.Form):
             languages=list(data.get("languages") or []),
             body=data["body"],
             body_language=data["body_language"],
+            declined_by_worker=bool(data.get("declined_by_worker")),
             details={
                 name.removeprefix(DETAIL_PREFIX): value
                 for name, value in data.items()
@@ -317,6 +325,15 @@ class InterviewForm(StyledFormMixin, forms.Form):
         help_text=_(
             "Optional. The next task is due on this date (within 3 months). "
             "If empty, it is due 3 months after the interview."
+        ),
+    )
+    # オンラインで行った上司の行の同意の書面（別冊 32頁「帳簿書類として保存」。T44）
+    consent_uploads = MultipleFileField(
+        label=_("consent of the supervisor to an online interview"),
+        required=False,
+        help_text=_(
+            "When the interview with the supervisor is held online. Keep it (and the recording) "
+            "for at least one year after the employment contract ends."
         ),
     )
 
@@ -592,6 +609,7 @@ class InterviewEditor:
         return {
             "self": self.self_form.cleaned_data.get("uploads") or [],
             "supervisor": self.supervisor_form.cleaned_data.get("uploads") or [],
+            "consent": self.interview_form.cleaned_data.get("consent_uploads") or [],
         }
 
     def apply_errors(self, error: ValidationError) -> None:
@@ -623,7 +641,7 @@ def _status_field(label: Any) -> forms.ChoiceField:
 class ReceptionForm(RecordForm):
     """相談の受付（支援実績の共通の欄＋主な分類・対応状況）。相手は本人に固定。"""
 
-    CASE = ("category", "category_note", "status", "handed_over_to")
+    CASE = ("category", "category_note", "status", "handed_over_to", "interpreter")
 
     category = forms.ChoiceField(
         label=_("main category"),
@@ -642,6 +660,10 @@ class ReceptionForm(RecordForm):
         max_length=200,
         required=False,
         help_text=_("Required when the case is handed over to another organization."),
+    )
+    # 帳簿④ⅶ「担当者（通訳人を含む）」（任意。T44）
+    interpreter = forms.CharField(
+        label=_("interpreter (name and affiliation)"), max_length=100, required=False
     )
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -664,6 +686,7 @@ class ReceptionForm(RecordForm):
             category_note=data.get("category_note") or "",
             status=data["status"],
             handed_over_to=data.get("handed_over_to") or "",
+            interpreter=data.get("interpreter") or "",
         )
 
 

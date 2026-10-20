@@ -488,6 +488,7 @@ def support_overview(fiscal_year: int) -> Overview:
     records = SupportRecord.objects.filter(
         worker_id__in=worker_ids,
         voided_at__isnull=True,
+        declined_by_worker=False,  # 本人の申出により実施しなかった記録は実施日にしない（T44）
         occurred_on__gte=period.start,
         occurred_on__lte=period.end,
     ).order_by("occurred_on", "pk")

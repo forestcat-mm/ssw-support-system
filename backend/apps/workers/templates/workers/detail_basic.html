@@ -14,6 +14,7 @@
       <dt>{% translate "support language" %}</dt><dd>{{ worker.support_language }}</dd>
       <dt>{% translate "assigned staff" %}</dt><dd>{{ worker.assigned_staff.name|default:_("not assigned") }}</dd>
       <dt>{% translate "status" %}</dt><dd>{{ worker.get_status_display }}</dd>
+      <dt>{% translate "records kept until (estimate)" %}</dt><dd id="worker-retention-until">{% if retention_until %}<span class="mono">{{ retention_until|date:"Y-m-d" }}</span>{% else %}<span class="muted">{% translate "not fixed yet (one year after the employment contract ends)" %}</span>{% endif %}</dd>
     </dl>
   </section>
 

@@ -53,6 +53,7 @@ class ReceptionInput:
     category_note: str = ""
     status: str = ConsultationStatus.RECEIVED
     handed_over_to: str = ""
+    interpreter: str = ""  # 帳簿④ⅶ の通訳人（任意。T44）
 
 
 @dataclass
@@ -161,6 +162,7 @@ def create_consultation(
             status=data.status,
             initial_status=data.status,
             handed_over_to=data.handed_over_to.strip(),
+            interpreter=data.interpreter.strip()[:100],
             created_by=by,
             updated_by=by,
         )

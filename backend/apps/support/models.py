@@ -431,6 +431,14 @@ class SupportRecord(TrackedModel):
         _("counterpart"), max_length=16, choices=Counterpart.choices, default=Counterpart.WORKER
     )
     counterpart_name = models.CharField(_("name of the supervisor"), max_length=100, blank=True)
+    # 帳簿の「担当者の氏名・役職」の当時の役職（保存のときに担当者の役職を写す。T44-D6）
+    staff_position = models.CharField(
+        _("position of the staff member at the time"), max_length=50, blank=True, editable=False
+    )
+    # 本人の申出により支援を実施しなかった（記録として保管する。運用要領 本体 印刷163。T44）
+    declined_by_worker = models.BooleanField(
+        _("not carried out at the worker's request"), default=False
+    )
     languages = models.ManyToManyField(
         SupportLanguage, verbose_name=_("languages used"), related_name="+", blank=True
     )
@@ -740,6 +748,10 @@ class Consultation(TrackedModel):
     )
     handed_over_to = models.CharField(
         _("handed over to"), max_length=200, blank=True, editable=False
+    )
+    # 帳簿④ⅶ の「担当者（通訳人を含む）」（T44）
+    interpreter = models.CharField(
+        _("interpreter (name and affiliation)"), max_length=100, blank=True
     )
     reported = models.BooleanField(_("reported to authorities"), default=False, editable=False)
     hello_work = models.BooleanField(_("consulted Hello Work"), default=False, editable=False)

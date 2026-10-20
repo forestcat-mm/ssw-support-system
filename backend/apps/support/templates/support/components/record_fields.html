@@ -2,7 +2,8 @@
   <dt>{% translate "kind of support" %}</dt><dd>{{ record.get_kind_display }}</dd>
   <dt>{% translate "date of support" %}</dt><dd class="mono">{{ record.occurred_on|date:"Y-m-d" }}{% if record.start_time %} {{ record.start_time|time:"H:i" }}{% endif %}{% if record.duration_minutes %} <span class="caption">（{% blocktranslate count counter=record.duration_minutes %}{{ counter }} minute{% plural %}{{ counter }} minutes{% endblocktranslate %}）</span>{% endif %}</dd>
   <dt>{% translate "method" %}</dt><dd>{{ record.get_method_display }}{% if record.meeting_url %} <span class="caption">{{ record.meeting_url }}</span>{% endif %}</dd>
-  <dt>{% translate "staff in charge" %}</dt><dd>{{ record.staff.name }}{% if record.staff.position %}（{{ record.staff.position }}）{% endif %}</dd>
+  <dt>{% translate "staff in charge" %}</dt><dd>{{ record.staff.name }}{% if record.staff_position %}（{{ record.staff_position }}）{% elif record.staff.position %}（{{ record.staff.position }}）{% endif %}</dd>
+  {% if record.declined_by_worker %}<dt>{% translate "not carried out" %}</dt><dd id="record-declined">{% translate "not carried out at the worker's request" %}</dd>{% endif %}
   <dt>{% translate "counterpart" %}</dt><dd>{{ record.get_counterpart_display }}{% if record.counterpart_name %}（{{ record.counterpart_name }}）{% endif %}</dd>
   <dt>{% translate "languages used" %}</dt><dd>{% for language in record.languages.all %}{{ language }}{% if not forloop.last %}、{% endif %}{% empty %}<span class="muted">—</span>{% endfor %}</dd>
   {% for label, value in details %}<dt>{{ label }}</dt><dd>{{ value }}</dd>{% endfor %}

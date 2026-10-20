@@ -119,6 +119,11 @@ class AttachmentKind(models.TextChoices):
         "signed_document",
         _("Signed scan of a generated form"),
     )
+    # オンラインの定期面談の上司（監督者）の同意の書面（別冊 32頁。T35-D8 の持ち越し。T44）
+    ONLINE_INTERVIEW_CONSENT = (
+        "online_interview_consent",
+        _("Consent of the supervisor to an online periodic interview"),
+    )
     # 本人に交付した書類の署名済みの控え・受領の記録（T22、ADR-0010）
     DELIVERED_DOCUMENT = (
         "delivered_document",

@@ -25,6 +25,7 @@
     {% for field in editor.supervisor_form.common_fields %}{% form_field field %}{% endfor %}
     {% for field in editor.supervisor_form.body_fields %}{% form_field field %}{% endfor %}
     {% form_field editor.supervisor_form.uploads %}
+    {% form_field editor.interview_form.consent_uploads %}
     {% include "support/components/interview_answers_form.html" with answers=editor.supervisor_answers scope_id="interview-supervisor-answers" %}
   </section>
   <section class="card stack" id="interview-findings">
