@@ -7,6 +7,8 @@ LibreOffice で PDF にして、提出用の統合 PDF の先頭に綴じる。
   T42-D18 の直し）。
   〇は PDF に変換する直前の一時の写しでだけ図形として足す（form_xlsx.with_circles。ADR-0032 の
   例外の一覧）。値は表紙の氏名・名称だけを書く。印を付けない行には何も足さない。
+- 表紙の氏名・名称の欄は、同じ一時の写しで縦の配置を「下」にする（行が高く、元の「上」では字が
+  線から浮くため）。
 - 頁の割り方: 同じ一時の写しで、横 1 頁に収め（縦は自動）、Excel で印刷したときの行で改頁する
   （一覧の定義の sources の pdf_page_breaks。application_sets/sources/page_breaks.json）。
   游ゴシックを Noto Sans CJK JP で描いても、LibreOffice では頁に入る行の数が Excel と少し違うため。
@@ -148,6 +150,12 @@ def render(books: list[Workbook], workdir: Path) -> list[Path]:
         # 値だけ。ADR-0032 の例外の一覧）
         copy = folder / "for-pdf" / book.file
         form_xlsx.with_circles(filled, copy, list(book.circles))
-        form_xlsx.with_print_layout(copy, copy, list(book.page_breaks))
+        # 表紙の氏名・名称の欄は行が高く縦の配置が「上」なので、字が線から浮く。一時の写しで「下」に
+        form_xlsx.with_print_layout(
+            copy,
+            copy,
+            list(book.page_breaks),
+            bottom=[form_xlsx.split_target(target)[1] for target in book.values],
+        )
         pdfs.append(form_convert.convert(copy))
     return pdfs

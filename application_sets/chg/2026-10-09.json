@@ -127,7 +127,9 @@
    "how": {
     "generate": "1-4"
    },
-   "applies": []
+   "applies": [
+    "not_accepting"
+   ]
   },
   {
    "id": "chg_t1-4-2",
@@ -148,7 +150,9 @@
    "how": {
     "attachment": "equal_pay_evidence"
    },
-   "applies": []
+   "applies": [
+    "not_accepting"
+   ]
   },
   {
    "id": "chg_t1-5-1",
@@ -278,7 +282,9 @@
    "how": {
     "out": true
    },
-   "applies": []
+   "applies": [
+    "not_accepting"
+   ]
   },
   {
    "id": "chg_t1-7-2",
@@ -299,7 +305,10 @@
    "how": {
     "out": true
    },
-   "applies": []
+   "applies": [
+    "not_accepting",
+    "placement"
+   ]
   },
   {
    "id": "chg_t1-8-1",

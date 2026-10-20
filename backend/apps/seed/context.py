@@ -10,6 +10,7 @@ from datetime import date, timedelta
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from pypdf import PdfWriter
+from pypdf.generic import DecodedStreamObject, DictionaryObject, NameObject
 
 from apps.contracts.models import EmploymentContract
 from apps.core.models import Organization, Staff
@@ -34,6 +35,41 @@ def _dummy_pdf() -> bytes:
 
 
 DUMMY_PDF = _dummy_pdf()
+
+
+def dummy_pdf(label: str) -> bytes:
+    """書類の名前を書いたダミーの PDF（A4 の 1 頁）。統合 PDF で、どの書類か見分けられるように。
+
+    日本語の字体を埋め込まずに描けるよう、名前は英字で書く（Helvetica）。
+    """
+    writer = PdfWriter()
+    page = writer.add_blank_page(width=595.276, height=841.89)
+    lines = ["DUMMY DOCUMENT (development data)", label]
+
+    def escaped(text: str) -> str:
+        return text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+
+    body = "".join(
+        f"BT /F1 {size} Tf 56 {y} Td ({escaped(text)}) Tj ET\n"
+        for (size, y), text in zip(((14, 760), (18, 730)), lines, strict=True)
+    )
+    stream = DecodedStreamObject()
+    stream.set_data(body.encode("latin-1", "replace"))
+    font = DictionaryObject(
+        {
+            NameObject("/Type"): NameObject("/Font"),
+            NameObject("/Subtype"): NameObject("/Type1"),
+            NameObject("/BaseFont"): NameObject("/Helvetica"),
+        }
+    )
+    page[NameObject("/Resources")] = DictionaryObject(
+        {NameObject("/Font"): DictionaryObject({NameObject("/F1"): writer._add_object(font)})}
+    )
+    page[NameObject("/Contents")] = writer._add_object(stream)
+    writer.add_metadata({"/Title": f"dummy document: {label}"})
+    out = io.BytesIO()
+    writer.write(out)
+    return out.getvalue()
 
 
 @dataclass

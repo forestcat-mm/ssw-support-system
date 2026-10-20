@@ -90,16 +90,20 @@ class Command(BaseCommand):
             )
             return
         result = scenario.run(options["until"], with_docs=options["with_docs"])
-        sections = ", ".join(f"{n} {scenario.SECTIONS[n]}" for n in range(1, result.until + 1))
+        # 最後の説明は日本語（開発用の道具。2026-10-20 の指示）
+        sections = "、".join(f"{n} {scenario.SECTIONS[n]}" for n in range(1, result.until + 1))
+        docs = "あり" if result.with_docs else "なし"
         self.stdout.write(
             self.style.SUCCESS(
-                f"Created the scenario (sections {sections}; with docs: {result.with_docs}): "
-                f"{result.rows} rows, {result.documents} documents"
+                f"テストシナリオの記録を作りました（節: {sections}。生成物: {docs}）: "
+                f"{result.rows} 行、生成物 {result.documents} 件"
             )
         )
-        self.stdout.write("Values not stored (no field in the current design):")
-        for line in result.not_stored:
-            self.stdout.write(f"- {line}")
-        self.stdout.write("Values filled because the field is required:")
-        for line in result.filled:
-            self.stdout.write(f"- {line}")
+        if result.not_stored:
+            self.stdout.write("値はあるが、今の作りに欄が無い・決まった形で入れられないもの:")
+            for line in result.not_stored:
+                self.stdout.write(f"- {line}")
+        if result.filled:
+            self.stdout.write("テストシナリオに値が無いが、入力が必須なので決めて入れたもの:")
+            for line in result.filled:
+                self.stdout.write(f"- {line}")

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 11:12+0900\n"
+"POT-Creation-Date: 2026-10-20 17:05+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -3514,6 +3514,9 @@ msgstr "未添付"
 
 msgid "for organizations with a track record (not judged in the system)"
 msgstr "実績のある機関の書類（システムでは判断しない）"
+
+msgid "required: the system cannot make it, so add the file on the PDF screen"
+msgstr "要る（システムでは作れないので、提出用の PDF の画面でファイルを足す）"
 
 msgid "cannot be judged"
 msgstr "判断できない"
@@ -7393,6 +7396,64 @@ msgstr ""
 "様式のⅣ欄４（生活オリエンテーション）の実施方法に「その他」の欄が無いため、"
 "「その他」は様式に出ません。"
 
+msgid "IV 1 c: the planned hours of the pre-entry guidance are empty."
+msgstr "Ⅳ１ウ: 事前ガイダンスの実施予定時間が空です。"
+
+msgid "IV 4 c: the planned hours of the life orientation are empty."
+msgstr "Ⅳ４ウ: 生活オリエンテーションの実施予定時間が空です。"
+
+msgid "IV 2 a: the arrival airport is empty."
+msgstr "Ⅳ２ａ: 出迎え空港が空です。"
+
+msgid "IV 2 a: the way of transport is empty."
+msgstr "Ⅳ２ａ: 送迎方法が空です。"
+
+#, python-format
+msgid "IV 3 a d: the housing outline is incomplete (%(items)s)."
+msgstr "Ⅳ３アｄ: 住居の概要に空の欄があります（%(items)s）。"
+
+msgid "IV 6 b: the hours of the consultation desk are empty."
+msgstr "Ⅳ６イ: 相談・苦情の対応時間が空です。"
+
+msgid "IV 6 b: the ways of consultation are empty."
+msgstr "Ⅳ６イ: 相談方法が空です。"
+
+msgid "IV 6 b: the ways of contact in an emergency are empty."
+msgstr "Ⅳ６イ: 緊急時の連絡方法が空です。"
+
+#, python-format
+msgid "V: the check of coexistence measures is incomplete (%(items)s)."
+msgstr ""
+"Ⅴ: 共生施策の確認に空の欄があります（%(items)s の市区町村・確認日・確認方"
+"法）。"
+
+msgid "The name of the person responsible for the plan is empty."
+msgstr "作成責任者の氏名が空です。"
+
+msgid "III 4: the phone number of our organization is empty."
+msgstr "Ⅲ４: 自機関の電話番号が空です。"
+
+msgid "when it is secured"
+msgstr "確保の時点"
+
+msgid "room area"
+msgstr "居室の広さ"
+
+msgid "whether rent is collected"
+msgstr "居住費の徴収の有無"
+
+msgid "monthly rent"
+msgstr "居住費の額"
+
+msgid "owned or leased"
+msgstr "自己所有か借上げか"
+
+msgid "bedroom area"
+msgstr "寝室の広さ"
+
+msgid "explanation that the rent is appropriate"
+msgstr "適正な額である旨の説明"
+
 msgid "The reading (kana) of our name is empty."
 msgstr "自機関の名称のふりがなが空です。"
 
@@ -7505,6 +7566,18 @@ msgid ""
 msgstr ""
 "窓口（Ⅸ４・５）が 1 つの文で入っているため、部署名の欄に全文を出します。新し"
 "い版で、部署名・担当者職氏名・連絡先に分けて入れてください。"
+
+#, python-format
+msgid ""
+"There are deductions other than taxes and social and employment insurance "
+"premiums (%(names)s), but the deduction based on a labor-management "
+"agreement (VII 7) is \"none\". Check the agreement."
+msgstr ""
+"税金・社会保険料・雇用保険料のほかに控除（%(names)s）がありますが、Ⅶ７ 労使協"
+"定に基づく賃金支払時の控除が「無」です。協定を確かめてください。"
+
+msgid "The place or way to check the work rules is empty."
+msgstr "就業規則を確認できる場所や方法が空です。"
 
 msgid ""
 "The working conditions change after conversion, but annex 2 is not attached "
@@ -7873,6 +7946,15 @@ msgstr "署名待ちです。署名の無い生成した PDF を綴じます。"
 
 msgid "Not attached, so it is not included."
 msgstr "添付が無いため綴じません。"
+
+msgid ""
+"Required (it cannot be omitted because the host organization is not marked "
+"as already accepting workers this year). The system cannot make it: add the "
+"file."
+msgstr ""
+"要る書類です（受入れ機関に「同一年度内に特定技能外国人を受け入れている」の印"
+"が無いので省略できません）。システムでは作れないので、ファイルを足してくださ"
+"い。"
 
 msgid "The membership has expired, so it is not included."
 msgstr "加入の有効期限を過ぎているため綴じません。"

@@ -54,7 +54,9 @@ def seed_scenario(*args: str) -> str:
 def test_the_main_line_until_section_8() -> None:
     dummy_rows = SeedObject.objects.count()
     output = seed_scenario()
-    assert "Values not stored" in output and "出生地" in output
+    assert "今の作りに欄が無い" in output and "出生地" in output
+    assert "テストシナリオの記録を作りました" in output
+    assert "入力が必須なので決めて入れたもの" not in output  # シナリオに値が入った（2026-10-20）
     host = HostOrganization.objects.get(name=scenario.HOST_NAME)
     assert host.corporate_number == "7123456789012"
     site = host.sites.get()

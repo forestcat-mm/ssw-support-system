@@ -18,7 +18,7 @@ import posixpath
 import re
 import unicodedata
 import zipfile
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -697,9 +697,52 @@ def _with_row_breaks(sheet_xml: str, first_rows: list[int]) -> str:
     return sheet_xml[:position] + element + sheet_xml[position:]
 
 
-def with_print_layout(source: Path, destination: Path, first_rows: list[int]) -> None:
+def _bottom_aligned(sheet_xml: str, styles_xml: str, refs: Sequence[str]) -> tuple[str, str]:
+    """refs のセルの書式を、縦の配置だけ「下」にした写しの書式に替える（書式を足す）。"""
+    cell_xfs = re.search(r"<cellXfs\b[^>]*>(.*?)</cellXfs>", styles_xml, re.S)
+    if cell_xfs is None:
+        raise XlsxWriteError("cellXfs not found")
+    xfs = re.findall(r"<xf\b[^>]*?(?:/>|>.*?</xf>)", cell_xfs.group(1), re.S)
+    added: dict[int, int] = {}
+    for ref in refs:
+        cell = _find_cell(sheet_xml, ref)
+        if cell is None:
+            raise XlsxWriteError(f"cell not found: {ref}")
+        style = re.search(r'\ss="(\d+)"', cell.group(0))
+        index = int(style.group(1)) if style else 0
+        if index not in added:
+            xf = xfs[index]
+            if "<alignment" in xf:
+                xf = re.sub(r'\svertical="[^"]*"', "", xf)
+                xf = re.sub(r"<alignment\b", '<alignment vertical="bottom"', xf, count=1)
+            elif xf.endswith("/>"):
+                xf = xf[:-2] + ' applyAlignment="1"><alignment vertical="bottom"/></xf>'
+            else:
+                xf = xf.replace("</xf>", '<alignment vertical="bottom"/></xf>', 1)
+            added[index] = len(xfs)
+            xfs.append(xf)
+        new = added[index]
+        tag = re.match(r"<c\b[^>]*?(?=/?>)", cell.group(0))
+        assert tag is not None
+        opening = re.sub(r'\ss="\d+"', "", tag.group(0)) + f' s="{new}"'
+        sheet_xml = (
+            sheet_xml[: cell.start()]
+            + opening
+            + cell.group(0)[tag.end() :]
+            + sheet_xml[cell.end() :]
+        )
+    body = "".join(xfs)
+    styles_xml = styles_xml[: cell_xfs.start(1)] + body + styles_xml[cell_xfs.end(1) :]
+    styles_xml = re.sub(r'(<cellXfs\b[^>]*?count=")\d+"', rf'\g<1>{len(xfs)}"', styles_xml, count=1)
+    return sheet_xml, styles_xml
+
+
+def with_print_layout(
+    source: Path, destination: Path, first_rows: list[int], *, bottom: Sequence[str] = ()
+) -> None:
     """source を destination に写し、ブックの 1 つのシートを横 1 頁に収めて first_rows で改頁する。
 
+    bottom のセル（表紙の氏名・名称）は、縦の配置を「下」にする（線の上に字が来るように）。
     提出書類一覧表の PDF にする一時の写しでだけ使う（ADR-0032 の例外の一覧）。source と
     destination は同じでもよい。
     """
@@ -709,12 +752,18 @@ def with_print_layout(source: Path, destination: Path, first_rows: list[int]) ->
             raise XlsxWriteError(f"expected one sheet: {len(paths)}")
         items = [(item, archive.read(item.filename)) for item in archive.infolist()]
     sheet_path = paths[0]
+    contents = {item.filename: data for item, data in items}
+    sheet_xml = _with_row_breaks(_fit_to_width(contents[sheet_path].decode("utf-8")), first_rows)
+    styles_xml = contents["xl/styles.xml"].decode("utf-8")
+    if bottom:
+        sheet_xml, styles_xml = _bottom_aligned(sheet_xml, styles_xml, bottom)
     destination.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(destination, "w", zipfile.ZIP_DEFLATED) as output:
         for item, data in items:
             if item.filename == sheet_path:
-                text = _with_row_breaks(_fit_to_width(data.decode("utf-8")), first_rows)
-                data = text.encode("utf-8")
+                data = sheet_xml.encode("utf-8")
+            elif item.filename == "xl/styles.xml":
+                data = styles_xml.encode("utf-8")
             output.writestr(item, data)
 
 

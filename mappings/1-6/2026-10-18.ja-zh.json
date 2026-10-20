@@ -1199,7 +1199,7 @@
    "target": "annual_holidays",
    "format": "zen",
    "label": "Ⅴ１ 年間合計休日日数",
-   "pad": 4,
+   "pad": 3,
    "align": "right"
   },
   {
@@ -1207,8 +1207,7 @@
    "target": "holiday_weekdays_zh",
    "format": "text",
    "label": "Ⅴ１ 定例日（曜日）（中国語の行）",
-   "pad": 3,
-   "align": "left"
+   "translate": "zh-hans"
   },
   {
    "key": "c.national_holidays",

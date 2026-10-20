@@ -80,6 +80,7 @@ class Warn(enum.StrEnum):
     UNREADABLE = "unreadable"
     OVER_LIMIT = "over_limit"
     TRANSLATION_MISSING = "translation_missing"
+    UPLOAD_REQUIRED = "upload_required"
 
 
 WARNING_TEXTS: Mapping[str, Any] = {
@@ -92,6 +93,10 @@ WARNING_TEXTS: Mapping[str, Any] = {
         "Not signed yet: the generated PDF without the signature is included."
     ),
     Warn.MISSING: gettext_lazy("Not attached, so it is not included."),
+    Warn.UPLOAD_REQUIRED: gettext_lazy(
+        "Required (it cannot be omitted because the host organization is not marked as already "
+        "accepting workers this year). The system cannot make it: add the file."
+    ),
     Warn.EXPIRED: gettext_lazy("The membership has expired, so it is not included."),
     Warn.OUT_OF_PERIOD: gettext_lazy("The examination was too long before the application."),
     Warn.DATE_MISSING: gettext_lazy("The examination date is not entered."),
@@ -121,6 +126,7 @@ STATUS_WARNINGS = {
     Status.OTHER_TARGET: Warn.OTHER_TARGET,
     Status.MISSING: Warn.MISSING,
     Status.EXPIRED: Warn.EXPIRED,
+    Status.UPLOAD_REQUIRED: Warn.UPLOAD_REQUIRED,
 }
 # 綴じるが確かめが要る状態（健康診断の書類の時期・受診日）
 STATUS_NOTES = {Status.OUT_OF_PERIOD: Warn.OUT_OF_PERIOD, Status.DATE_MISSING: Warn.DATE_MISSING}
@@ -378,6 +384,8 @@ def outline(overview: Overview, user: AnyUser) -> Outline:
             for attachment in saved.get(entry.row_id, ()):
                 entry.parts.append(_attachment_part(attachment, user, entry, Source.UPLOAD))
             entry.saved = list(saved.get(entry.row_id, ()))
+            if entry.saved and Warn.UPLOAD_REQUIRED in entry.warnings:
+                entry.warnings.remove(Warn.UPLOAD_REQUIRED)  # ファイルを保存してあれば綴じる
         elif "generate" in how:
             document = state.document
             if state.status == Status.GENERATED and document is not None:

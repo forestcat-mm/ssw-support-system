@@ -250,6 +250,33 @@ def test_generation_of_both_translations(seeded: list[ForeignWorker]) -> None:
     entry = next(e for e in outline.entries if e.row["how"].get("generate") == "1-6" and e.parts)
     assert [part.source for part in entry.parts][-1] == submission_bundles.Source.TRANSLATION
     assert submission_bundles.Warn.TRANSLATION_MISSING not in entry.warnings
+    # 第1-17号も、日本語の様式の直後に訳文（第1表「申請人が十分に理解できる言語での記載が必要」。
+    # 更新の一覧には第1-17号の行が無いので、変更の一覧で見る）
+    outline = submission_bundles.outline(application_sets.overview(worker, "chg", BASE), admin)
+    plan_entry = next(
+        e for e in outline.entries if e.row["how"].get("generate") == "1-17" and e.parts
+    )
+    sources = [part.source for part in plan_entry.parts]
+    assert sources[-1] == submission_bundles.Source.TRANSLATION
+    assert sources.count(submission_bundles.Source.TRANSLATION) == 1
+    assert submission_bundles.Warn.TRANSLATION_MISSING not in plan_entry.warnings
+
+
+def test_missing_translation_of_the_support_plan_is_a_warning(
+    seeded: list[ForeignWorker],
+) -> None:
+    """中国語の外国人の第1-17号を日本語の版だけで綴じると、訳文が無い警告が出る。"""
+    worker = seeded[1]
+    target, data = form_samples.sample("1-17", worker, BASE)
+    japanese = form_generation.request(
+        "1-17", target=target, data=data, basis_on=BASE, by=None, accept_warnings=True
+    )
+    japanese.refresh_from_db()
+    overview = application_sets.overview(worker, "chg", BASE)
+    outline = submission_bundles.outline(overview, make_user("admin43b", roles=("admin",)))
+    entry = next(e for e in outline.entries if e.row["how"].get("generate") == "1-17")
+    assert submission_bundles.Warn.TRANSLATION_MISSING in entry.warnings
+    assert submission_bundles.Source.TRANSLATION not in [part.source for part in entry.parts]
 
 
 def test_untranslated_values_are_a_warning(seeded: list[ForeignWorker]) -> None:

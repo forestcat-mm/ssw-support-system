@@ -32,6 +32,7 @@
             {% elif state.status == "check_document" %}<span class="badge badge--within-7">{% translate "document to check" %}</span>
             {% elif state.status == "missing" %}<span class="badge badge--overdue">{% translate "not attached" context "application set" %}</span>
             {% elif state.status == "alternative" %}<span class="muted">{% translate "for organizations with a track record (not judged in the system)" %}</span>
+            {% elif state.status == "upload_required" %}<span class="badge badge--within-7" data-upload-required>{% translate "required: the system cannot make it, so add the file on the PDF screen" %}</span>
             {% elif state.status == "unknown" %}<span class="muted">{% translate "cannot be judged" %}</span>
             {% else %}<span class="muted">{% translate "prepared outside the system" %}</span>{% endif %}
             {% with check=row_checks|get_item:row.id %}{% if check %}<br>{% if check.blocked %}<span class="badge badge--overdue" data-check="blocked">{% translate "cannot generate" %}</span>{% elif check.warnings %}<span class="badge badge--within-7" data-check="warning">{% blocktranslate count counter=check.warnings %}{{ counter }} warning{% plural %}{{ counter }} warnings{% endblocktranslate %}</span>{% else %}<span class="badge badge--within-14" data-check="ok">{% translate "can be generated" %}</span>{% endif %}{% endif %}{% endwith %}

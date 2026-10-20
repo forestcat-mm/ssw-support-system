@@ -147,7 +147,9 @@
    "how": {
     "generate": "1-4"
    },
-   "applies": []
+   "applies": [
+    "not_accepting"
+   ]
   },
   {
    "id": "coe_t1-5-2",
@@ -168,7 +170,9 @@
    "how": {
     "attachment": "equal_pay_evidence"
    },
-   "applies": []
+   "applies": [
+    "not_accepting"
+   ]
   },
   {
    "id": "coe_t1-6-1",
@@ -298,7 +302,9 @@
    "how": {
     "out": true
    },
-   "applies": []
+   "applies": [
+    "not_accepting"
+   ]
   },
   {
    "id": "coe_t1-8-2",
@@ -319,7 +325,10 @@
    "how": {
     "out": true
    },
-   "applies": []
+   "applies": [
+    "not_accepting",
+    "placement"
+   ]
   },
   {
    "id": "coe_t1-9-1",

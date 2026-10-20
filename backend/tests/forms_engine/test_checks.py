@@ -43,7 +43,8 @@ EXPECTED_1_17 = {
     31: {("membership", "certificate_missing")},  # 4 社目は構成員証明書が無い（T39）
 }
 EXPECTED_5_9 = {
-    10: {("briefing_warnings", "below_guideline")},  # 2 時間（署名なしは生成の後なので出さない）
+    # 2 時間（指針の 3 時間・計画の実施予定時間 3 時間より短い。署名なしは生成の後なので出さない）
+    10: {("briefing_warnings", "below_guideline"), ("briefing_warnings", "below_plan")},
     25: set(),  # 完全・署名済み
 }
 BLOCKING_CODES = {
@@ -92,6 +93,13 @@ def test_each_finding_leads_to_the_screen_that_fixes_it(seeded: list[ForeignWork
         "contract_missing": ("workers:contracts", {"pk": worker[4].pk}),
         "career_plan_missing": ("workers:support_deliveries", {"pk": worker[15].pk}),
         "below_guideline": (
+            "workers:support_briefing",
+            {
+                "pk": worker[10].pk,
+                "briefing_id": form_samples.latest_briefing(worker[10], "pre_guidance").pk,  # type: ignore[arg-type, union-attr]
+            },
+        ),
+        "below_plan": (
             "workers:support_briefing",
             {
                 "pk": worker[10].pk,

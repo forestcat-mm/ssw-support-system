@@ -28,7 +28,7 @@ from typing import Any
 from django.db import models
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
-from django.utils.translation import ngettext
+from django.utils.translation import gettext_lazy, ngettext
 
 from apps.contracts.models import (
     ConversionChange,
@@ -544,6 +544,120 @@ def _plan_orientation_other(context: CheckContext, params: Mapping[str, Any]) ->
     ]
 
 
+# 第1-17号の、空だと様式の欄が空になるもの（2026-10-20。審査で見られる欄。今は警告）
+PLAN_EMPTY_TEXTS: Mapping[str, Any] = {
+    "planned_hours_guidance": gettext_lazy(
+        "IV 1 c: the planned hours of the pre-entry guidance are empty."
+    ),
+    "planned_hours_orientation": gettext_lazy(
+        "IV 4 c: the planned hours of the life orientation are empty."
+    ),
+    "pickup_airport": gettext_lazy("IV 2 a: the arrival airport is empty."),
+    "pickup_transport": gettext_lazy("IV 2 a: the way of transport is empty."),
+    "housing": gettext_lazy("IV 3 a d: the housing outline is incomplete (%(items)s)."),
+    "consultation_hours": gettext_lazy("IV 6 b: the hours of the consultation desk are empty."),
+    "consultation_methods": gettext_lazy("IV 6 b: the ways of consultation are empty."),
+    "emergency_methods": gettext_lazy("IV 6 b: the ways of contact in an emergency are empty."),
+    "municipality": gettext_lazy("V: the check of coexistence measures is incomplete (%(items)s)."),
+    "responsible_name": gettext_lazy("The name of the person responsible for the plan is empty."),
+    "organization_phone": gettext_lazy("III 4: the phone number of our organization is empty."),
+}
+HOUSING_PARTS: Mapping[str, Any] = {
+    "timing": gettext_lazy("when it is secured"),
+    "room": gettext_lazy("room area"),
+    "occupants": gettext_lazy("number of occupants"),
+    "rent": gettext_lazy("whether rent is collected"),
+    "amount": gettext_lazy("monthly rent"),
+    "property": gettext_lazy("owned or leased"),
+    "bedroom": gettext_lazy("bedroom area"),
+    "explanation": gettext_lazy("explanation that the rent is appropriate"),
+}
+MUNICIPALITY_PARTS: Mapping[str, Any] = {
+    "site": gettext_lazy("location of the workplace"),
+    "residence": gettext_lazy("residence of the worker"),
+}
+
+
+def _empty(value: object) -> bool:
+    return value is None or (isinstance(value, str) and not value.strip())
+
+
+@check("plan_fields_filled")
+def _plan_fields_filled(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """第1-17号で空になる欄（実施予定時間・送迎・住居の概要・相談窓口・共生施策・作成責任者・電話）。"""
+    data = context.data
+    plan = Destination("workers:support", {"pk": context.worker.pk})
+    found: list[tuple[str, dict[str, str]]] = []
+    if _empty(data.get("plan.item.pre_guidance.planned_hours")):
+        found.append(("planned_hours_guidance", {}))
+    if _empty(data.get("plan.item.orientation.planned_hours")):
+        found.append(("planned_hours_orientation", {}))
+    if data.get("plan.2.a.planned_yes"):
+        if _empty(data.get("plan.2.a.method_note.arrival_airport")):
+            found.append(("pickup_airport", {}))
+        if _empty(data.get("plan.2.a.method_note.transport")):
+            found.append(("pickup_transport", {}))
+    housing = []
+    if not (data.get("housing.secured") or data.get("housing.after")):
+        housing.append("timing")
+    if not data.get("housing.room_area_ok"):
+        housing.append("room")
+    if _empty(data.get("housing.occupants")):
+        housing.append("occupants")
+    if not (data.get("housing.rent_yes") or data.get("housing.rent_no")):
+        housing.append("rent")
+    if data.get("housing.rent_yes") and _empty(data.get("housing.monthly_rent")):
+        housing.append("amount")
+    if not (data.get("housing.owned") or data.get("housing.leased")):
+        housing.append("property")
+    if not data.get("housing.bedroom_area_ok"):
+        housing.append("bedroom")
+    if data.get("housing.rent_yes") and _empty(data.get("housing.rent_explanation")):
+        housing.append("explanation")
+    if housing:
+        found.append(("housing", {"items": "、".join(str(HOUSING_PARTS[p]) for p in housing)}))
+    days = ("mon", "tue", "wed", "thu", "fri", "sat", "sun", "holiday")
+    if not any(data.get(f"consultation.{day}.start") for day in days):
+        found.append(("consultation_hours", {}))
+    for prefix, code in (
+        ("consultation", "consultation_methods"),
+        ("emergency", "emergency_methods"),
+    ):
+        if not any(v for k, v in data.items() if k.startswith(f"{prefix}.method.")):
+            found.append((code, {}))
+    places = []
+    for place in ("site", "residence"):
+        key = f"municipality.{place}."
+        if (
+            _empty(data.get(key + "municipality"))
+            or _empty(data.get(key + "checked_on"))
+            or not (data.get(key + "website") or data.get(key + "other"))
+        ):
+            places.append(place)
+    if places:
+        parts = "、".join(str(MUNICIPALITY_PARTS[p]) for p in places)
+        found.append(("municipality", {"items": parts}))
+    if _empty(data.get("plan.responsible_name")):
+        found.append(("responsible_name", {}))
+    issues = [
+        Issue(
+            f"plan_empty_{code}",
+            str(PLAN_EMPTY_TEXTS[code]) % values if values else str(PLAN_EMPTY_TEXTS[code]),
+            plan,
+        )
+        for code, values in found
+    ]
+    if _empty(data.get("organization.phone")):
+        issues.append(
+            Issue(
+                "plan_empty_organization_phone",
+                str(PLAN_EMPTY_TEXTS["organization_phone"]),
+                Destination("settings:organization_edit"),
+            )
+        )
+    return issues
+
+
 @check("organization_for_plan")
 def _organization_for_plan(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
     """第1-17号Ⅲ欄（自機関・事務所・支援責任者）に要る値（T31-D12・D13）。"""
@@ -876,6 +990,48 @@ def _contract_contacts_split(context: CheckContext, params: Mapping[str, Any]) -
                 "printed in the department field. Enter the department, the person and the "
                 "contact details separately in a new version."
             ),
+            Destination("workers:contracts", {"pk": context.worker.pk}),
+        )
+    ]
+
+
+# 労使協定が無くても控除できるもの（法令で控除する税金・社会保険料・雇用保険料）
+STATUTORY_DEDUCTIONS = frozenset({"tax", "social_insurance", "employment_insurance"})
+
+
+@check("contract_deduction_agreement")
+def _contract_deduction_agreement(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """税金・社会保険料・雇用保険料のほかの控除があるのに、Ⅶ７ 労使協定に基づく控除が「無」。"""
+    version = context.version
+    if version is None or version.has_deduction_agreement:
+        return []
+    others = [d for d in version.deductions.all() if d.kind not in STATUTORY_DEDUCTIONS]
+    if not others:
+        return []
+    return [
+        Issue(
+            "deduction_without_agreement",
+            _(
+                "There are deductions other than taxes and social and employment insurance "
+                "premiums (%(names)s), but the deduction based on a labor-management agreement "
+                '(VII 7) is "none". Check the agreement.'
+            )
+            % {"names": "、".join(d.name or d.get_kind_display() for d in others)},
+            Destination("workers:contracts", {"pk": context.worker.pk}),
+        )
+    ]
+
+
+@check("contract_work_rules_location")
+def _contract_work_rules_location(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """「就業規則を確認できる場所や方法」が空。"""
+    version = context.version
+    if version is None or version.work_rules_location.strip():
+        return []
+    return [
+        Issue(
+            "work_rules_location_missing",
+            _("The place or way to check the work rules is empty."),
             Destination("workers:contracts", {"pk": context.worker.pk}),
         )
     ]

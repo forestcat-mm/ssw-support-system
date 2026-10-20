@@ -65,7 +65,7 @@ from apps.hosts.models import (
     SupportContract,
 )
 from apps.seed import builders
-from apps.seed.context import DUMMY_PDF, DUMMY_USERNAME
+from apps.seed.context import DUMMY_USERNAME, dummy_pdf
 from apps.seed.models import SeedObject, SeedScope
 from apps.support.models import (
     ConsultationStatus,
@@ -144,19 +144,10 @@ NOT_STORED = (
 )
 
 
-# 値に無いが、入力が必須なので決めて入れたもの（報告に書く）
-FILLED = (
-    "キャリアアッププランの適用開始日 2026-07-01（支援委託契約の開始日）と想定されるキャリアルート"
-    "「一般 → 班長補佐 → 班長」（レベルの地位から）",
-    "支援計画の適用開始日 2026-07-04（作成日と同じ）",
-    "雇用契約の第1版の変更日（版の適用の始まり）2026-09-15（契約の開始日）",
-    "業務区分「飲食料品製造業」は、2026 年に選べる「飲食料品製造業全般」にした"
-    "（「飲食料品製造業」は 2027-04-01 からの区分）",
-    "事前ガイダンスの本人確認の印（オンラインのガイダンスでは必須）",
-    "2 回目の面談の ⑥ の対応: 本人を船橋労働基準監督署に案内／受入れ機関（製造部 製造課長 "
-    "山本 健二）に 2026-10-17 に通知／出入国在留管理庁への案内は済み",
-    "事前ガイダンスの外国の機関に払った費用の内訳「紹介手数料」（内訳の欄が必須）",
-)
+# 値に無いが、入力が必須なので決めて入れたもの（報告に書く）。2026-10-20 にテストシナリオに
+# 同じ値（キャリアアッププランの適用開始日とキャリアルート・支援計画の適用開始日・雇用契約の第1版の
+# 変更日・業務区分・本人確認の印・2 回目の面談の ⑥ の対応・費用の内訳）が入ったので、今は無い
+FILLED: tuple[str, ...] = ()
 
 
 class ScenarioError(Exception):
@@ -195,8 +186,23 @@ def as_of(day: date, at: time = time(10)) -> Iterator[None]:
         timezone.now = real
 
 
+# ダミーの PDF に書く書類の名前（英字。統合 PDF で見分けられるように）
+PDF_LABELS = {
+    "協議会構成員証明書.pdf": "Council membership certificate (host organization)",
+    "協力確認書控え_船橋市.pdf": "Cooperation confirmation (Funabashi)",
+    "協力確認書控え_市川市.pdf": "Cooperation confirmation (Ichikawa)",
+    "支援委託契約書.pdf": "Support outsourcing contract",
+    "健康診断個人票.pdf": "Health check record",
+}
+
+
 def _pdf(name: str) -> ContentFile[bytes]:
-    return ContentFile(DUMMY_PDF, name=name)
+    label = PDF_LABELS.get(name) or (
+        "Signed copy of form " + name.removeprefix("署名済み_").removesuffix(".pdf")
+        if name.startswith("署名済み_")
+        else name
+    )
+    return ContentFile(dummy_pdf(label), name=name)
 
 
 def _language(code: str) -> SupportLanguage:

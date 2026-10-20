@@ -110,8 +110,17 @@ EXPECTED_DASHBOARD = [
 # 外国人ごとの警告（場面の表の意図したものだけ）
 EXPECTED_WARNINGS = {
     9: [("career_plan", "career_plan_missing")],  # 転籍の新しい契約が未交付
-    10: [("pre_guidance", "below_guideline"), ("pre_guidance", "unsigned")],
-    14: [("orientation", "below_guideline"), ("orientation", "unsigned")],
+    # 計画の実施予定時間（事前ガイダンス 3 時間・生活オリエンテーション 8 時間）より短い
+    10: [
+        ("pre_guidance", "below_guideline"),
+        ("pre_guidance", "below_plan"),
+        ("pre_guidance", "unsigned"),
+    ],
+    14: [
+        ("orientation", "below_guideline"),
+        ("orientation", "below_plan"),
+        ("orientation", "unsigned"),
+    ],
     15: [("career_plan", "career_plan_missing")],  # 食品の契約で未交付
     # 最後の定期面談の本人の行がオンラインで、計画の実施方法は対面だけ（T35-D8）
     5: [

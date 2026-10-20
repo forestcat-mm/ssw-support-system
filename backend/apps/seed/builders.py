@@ -62,11 +62,11 @@ from apps.hosts.models import (
 from apps.seed import support_builders
 from apps.seed.context import (
     DUMMY_MARK,
-    DUMMY_PDF,
     DUMMY_USERNAME,
     DUMMY_USERNAME_2,
     SEED,
     SeedContext,
+    dummy_pdf,
 )
 from apps.seed.models import SeedObject, SeedScope
 from apps.workers.models import (
@@ -128,6 +128,7 @@ def seed_organization(ctx: SeedContext) -> None:
         registration_expires_on=deadlines.add_months(ctx.base, 5),
         postal_code="000-0001",
         address="東京都サンプル区ダミー町1-1-1",
+        phone_number="000-0000-9000",  # 第1-17号Ⅲ４ の電話番号
         food_council_joined_on=ctx.days(-700),
         # 第13-2号の作成責任者・第5-10号の乙の記名と第8条の管轄裁判所（T37）
         representative_title="代表理事",
@@ -139,7 +140,10 @@ def seed_organization(ctx: SeedContext) -> None:
         create_attachment(
             target=organization,
             kind=AttachmentKind.FOOD_COUNCIL_CERTIFICATE,
-            file=ContentFile(DUMMY_PDF, name="dummy_food_council.pdf"),
+            file=ContentFile(
+                dummy_pdf("Council membership certificate (registered support organization)"),
+                name="dummy_food_council.pdf",
+            ),
             created_by=None,
             valid_until=ctx.days(200),
         )
@@ -284,7 +288,10 @@ def seed_hosts(ctx: SeedContext) -> None:
             create_attachment(
                 target=membership,
                 kind=AttachmentKind.MEMBERSHIP_CERTIFICATE,
-                file=ContentFile(DUMMY_PDF, name="dummy_membership.pdf"),
+                file=ContentFile(
+                    dummy_pdf("Council membership certificate (host organization)"),
+                    name="dummy_membership.pdf",
+                ),
                 created_by=None,
                 valid_until=plan["membership_valid_until"],
             )
@@ -635,6 +642,8 @@ def _version_values(
         "wage_payment_day": "翌月25日",
         "payment_method": "bank_transfer",
         "has_deduction_agreement": True,
+        # 第1-6号の「就業規則を確認できる場所や方法」（空だと生成前の検査で警告。2026-10-20）
+        "work_rules_location": "事務室に掲示",
         "has_raise": True,
         "raise_note": "年1回（4月）",
         "has_bonus": True,
@@ -838,7 +847,10 @@ def seed_transfer(ctx: SeedContext) -> None:
         create_attachment(
             target=membership,
             kind=AttachmentKind.MEMBERSHIP_CERTIFICATE,
-            file=ContentFile(DUMMY_PDF, name="dummy_membership.pdf"),
+            file=ContentFile(
+                dummy_pdf("Council membership certificate (host organization)"),
+                name="dummy_membership.pdf",
+            ),
             created_by=None,
         )
     )
@@ -992,6 +1004,7 @@ def seed_uncertified_host(ctx: SeedContext) -> None:
     applies_from = values["starts_on"] - timedelta(days=30)
     content = support_plans.content_for_worker(worker)
     content.created_on = applies_from
+    support_builders.fill_plan(content, applies_from)
     support_plans.create_plan(
         worker, contract.host_organization, applies_from=applies_from, by=None, content=content
     )

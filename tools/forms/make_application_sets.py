@@ -195,6 +195,12 @@ def applies(key: str, row: dict) -> list[str]:
         result.append("full_support")
     if "１年単位の変形労働時間制" in note:
         result.append("variable_one_year")
+    # 「同一年度内に特定技能外国人を既に受け入れている機関又は一定の実績…は省略可」（△の行）:
+    # 受入れ機関の受入れ継続の印が無ければ省略できない（2026-10-20）
+    if "同一年度内に特定技能外国人を既に受け入れている機関" in note and "省略可" in note:
+        result.append("not_accepting")
+    if "あっせんする者がいる場合" in note:  # 職業紹介の有無（台帳に無いので判断しない）
+        result.append("placement")
     if "滞納がある場合" in note:  # 公的義務の滞納（台帳に無いので判断しない。第1-26号）
         result.append("arrears")
     if "対象の国籍" in note:

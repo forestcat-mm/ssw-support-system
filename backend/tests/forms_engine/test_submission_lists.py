@@ -307,3 +307,33 @@ def test_rendered_list_writes_nothing_in_the_official_column(tmp_path: Path) -> 
             ]
         assert anchors, book.file
         assert all(not official[0] <= column <= official[1] for column in anchors), book.file
+
+
+def test_cover_values_sit_on_the_lines_in_the_pdf_copy(tmp_path: Path) -> None:
+    """表紙の氏名・名称は、PDF にする一時の写しでだけ縦の配置を「下」にする（線の上に字が来る）。"""
+    import re
+
+    contract = make_case()
+    overview = application_sets.overview(contract.worker, "coe", BASIS)
+    books = submission_lists.workbooks(
+        overview, {}, worker_name="WANG LINA", host_name="テスト株式会社"
+    )
+    submission_lists.render(books[:1], tmp_path)
+
+    def vertical(path: Path, ref: str) -> str | None:
+        with zipfile.ZipFile(path) as archive:
+            sheet = archive.read("xl/worksheets/sheet1.xml").decode()
+            styles = archive.read("xl/styles.xml").decode()
+        cell = re.search(rf'<c r="{ref}"[^>]*?s="(\d+)"', sheet)
+        assert cell is not None
+        xfs_xml = re.search(r"<cellXfs[^>]*>(.*?)</cellXfs>", styles, re.S)
+        assert xfs_xml is not None
+        xfs = re.findall(r"<xf\b[^>]*?(?:/>|>.*?</xf>)", xfs_xml.group(1), re.S)
+        found = re.search(r'vertical="(\w+)"', xfs[int(cell.group(1))])
+        return found.group(1) if found else None
+
+    copy = tmp_path / "list-0" / "for-pdf" / books[0].file
+    written = tmp_path / "list-0" / books[0].file
+    for ref in ("F47", "F48"):
+        assert vertical(copy, ref) == "bottom"
+        assert vertical(written, ref) == "top"  # 保存するブックは元の書式のまま

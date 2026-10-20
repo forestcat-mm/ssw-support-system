@@ -254,7 +254,7 @@ ZH_1_6: dict[int, list[str]] = {
     29: [f"＿ 5．有无规定时间以外劳动＿＿{half(2)}[overtime_yes:□]＿有＿＿＿＿[overtime_no:□]＿无"],
     30: [f"○详细内容参见就业规则＿[articles_hours:{ARTICLES_ZH_3}]"],
     31: [
-        "1．规定休息日：每周周[holiday_weekdays:3]、[national_holidays:日本的法定节日]、其他（[holidays_other:"
+        "1．规定休息日：每周[holiday_weekdays:周＿＿＿]、[national_holidays:日本的法定节日]、其他（[holidays_other:"
         f"{full(9)}{half(3)}{full(2)}]）＿＿（全年合计休息日天数[annual_holidays:3]天）"
     ],
     32: [f"2.非规定休息日：[irregular_holidays:每周/每月{half(8)}天，其他（＿＿＿＿＿＿＿＿＿＿＿）]"],
@@ -342,10 +342,11 @@ ZH_1_6: dict[int, list[str]] = {
 
 # 値を入れると行の終わりの「）」が次の行に折り返す欄（併記の版は行の幅いっぱいに空白を置いている。
 # 空白は行の外にはみ出せるが字ははみ出せない）。詰める幅を狭める
-PADS_1_6 = {"work_rules_location": 22}
+PADS_1_6 = {"work_rules_location": 22, "annual_holidays": 3}
 
 # 中国語の行で、値を訳の表で中国語にして入れる欄（印刷済みの選択肢の文を置き換える欄）
 TRANSLATED_1_6 = {
+    "holiday_weekdays",  # 曜日（「土・日」→「六、日」。印刷済みの「周」も欄に含めて「每周六、日」にする）
     "renewal_limit",
     "conversion_change",
     "national_holidays",

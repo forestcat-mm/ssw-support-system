@@ -15,7 +15,7 @@ from apps.contracts.models import VariableHoursUnit
 from apps.core.models import AttachmentKind, AuditAction, AuditLog, SupportLanguage
 from apps.hosts.models import HostDocument, HostDocumentKind
 from apps.seed.context import DUMMY_PDF
-from services import application_sets, host_documents, submission_bundles
+from services import application_sets, host_documents, submission_bundles, submission_drafts
 from tests.contracts.factories import make_contract
 from tests.core.factories import make_user, verified_client
 from tests.forms_engine.test_form_application import make_case
@@ -224,3 +224,44 @@ def test_screens_add_and_void_with_audit() -> None:
     assert not host_documents.files_of(document)
     viewer = verified_client(make_user("viewer42b", roles=()))
     assert viewer.get(url).status_code == 403
+
+
+def test_rows_omitted_for_accepting_hosts_follow_the_mark() -> None:
+    """「同一年度内に既に受け入れている機関…は省略可」の△の行は、受入れ継続の印で判定する。
+
+    印が無い: 報酬に関する説明書・賃金規程の写し・雇用の経緯に係る説明書は要る。雇用の経緯に係る
+    説明書はシステムでは作れないので「要る（アップロード）」と警告する。職業紹介の画面の写しは、
+    あっせんの有無を判断しない。印が有る: どれも当てはまらない（省略）。
+    """
+    contract = make_case()
+    host = contract.host_organization
+    overview = application_sets.overview(contract.worker, "coe", BASIS)
+    rows = by_id(overview)
+    for row_id in ("coe_t1-5-1", "coe_t1-5-2", "coe_t1-8-1"):
+        assert rows[row_id].applicable is True, row_id
+    assert rows["coe_t1-8-1"].status == application_sets.Status.UPLOAD_REQUIRED
+    assert rows["coe_t1-8-1"].tone == "warning" and not rows["coe_t1-8-1"].done
+    assert rows["coe_t1-8-2"].applicable is None
+    assert rows["coe_t1-8-2"].status == application_sets.Status.OUTSIDE
+    admin = make_user("admin-omit", roles=("admin",))
+    entry = next(
+        e for e in submission_bundles.outline(overview, admin).entries if e.row_id == "coe_t1-8-1"
+    )
+    assert submission_bundles.Warn.UPLOAD_REQUIRED in entry.warnings
+    # ファイルを保存すれば警告は消えて綴じる
+    submission_drafts.save(contract.worker, "coe", {"coe_t1-8-1": [pdf()]}, by=None)
+    entry = next(
+        e for e in submission_bundles.outline(overview, admin).entries if e.row_id == "coe_t1-8-1"
+    )
+    assert submission_bundles.Warn.UPLOAD_REQUIRED not in entry.warnings and entry.parts
+    client = verified_client(admin)
+    page = client.get(
+        f"/workers/{contract.worker_id}/documents/application/?set_id=coe&basis_on=2026-10-18"
+    ).content.decode()
+    assert "data-upload-required" in page
+    host.accepts_ssw_workers = True
+    host.accepts_ssw_workers_since = datetime.date(2026, 4, 1)
+    host.save()
+    omitted = application_sets.overview(contract.worker, "coe", BASIS)
+    not_applicable = {state.row["id"] for state in omitted.not_applicable}
+    assert {"coe_t1-5-1", "coe_t1-5-2", "coe_t1-8-1", "coe_t1-8-2"} <= not_applicable

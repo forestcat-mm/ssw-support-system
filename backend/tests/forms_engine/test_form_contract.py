@@ -90,6 +90,7 @@ def full_version(**overrides: Any) -> EmploymentContractVersion:
         "consultation_contact_phone": "03-0000-0100",
         "work_rules_articles_hours": "第15条～第18条",
         "work_rules_location": "事務室に掲示",
+        "has_deduction_agreement": True,  # 通信費（その他）の控除がある
     }
     contract = make_contract(make_worker(), site=site_with_categories(), **(values | overrides))
     version = contract.versions.get()
@@ -712,3 +713,16 @@ def test_dummy_contracts_follow_article_19_and_have_wage_explanations(seeded: li
                 form_id,
                 [finding.message for finding in result.findings],
             )
+
+
+def test_deduction_agreement_and_work_rules_location_are_checked(loaded: None) -> None:
+    """第1-6号: 税金・社会保険料・雇用保険料のほかの控除があるのに労使協定が「無」、就業規則を確認
+    できる場所や方法が空のときは警告（2026-10-20）。"""
+    version = full_version(has_deduction_agreement=False, work_rules_location="")
+    EmploymentContractDeduction.objects.create(
+        version=version, kind="housing", name="社宅費", amount=20000
+    )
+    found = codes(check("1-6", version))
+    assert found["deduction_without_agreement"] == "warn"
+    assert found["work_rules_location_missing"] == "warn"
+    # 協定が「有」で場所を入れた版は出ない（test_complete_version_has_no_findings の full_version）

@@ -456,3 +456,44 @@ def test_findings_do_not_show_internal_codes(seeded: list[ForeignWorker]) -> Non
     }
     assert messages
     assert [message for message in messages if INTERNAL_CODE.search(message)] == []
+
+
+def test_empty_plan_fields_are_warnings(seeded: list[ForeignWorker]) -> None:
+    """空だと様式の欄が空になるもの（実施予定時間・送迎・住居の概要・相談窓口・共生施策・作成責任者・
+    自機関の電話）は、生成前の検査の警告（2026-10-20）。"""
+    worker = seeded[14]
+    version = form_samples.latest_plan_version(worker)
+    assert version is not None
+    data = form_data_1_17.build(version, BASE)
+    blanked = data | {
+        "plan.item.pre_guidance.planned_hours": None,
+        "plan.item.orientation.planned_hours": None,
+        "plan.2.a.planned_yes": True,
+        "plan.2.a.method_note.arrival_airport": "",
+        "plan.2.a.method_note.transport": "",
+        "housing.occupants": None,
+        "housing.bedroom_area_ok": None,
+        **{key: None for key in data if key.startswith("consultation.")},
+        **{key: None for key in data if key.startswith("emergency.method.")},
+        **{key: None for key in data if key.startswith("municipality.")},
+        "plan.responsible_name": "",
+        "organization.phone": "",
+    }
+    result = form_generation.check("1-17", target=version, data=blanked, basis_on=BASE)
+    found = {finding.code: finding for finding in result.findings}
+    for code in (
+        "planned_hours_guidance",
+        "planned_hours_orientation",
+        "pickup_airport",
+        "pickup_transport",
+        "housing",
+        "consultation_hours",
+        "consultation_methods",
+        "emergency_methods",
+        "municipality",
+        "responsible_name",
+        "organization_phone",
+    ):
+        assert found[f"plan_empty_{code}"].severity == "warn", code
+    assert "同居人数" in found["plan_empty_housing"].message
+    assert "寝室の広さ" in found["plan_empty_housing"].message

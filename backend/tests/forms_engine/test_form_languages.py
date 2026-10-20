@@ -392,6 +392,8 @@ def test_bilingual_1_6_translates_the_choice_fields_of_the_chinese_rows(loaded: 
     )
     assert values["renewal_limit"] == "有（更新３回まで／通算契約期間５年まで）"
     assert values["renewal_limit_zh"] == "有（最多更新３次／总合同期限５年为止）"
+    # 曜日は印刷済みの「周」も欄に含めて「每周六、日」にする（「每周周土・日」にしない）
+    assert values["holiday_weekdays"] == "土・日" and values["holiday_weekdays_zh"] == "六、日"
     assert "每月" in str(values["wage_closing_day_zh"]) and "月末" in str(
         values["wage_closing_day_zh"]
     )

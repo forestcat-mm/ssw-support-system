@@ -11,7 +11,9 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from dataclasses import replace
 from datetime import date, time, timedelta
+from decimal import Decimal
 from typing import Any
 
 from django.contrib.contenttypes.models import ContentType
@@ -29,7 +31,7 @@ from apps.forms_engine.models import (
     SubmissionDraftFile,
 )
 from apps.hosts.models import HostDocument, HostOrganization
-from apps.seed.context import DUMMY_MARK, DUMMY_PDF, SeedContext
+from apps.seed.context import DUMMY_MARK, SeedContext, dummy_pdf
 from apps.support.models import (
     Briefing,
     BriefingCheck,
@@ -101,7 +103,7 @@ ONLINE_INTERVIEW = 5  # 最後の定期面談の本人用の行がオンライ�
 
 
 def _pdf(name: str) -> ContentFile[bytes]:
-    return ContentFile(DUMMY_PDF, name=name)
+    return ContentFile(dummy_pdf(name.removeprefix("dummy_").removesuffix(".pdf")), name=name)
 
 
 def _contract(worker: ForeignWorker) -> EmploymentContract:
@@ -120,6 +122,56 @@ def _signed_on(contract: EmploymentContract) -> date:
 # --- 支援計画 --------------------------------------------------------------------------------
 
 
+def fill_plan(content: support_plans.PlanContent, applies_from: date) -> None:
+    """第1-17号で空にならないように、計画の欄を埋める（実施予定時間・送迎・住居の概要・相談の受付・
+    共生施策の確認・作成責任者。2026-10-20 の生成前の検査の警告に合わせた）。"""
+    for item, hours in ((SupportItem.PRE_GUIDANCE, "3"), (SupportItem.ORIENTATION, "8")):
+        content.items[item] = replace(content.items[item], planned_hours=Decimal(hours))
+    pickup = content.activities["2.a"]
+    content.activities["2.a"] = replace(
+        pickup,
+        methods=sorted({*pickup.methods, "arrival_airport", "transport"}),
+        method_notes={"arrival_airport": f"成田国際空港{DUMMY_MARK}", "transport": "社用車"},
+    )
+    content.housing = support_plans.HousingContent(
+        timing="secured",
+        room_area_ok=True,
+        occupants=2,
+        bedroom_area_ok=True,
+        rent_collected=True,
+        monthly_rent=25000,
+        property_type="leased",
+        rent_explanation=f"近隣の同程度の住居の家賃以下の額であることを説明{DUMMY_MARK}",
+    )
+    content.consultation = support_plans.ConsultationContent(
+        hours={day: ["09:00", "18:00"] for day in ("mon", "tue", "wed", "thu", "fri")},
+        methods=["in_person", "phone", "email"],
+        phone="000-0000-9001",
+        email="soudan@example.com",
+        emergency_methods=["phone"],
+        emergency_phone="000-0000-9002",
+    )
+    checked_on = applies_from - timedelta(days=7)
+    content.municipality_checks = [
+        support_plans.MunicipalityContent(
+            place="site",
+            prefecture="東京都",
+            municipality=f"サンプル区{DUMMY_MARK}",
+            checked_on=checked_on,
+            method="website",
+        ),
+        support_plans.MunicipalityContent(
+            place="residence",
+            same_as_site=True,
+            prefecture="東京都",
+            municipality=f"サンプル区{DUMMY_MARK}",
+            checked_on=checked_on,
+            method="website",
+        ),
+    ]
+    content.responsible_name = f"代表理事　代表 花子{DUMMY_MARK}"
+
+
 def seed_plans(ctx: SeedContext) -> None:
     for worker in ctx.workers:
         for contract in EmploymentContract.objects.filter(worker=worker).order_by(
@@ -128,6 +180,7 @@ def seed_plans(ctx: SeedContext) -> None:
             applies_from = _starts_on(contract) - timedelta(days=30)
             content = support_plans.content_for_worker(worker)
             content.created_on = applies_from  # 第1-17号の作成日（T31）
+            fill_plan(content, applies_from)
             support_plans.create_plan(
                 worker,
                 contract.host_organization,

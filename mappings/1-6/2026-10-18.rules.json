@@ -9,6 +9,8 @@
     {"id": "wage_equivalent", "type": "check", "name": "contract_wage_equivalent", "severity": "warn"},
     {"id": "monthly_hours_average", "type": "check", "name": "contract_monthly_hours_average", "severity": "warn"},
     {"id": "contacts_split", "type": "check", "name": "contract_contacts_split", "severity": "warn"},
-    {"id": "conversion_annex", "type": "check", "name": "contract_conversion_annex", "severity": "warn"}
+    {"id": "conversion_annex", "type": "check", "name": "contract_conversion_annex", "severity": "warn"},
+    {"id": "deduction_agreement", "type": "check", "name": "contract_deduction_agreement", "severity": "warn", "note": "税金・社会保険料・雇用保険料のほかの控除があるのに、労使協定に基づく控除が「無」（2026-10-20）"},
+    {"id": "work_rules_location", "type": "check", "name": "contract_work_rules_location", "severity": "warn", "note": "就業規則を確認できる場所や方法が空（2026-10-20）"}
   ]
 }

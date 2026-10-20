@@ -70,6 +70,8 @@ class Status(enum.StrEnum):
     GENERATING = "generating"  # 生成を依頼した後、ジョブが終わる前（修正 1 回目 B10）
     # 受入れ機関の書類の保管庫に書類はあるが、期間の外・発行が古い・言語が違う（T42 の追加）
     CHECK_DOCUMENT = "check_document"
+    # 省略できない△の行で、システムでは作れない書類（アップロードが要る。2026-10-20）
+    UPLOAD_REQUIRED = "upload_required"
 
 
 # 行の色とラベルの区分（修正 1 回目 B9）: 不足＝赤、確かめが要る＝黄、済み＝緑、
@@ -86,6 +88,7 @@ TONES: dict[Status, str] = {
     Status.ATTACHED: "ok",
     Status.GENERATING: "muted",
     Status.OUTSIDE: "muted",
+    Status.UPLOAD_REQUIRED: "warning",
     Status.ALTERNATIVE: "muted",
     Status.UNKNOWN: "muted",
 }
@@ -234,8 +237,9 @@ def applies(row: dict[str, Any], facts: Facts) -> bool | None:
 
 
 def _condition(condition: str, facts: Facts) -> bool | None:
-    if condition in ("track_record", "arrears"):
-        return None  # 実績のある機関・公的義務の滞納は、システムでは判断しない
+    if condition in ("track_record", "arrears", "placement"):
+        # 実績のある機関・公的義務の滞納・職業紹介（あっせん）の有無は、システムでは判断しない
+        return None
     if condition.startswith("nationality:"):
         codes = condition.split(":", 1)[1].split(",")
         return facts.worker.nationality.code in codes
@@ -256,6 +260,11 @@ def _condition(condition: str, facts: Facts) -> bool | None:
         return None if facts.full_support is None else not facts.full_support
     if condition == "variable_one_year":
         return version.variable_hours_unit == VariableHoursUnit.ONE_YEAR
+    if condition == "not_accepting":
+        # 「同一年度内に既に受け入れている機関…は省略可」の△の行: 受入れ継続の印が無ければ要る
+        host = contract.host_organization
+        since = host.accepts_ssw_workers_since
+        return not (host.accepts_ssw_workers and (since is None or since <= facts.on))
     raise DefinitionError(condition)
 
 
@@ -533,6 +542,9 @@ def _state_of(row: dict[str, Any], facts: Facts) -> RowState:
     if "track_record" in row["applies"]:
         return RowState(row, applicable, Status.ALTERNATIVE)
     if "out" in how:
+        if applicable is True and "not_accepting" in row["applies"]:
+            # 省略できない△の行で、システムでは作れない書類（提出用の PDF の画面でアップロード）
+            return RowState(row, applicable, Status.UPLOAD_REQUIRED)
         return RowState(row, applicable, Status.OUTSIDE)
     if "generate" in how:
         if facts.contract is None and how["generate"] not in ("1-17", *WORKER_FORMS):

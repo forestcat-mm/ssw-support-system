@@ -19,6 +19,7 @@
     {"id": "orientation_other", "type": "check", "name": "plan_orientation_other", "severity": "warn"},
     {"id": "organization", "type": "check", "name": "organization_for_plan", "severity": "warn"},
     {"id": "propriety", "type": "check", "name": "propriety_declared", "severity": "warn"},
-    {"id": "text_fits", "type": "check", "name": "text_fits", "severity": "warn"}
+    {"id": "text_fits", "type": "check", "name": "text_fits", "severity": "warn"},
+    {"id": "plan_fields", "type": "check", "name": "plan_fields_filled", "severity": "warn", "note": "空だと様式の欄が空になるもの（実施予定時間・送迎・住居の概要・相談窓口・共生施策・作成責任者・電話。2026-10-20）"}
   ]
 }
