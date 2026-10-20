@@ -95,6 +95,7 @@ def test_criminal_record_is_restricted(loaded: None) -> None:
     assert not bulk_applications.can_download(staff_user, record)
     assigned = make_user("tanto-assigned", roles=("support_staff",))
     staff = entry.worker.assigned_staff
+    assert staff is not None
     staff.user = assigned
     staff.save()
     entry.worker.refresh_from_db()
