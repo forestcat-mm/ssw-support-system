@@ -76,10 +76,10 @@ make seed-scenario REPLACE=1  # 画面で作った同じ記録（さくら台フ
 |---|---|---|
 | `make check-quick T=…` | 直すたびに | lint と、`T` で指定したファイル・アプリのテスト（slow を除く。例: `make check-quick T="tests/core tests/workers"`。`T` を省くと slow 以外の全部） |
 | `make test` | タスクのコミットのたびに | 単体テストの全部を並列で（pytest-xdist の `-n auto`。slow を含む） |
-| `make checks` | push の前に 1 回 | lint・test・e2e・gate2・gate3 を順に流す |
+| `make checks` | push の前に 1 回 | lint・test・e2e・gate2・gate3（・gate4）を順に流す |
 
 - **落ちたテストを直したとき**は `make test-lf`（前回落ちたテストだけ）で確かめ、全部の流し直しは最後の `make checks` の 1 回にまとめる。
-- **gate2 の基準日**: `make checks` の gate2 は既定で 1 つの基準日（2026-10-17）。期限の計算・届出の起票にさわったときだけ、`make checks GATE2_DATES="2026-10-17 2026-11-30 2026-12-28"` で 3 つの基準日にする。gate3 は既定で流す（`GATE3=` で外す）。
+- **gate2 の基準日**: `make checks` の gate2 は既定で 1 つの基準日（2026-10-17）。期限の計算・届出の起票にさわったときだけ、`make checks GATE2_DATES="2026-10-17 2026-11-30 2026-12-28"` で 3 つの基準日にする。gate3 は既定で流す（`GATE3=` で外す）。gate4（段階4）は `GATE4=1` で足す（一括申請・一括届出・様式にさわったとき）。
 - **slow の印**: LibreOffice で PDF に変換するモジュールと、ダミーデータを丸ごと作る（`seeded` の fixture・seed のテスト）テストに付く（`tests/conftest.py` の `SLOW_MODULES`・`SLOW_FIXTURES`）。空の様式の変換の結果は、テストのセッション（並列のときはワーカー）ごとに 1 回だけ作って使い回す（`tests/forms_engine/pdfcheck.py`）。
 - **テスト用の DB**: 使い回す（`--reuse-db`。ワーカーごとに `test_…_gw0` などの別の DB）。新しいマイグレーションは流れる。マイグレーションを直した・消したとき、DB がおかしいときは `make test-db`（作り直して全部を流す）。
 - **e2e**: 並列で流す（`E2E_WORKERS`。既定 4）。ワーカーごとにライブサーバーと DB が別になる。
@@ -94,7 +94,8 @@ make format         # 整形と自動修正
 make e2e            # 通しのテスト（Playwright・Chromium。e2e コンテナ。並列。初回はイメージの作成に時間がかかる）
 make gate2          # 段階2の受け入れ確認（seed → 担当者 2 人が定期面談と相談を画面で記録。DATE=YYYY-MM-DD で基準日）
 make gate3          # 段階3の受け入れ確認（seed → seed_documents → 署名・生成・日中併記・警告・生成不可を画面で。DATE=YYYY-MM-DD で基準日）
-make checks         # push の前に: lint・test・e2e・gate2・gate3 を順に流し、終了コードと === DONE を .checks/checks.log に書く
+make gate4          # 段階4の受け入れ確認（seed → 一括申請 3 種・一括届出 7 種の xlsm を画面で作り、写した入力チェックと構造を確かめる）
+make checks         # push の前に: lint・test・e2e・gate2・gate3（GATE4=1 で gate4 も）を順に流し、終了コードと === DONE を .checks/checks.log に書く
 make design-shots   # 見本画面（/ui/）のスクリーンショットを docs/design/ に保存する
 make messages       # UI 文言を .po に抽出し .mo にコンパイルする（両方をコミットする）
 ```
@@ -104,7 +105,7 @@ make messages       # UI 文言を .po に抽出し .mo にコンパイルする
 - 別のシェルから待つときは、`=== DONE` の行と上限の時間（例: 30 分）の両方で待つ。
 - 前の実行が終わる前に次を始めない（DB と e2e のコンテナを取り合う）。
 
-`make gate2`・`make gate3` は、通常の `make e2e` では飛ばす（seed を入れて、画面で記録するため時間がかかる）。基準日を変えて流すときは `make gate2 DATE=2026-12-28` のようにする（画面の「今日」も基準日になる）。コミットは 1 タスク 1 コミットで、接頭辞は `feat: ` / `fix: ` / `chore: ` / `docs: `。
+`make gate2`・`make gate3`・`make gate4` は、通常の `make e2e` では飛ばす（seed を入れて、画面で記録するため時間がかかる）。基準日を変えて流すときは `make gate2 DATE=2026-12-28` のようにする（画面の「今日」も基準日になる）。コミットは 1 タスク 1 コミットで、接頭辞は `feat: ` / `fix: ` / `chore: ` / `docs: `。
 
 ## よく使うそのほかのコマンド
 
@@ -128,6 +129,11 @@ python3 tools/forms/make_application_sets.py  # 申請の書類の一覧の定�
 python3 tools/forms/extract_zh_forms.py templates/forms/5-9/2026-10-18.ja-zh/original.docx 5-9 templates/forms/5-9/2026-10-18.ja-zh/extracted.docx  # 入管の中国語の版から様式の部分を取り出す（1-5・5-8 も同じ。ADR-0027）
 python3 tools/forms/make_zh_templates.py 5-9 templates/forms/5-9/2026-10-18.ja-zh > mappings/5-9/2026-10-18.ja-zh.json  # 日中併記の版の template.docx とマッピング（1-5・5-8 も同じ。ADR-0027）
 docker compose exec web python manage.py generate_sample_form 1-17 --worker <ID>  # 見本の帳票を生成する（開発者向け。警告があるときは --accept-warnings）
+docker compose exec -w /app web python tools/forms/extract_bulk_columns.py bulk-ext 2026-06-04 templates/forms/bulk-ext/2026-06-04/original.xlsm > mappings/bulk-ext/2026-06-04.columns.json  # 一括登録用ツールの列の表（bulk-coe・bulk-chg も同じ。ADR-0039）
+docker compose exec -w /app web python tools/forms/make_bulk_mappings.py bulk-ext 2026-06-04 > mappings/bulk-ext/2026-06-04.json  # 一括申請の欄の対応（ADR-0039）
+docker compose exec -w /app web python tools/forms/extract_efile_columns.py efile-3-1 2026-04-01 templates/forms/efile-3-1/2026-04-01/original.xlsm > mappings/efile-3-1/2026-04-01.columns.json  # 電子届出の一括申込用ツールの列の表と検査の規則（efile-3-2〜efile-4-3 も同じ。ADR-0040）
+docker compose exec -w /app web python tools/forms/make_efile_mappings.py efile-3-1 2026-04-01 > mappings/efile-3-1/2026-04-01.json  # 一括届出の欄の対応（ADR-0040）
+python3 tools/forms/make_application_templates.py 1-16 templates/forms/1-16/2026-10-21 > mappings/1-16/2026-10-21.json  # 第1-16号の template.docx とマッピング（1-23・1-29 も同じ。ADR-0043）
 make lock           # pyproject.toml の変更を uv.lock に反映する（その後 make build）
 ```
 

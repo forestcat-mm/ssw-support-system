@@ -45,6 +45,7 @@
 │   ├── tasks-phase2.md        # 段階2のタスク一覧と完了確認・価値検証（B）
 │   ├── tasks-phase3.md        # 段階3のタスク一覧（確定済み）
 │   ├── handoff-phase3.md      # 段階3への引継ぎ（到達点・ADR の一覧・持ち越し・注意）
+│   ├── handoff-mvp.md         # MVP 完成時の引継ぎ（段階4で作ったもの・人の確認・後で直す・未確認の点・本番準備の前提）
 │   ├── operations.md          # 管理者・担当者向けの運用手順
 │   ├── dummy-data.md          # seed_dummy の内容（外国人の番号ごとの場面）
 │   ├── translations/          # 自作の訳文の対照表（日本語と中国語。道具が作る。T43）
