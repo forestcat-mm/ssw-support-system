@@ -95,12 +95,25 @@ def test_po_has_no_untranslated_entries(po: Path) -> None:
     assert untranslated == [], "訳が空の行がある。.po に訳を書いて make messages を実行する"
 
 
-def test_po_is_up_to_date_with_sources(tmp_path: Path, settings: object) -> None:
-    """コードとテンプレートから抽出し直した msgid が、コミット済みの .po と一致する。"""
+def test_po_is_up_to_date_with_sources(
+    tmp_path: Path, settings: object, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """コードとテンプレートから抽出し直した msgid が、コミット済みの .po と一致する。
+
+    makemessages は今のフォルダの locale にも書くので、ソースの写しの中で流す（本物の .po を
+    書き直すと、並列で .po を読むほかのテストと重なって落ちるため。2026-10-20）。
+    """
     locale = Path(settings.LOCALE_PATHS[0])  # type: ignore[attr-defined]
-    work = tmp_path / "locale"
-    shutil.copytree(locale, work)
+    source = locale.parent
+    copy = tmp_path / "backend"
+    shutil.copytree(
+        source,
+        copy,
+        ignore=shutil.ignore_patterns("tests", "e2e", "__pycache__", "*.mo", ".pytest_cache"),
+    )
+    work = copy / locale.relative_to(source)
     settings.LOCALE_PATHS = [work]  # type: ignore[attr-defined]
+    monkeypatch.chdir(copy)
     call_command("makemessages", locale=["ja"], no_location=True, no_obsolete=True, verbosity=0)
     for po in PO_FILES:
         fresh = work / po.relative_to(locale)
