@@ -353,3 +353,127 @@ class SubmissionDraftFile(TrackedModel):
         if not self._state.adding:
             raise ImmutableRowError("draft files cannot be changed; void the attachment instead")
         super().save(*args, **kwargs)
+
+
+# --- 在留申請オンラインの一括申請（T48。ADR-0039）---------------------------------------------
+
+
+class BulkProcedure(models.TextChoices):
+    COE = "coe", _("certificate of eligibility")
+    EXTENSION = "extension", _("extension of period of stay")
+    CHANGE = "change", _("change of status of residence")
+
+
+# 手続 → 様式 ID（一括登録用ツール）
+BULK_FORM_IDS = {
+    BulkProcedure.COE: "bulk-coe",
+    BulkProcedure.EXTENSION: "bulk-ext",
+    BulkProcedure.CHANGE: "bulk-chg",
+}
+
+
+class BulkApplication(TrackedModel):
+    """一括申請の 1 件（手続・基準日・取次者）。外国人ごとの行と、作った xlsm を持つ。"""
+
+    procedure = models.CharField(_("procedure"), max_length=16, choices=BulkProcedure.choices)
+    basis_on = models.DateField(pgettext_lazy("generated document", "basis date"))
+    title = models.CharField(_("title"), max_length=100, blank=True)
+    intermediary = models.ForeignKey(
+        "core.Staff",
+        verbose_name=_("intermediary (user of the online system)"),
+        on_delete=models.PROTECT,
+        related_name="+",
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = _("bulk application")
+        verbose_name_plural = _("bulk applications")
+        ordering = ["-pk"]
+
+    def __str__(self) -> str:
+        return f"{self.get_procedure_display()} {self.basis_on} #{self.pk}"
+
+
+class BulkApplicationEntry(TrackedModel):
+    """一括申請の外国人ごとの行と、申請ごとに入れる値（T46-D1・T48-D1）。
+
+    inputs は申請ごとの入力（配偶者・職業・希望する在留期間・理由・受領方法・雇用契約の項目など）。
+    犯罪を理由とする処分の有無と内容は sensitive（暗号化。監査ログは ***）に持つ
+    （ADR-0038 決定 6）。
+    """
+
+    application = models.ForeignKey(
+        BulkApplication,
+        verbose_name=_("bulk application"),
+        on_delete=models.CASCADE,
+        related_name="entries",
+    )
+    worker = models.ForeignKey(
+        "workers.ForeignWorker",
+        verbose_name=_("foreign worker"),
+        on_delete=models.PROTECT,
+        related_name="bulk_entries",
+    )
+    agent = models.ForeignKey(
+        "hosts.HostApplicantContact",
+        verbose_name=_("agent"),
+        on_delete=models.PROTECT,
+        related_name="+",
+        null=True,
+        blank=True,
+    )
+    inputs = models.JSONField(_("inputs for this application"), default=dict, blank=True)
+    sensitive = EncryptedCharField(_("criminal record (sensitive)"), blank=True)
+
+    class Meta:
+        verbose_name = _("bulk application row")
+        verbose_name_plural = _("bulk application rows")
+        ordering = ["pk"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["application", "worker"], name="forms_engine_bulk_entry_one_worker"
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.application}: {self.worker}"
+
+
+def bulk_upload_to(instance: object, filename: str) -> str:
+    return upload_path("bulk", filename)
+
+
+class BulkApplicationFile(TrackedModel):
+    """作った一括の xlsm（300 人ごとに 1 つ。追記だけ）。スナップショットに犯罪の内容は残さない。"""
+
+    application = models.ForeignKey(
+        BulkApplication,
+        verbose_name=_("bulk application"),
+        on_delete=models.CASCADE,
+        related_name="files",
+    )
+    template = models.ForeignKey(
+        FormTemplate, verbose_name=_("form template"), on_delete=models.PROTECT, related_name="+"
+    )
+    part = models.PositiveSmallIntegerField(_("part"))
+    parts = models.PositiveSmallIntegerField(_("number of parts"))
+    file = PrivateFileField(_("file"), upload_to=bulk_upload_to, max_length=255)
+    sha256 = models.CharField("SHA-256", max_length=64)
+    worker_ids = models.JSONField(_("foreign workers"), default=list)
+    includes_sensitive = models.BooleanField(_("includes sensitive information"), default=False)
+    snapshot = EncryptedCharField(_("data snapshot"))
+
+    class Meta:
+        verbose_name = _("bulk application file")
+        verbose_name_plural = _("bulk application files")
+        ordering = ["-pk"]
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        if not self._state.adding:
+            raise ImmutableRowError("bulk application files cannot be changed")
+        super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return f"{self.application} ({self.part}/{self.parts})"

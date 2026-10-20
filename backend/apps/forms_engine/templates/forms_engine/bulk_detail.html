@@ -1,0 +1,53 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{{ application.get_procedure_display }} | {% translate "Bulk applications" %}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{% url 'forms:bulk_list' %}">← {% translate "Bulk applications" %}</a></p>
+  <h1>{% translate "Bulk application" %}: {{ application.get_procedure_display }}</h1>
+  <p class="caption">{% translate "basis date" context "generated document" %} <span class="mono">{{ application.basis_on|date:"Y-m-d" }}</span>{% if application.title %} · {{ application.title }}{% endif %} · {% translate "intermediary (user of the online system)" %}: <span id="bulk-intermediary">{{ application.intermediary.name|default:_("not chosen") }}</span></p>
+{% endblock %}
+{% block content %}
+<div class="stack">
+  {% if not_loaded %}<p class="message message--danger">{% translate "The bulk registration tool is not loaded. Run make forms." %}</p>{% endif %}
+  <section class="card" id="rows">
+    <div class="card__header"><h2 class="card__title">{% translate "Foreign workers" %}</h2></div>
+    {% if rows %}
+    <div class="table-scroll"><table class="table table--list" id="bulk-rows">
+      <thead><tr><th>{% translate "name" %}</th><th>{% translate "host organization" %}</th><th>{% translate "check" %}</th><th>{% translate "PDF for the submission" %}</th><th>{% translate "Actions" %}</th></tr></thead>
+      <tbody>{% for row in rows %}
+        <tr data-entry="{{ row.entry.pk }}" data-worker="{{ row.entry.worker_id }}">
+          <td><a href="{% url 'workers:detail' row.entry.worker_id %}">{{ row.name }}</a></td>
+          <td>{{ row.contract.host_organization.name|default:"—" }}</td>
+          <td>{% if row.problems %}<details data-problems="{{ row.problems|length }}"><summary class="badge badge--overdue">{% blocktranslate count counter=row.problems|length %}{{ counter }} problem{% plural %}{{ counter }} problems{% endblocktranslate %}</summary><ul class="caption">{% for problem in row.problems %}<li>{% if problem.label %}<strong>{{ problem.label }}</strong>: {% endif %}{{ problem.message }}</li>{% endfor %}</ul></details>{% else %}<span class="badge badge--open" data-problems="0">{% translate "OK" %}</span>{% endif %}</td>
+          <td>{% if row.bundle %}<a href="{% url 'workers:submission_bundle' row.entry.worker_id row.bundle.pk %}">{{ row.bundle.created_at|date:"Y-m-d" }}</a>{% else %}<a class="caption" href="{% url 'workers:application_set' row.entry.worker_id %}">{% translate "documents for the application" %}</a>{% endif %}</td>
+          <td><div class="actions"><a class="button button--neutral button--small" href="{% url 'forms:bulk_entry' application.pk row.entry.pk %}">{% translate "Inputs" %}</a><a class="button button--danger button--small" href="{% url 'forms:bulk_entry_remove' application.pk row.entry.pk %}">{% translate "Remove" %}</a></div></td>
+        </tr>{% endfor %}</tbody>
+    </table></div>
+    <p class="caption">{% translate "The check copies the input check of the macro of the tool. The criminal record is shown only to the assigned staff member and administrators." %}</p>
+    {% else %}<p class="muted">{% translate "No foreign workers yet." %}</p>{% endif %}
+    {% if add_form.fields.workers.choices %}
+    <form class="form stack" method="post" action="{% url 'forms:bulk_add' application.pk %}" novalidate id="bulk-add-form" style="margin-top: var(--space-12)">
+      {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+      <details><summary class="button button--neutral button--small">{% translate "Add foreign workers" %}</summary>
+        <div class="stack" style="margin-top: var(--space-8)">{% form_field add_form.workers %}
+          <div class="form-actions"><button class="button button--primary" type="submit">{% translate "Add" %}</button></div></div>
+      </details>
+    </form>
+    {% endif %}
+  </section>
+
+  <section class="card" id="files">
+    <div class="card__header"><h2 class="card__title">{% translate "Files" %}</h2></div>
+    {% if rows %}
+    <form method="post" novalidate id="bulk-generate-form">
+      {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+      <button class="button button--primary" type="submit"{% if problem_count %} disabled{% endif %}>{% translate "Generate the Excel file" %}</button>
+      {% if problem_count %}<span class="caption">{% translate "Fix the problems first." %}</span>{% endif %}
+    </form>
+    {% endif %}
+    {% if files %}<ul class="attachment-list" style="margin-top: var(--space-12)">{% for record, downloadable in files %}
+      <li data-file="{{ record.pk }}">{% if downloadable %}<a class="attachment-list__name" href="{% url 'forms:bulk_file' record.pk %}">{% translate "filled in (for editing)" %} {{ record.part }}/{{ record.parts }}</a>{% else %}<span>{% translate "filled in (for editing)" %} {{ record.part }}/{{ record.parts }}</span> <span class="caption">{% translate "Includes a criminal record: only the assigned staff members and administrators can download it." %}</span>{% endif %} <span class="caption mono">{{ record.created_at|date:"Y-m-d H:i" }} · {{ record.template.form_id }} {{ record.template.valid_from|date:"Y-m-d" }} · {% blocktranslate count counter=record.worker_ids|length %}{{ counter }} person{% plural %}{{ counter }} people{% endblocktranslate %}</span></li>
+    {% endfor %}</ul>{% endif %}
+    <p class="caption">{% translate "Open the file in Excel on Windows and enable macros. Press “Select” on the menu (the status of residence is already “Specified Skilled Worker”), then “Output” to make the CSV. Upload only the CSV made by the tool, without editing it." %}</p>
+  </section>
+</div>
+{% endblock %}

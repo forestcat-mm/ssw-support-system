@@ -1,6 +1,1806 @@
 {
  "form_id": "bulk-ext",
  "valid_from": "2026-06-04",
- "note": "一括申請の欄の対応（T48 で欄を足す。ADR-0039）。値は services/bulk_application_data.py が作る。",
- "fields": []
+ "note": "一括申請の欄の対応（T48、ADR-0039）。tools/forms/make_bulk_mappings.py が作る。値は services/bulk_application_data.py が作る。format=code の欄は、コードをツールの表示名にして書く（parent_key があれば親の値の連動の表）。",
+ "fields": [
+  {
+   "key": "p.nationality",
+   "target": "申請情報入力(在留期間更新許可申請)!B",
+   "format": "code",
+   "label": "国籍・地域",
+   "code": "CA61"
+  },
+  {
+   "key": "p.birth_date",
+   "target": "申請情報入力(在留期間更新許可申請)!C",
+   "format": "text",
+   "label": "生年月日"
+  },
+  {
+   "key": "p.name",
+   "target": "申請情報入力(在留期間更新許可申請)!D",
+   "format": "text",
+   "label": "氏名"
+  },
+  {
+   "key": "p.sex",
+   "target": "申請情報入力(在留期間更新許可申請)!E",
+   "format": "code",
+   "label": "性別",
+   "code": "C611"
+  },
+  {
+   "key": "a.spouse",
+   "target": "申請情報入力(在留期間更新許可申請)!F",
+   "format": "code",
+   "label": "配偶者の有無",
+   "code": "A021"
+  },
+  {
+   "key": "a.occupation",
+   "target": "申請情報入力(在留期間更新許可申請)!G",
+   "format": "text",
+   "label": "職業"
+  },
+  {
+   "key": "p.home_address",
+   "target": "申請情報入力(在留期間更新許可申請)!H",
+   "format": "text",
+   "label": "本国における居住地"
+  },
+  {
+   "key": "p.postal",
+   "target": "申請情報入力(在留期間更新許可申請)!I",
+   "format": "text",
+   "label": "日本における連絡先　郵便番号"
+  },
+  {
+   "key": "p.pref",
+   "target": "申請情報入力(在留期間更新許可申請)!J",
+   "format": "code",
+   "label": "日本における連絡先　住居地",
+   "code": "CA69_1"
+  },
+  {
+   "key": "p.city",
+   "target": "申請情報入力(在留期間更新許可申請)!K",
+   "format": "code",
+   "label": "日本における連絡先　住居地",
+   "code": "CA69",
+   "parent_key": "p.pref"
+  },
+  {
+   "key": "p.address_rest",
+   "target": "申請情報入力(在留期間更新許可申請)!L",
+   "format": "text",
+   "label": "日本における連絡先　住居地"
+  },
+  {
+   "key": "p.phone",
+   "target": "申請情報入力(在留期間更新許可申請)!M",
+   "format": "text",
+   "label": "日本における連絡先　電話番号"
+  },
+  {
+   "key": "p.mobile",
+   "target": "申請情報入力(在留期間更新許可申請)!N",
+   "format": "text",
+   "label": "日本における連絡先　携帯電話番号"
+  },
+  {
+   "key": "p.email",
+   "target": "申請情報入力(在留期間更新許可申請)!O",
+   "format": "text",
+   "label": "メールアドレス"
+  },
+  {
+   "key": "p.passport",
+   "target": "申請情報入力(在留期間更新許可申請)!P",
+   "format": "text",
+   "label": "旅券　(1)番号"
+  },
+  {
+   "key": "p.passport_expiry",
+   "target": "申請情報入力(在留期間更新許可申請)!Q",
+   "format": "text",
+   "label": "旅券　(2)有効期限"
+  },
+  {
+   "key": "d.crime",
+   "target": "申請情報入力(在留期間更新許可申請)!AA",
+   "format": "code",
+   "label": "犯罪を理由とする処分を受けたことの有無",
+   "code": "A045"
+  },
+  {
+   "key": "d.crime_detail",
+   "target": "申請情報入力(在留期間更新許可申請)!AB",
+   "format": "text",
+   "label": "犯罪を理由とする処分を受けたことの有無　有　内容入力欄"
+  },
+  {
+   "key": "p.relatives",
+   "target": "申請情報入力(在留期間更新許可申請)!AC",
+   "format": "code",
+   "label": "在日親族及び同居者　有無",
+   "code": "A045"
+  },
+  {
+   "key": "rel1.relationship",
+   "target": "申請情報入力(在留期間更新許可申請)!AD",
+   "format": "code",
+   "label": "在日親族及び同居者1 在日親族及び同居者　続柄",
+   "code": "CB06_3"
+  },
+  {
+   "key": "rel1.name",
+   "target": "申請情報入力(在留期間更新許可申請)!AE",
+   "format": "text",
+   "label": "在日親族及び同居者　氏名"
+  },
+  {
+   "key": "rel1.birth_date",
+   "target": "申請情報入力(在留期間更新許可申請)!AF",
+   "format": "text",
+   "label": "在日親族及び同居者　生年月日"
+  },
+  {
+   "key": "rel1.nationality",
+   "target": "申請情報入力(在留期間更新許可申請)!AG",
+   "format": "code",
+   "label": "在日親族及び同居者　国籍・地域",
+   "code": "CB79"
+  },
+  {
+   "key": "rel1.together",
+   "target": "申請情報入力(在留期間更新許可申請)!AH",
+   "format": "code",
+   "label": "在日親族及び同居者　同居の有無",
+   "code": "A045"
+  },
+  {
+   "key": "rel1.workplace",
+   "target": "申請情報入力(在留期間更新許可申請)!AI",
+   "format": "text",
+   "label": "在日親族及び同居者　勤務先名称・通学先名称"
+  },
+  {
+   "key": "rel1.card",
+   "target": "申請情報入力(在留期間更新許可申請)!AJ",
+   "format": "text",
+   "label": "在日親族及び同居者　在留カード番号　特別永住者証明書番号"
+  },
+  {
+   "key": "rel2.relationship",
+   "target": "申請情報入力(在留期間更新許可申請)!AK",
+   "format": "code",
+   "label": "在日親族及び同居者2 在日親族及び同居者　続柄",
+   "code": "CB06_3"
+  },
+  {
+   "key": "rel2.name",
+   "target": "申請情報入力(在留期間更新許可申請)!AL",
+   "format": "text",
+   "label": "在日親族及び同居者　氏名"
+  },
+  {
+   "key": "rel2.birth_date",
+   "target": "申請情報入力(在留期間更新許可申請)!AM",
+   "format": "text",
+   "label": "在日親族及び同居者　生年月日"
+  },
+  {
+   "key": "rel2.nationality",
+   "target": "申請情報入力(在留期間更新許可申請)!AN",
+   "format": "code",
+   "label": "在日親族及び同居者　国籍・地域",
+   "code": "CB79"
+  },
+  {
+   "key": "rel2.together",
+   "target": "申請情報入力(在留期間更新許可申請)!AO",
+   "format": "code",
+   "label": "在日親族及び同居者　同居の有無",
+   "code": "A045"
+  },
+  {
+   "key": "rel2.workplace",
+   "target": "申請情報入力(在留期間更新許可申請)!AP",
+   "format": "text",
+   "label": "在日親族及び同居者　勤務先名称・通学先名称"
+  },
+  {
+   "key": "rel2.card",
+   "target": "申請情報入力(在留期間更新許可申請)!AQ",
+   "format": "text",
+   "label": "在日親族及び同居者　在留カード番号　特別永住者証明書番号"
+  },
+  {
+   "key": "rel3.relationship",
+   "target": "申請情報入力(在留期間更新許可申請)!AR",
+   "format": "code",
+   "label": "在日親族及び同居者3 在日親族及び同居者　続柄",
+   "code": "CB06_3"
+  },
+  {
+   "key": "rel3.name",
+   "target": "申請情報入力(在留期間更新許可申請)!AS",
+   "format": "text",
+   "label": "在日親族及び同居者　氏名"
+  },
+  {
+   "key": "rel3.birth_date",
+   "target": "申請情報入力(在留期間更新許可申請)!AT",
+   "format": "text",
+   "label": "在日親族及び同居者　生年月日"
+  },
+  {
+   "key": "rel3.nationality",
+   "target": "申請情報入力(在留期間更新許可申請)!AU",
+   "format": "code",
+   "label": "在日親族及び同居者　国籍・地域",
+   "code": "CB79"
+  },
+  {
+   "key": "rel3.together",
+   "target": "申請情報入力(在留期間更新許可申請)!AV",
+   "format": "code",
+   "label": "在日親族及び同居者　同居の有無",
+   "code": "A045"
+  },
+  {
+   "key": "rel3.workplace",
+   "target": "申請情報入力(在留期間更新許可申請)!AW",
+   "format": "text",
+   "label": "在日親族及び同居者　勤務先名称・通学先名称"
+  },
+  {
+   "key": "rel3.card",
+   "target": "申請情報入力(在留期間更新許可申請)!AX",
+   "format": "text",
+   "label": "在日親族及び同居者　在留カード番号　特別永住者証明書番号"
+  },
+  {
+   "key": "rel4.relationship",
+   "target": "申請情報入力(在留期間更新許可申請)!AY",
+   "format": "code",
+   "label": "在日親族及び同居者4 在日親族及び同居者　続柄",
+   "code": "CB06_3"
+  },
+  {
+   "key": "rel4.name",
+   "target": "申請情報入力(在留期間更新許可申請)!AZ",
+   "format": "text",
+   "label": "在日親族及び同居者　氏名"
+  },
+  {
+   "key": "rel4.birth_date",
+   "target": "申請情報入力(在留期間更新許可申請)!BA",
+   "format": "text",
+   "label": "在日親族及び同居者　生年月日"
+  },
+  {
+   "key": "rel4.nationality",
+   "target": "申請情報入力(在留期間更新許可申請)!BB",
+   "format": "code",
+   "label": "在日親族及び同居者　国籍・地域",
+   "code": "CB79"
+  },
+  {
+   "key": "rel4.together",
+   "target": "申請情報入力(在留期間更新許可申請)!BC",
+   "format": "code",
+   "label": "在日親族及び同居者　同居の有無",
+   "code": "A045"
+  },
+  {
+   "key": "rel4.workplace",
+   "target": "申請情報入力(在留期間更新許可申請)!BD",
+   "format": "text",
+   "label": "在日親族及び同居者　勤務先名称・通学先名称"
+  },
+  {
+   "key": "rel4.card",
+   "target": "申請情報入力(在留期間更新許可申請)!BE",
+   "format": "text",
+   "label": "在日親族及び同居者　在留カード番号　特別永住者証明書番号"
+  },
+  {
+   "key": "rel5.relationship",
+   "target": "申請情報入力(在留期間更新許可申請)!BF",
+   "format": "code",
+   "label": "在日親族及び同居者5 在日親族及び同居者　続柄",
+   "code": "CB06_3"
+  },
+  {
+   "key": "rel5.name",
+   "target": "申請情報入力(在留期間更新許可申請)!BG",
+   "format": "text",
+   "label": "在日親族及び同居者　氏名"
+  },
+  {
+   "key": "rel5.birth_date",
+   "target": "申請情報入力(在留期間更新許可申請)!BH",
+   "format": "text",
+   "label": "在日親族及び同居者　生年月日"
+  },
+  {
+   "key": "rel5.nationality",
+   "target": "申請情報入力(在留期間更新許可申請)!BI",
+   "format": "code",
+   "label": "在日親族及び同居者　国籍・地域",
+   "code": "CB79"
+  },
+  {
+   "key": "rel5.together",
+   "target": "申請情報入力(在留期間更新許可申請)!BJ",
+   "format": "code",
+   "label": "在日親族及び同居者　同居の有無",
+   "code": "A045"
+  },
+  {
+   "key": "rel5.workplace",
+   "target": "申請情報入力(在留期間更新許可申請)!BK",
+   "format": "text",
+   "label": "在日親族及び同居者　勤務先名称・通学先名称"
+  },
+  {
+   "key": "rel5.card",
+   "target": "申請情報入力(在留期間更新許可申請)!BL",
+   "format": "text",
+   "label": "在日親族及び同居者　在留カード番号　特別永住者証明書番号"
+  },
+  {
+   "key": "rel6.relationship",
+   "target": "申請情報入力(在留期間更新許可申請)!BM",
+   "format": "code",
+   "label": "在日親族及び同居者6 在日親族及び同居者　続柄",
+   "code": "CB06_3"
+  },
+  {
+   "key": "rel6.name",
+   "target": "申請情報入力(在留期間更新許可申請)!BN",
+   "format": "text",
+   "label": "在日親族及び同居者　氏名"
+  },
+  {
+   "key": "rel6.birth_date",
+   "target": "申請情報入力(在留期間更新許可申請)!BO",
+   "format": "text",
+   "label": "在日親族及び同居者　生年月日"
+  },
+  {
+   "key": "rel6.nationality",
+   "target": "申請情報入力(在留期間更新許可申請)!BP",
+   "format": "code",
+   "label": "在日親族及び同居者　国籍・地域",
+   "code": "CB79"
+  },
+  {
+   "key": "rel6.together",
+   "target": "申請情報入力(在留期間更新許可申請)!BQ",
+   "format": "code",
+   "label": "在日親族及び同居者　同居の有無",
+   "code": "A045"
+  },
+  {
+   "key": "rel6.workplace",
+   "target": "申請情報入力(在留期間更新許可申請)!BR",
+   "format": "text",
+   "label": "在日親族及び同居者　勤務先名称・通学先名称"
+  },
+  {
+   "key": "rel6.card",
+   "target": "申請情報入力(在留期間更新許可申請)!BS",
+   "format": "text",
+   "label": "在日親族及び同居者　在留カード番号　特別永住者証明書番号"
+  },
+  {
+   "key": "p.status",
+   "target": "申請情報入力(在留期間更新許可申請)!R",
+   "format": "code",
+   "label": "現に有する在留資格",
+   "code": "CB19"
+  },
+  {
+   "key": "p.period",
+   "target": "申請情報入力(在留期間更新許可申請)!S",
+   "format": "code",
+   "label": "在留期間",
+   "code": "CB20"
+  },
+  {
+   "key": "p.expiry",
+   "target": "申請情報入力(在留期間更新許可申請)!T",
+   "format": "text",
+   "label": "在留期間の満了日"
+  },
+  {
+   "key": "p.has_card",
+   "target": "申請情報入力(在留期間更新許可申請)!U",
+   "format": "code",
+   "label": "在留カードの有無",
+   "code": "A045"
+  },
+  {
+   "key": "p.card",
+   "target": "申請情報入力(在留期間更新許可申請)!V",
+   "format": "text",
+   "label": "在留カード番号"
+  },
+  {
+   "key": "a.ed_alpha",
+   "target": "申請情報入力(在留期間更新許可申請)!W",
+   "format": "text",
+   "label": "ED番号（英字）"
+  },
+  {
+   "key": "a.ed_number",
+   "target": "申請情報入力(在留期間更新許可申請)!X",
+   "format": "text",
+   "label": "ED番号（数字）"
+  },
+  {
+   "key": "a.desired_period",
+   "target": "申請情報入力(在留期間更新許可申請)!Y",
+   "format": "code",
+   "label": "希望する在留期間",
+   "code": "C970"
+  },
+  {
+   "key": "a.reason",
+   "target": "申請情報入力(在留期間更新許可申請)!Z",
+   "format": "text",
+   "label": "更新の理由"
+  },
+  {
+   "key": "a.receipt",
+   "target": "申請情報入力(在留期間更新許可申請)!BT",
+   "format": "code",
+   "label": "在留カードの受領方法",
+   "code": "CB22"
+  },
+  {
+   "key": "a.receipt_residence",
+   "target": "申請情報入力(在留期間更新許可申請)!BU",
+   "format": "code",
+   "label": "申請対象者の住居地",
+   "code": "C619"
+  },
+  {
+   "key": "a.receipt_office",
+   "target": "申請情報入力(在留期間更新許可申請)!BV",
+   "format": "code",
+   "label": "受領官署",
+   "code": "CB52"
+  },
+  {
+   "key": "a.notice_email",
+   "target": "申請情報入力(在留期間更新許可申請)!BW",
+   "format": "text",
+   "label": "通知送信用メールアドレス"
+  },
+  {
+   "key": "a.intention",
+   "target": "申請情報入力(在留期間更新許可申請)!BX",
+   "format": "code",
+   "label": "申請に先立ち、申請者本人に申請の意思を確認してください。",
+   "code": "A019"
+  },
+  {
+   "key": "a.free",
+   "target": "申請情報入力(在留期間更新許可申請)!BY",
+   "format": "text",
+   "label": "フリー欄"
+  },
+  {
+   "key": "q.skill_eval",
+   "target": "申請情報入力(区分V)!B",
+   "format": "code",
+   "label": "技能水準　評価区分",
+   "code": "CC06"
+  },
+  {
+   "key": "q.skill_exam1",
+   "target": "申請情報入力(区分V)!C",
+   "format": "code",
+   "label": "技能水準　合格した試験名",
+   "code": "CC09"
+  },
+  {
+   "key": "q.skill_exam2",
+   "target": "申請情報入力(区分V)!E",
+   "format": "code",
+   "label": "技能水準　合格した試験名",
+   "code": "CC09"
+  },
+  {
+   "key": "q.skill_exam3",
+   "target": "申請情報入力(区分V)!G",
+   "format": "code",
+   "label": "技能水準　合格した試験名",
+   "code": "CC09"
+  },
+  {
+   "key": "q.skill_place1",
+   "target": "申請情報入力(区分V)!D",
+   "format": "code",
+   "label": "技能水準　受験地",
+   "code": "CB79"
+  },
+  {
+   "key": "q.skill_place2",
+   "target": "申請情報入力(区分V)!F",
+   "format": "code",
+   "label": "技能水準　受験地",
+   "code": "CB79"
+  },
+  {
+   "key": "q.skill_place3",
+   "target": "申請情報入力(区分V)!H",
+   "format": "code",
+   "label": "技能水準　受験地",
+   "code": "CB79"
+  },
+  {
+   "key": "q.skill_other",
+   "target": "申請情報入力(区分V)!I",
+   "format": "text",
+   "label": "技能水準　その他の評価方法による証明"
+  },
+  {
+   "key": "q.ja_eval",
+   "target": "申請情報入力(区分V)!J",
+   "format": "code",
+   "label": "日本語能力　評価区分",
+   "code": "CC06"
+  },
+  {
+   "key": "q.ja_exam1",
+   "target": "申請情報入力(区分V)!K",
+   "format": "code",
+   "label": "日本語能力　合格した試験名",
+   "code": "CC10"
+  },
+  {
+   "key": "q.ja_exam2",
+   "target": "申請情報入力(区分V)!M",
+   "format": "code",
+   "label": "日本語能力　合格した試験名",
+   "code": "CC10"
+  },
+  {
+   "key": "q.ja_exam3",
+   "target": "申請情報入力(区分V)!O",
+   "format": "code",
+   "label": "日本語能力　合格した試験名",
+   "code": "CC10"
+  },
+  {
+   "key": "q.ja_place1",
+   "target": "申請情報入力(区分V)!L",
+   "format": "code",
+   "label": "日本語能力　受験地",
+   "code": "CB79"
+  },
+  {
+   "key": "q.ja_place2",
+   "target": "申請情報入力(区分V)!N",
+   "format": "code",
+   "label": "日本語能力　受験地",
+   "code": "CB79"
+  },
+  {
+   "key": "q.ja_place3",
+   "target": "申請情報入力(区分V)!P",
+   "format": "code",
+   "label": "日本語能力　受験地",
+   "code": "CB79"
+  },
+  {
+   "key": "q.ja_other",
+   "target": "申請情報入力(区分V)!Q",
+   "format": "text",
+   "label": "日本語能力　その他の評価方法による証明"
+  },
+  {
+   "key": "q.intern1_occupation",
+   "target": "申請情報入力(区分V)!R",
+   "format": "code",
+   "label": "良好に修了した技能実習2号１ 良好に修了した技能実習2号　職種・作業　職種",
+   "code": "CC02_3"
+  },
+  {
+   "key": "q.intern2_occupation",
+   "target": "申請情報入力(区分V)!U",
+   "format": "code",
+   "label": "良好に修了した技能実習2号2 良好に修了した技能実習2号　職種・作業　職種",
+   "code": "CC02_3"
+  },
+  {
+   "key": "q.intern1_work",
+   "target": "申請情報入力(区分V)!S",
+   "format": "code",
+   "label": "良好に修了した技能実習2号　職種・作業　作業",
+   "code": "CB30",
+   "parent_key": "q.intern1_occupation"
+  },
+  {
+   "key": "q.intern2_work",
+   "target": "申請情報入力(区分V)!V",
+   "format": "code",
+   "label": "良好に修了した技能実習2号　職種・作業　作業",
+   "code": "CB30",
+   "parent_key": "q.intern2_occupation"
+  },
+  {
+   "key": "q.intern1_proof",
+   "target": "申請情報入力(区分V)!T",
+   "format": "code",
+   "label": "良好に修了した技能実習2号　職種・作業　良好に修了したことの証明",
+   "code": "CC07"
+  },
+  {
+   "key": "q.intern2_proof",
+   "target": "申請情報入力(区分V)!W",
+   "format": "code",
+   "label": "良好に修了した技能実習2号　職種・作業　良好に修了したことの証明",
+   "code": "CC07"
+  },
+  {
+   "key": "q.ssw_years",
+   "target": "申請情報入力(区分V)!X",
+   "format": "code",
+   "label": "申請時における特定技能1号での通算在留期間(年数)",
+   "code": "A025_1"
+  },
+  {
+   "key": "q.ssw_months",
+   "target": "申請情報入力(区分V)!Y",
+   "format": "code",
+   "label": "申請時における特定技能1号での通算在留期間(月数)",
+   "code": "A026"
+  },
+  {
+   "key": "f.deposit",
+   "target": "申請情報入力(区分V)!Z",
+   "format": "code",
+   "label": "特定技能雇用契約に係る保証金の徴収その他財産管理又は違約金等の支払契約の有無",
+   "code": "A045"
+  },
+  {
+   "key": "f.deposit_collector",
+   "target": "申請情報入力(区分V)!AA",
+   "format": "text",
+   "label": "徴収・管理機関名"
+  },
+  {
+   "key": "f.deposit_amount",
+   "target": "申請情報入力(区分V)!AB",
+   "format": "text",
+   "label": "徴収金額・管理財産"
+  },
+  {
+   "key": "f.foreign_fee",
+   "target": "申請情報入力(区分V)!AC",
+   "format": "code",
+   "label": "取次ぎ又は活動準備に関する外国の機関への費用支払について、合意していることの有無",
+   "code": "A045"
+  },
+  {
+   "key": "f.foreign_fee_org",
+   "target": "申請情報入力(区分V)!AD",
+   "format": "text",
+   "label": "外国の機関名"
+  },
+  {
+   "key": "f.foreign_fee_amount",
+   "target": "申請情報入力(区分V)!AE",
+   "format": "text",
+   "label": "支払額"
+  },
+  {
+   "key": "w.has",
+   "target": "申請情報入力(区分V)!AJ",
+   "format": "code",
+   "label": "職歴の有無",
+   "code": "A045"
+  },
+  {
+   "key": "w1.joined",
+   "target": "申請情報入力(区分V)!AK",
+   "format": "text",
+   "label": "職歴１ 職歴　入社　年月"
+  },
+  {
+   "key": "w2.joined",
+   "target": "申請情報入力(区分V)!AN",
+   "format": "text",
+   "label": "職歴2 職歴　入社　年月"
+  },
+  {
+   "key": "w3.joined",
+   "target": "申請情報入力(区分V)!AQ",
+   "format": "text",
+   "label": "職歴3 職歴　入社　年月"
+  },
+  {
+   "key": "w4.joined",
+   "target": "申請情報入力(区分V)!AT",
+   "format": "text",
+   "label": "職歴4 職歴　入社　年月"
+  },
+  {
+   "key": "w5.joined",
+   "target": "申請情報入力(区分V)!AW",
+   "format": "text",
+   "label": "職歴5 職歴　入社　年月"
+  },
+  {
+   "key": "w6.joined",
+   "target": "申請情報入力(区分V)!AZ",
+   "format": "text",
+   "label": "職歴6 職歴　入社　年月"
+  },
+  {
+   "key": "w7.joined",
+   "target": "申請情報入力(区分V)!BC",
+   "format": "text",
+   "label": "職歴7 職歴　入社　年月"
+  },
+  {
+   "key": "w8.joined",
+   "target": "申請情報入力(区分V)!BF",
+   "format": "text",
+   "label": "職歴8 職歴　入社　年月"
+  },
+  {
+   "key": "w9.joined",
+   "target": "申請情報入力(区分V)!BI",
+   "format": "text",
+   "label": "職歴9 職歴　入社　年月"
+  },
+  {
+   "key": "w10.joined",
+   "target": "申請情報入力(区分V)!BL",
+   "format": "text",
+   "label": "職歴１0 職歴　入社　年月"
+  },
+  {
+   "key": "w1.left",
+   "target": "申請情報入力(区分V)!AL",
+   "format": "text",
+   "label": "職歴　退社　年月"
+  },
+  {
+   "key": "w2.left",
+   "target": "申請情報入力(区分V)!AO",
+   "format": "text",
+   "label": "職歴　退社　年月"
+  },
+  {
+   "key": "w3.left",
+   "target": "申請情報入力(区分V)!AR",
+   "format": "text",
+   "label": "職歴　退社　年月"
+  },
+  {
+   "key": "w4.left",
+   "target": "申請情報入力(区分V)!AU",
+   "format": "text",
+   "label": "職歴　退社　年月"
+  },
+  {
+   "key": "w5.left",
+   "target": "申請情報入力(区分V)!AX",
+   "format": "text",
+   "label": "職歴　退社　年月"
+  },
+  {
+   "key": "w6.left",
+   "target": "申請情報入力(区分V)!BA",
+   "format": "text",
+   "label": "職歴　退社　年月"
+  },
+  {
+   "key": "w7.left",
+   "target": "申請情報入力(区分V)!BD",
+   "format": "text",
+   "label": "職歴　退社　年月"
+  },
+  {
+   "key": "w8.left",
+   "target": "申請情報入力(区分V)!BG",
+   "format": "text",
+   "label": "職歴　退社　年月"
+  },
+  {
+   "key": "w9.left",
+   "target": "申請情報入力(区分V)!BJ",
+   "format": "text",
+   "label": "職歴　退社　年月"
+  },
+  {
+   "key": "w10.left",
+   "target": "申請情報入力(区分V)!BM",
+   "format": "text",
+   "label": "職歴　退社　年月"
+  },
+  {
+   "key": "w1.employer",
+   "target": "申請情報入力(区分V)!AM",
+   "format": "text",
+   "label": "職歴　勤務先　名称"
+  },
+  {
+   "key": "w2.employer",
+   "target": "申請情報入力(区分V)!AP",
+   "format": "text",
+   "label": "職歴　勤務先　名称"
+  },
+  {
+   "key": "w3.employer",
+   "target": "申請情報入力(区分V)!AS",
+   "format": "text",
+   "label": "職歴　勤務先　名称"
+  },
+  {
+   "key": "w4.employer",
+   "target": "申請情報入力(区分V)!AV",
+   "format": "text",
+   "label": "職歴　勤務先　名称"
+  },
+  {
+   "key": "w5.employer",
+   "target": "申請情報入力(区分V)!AY",
+   "format": "text",
+   "label": "職歴　勤務先　名称"
+  },
+  {
+   "key": "w6.employer",
+   "target": "申請情報入力(区分V)!BB",
+   "format": "text",
+   "label": "職歴　勤務先　名称"
+  },
+  {
+   "key": "w7.employer",
+   "target": "申請情報入力(区分V)!BE",
+   "format": "text",
+   "label": "職歴　勤務先　名称"
+  },
+  {
+   "key": "w8.employer",
+   "target": "申請情報入力(区分V)!BH",
+   "format": "text",
+   "label": "職歴　勤務先　名称"
+  },
+  {
+   "key": "w9.employer",
+   "target": "申請情報入力(区分V)!BK",
+   "format": "text",
+   "label": "職歴　勤務先　名称"
+  },
+  {
+   "key": "w10.employer",
+   "target": "申請情報入力(区分V)!BN",
+   "format": "text",
+   "label": "職歴　勤務先　名称"
+  },
+  {
+   "key": "ag.name",
+   "target": "申請情報入力(区分V)!BO",
+   "format": "text",
+   "label": "代理人　(1)氏名"
+  },
+  {
+   "key": "ag.relationship",
+   "target": "申請情報入力(区分V)!BP",
+   "format": "text",
+   "label": "代理人　(2)本人との関係"
+  },
+  {
+   "key": "ag.postal",
+   "target": "申請情報入力(区分V)!BQ",
+   "format": "text",
+   "label": "代理人　(3)郵便番号"
+  },
+  {
+   "key": "ag.pref",
+   "target": "申請情報入力(区分V)!BR",
+   "format": "code",
+   "label": "代理人　(3)住所",
+   "code": "CA69_1"
+  },
+  {
+   "key": "ag.city",
+   "target": "申請情報入力(区分V)!BS",
+   "format": "code",
+   "label": "代理人　(3)住所",
+   "code": "CA69",
+   "parent_key": "ag.pref"
+  },
+  {
+   "key": "ag.address_rest",
+   "target": "申請情報入力(区分V)!BT",
+   "format": "text",
+   "label": "代理人　(3)住所"
+  },
+  {
+   "key": "ag.phone",
+   "target": "申請情報入力(区分V)!BU",
+   "format": "text",
+   "label": "代理人　(3)電話番号"
+  },
+  {
+   "key": "ag.mobile",
+   "target": "申請情報入力(区分V)!BV",
+   "format": "text",
+   "label": "代理人　(3)携帯電話番号"
+  },
+  {
+   "key": "it.name",
+   "target": "申請情報入力(区分V)!BW",
+   "format": "text",
+   "label": "取次者(オンラインシステム利用者)　(1)氏名"
+  },
+  {
+   "key": "it.postal",
+   "target": "申請情報入力(区分V)!BX",
+   "format": "text",
+   "label": "取次者　(2)郵便番号"
+  },
+  {
+   "key": "it.pref",
+   "target": "申請情報入力(区分V)!BY",
+   "format": "code",
+   "label": "取次者　(2)住所",
+   "code": "CA69_1"
+  },
+  {
+   "key": "it.city",
+   "target": "申請情報入力(区分V)!BZ",
+   "format": "code",
+   "label": "取次者　(2)住所",
+   "code": "CA69",
+   "parent_key": "it.pref"
+  },
+  {
+   "key": "it.address_rest",
+   "target": "申請情報入力(区分V)!CA",
+   "format": "text",
+   "label": "取次者　(2)住所"
+  },
+  {
+   "key": "it.organization",
+   "target": "申請情報入力(区分V)!CB",
+   "format": "text",
+   "label": "取次者　(3)所属機関等"
+  },
+  {
+   "key": "it.phone",
+   "target": "申請情報入力(区分V)!CC",
+   "format": "text",
+   "label": "取次者　(3)電話番号"
+  },
+  {
+   "key": "c.starts_on",
+   "target": "申請情報入力(区分V)!CD",
+   "format": "text",
+   "label": "特定技能雇用契約　(1)雇用契約期間(始期)"
+  },
+  {
+   "key": "c.ends_on",
+   "target": "申請情報入力(区分V)!CE",
+   "format": "text",
+   "label": "特定技能雇用契約　(1)雇用契約期間(終期)"
+  },
+  {
+   "key": "c.field1",
+   "target": "申請情報入力(区分V)!CF",
+   "format": "code",
+   "label": "特定産業分野１ 特定技能雇用契約　(2)従事すべき業務の内容　特定産業分野",
+   "code": "CC04"
+  },
+  {
+   "key": "c.field2",
+   "target": "申請情報入力(区分V)!CH",
+   "format": "code",
+   "label": "特定産業分野2 特定技能雇用契約　(2)従事すべき業務の内容　特定産業分野",
+   "code": "CC04"
+  },
+  {
+   "key": "c.field3",
+   "target": "申請情報入力(区分V)!CJ",
+   "format": "code",
+   "label": "特定産業分野3 特定技能雇用契約　(2)従事すべき業務の内容　特定産業分野",
+   "code": "CC04"
+  },
+  {
+   "key": "c.category1",
+   "target": "申請情報入力(区分V)!CG",
+   "format": "code",
+   "label": "特定技能雇用契約　(2)従事すべき業務の内容　業務区分",
+   "code": "CC05",
+   "parent_key": "c.field1"
+  },
+  {
+   "key": "c.category2",
+   "target": "申請情報入力(区分V)!CI",
+   "format": "code",
+   "label": "特定技能雇用契約　(2)従事すべき業務の内容　業務区分",
+   "code": "CC05",
+   "parent_key": "c.field2"
+  },
+  {
+   "key": "c.category3",
+   "target": "申請情報入力(区分V)!CK",
+   "format": "code",
+   "label": "特定技能雇用契約　(2)従事すべき業務の内容　業務区分",
+   "code": "CC05",
+   "parent_key": "c.field3"
+  },
+  {
+   "key": "c.main_occupation",
+   "target": "申請情報入力(区分V)!CL",
+   "format": "code",
+   "label": "特定技能雇用契約　(2)従事すべき業務の内容　職種　主たる職種",
+   "code": "CC02"
+  },
+  {
+   "key": "c.other_occupation1",
+   "target": "申請情報入力(区分V)!CM",
+   "format": "code",
+   "label": "他職種１ 特定技能雇用契約　(2)従事すべき業務の内容　職種　他職種",
+   "code": "CC02"
+  },
+  {
+   "key": "c.other_occupation2",
+   "target": "申請情報入力(区分V)!CN",
+   "format": "code",
+   "label": "他職種2 特定技能雇用契約　(2)従事すべき業務の内容　職種　他職種",
+   "code": "CC02"
+  },
+  {
+   "key": "c.other_occupation3",
+   "target": "申請情報入力(区分V)!CO",
+   "format": "code",
+   "label": "他職種3 特定技能雇用契約　(2)従事すべき業務の内容　職種　他職種",
+   "code": "CC02"
+  },
+  {
+   "key": "c.weekly_hours",
+   "target": "申請情報入力(区分V)!CP",
+   "format": "text",
+   "label": "特定技能雇用契約　(3)所定労働時間(週平均）"
+  },
+  {
+   "key": "c.monthly_hours",
+   "target": "申請情報入力(区分V)!CQ",
+   "format": "text",
+   "label": "特定技能雇用契約　(3)所定労働時間(月平均）"
+  },
+  {
+   "key": "c.hours_equal",
+   "target": "申請情報入力(区分V)!CR",
+   "format": "code",
+   "label": "特定技能雇用契約　(3)所定労働時間が通常の労働者の所定労働時間と同等であることの有無",
+   "code": "A045"
+  },
+  {
+   "key": "c.monthly_pay",
+   "target": "申請情報入力(区分V)!CS",
+   "format": "text",
+   "label": "特定技能雇用契約　(4)月額報酬"
+  },
+  {
+   "key": "c.hourly_pay",
+   "target": "申請情報入力(区分V)!CT",
+   "format": "text",
+   "label": "特定技能雇用契約　(4)基本給の時間換算額"
+  },
+  {
+   "key": "c.japanese_pay",
+   "target": "申請情報入力(区分V)!CU",
+   "format": "text",
+   "label": "特定技能雇用契約　(4)同等の業務に従事する日本人の月額報酬"
+  },
+  {
+   "key": "c.pay_equal",
+   "target": "申請情報入力(区分V)!CV",
+   "format": "code",
+   "label": "特定技能雇用契約　(4)報酬の額が日本人が従事する場合の報酬の額と同等以上であることの有無",
+   "code": "A045"
+  },
+  {
+   "key": "c.payment_method",
+   "target": "申請情報入力(区分V)!CW",
+   "format": "code",
+   "label": "特定技能雇用契約　(5)報酬の支払方法",
+   "code": "CC08"
+  },
+  {
+   "key": "c.discrimination",
+   "target": "申請情報入力(区分V)!CX",
+   "format": "code",
+   "label": "特定技能雇用契約　(6)外国人であることを理由に日本人と異なった待遇としている事項の有無",
+   "code": "A045"
+  },
+  {
+   "key": "c.discrimination_detail",
+   "target": "申請情報入力(区分V)!CY",
+   "format": "text",
+   "label": "特定技能雇用契約　(6)外国人であることを理由に日本人と異なった待遇としている事項の有無　有　内容入力欄"
+  },
+  {
+   "key": "c.home_leave",
+   "target": "申請情報入力(区分V)!CZ",
+   "format": "code",
+   "label": "(7)一時帰国を希望した場合に必要な有給休暇を取得させるものとしていることの有無",
+   "code": "A045"
+  },
+  {
+   "key": "c.return_travel",
+   "target": "申請情報入力(区分V)!DB",
+   "format": "code",
+   "label": "(9)外国人が帰国旅費を負担できないとき、旅費を負担し、その他必要な措置をすることの有無",
+   "code": "A045"
+  },
+  {
+   "key": "c.health",
+   "target": "申請情報入力(区分V)!DC",
+   "format": "code",
+   "label": "(10)外国人の健康の状況その他の生活の状況を把握するために必要な措置を講ずることの有無",
+   "code": "A045"
+  },
+  {
+   "key": "h.name",
+   "target": "申請情報入力(区分V)!EI",
+   "format": "text",
+   "label": "特定技能所属機関　(1)氏名又は名称"
+  },
+  {
+   "key": "h.has_corporate_number",
+   "target": "申請情報入力(区分V)!EJ",
+   "format": "code",
+   "label": "特定技能所属機関　(2)法人番号の有無",
+   "code": "A045"
+  },
+  {
+   "key": "h.corporate_number",
+   "target": "申請情報入力(区分V)!EK",
+   "format": "text",
+   "label": "特定技能所属機関　(2)法人番号"
+  },
+  {
+   "key": "h.employment_insurance_number",
+   "target": "申請情報入力(区分V)!EL",
+   "format": "text",
+   "label": "特定技能所属機関　(3)雇用保険適用事業所番号"
+  },
+  {
+   "key": "h.industry1",
+   "target": "申請情報入力(区分V)!EM",
+   "format": "code",
+   "label": "特定技能所属機関　(4)業種　主たる業種",
+   "code": "CC13"
+  },
+  {
+   "key": "h.industry1_other",
+   "target": "申請情報入力(区分V)!EN",
+   "format": "text",
+   "label": "特定技能所属機関　(4)業種　主たる業種　その他"
+  },
+  {
+   "key": "h.industry2",
+   "target": "申請情報入力(区分V)!EO",
+   "format": "code",
+   "label": "他業種１ 特定技能所属機関　(4)業種　他業種",
+   "code": "CC13"
+  },
+  {
+   "key": "h.industry3",
+   "target": "申請情報入力(区分V)!EQ",
+   "format": "code",
+   "label": "他業種2 特定技能所属機関　(4)業種　他業種",
+   "code": "CC13"
+  },
+  {
+   "key": "h.industry2_other",
+   "target": "申請情報入力(区分V)!EP",
+   "format": "text",
+   "label": "特定技能所属機関　(4)業種　他業種　その他"
+  },
+  {
+   "key": "h.industry3_other",
+   "target": "申請情報入力(区分V)!ER",
+   "format": "text",
+   "label": "特定技能所属機関　(4)業種　他業種　その他"
+  },
+  {
+   "key": "h.postal",
+   "target": "申請情報入力(区分V)!ES",
+   "format": "text",
+   "label": "特定技能所属機関　(5)住所（所在地）　郵便番号"
+  },
+  {
+   "key": "h.pref",
+   "target": "申請情報入力(区分V)!ET",
+   "format": "code",
+   "label": "特定技能所属機関　(5)住所（所在地）",
+   "code": "CA69_1"
+  },
+  {
+   "key": "h.city",
+   "target": "申請情報入力(区分V)!EU",
+   "format": "code",
+   "label": "特定技能所属機関　(5)住所（所在地）",
+   "code": "CA69",
+   "parent_key": "h.pref"
+  },
+  {
+   "key": "h.address_rest",
+   "target": "申請情報入力(区分V)!EV",
+   "format": "text",
+   "label": "特定技能所属機関　(5)住所（所在地）"
+  },
+  {
+   "key": "h.phone",
+   "target": "申請情報入力(区分V)!EW",
+   "format": "text",
+   "label": "特定技能所属機関　(5)電話番号"
+  },
+  {
+   "key": "h.capital",
+   "target": "申請情報入力(区分V)!EX",
+   "format": "text",
+   "label": "特定技能所属機関　(6)資本金"
+  },
+  {
+   "key": "h.sales",
+   "target": "申請情報入力(区分V)!EY",
+   "format": "text",
+   "label": "特定技能所属機関　(7)年間売上金額"
+  },
+  {
+   "key": "h.employees",
+   "target": "申請情報入力(区分V)!EZ",
+   "format": "text",
+   "label": "特定技能所属機関　(8)常勤職員数"
+  },
+  {
+   "key": "h.representative",
+   "target": "申請情報入力(区分V)!FA",
+   "format": "text",
+   "label": "特定技能所属機関　(9)代表者の氏名"
+  },
+  {
+   "key": "s.name",
+   "target": "申請情報入力(区分V)!FB",
+   "format": "text",
+   "label": "特定技能所属機関　(10)勤務させる事業所名"
+  },
+  {
+   "key": "s.postal",
+   "target": "申請情報入力(区分V)!FC",
+   "format": "text",
+   "label": "特定技能所属機関　(10)勤務させる事業所　所在地　郵便番号"
+  },
+  {
+   "key": "s.pref",
+   "target": "申請情報入力(区分V)!FD",
+   "format": "code",
+   "label": "特定技能所属機関　(10)勤務させる事業所　所在地",
+   "code": "CA69_1"
+  },
+  {
+   "key": "s.city",
+   "target": "申請情報入力(区分V)!FE",
+   "format": "code",
+   "label": "特定技能所属機関　(10)勤務させる事業所　所在地",
+   "code": "CA69",
+   "parent_key": "s.pref"
+  },
+  {
+   "key": "s.address_rest",
+   "target": "申請情報入力(区分V)!FF",
+   "format": "text",
+   "label": "特定技能所属機関　(10)勤務させる事業所　所在地"
+  },
+  {
+   "key": "s.health_pension",
+   "target": "申請情報入力(区分V)!FG",
+   "format": "code",
+   "label": "(10)勤務させる事業所が健康保険及び厚生年金保険の適用事業所であることの有無",
+   "code": "A045"
+  },
+  {
+   "key": "s.labour_insurance",
+   "target": "申請情報入力(区分V)!FH",
+   "format": "code",
+   "label": "(10)勤務させる事業所が労災保険及び雇用保険の適用事業所であることの有無",
+   "code": "A045"
+  },
+  {
+   "key": "s.labour_insurance_number",
+   "target": "申請情報入力(区分V)!FI",
+   "format": "text",
+   "label": "特定技能所属機関　(10)労働保険番号"
+  },
+  {
+   "key": "h.full_support",
+   "target": "申請情報入力(区分V)!HC",
+   "format": "code",
+   "label": "特定技能1号での在留を希望し登録支援機関に1号特定技能外国人支援計画の全部の実施を委託することの有無",
+   "code": "A051"
+  },
+  {
+   "key": "plan.transfer",
+   "target": "申請情報入力(区分V)!HV",
+   "format": "code",
+   "label": "(1)出入国時に港又は飛行場への送迎をすることとしていることの有無",
+   "code": "A045"
+  },
+  {
+   "key": "plan.housing",
+   "target": "申請情報入力(区分V)!HW",
+   "format": "code",
+   "label": "1号特定技能外国人支援計画　(2)適切な住居の確保に係る支援をすることとしていることの有無",
+   "code": "A045"
+  },
+  {
+   "key": "plan.contracts",
+   "target": "申請情報入力(区分V)!HX",
+   "format": "code",
+   "label": "(3)金融機関における預金口座等の生活に必要な契約に係る支援をすることとしていることの有無",
+   "code": "A045"
+  },
+  {
+   "key": "plan.orientation",
+   "target": "申請情報入力(区分V)!HY",
+   "format": "code",
+   "label": "(4)本邦での生活一般に関する事項等を外国人が十分に理解できる言語により実施することの有無",
+   "code": "A045"
+  },
+  {
+   "key": "plan.procedures",
+   "target": "申請情報入力(区分V)!HZ",
+   "format": "code",
+   "label": "(5)関係機関への同行その他の必要な措置を講ずることとしていることの有無",
+   "code": "A045"
+  },
+  {
+   "key": "plan.japanese",
+   "target": "申請情報入力(区分V)!IA",
+   "format": "code",
+   "label": "1号特定技能外国人支援計画　(6)日本語を学習する機会を提供することとしていることの有無",
+   "code": "A045"
+  },
+  {
+   "key": "plan.consultation",
+   "target": "申請情報入力(区分V)!IB",
+   "format": "code",
+   "label": "(7)外国人が理解できる言語により相談又は苦情の申出に対して必要な措置を講ずることの有無",
+   "code": "A045"
+  },
+  {
+   "key": "plan.exchange",
+   "target": "申請情報入力(区分V)!IC",
+   "format": "code",
+   "label": "(8)外国人と日本人の交流の促進に係る支援をすることとしていることの有無",
+   "code": "A045"
+  },
+  {
+   "key": "plan.job_change",
+   "target": "申請情報入力(区分V)!ID",
+   "format": "code",
+   "label": "(9)外国人が責めに帰すべき事由によらず契約を解除される場合は、転職支援をすることの有無",
+   "code": "A045"
+  },
+  {
+   "key": "plan.interview",
+   "target": "申請情報入力(区分V)!IE",
+   "format": "code",
+   "label": "(10)支援責任者等が定期面談を実施し、問題発生時は関係行政機関に通報することの有無",
+   "code": "A045"
+  },
+  {
+   "key": "plan.copy",
+   "target": "申請情報入力(区分V)!IF",
+   "format": "code",
+   "label": "(11)支援計画を作成し、当該外国人にその写しを交付することとしていることの有無",
+   "code": "A045"
+  },
+  {
+   "key": "plan.appropriate",
+   "target": "申請情報入力(区分V)!IH",
+   "format": "code",
+   "label": "(13)支援の内容が外国人の適正な在留に資するものであって、かつ適切に実施できることの有無",
+   "code": "A045"
+  },
+  {
+   "key": "o.name",
+   "target": "申請情報入力(区分V)!IJ",
+   "format": "text",
+   "label": "登録支援機関　(1)氏名又は名称"
+  },
+  {
+   "key": "o.has_corporate_number",
+   "target": "申請情報入力(区分V)!IK",
+   "format": "code",
+   "label": "登録支援機関　(2)法人番号の有無",
+   "code": "A045"
+  },
+  {
+   "key": "o.corporate_number",
+   "target": "申請情報入力(区分V)!IL",
+   "format": "text",
+   "label": "登録支援機関　(2)法人番号"
+  },
+  {
+   "key": "o.employment_insurance_number",
+   "target": "申請情報入力(区分V)!IM",
+   "format": "text",
+   "label": "登録支援機関　(3)雇用保険適用事業所番号"
+  },
+  {
+   "key": "o.postal",
+   "target": "申請情報入力(区分V)!IN",
+   "format": "text",
+   "label": "登録支援機関　(4)郵便番号"
+  },
+  {
+   "key": "o.pref",
+   "target": "申請情報入力(区分V)!IO",
+   "format": "code",
+   "label": "登録支援機関　(4)所在地",
+   "code": "CA69_1"
+  },
+  {
+   "key": "o.city",
+   "target": "申請情報入力(区分V)!IP",
+   "format": "code",
+   "label": "登録支援機関　(4)所在地",
+   "code": "CA69",
+   "parent_key": "o.pref"
+  },
+  {
+   "key": "o.address_rest",
+   "target": "申請情報入力(区分V)!IQ",
+   "format": "text",
+   "label": "登録支援機関　(4)所在地"
+  },
+  {
+   "key": "o.phone",
+   "target": "申請情報入力(区分V)!IR",
+   "format": "text",
+   "label": "登録支援機関　(4)電話番号"
+  },
+  {
+   "key": "o.representative",
+   "target": "申請情報入力(区分V)!IS",
+   "format": "text",
+   "label": "登録支援機関　(5)代表者の氏名"
+  },
+  {
+   "key": "o.registration_number",
+   "target": "申請情報入力(区分V)!IT",
+   "format": "text",
+   "label": "登録支援機関　(6)登録番号"
+  },
+  {
+   "key": "o.registered_on",
+   "target": "申請情報入力(区分V)!IU",
+   "format": "text",
+   "label": "登録支援機関　(7)登録年月日"
+  },
+  {
+   "key": "of.name",
+   "target": "申請情報入力(区分V)!IV",
+   "format": "text",
+   "label": "登録支援機関　(8)支援を行う事業所の名称"
+  },
+  {
+   "key": "of.postal",
+   "target": "申請情報入力(区分V)!IW",
+   "format": "text",
+   "label": "登録支援機関　(9)郵便番号"
+  },
+  {
+   "key": "of.pref",
+   "target": "申請情報入力(区分V)!IX",
+   "format": "code",
+   "label": "登録支援機関　(9)所在地",
+   "code": "CA69_1"
+  },
+  {
+   "key": "of.city",
+   "target": "申請情報入力(区分V)!IY",
+   "format": "code",
+   "label": "登録支援機関　(9)所在地",
+   "code": "CA69",
+   "parent_key": "of.pref"
+  },
+  {
+   "key": "of.address_rest",
+   "target": "申請情報入力(区分V)!IZ",
+   "format": "text",
+   "label": "登録支援機関　(9)所在地"
+  },
+  {
+   "key": "of.manager",
+   "target": "申請情報入力(区分V)!JA",
+   "format": "text",
+   "label": "登録支援機関　(10)支援責任者名"
+  },
+  {
+   "key": "of.staff",
+   "target": "申請情報入力(区分V)!JB",
+   "format": "text",
+   "label": "登録支援機関　(11)支援担当者名"
+  },
+  {
+   "key": "of.languages",
+   "target": "申請情報入力(区分V)!JC",
+   "format": "text",
+   "label": "登録支援機関　(12)対応可能言語"
+  },
+  {
+   "key": "o.monthly_fee",
+   "target": "申請情報入力(区分V)!JD",
+   "format": "text",
+   "label": "登録支援機関　(13)支援委託手数料(月額/人)"
+  },
+  {
+   "key": "sim.reentry",
+   "target": "申請情報入力(同時申請)!B",
+   "format": "code",
+   "label": "同時申請種別選択",
+   "code": "A045"
+  },
+  {
+   "key": "sim.extra_activity",
+   "target": "申請情報入力(同時申請)!C",
+   "format": "code",
+   "label": "同時申請種別選択",
+   "code": "A045"
+  },
+  {
+   "key": "sim.work_certificate",
+   "target": "申請情報入力(同時申請)!D",
+   "format": "code",
+   "label": "同時申請種別選択",
+   "code": "A045"
+  },
+  {
+   "key": "decl.11",
+   "target": "申請情報入力(区分V)!FJ",
+   "format": "code",
+   "label": "特定技能所属機関　(11)労働、社会保険及び租税に関する法令の規定に違反したことの有無",
+   "code": "A045"
+  },
+  {
+   "key": "decl.11_detail",
+   "target": "申請情報入力(区分V)!FK",
+   "format": "text",
+   "label": "特定技能所属機関　(11)労働、社会保険及び租税に関する法令の規定に違反したことの有無　有　内容入力欄"
+  },
+  {
+   "key": "decl.12",
+   "target": "申請情報入力(区分V)!FL",
+   "format": "code",
+   "label": "(12)契約締結日前1年以内又は以後に、同種の業務の労働者を非自発的に離職させたことの有無",
+   "code": "A045"
+  },
+  {
+   "key": "decl.12_detail",
+   "target": "申請情報入力(区分V)!FM",
+   "format": "text",
+   "label": "(12)契約締結日前1年以内又は以後に、同種の業務の労働者を非自発的に離職させたことの有無　有　内容入力欄"
+  },
+  {
+   "key": "decl.13",
+   "target": "申請情報入力(区分V)!FN",
+   "format": "code",
+   "label": "(13)特定技能所属機関の責めに帰すべき事由により外国人の行方不明者を発生させたことの有無",
+   "code": "A045"
+  },
+  {
+   "key": "decl.13_detail",
+   "target": "申請情報入力(区分V)!FO",
+   "format": "text",
+   "label": "(13)特定技能所属機関の責めに帰すべき事由により外国人の行方不明者を発生させたことの有無　有　内容入力欄"
+  },
+  {
+   "key": "decl.14",
+   "target": "申請情報入力(区分V)!FP",
+   "format": "code",
+   "label": "(14)機関・役員・支援責任者等が法令に違反して刑に処せられたことの有無",
+   "code": "A045"
+  },
+  {
+   "key": "decl.14_detail",
+   "target": "申請情報入力(区分V)!FQ",
+   "format": "text",
+   "label": "(14)機関・役員・支援責任者等が法令に違反して刑に処せられたことの有無　有　内容入力欄"
+  },
+  {
+   "key": "decl.15",
+   "target": "申請情報入力(区分V)!FR",
+   "format": "code",
+   "label": "(15)機関・役員・支援責任者等が精神の機能の障害を有することの有無",
+   "code": "A045"
+  },
+  {
+   "key": "decl.15_detail",
+   "target": "申請情報入力(区分V)!FS",
+   "format": "text",
+   "label": "(15)機関・役員・支援責任者等が精神の機能の障害を有することの有無　有　内容入力欄"
+  },
+  {
+   "key": "decl.16",
+   "target": "申請情報入力(区分V)!FT",
+   "format": "code",
+   "label": "(16)機関・役員・支援責任者等が破産手続開始の決定を受けて復権を得ないことの有無",
+   "code": "A045"
+  },
+  {
+   "key": "decl.16_detail",
+   "target": "申請情報入力(区分V)!FU",
+   "format": "text",
+   "label": "(16)機関・役員・支援責任者等が破産手続開始の決定を受けて復権を得ないことの有無　有　内容入力欄"
+  },
+  {
+   "key": "decl.17",
+   "target": "申請情報入力(区分V)!FV",
+   "format": "code",
+   "label": "(17)機関・役員等が技能実習法第16条第1項の規定により実習認定を取り消されたことの有無",
+   "code": "A045"
+  },
+  {
+   "key": "decl.17_detail",
+   "target": "申請情報入力(区分V)!FW",
+   "format": "text",
+   "label": "(17)機関・役員等が技能実習法第16条第1項の規定により実習認定を取り消されたことの有無　有　内容入力欄"
+  },
+  {
+   "key": "decl.18",
+   "target": "申請情報入力(区分V)!FX",
+   "format": "code",
+   "label": "(18)機関・役員・支援責任者等が実習認定を取り消された法人の役員であったことの有無",
+   "code": "A045"
+  },
+  {
+   "key": "decl.18_detail",
+   "target": "申請情報入力(区分V)!FY",
+   "format": "text",
+   "label": "(18)機関・役員・支援責任者等が実習認定を取り消された法人の役員であったことの有無　有　内容入力欄"
+  },
+  {
+   "key": "decl.19",
+   "target": "申請情報入力(区分V)!FZ",
+   "format": "code",
+   "label": "(19)機関・役員・支援責任者等が法令に関し不正又は著しく不当な行為をしたことの有無",
+   "code": "A045"
+  },
+  {
+   "key": "decl.19_detail",
+   "target": "申請情報入力(区分V)!GA",
+   "format": "text",
+   "label": "(19)機関・役員・支援責任者等が法令に関し不正又は著しく不当な行為をしたことの有無　有　内容入力欄"
+  },
+  {
+   "key": "decl.20",
+   "target": "申請情報入力(区分V)!GB",
+   "format": "code",
+   "label": "(20)役員・支援責任者等が暴力団員であること又は5年以内に暴力団員であったことの有無",
+   "code": "A045"
+  },
+  {
+   "key": "decl.20_detail",
+   "target": "申請情報入力(区分V)!GC",
+   "format": "text",
+   "label": "(20)役員・支援責任者等が暴力団員であること又は5年以内に暴力団員であったことの有無　有　内容入力欄"
+  },
+  {
+   "key": "decl.21",
+   "target": "申請情報入力(区分V)!GD",
+   "format": "code",
+   "label": "(21)機関・役員・支援責任者等の法定代理人が(14)から(20)に該当することの有無",
+   "code": "A045"
+  },
+  {
+   "key": "decl.21_detail",
+   "target": "申請情報入力(区分V)!GE",
+   "format": "text",
+   "label": "(21)機関・役員・支援責任者等の法定代理人が(14)から(20)に該当することの有無　有　内容入力欄"
+  },
+  {
+   "key": "decl.22",
+   "target": "申請情報入力(区分V)!GF",
+   "format": "code",
+   "label": "(22)暴力団員又は５年以内に暴力団員であった者がその事業活動を支配する者であることの有無",
+   "code": "A045"
+  },
+  {
+   "key": "decl.22_detail",
+   "target": "申請情報入力(区分V)!GG",
+   "format": "text",
+   "label": "(22)暴力団員又は５年以内に暴力団員であった者がその事業活動を支配する者であることの有無　有　内容入力欄"
+  },
+  {
+   "key": "decl.23",
+   "target": "申請情報入力(区分V)!GH",
+   "format": "code",
+   "label": "(23)外国人の活動内容に関する文書を契約終了の日から１年以上備えて置くことの有無",
+   "code": "A045"
+  },
+  {
+   "key": "decl.24",
+   "target": "申請情報入力(区分V)!GI",
+   "format": "code",
+   "label": "(24)契約に係る保証金の徴収その他財産管理又は違約金等の支払契約があることの認識の有無",
+   "code": "A045"
+  },
+  {
+   "key": "decl.24_detail",
+   "target": "申請情報入力(区分V)!GJ",
+   "format": "text",
+   "label": "(24)契約に係る保証金の徴収その他財産管理又は違約金等の支払契約があることの認識の有無　有　内容入力欄"
+  },
+  {
+   "key": "decl.25",
+   "target": "申請情報入力(区分V)!GK",
+   "format": "code",
+   "label": "(25)特定技能雇用契約の不履行について違約金等の支払契約を締結していることの有無",
+   "code": "A045"
+  },
+  {
+   "key": "decl.25_detail",
+   "target": "申請情報入力(区分V)!GL",
+   "format": "text",
+   "label": "(25)特定技能雇用契約の不履行について違約金等の支払契約を締結していることの有無　有　内容入力欄"
+  },
+  {
+   "key": "decl.26",
+   "target": "申請情報入力(区分V)!GM",
+   "format": "code",
+   "label": "(26)１号特定技能外国人支援に要する費用について、外国人に負担させないことの有無",
+   "code": "A045"
+  },
+  {
+   "key": "decl.29",
+   "target": "申請情報入力(区分V)!GX",
+   "format": "code",
+   "label": "特定技能所属機関　(29)労災保険加入等の措置の有無",
+   "code": "A045"
+  },
+  {
+   "key": "decl.29_detail",
+   "target": "申請情報入力(区分V)!GY",
+   "format": "text",
+   "label": "特定技能所属機関　(29)労災保険加入等の措置の有無　有　内容入力欄"
+  },
+  {
+   "key": "decl.30",
+   "target": "申請情報入力(区分V)!GZ",
+   "format": "code",
+   "label": "(30)特定技能雇用契約を継続して履行する体制が適切に整備されていることの有無",
+   "code": "A045"
+  },
+  {
+   "key": "decl.31",
+   "target": "申請情報入力(区分V)!HA",
+   "format": "code",
+   "label": "(31)外国人に現実に支払われた報酬額を振込又は確認できる方法で支払われていることの有無",
+   "code": "A045"
+  },
+  {
+   "key": "decl.32",
+   "target": "申請情報入力(区分V)!HB",
+   "format": "code",
+   "label": "(32)特定技能雇用契約の適正な履行の確保につき告示で定められる基準に適合することの有無",
+   "code": "A045"
+  }
+ ],
+ "not_mapped": []
 }

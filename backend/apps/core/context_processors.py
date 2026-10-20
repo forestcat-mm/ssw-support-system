@@ -26,6 +26,8 @@ NAV_ITEMS: tuple[NavItem, ...] = (
     NavItem(_("Foreign workers"), "workers:list", Action.WORKERS_VIEW, "workers:"),
     NavItem(_("Host organizations"), "hosts:list", Action.HOSTS_VIEW, "hosts:"),
     NavItem(_("Consultations"), "consultations:list", Action.SUPPORT_VIEW, "consultations:"),
+    # 一括申請（T48）
+    NavItem(_("Bulk applications"), "forms:bulk_list", Action.FORMS_GENERATE, "forms:bulk"),
     NavItem(_("Settings"), "settings:index", Action.USERS_MANAGE, "settings:"),
     NavItem(_("Management site"), "admin:index", Action.USERS_MANAGE, "admin:index"),
     NavItem(_("UI components"), "ui_showcase", Action.SYSTEM_MANAGE, "ui_showcase"),

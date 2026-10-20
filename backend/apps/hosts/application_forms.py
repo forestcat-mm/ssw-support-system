@@ -143,10 +143,11 @@ class DeclarationForm(StyledFormMixin, forms.ModelForm[HostDeclaration]):
         cleaned = super().clean() or {}
         for item in host_declarations.items():
             answer = cleaned.get(f"answer_{item.key}")
-            if item.detail and item.expected and answer and answer != item.expected:
+            # 内容の欄は「有」のときに要る（一括登録用ツールの条件。(29) は「有」が通常の答え）
+            if item.detail and answer == "yes":
                 if not (cleaned.get(f"detail_{item.key}") or "").strip():
                     self.add_error(
                         f"detail_{item.key}",
-                        _("Enter the details when the answer is not the usual one."),
+                        _("Enter the details when the answer is yes."),
                     )
         return cleaned

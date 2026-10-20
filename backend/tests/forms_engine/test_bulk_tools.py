@@ -180,3 +180,17 @@ def test_character_types_and_dates() -> None:
     assert bulk_checks.char_type_ok("東京　タロウ１", ["漢字", "全角カナ", "全角数字"])
     assert bulk_checks.char_type_ok("20260229", ["日付"]) is False
     assert bulk_checks.char_type_ok("20280229", ["日付"])
+
+
+@pytest.mark.parametrize("form_id", list(PROCEDURES))
+def test_mapping_is_reproduced_by_the_tool(form_id: str) -> None:
+    """欄の対応（T48）は道具の出力。必須の欄はすべてデータのキーに当たる（当たらなければ道具が止まる）。"""
+    result = subprocess.run(
+        [sys.executable, str(TOOLS / "make_bulk_mappings.py"), form_id, VERSION],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert json.loads(result.stdout) == json.loads(
+        (MAPPINGS / form_id / f"{VERSION}.json").read_text("utf-8")
+    )

@@ -1,0 +1,16 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Remove from the bulk application" %}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{% url 'forms:bulk' application.pk %}#rows">← {% translate "Bulk application" %}</a></p>
+  <h1>{% translate "Remove from the bulk application" %}</h1>
+{% endblock %}
+{% block content %}
+<form class="form stack" method="post" novalidate id="bulk-remove-form">
+  {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+  <p>{% blocktranslate %}Remove {{ name }} and the inputs for this application from the bulk application. Files already generated stay.{% endblocktranslate %}</p>
+  <div class="form-actions">
+    <button class="button button--danger" type="submit">{% translate "Remove" %}</button>
+    <a class="button button--neutral" href="{% url 'forms:bulk' application.pk %}#rows">{% translate "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

@@ -58,8 +58,9 @@ def test_add_financial_results_and_a_declaration(
     page.locator('[data-item="answer_11"] input[value="yes"]').check()
     assert page.evaluate("document.documentElement.scrollWidth") <= width
     page.get_by_role("button", name="保存する").click()
-    expect(page.get_by_text("通常と違う答えのときは、内容を書いてください。")).to_be_visible()
+    expect(page.get_by_text("「有」のときは、内容を書いてください。").first).to_be_visible()
     page.get_by_label("(11) の内容").fill("2025年に是正勧告を受け、是正済み。")
+    page.get_by_label("(29) の内容").fill("労災保険・雇用保険に加入")
     page.get_by_role("button", name="保存する").click()
     expect(page.locator("#declaration-latest")).to_contain_text("2026-10-01")
     expect(page.locator("#declaration-unusual")).to_contain_text("(11)")

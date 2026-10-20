@@ -1,0 +1,30 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{{ name }} | {% translate "Bulk application" %}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{% url 'forms:bulk' application.pk %}#rows">← {% translate "Bulk application" %}: {{ application.get_procedure_display }}</a></p>
+  <h1>{% translate "Inputs for this application" %}: {{ name }}</h1>
+{% endblock %}
+{% block content %}
+<form class="form" method="post" novalidate id="bulk-entry-form">
+  {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+  {% include "ui/components/form_errors.html" %}
+  <section class="card stack">
+    <p class="caption">{% translate "Items not in the ledger. The answers of the previous bulk application of this worker are copied first." %}</p>
+    {% form_field form.agent %}
+    {% for field in form.input_fields %}{% form_field field %}{% endfor %}
+  </section>
+  <section class="card stack" id="bulk-sensitive">
+    <h2 class="card__title">{% translate "Criminal record (sensitive)" %}</h2>
+    {% if form.show_sensitive %}
+    <p class="caption">{% translate "Only the assigned staff member and administrators can see and enter it. It is not shown in lists and not kept in the audit log." %}</p>
+    {% form_field form.crime %}{% form_field form.crime_detail %}
+    {% else %}
+    <p class="muted" id="bulk-sensitive-hidden">{% translate "Only the assigned staff member and administrators can see and enter it." %}</p>
+    {% endif %}
+  </section>
+  <div class="form-actions">
+    <button class="button button--primary" type="submit">{% translate "Save" %}</button>
+    <a class="button button--neutral" href="{% url 'forms:bulk' application.pk %}#rows">{% translate "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

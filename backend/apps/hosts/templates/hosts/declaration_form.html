@@ -9,7 +9,7 @@
   {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
   {% include "ui/components/form_errors.html" %}
   <section class="card stack">
-    <p class="caption">{% translate "Declarations of the host organization for the bulk application (items (11) to (32) of section V). The previous version stays. The usual answer is selected first; when the answer is different, write the details." %}</p>
+    <p class="caption">{% translate "Declarations of the host organization for the bulk application (items (11) to (32) of section V). The previous version stays. The usual answer is selected first. When the answer is yes, write the details." %}</p>
     {% form_field form.declared_on %}
     {% for answer, detail in form.answer_fields %}
     <div class="stack" data-item="{{ answer.name }}">{% form_field answer %}{% if detail %}{% form_field detail %}{% endif %}</div>

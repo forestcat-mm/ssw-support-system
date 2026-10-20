@@ -5,7 +5,8 @@ chkInputErrRow・chkParentInput・chkChrType・chkLength・chkRequire・chkGymCo
 同じ条件で、1 人ずつの行を確かめる。
 
 - 共通シートと区分V は表示されているシートとして確かめる。同時申請（更新・変更）は、再入国・資格外
-  活動・就労資格証明の「有」の範囲だけを確かめ、どれも無ければ必須だけ（VBA と同じ）。
+  活動・就労資格証明の「有」の範囲だけを確かめ、どれも無ければ種別（B〜D 列）の必須だけ
+  （VBA と同じ）。
 - 「チェック親列」があり、親の値が「チェック親値」に当たらない列は確かめない。頭の「在」は
   共通シートの列。
 - 業務コードは、表示名がツールの表（services/data/immigration_codes.json）にあるかで確かめる。リスト
@@ -235,7 +236,8 @@ def check_rows(
             if sheet == SIMULTANEOUS:
                 number = _column_number(letters)
                 if not any(flags.values()):
-                    if column["required"] and not text and column["csv_column"]:
+                    # どれも「有」でなければ、種別の B〜D 列の必須だけ（VBA の colNum < 5）
+                    if number < 5 and column["required"] and not text and column["csv_column"]:
                         add(_("%(name)s is required.") % {"name": column["name"]})
                     continue
                 in_range = (

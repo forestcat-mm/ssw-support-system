@@ -87,7 +87,8 @@ def test_declaration_versions_keep_the_previous_one(support_staff_client: Client
     data: dict[str, Any] = {"declared_on": "2026-10-01"}
     for item in host_declarations.items():
         data[f"answer_{item.key}"] = item.expected
-    data["answer_11"] = "yes"  # 通常と違う答えには内容が要る
+    data["detail_29"] = "労災保険・雇用保険に加入"  # 「有」には内容が要る（(29) は「有」が通常）
+    data["answer_11"] = "yes"  # 「有」には内容が要る
     response = submit(support_staff_client, url, data)
     assert "detail_11" in response.context["form"].errors
     data |= {

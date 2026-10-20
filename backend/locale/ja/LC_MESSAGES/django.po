@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 22:43+0900\n"
+"POT-Creation-Date: 2026-10-20 23:05+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -1178,6 +1178,9 @@ msgstr "受入れ機関台帳"
 
 msgid "Consultations"
 msgstr "相談"
+
+msgid "Bulk applications"
+msgstr "一括申請"
 
 msgid "Settings"
 msgstr "設定"
@@ -3133,6 +3136,197 @@ msgstr "届出タスクを起票しました。"
 msgid "Forms"
 msgstr "帳票"
 
+msgid "yes"
+msgstr "あり"
+
+msgid "no"
+msgstr "なし"
+
+msgid ""
+"Staff members marked as users of the online residence application system "
+"(settings, staff)."
+msgstr "在留申請オンラインシステムの利用者の印のある担当者（設定の「担当者」）。"
+
+msgid "spouse"
+msgstr "配偶者の有無"
+
+msgid "occupation"
+msgstr "職業"
+
+msgid "planned month of entry"
+msgstr "入国予定年月"
+
+msgid "Example: 2027年4月"
+msgstr "例: 2027年4月"
+
+msgid "planned port of entry"
+msgstr "上陸予定港"
+
+msgid "port of entry (other)"
+msgstr "上陸予定港（その他）"
+
+msgid "planned length of stay (years)"
+msgstr "滞在予定期間（年）"
+
+msgid "planned length of stay (months)"
+msgstr "滞在予定期間（月）"
+
+msgid "accompanying persons"
+msgstr "同伴者の有無"
+
+msgid "planned place of visa application"
+msgstr "査証申請予定地"
+
+msgid "past entries into Japan"
+msgstr "過去の出入国歴の有無"
+
+msgid "number of past entries"
+msgstr "過去の出入国の回数"
+
+msgid "latest entry (from)"
+msgstr "直近の出入国（始期）"
+
+msgid "latest entry (to)"
+msgstr "直近の出入国（終期）"
+
+msgid "past applications for a certificate of eligibility"
+msgstr "過去の在留資格認定証明書交付申請歴の有無"
+
+msgid "number of past applications"
+msgstr "過去の申請の回数"
+
+msgid "of which not issued"
+msgstr "うち不交付となった回数"
+
+msgid "departure by deportation or departure order"
+msgstr "退去強制又は出国命令による出国の有無"
+
+msgid "number of deportations"
+msgstr "退去強制等の回数"
+
+msgid "latest deportation"
+msgstr "直近の送還"
+
+msgid "desired period of stay"
+msgstr "希望する在留期間"
+
+msgid "reason for the application"
+msgstr "申請の理由"
+
+msgid "ED number (letters)"
+msgstr "ED番号（英字）"
+
+msgid "Only when the worker has no residence card."
+msgstr "在留カードが無いときだけ。"
+
+msgid "ED number (digits)"
+msgstr "ED番号（数字）"
+
+msgid "how to receive"
+msgstr "受領方法"
+
+msgid "residence of the applicant (counter)"
+msgstr "申請対象者の住居地（窓口で受け取るとき）"
+
+msgid "receiving office"
+msgstr "受領官署"
+
+msgid "email for notices"
+msgstr "通知送信用メールアドレス"
+
+msgid "free entry"
+msgstr "自由記入"
+
+msgid "main job category"
+msgstr "主たる職種"
+
+msgid "other job category 1"
+msgstr "他職種１"
+
+msgid "other job category 2"
+msgstr "他職種２"
+
+msgid "other job category 3"
+msgstr "他職種３"
+
+msgid "working hours equal to regular workers"
+msgstr "所定労働時間が通常の労働者と同等"
+
+msgid "pay equal to or higher than Japanese workers"
+msgstr "報酬の額が日本人と同等以上"
+
+msgid "different treatment because of being a foreigner"
+msgstr "外国人であることを理由に日本人と異なった待遇としている事項の有無"
+
+msgid "details of the different treatment"
+msgstr "異なった待遇の内容"
+
+msgid "paid leave for a temporary return home"
+msgstr "一時帰国のための有給休暇を取得させる"
+
+msgid "bearing the travel cost home when the worker cannot"
+msgstr "帰国旅費を負担できないときに負担する"
+
+msgid "measures to understand health and living conditions"
+msgstr "健康の状況その他の生活の状況を把握する措置"
+
+msgid "the support contributes to an appropriate stay"
+msgstr "支援の内容が適正な在留に資する（支援計画 (15)）"
+
+msgid "contract on a deposit or penalty"
+msgstr "保証金・違約金等の契約"
+
+msgid "organization collecting the deposit"
+msgstr "徴収・管理機関名"
+
+msgid "deposit amount or property managed"
+msgstr "徴収金額又は管理財産"
+
+msgid "agreed fees paid to organizations abroad"
+msgstr "外国の機関への費用支払について合意していることの有無"
+
+msgid "organization abroad"
+msgstr "外国の機関名"
+
+msgid "amount paid"
+msgstr "支払額"
+
+msgid "agent (applicant contact of the host organization)"
+msgstr "代理人（受入れ機関の申請担当者）"
+
+msgid "disposition for a crime"
+msgstr "犯罪を理由とする処分を受けたことの有無"
+
+msgid "details of the disposition"
+msgstr "処分の内容"
+
+msgid "Enter letters only."
+msgstr "英字だけを入れてください。"
+
+msgid "foreign workers"
+msgstr "外国人"
+
+msgid "Created the bulk application. Add foreign workers."
+msgstr "一括申請を作りました。外国人を追加してください。"
+
+#, python-format
+msgid "Not generated: fix the %(count)s problem(s) shown for each worker."
+msgstr "作りませんでした。外国人ごとに出ている %(count)s 件を直してください。"
+
+msgid "Add foreign workers first."
+msgstr "先に外国人を追加してください。"
+
+#, python-format
+msgid "Generated %(count)s file(s)."
+msgstr "%(count)s 個のファイルを作りました。"
+
+#, python-format
+msgid "Added %(count)s worker(s)."
+msgstr "%(count)s 人を追加しました。"
+
+msgid "Removed the worker from the bulk application."
+msgstr "一括申請から外しました。"
+
 msgid ""
 "The form is not loaded. Ask an administrator to load the forms (make forms)."
 msgstr "様式が読み込まれていません。管理者に様式の読み込み（make forms）を依頼してください。"
@@ -3206,9 +3400,6 @@ msgstr "入管が配布する一覧表に書き込みます。行ごとの提出
 
 msgid "yes (submitted)"
 msgstr "有（提出する）"
-
-msgid "no"
-msgstr "なし"
 
 msgid "no mark"
 msgstr "印を付けない"
@@ -3421,6 +3612,60 @@ msgstr "提出用の PDF の下書きのファイル"
 msgid "files of the draft of the submission PDF"
 msgstr "提出用の PDF の下書きのファイル"
 
+msgid "certificate of eligibility"
+msgstr "在留資格認定証明書交付申請"
+
+msgid "extension of period of stay"
+msgstr "在留期間更新許可申請"
+
+msgid "change of status of residence"
+msgstr "在留資格変更許可申請"
+
+msgid "procedure"
+msgstr "手続"
+
+msgid "title"
+msgstr "表題"
+
+msgid "intermediary (user of the online system)"
+msgstr "取次者（オンラインシステム利用者）"
+
+msgid "bulk application"
+msgstr "一括申請"
+
+msgid "bulk applications"
+msgstr "一括申請"
+
+msgid "agent"
+msgstr "代理人"
+
+msgid "inputs for this application"
+msgstr "申請ごとの入力"
+
+msgid "criminal record (sensitive)"
+msgstr "犯罪を理由とする処分（要配慮）"
+
+msgid "bulk application row"
+msgstr "一括申請の行"
+
+msgid "bulk application rows"
+msgstr "一括申請の行"
+
+msgid "part"
+msgstr "番号"
+
+msgid "number of parts"
+msgstr "ファイルの数"
+
+msgid "includes sensitive information"
+msgstr "要配慮の情報を含む"
+
+msgid "bulk application file"
+msgstr "一括申請のファイル"
+
+msgid "bulk application files"
+msgstr "一括申請のファイル"
+
 msgid "Generate the missing documents"
 msgstr "不足の書類をまとめて生成"
 
@@ -3576,6 +3821,121 @@ msgstr "作成日時"
 msgid "size"
 msgstr "大きさ"
 
+msgid "Bulk application"
+msgstr "一括申請"
+
+msgid "The bulk registration tool is not loaded. Run make forms."
+msgstr "一括登録用ツールが読み込まれていません。make forms を実行してください。"
+
+msgid "check"
+msgstr "検査"
+
+msgid "PDF for the submission"
+msgstr "提出用の PDF"
+
+#, python-format
+msgid "%(counter)s problem"
+msgid_plural "%(counter)s problems"
+msgstr[0] "不足 %(counter)s 件"
+
+msgid "OK"
+msgstr "問題なし"
+
+msgid "documents for the application"
+msgstr "申請の書類の一覧"
+
+msgid "Inputs"
+msgstr "入力"
+
+msgid "Remove"
+msgstr "外す"
+
+msgid ""
+"The check copies the input check of the macro of the tool. The criminal "
+"record is shown only to the assigned staff member and administrators."
+msgstr "検査は、ツールのマクロの入力チェックを写したものです。犯罪の申告は、担当者と管理者にだけ表示します。"
+
+msgid "No foreign workers yet."
+msgstr "まだ外国人がいません。"
+
+msgid "Add foreign workers"
+msgstr "外国人を追加"
+
+msgid "Files"
+msgstr "ファイル"
+
+msgid "Generate the Excel file"
+msgstr "Excel を作る"
+
+msgid "Fix the problems first."
+msgstr "先に不足を直してください。"
+
+msgid "filled in (for editing)"
+msgstr "記入済み（編集用）"
+
+msgid ""
+"Includes a criminal record: only the assigned staff members and "
+"administrators can download it."
+msgstr "犯罪の申告を含むため、担当者と管理者だけがダウンロードできます。"
+
+#, python-format
+msgid "%(counter)s person"
+msgid_plural "%(counter)s people"
+msgstr[0] "%(counter)s人"
+
+msgid ""
+"Open the file in Excel on Windows and enable macros. Press “Select” on the "
+"menu (the status of residence is already “Specified Skilled Worker”), then "
+"“Output” to make the CSV. Upload only the CSV made by the tool, without "
+"editing it."
+msgstr ""
+"Windows の Excel で開き、マクロを有効にします。メニューの「選択」（在留資格は「特定技能」に入っています）を押してから「出力」で CSV "
+"を作ります。ツールが作った CSV を、編集せずにアップロードします。"
+
+msgid "Inputs for this application"
+msgstr "申請ごとの入力"
+
+msgid ""
+"Items not in the ledger. The answers of the previous bulk application of "
+"this worker are copied first."
+msgstr "台帳に無い項目です。この外国人の前の一括申請の答えを初めに写しています。"
+
+msgid "Criminal record (sensitive)"
+msgstr "犯罪を理由とする処分（要配慮）"
+
+msgid ""
+"Only the assigned staff member and administrators can see and enter it. It "
+"is not shown in lists and not kept in the audit log."
+msgstr "担当者と管理者だけが見て入力できます。一覧には出さず、監査ログにも残しません。"
+
+msgid ""
+"Only the assigned staff member and administrators can see and enter it."
+msgstr "担当者と管理者だけが見て入力できます。"
+
+msgid "Remove from the bulk application"
+msgstr "一括申請から外す"
+
+#, python-format
+msgid ""
+"Remove %(name)s and the inputs for this application from the bulk "
+"application. Files already generated stay."
+msgstr "%(name)s と申請ごとの入力を一括申請から外します。作ったファイルは残ります。"
+
+msgid "New bulk application"
+msgstr "一括申請を作る"
+
+msgid ""
+"Excel files for the bulk registration tools of the online residence "
+"application (certificate of eligibility, extension, change). Open the file "
+"in Excel on Windows, enable macros, press “Select” and then “Output” on the "
+"menu, and upload the CSV."
+msgstr ""
+"在留申請オンラインの一括登録用ツール（認定・更新・変更）の Excel を作ります。Windows の Excel "
+"で開いてマクロを有効にし、メニューの「選択」→「出力」で CSV を作ってアップロードします。"
+
+msgid "No bulk applications yet."
+msgstr "まだ一括申請がありません。"
+
 msgid ""
 "The Chinese bilingual version distributed by the Immigration Services Agency"
 " differs from the current Japanese form, so it is not used. To give the "
@@ -3691,9 +4051,6 @@ msgid ""
 " insurance or national pension. The applicant signs the printed form by "
 "hand."
 msgstr "申請人に住民税・国民健康保険・国民年金などの滞納がある場合だけ必要です。印刷したものに申請人が手で署名します。"
-
-msgid "PDF for the submission"
-msgstr "提出用の PDF"
 
 msgid ""
 "The PDF contains sensitive documents (health check documents). Only the "
@@ -3848,15 +4205,12 @@ msgstr "退任日が就任日より前です。"
 msgid "not answered"
 msgstr "未回答"
 
-msgid "yes"
-msgstr "あり"
-
 #, python-format
 msgid "details of %(item)s"
 msgstr "%(item)s の内容"
 
-msgid "Enter the details when the answer is not the usual one."
-msgstr "通常と違う答えのときは、内容を書いてください。"
+msgid "Enter the details when the answer is yes."
+msgstr "「有」のときは、内容を書いてください。"
 
 msgid "Add financial results"
 msgstr "決算を追加"
@@ -4661,9 +5015,9 @@ msgstr "申告の新しい版"
 msgid ""
 "Declarations of the host organization for the bulk application (items (11) "
 "to (32) of section V). The previous version stays. The usual answer is "
-"selected first; when the answer is different, write the details."
+"selected first. When the answer is yes, write the details."
 msgstr ""
-"一括申請の受入れ機関の申告（区分V の (11)〜(32)）です。前の版は残ります。最初は通常の答えが選ばれています。違う答えのときは内容を書きます。"
+"一括申請の受入れ機関の申告（区分V の (11)〜(32)）です。前の版は残ります。最初は通常の答えが選ばれています。「有」のときは内容を書きます。"
 
 msgid "Form 1-11-1, section 3: people who left and missing persons"
 msgstr "第1-11-1号 ３ 離職者と行方不明者の人数"
@@ -4845,20 +5199,12 @@ msgstr "相談記録書を作る"
 msgid "No consultation records have been generated."
 msgstr "相談記録書はまだ生成していません。"
 
-#, python-format
-msgid "%(counter)s person"
-msgid_plural "%(counter)s people"
-msgstr[0] "%(counter)s人"
-
 msgid ""
 "No foreign workers have an employment contract with this host organization."
 msgstr "この受入れ機関と雇用契約のある外国人はいません。"
 
 msgid "sites"
 msgstr "事業所"
-
-msgid "foreign workers"
-msgstr "外国人"
 
 msgid "membership valid until"
 msgstr "加入の有効期限"
@@ -5490,14 +5836,8 @@ msgstr "同一機関で引き続き雇用し、生活環境に変化が無い"
 msgid "identity confirmed online"
 msgstr "オンラインでの本人確認"
 
-msgid "contract on a deposit or penalty"
-msgstr "保証金・違約金等の契約"
-
 msgid "organization collecting the deposit or managing property"
 msgstr "徴収又は管理機関名"
-
-msgid "deposit amount or property managed"
-msgstr "徴収金額又は管理財産"
 
 msgid "fees paid to organizations abroad"
 msgstr "外国の機関への費用の支払"
@@ -6025,9 +6365,6 @@ msgstr[0] "注意 %(counter)s件"
 
 msgid "Item b covers accompanying to public procedures."
 msgstr "b が公的手続への同行にあたります。"
-
-msgid "free entry"
-msgstr "自由記入"
 
 msgid "Whole plan"
 msgstr "計画全体"
@@ -7145,6 +7482,9 @@ msgstr "実施日時が %(rows)s 行を超えるため、確認書の欄に収�
 
 msgid "The signed confirmation is not attached."
 msgstr "署名済みの確認書が添付されていません。"
+
+msgid "Enter the details of the criminal record."
+msgstr "処分の内容を書いてください。"
 
 #, python-format
 msgid "The format of %(name)s is not correct."
@@ -8487,9 +8827,6 @@ msgstr "物件の種類"
 
 msgid "guarantor contract (details)"
 msgstr "保証人契約の内容"
-
-msgid "procedure"
-msgstr "手続"
 
 msgid "information on Japanese classes and schools"
 msgstr "日本語教室・教育機関の案内"

@@ -96,6 +96,10 @@ DJANGO_PERMISSION_ACTIONS: dict[str, Action] = {
         change=Action.FORMS_GENERATE,
     ),
     **_model_permissions("forms_engine.submissiondraftfile", view=Action.FORMS_GENERATE),
+    # 一括申請（T48）。admin は見るだけ
+    **_model_permissions("forms_engine.bulkapplication", view=Action.FORMS_GENERATE),
+    **_model_permissions("forms_engine.bulkapplicationentry", view=Action.FORMS_GENERATE),
+    **_model_permissions("forms_engine.bulkapplicationfile", view=Action.FORMS_GENERATE),
     # Django-Q2 の実行予定・結果（管理者のみ）
     **_model_permissions(
         "django_q.schedule",
