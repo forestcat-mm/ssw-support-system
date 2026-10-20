@@ -27,6 +27,39 @@ def strip_tags(text: str) -> str:
     return TAG.sub("", text)
 
 
+BODY_SECTION = re.compile(r"<w:sectPr\b(?:(?!<w:sectPr\b).)*?</w:sectPr>\s*</w:body>", re.S)
+PAGE_BREAK = '<w:p><w:r><w:br w:type="page"/></w:r></w:p>'
+
+
+def append_body(document: Path, extra: Path) -> None:
+    """document の本文の末尾に、改ページを挟んで extra の本文を綴じる（補足の頁。ADR-0027 の追記）。
+
+    extra は同じ部品（スタイル・用紙）から作った文書で、画像などの関係（rels）を持たないこと。
+    extra の最後の節の設定は使わず、document の節の設定のままにする。
+    """
+    with zipfile.ZipFile(extra) as archive:
+        extra_xml = archive.read("word/document.xml").decode("utf-8")
+        if any(name.startswith("word/media/") for name in archive.namelist()):
+            raise ValueError("the supplement must not have media")
+    start = extra_xml.index("<w:body>") + len("<w:body>")
+    section = BODY_SECTION.search(extra_xml)
+    if section is None:
+        raise ValueError("the supplement has no section")
+    body = extra_xml[start : section.start()]
+    with zipfile.ZipFile(document) as archive:
+        items = [(item, archive.read(item.filename)) for item in archive.infolist()]
+    with zipfile.ZipFile(document, "w", zipfile.ZIP_DEFLATED) as output:
+        for item, data in items:
+            if item.filename == "word/document.xml":
+                xml = data.decode("utf-8")
+                match = BODY_SECTION.search(xml)
+                if match is None:
+                    raise ValueError("the document has no section")
+                xml = xml[: match.start()] + PAGE_BREAK + body + xml[match.start() :]
+                data = xml.encode("utf-8")
+            output.writestr(item, data)
+
+
 # PDF にする一時の写しでだけ変える頁の組み方（manifest の pdf_layout。ADR-0032 の例外の一覧）
 PDF_LAYOUT_KEYS = {"line_pitch", "margin_top", "margin_bottom", "font_sizes", "note"}
 MIN_BODY_HALF_POINTS = 18  # 本文の字は 9pt を下回らない

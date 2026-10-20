@@ -1,0 +1,2559 @@
+{
+ "form_id": "1-6",
+ "valid_from": "2026-10-18",
+ "language": "ja-zh",
+ "note": "日中併記の旧い版（入管の 001339744.docx の第1-6号。2026-10-20 に人が A を選んだ。ADR-0027 の追記）。欄とデータのキーは日本語の版（T34、ADR-0023）と同じ。今の様式との差（Ⅸ４ 待遇の相違の窓口など）は補足の頁（自作の日中併記。supplement.docx）に書き、Ⅸ４ の 3 欄は補足の頁に入れる。値は日本語の行と、中国語の行のチェック・数・名前・自由記述の欄に入れる。別紙２ は生成では出さない（T34-D3）。",
+ "fields": [
+  {
+   "key": "c.signed_y",
+   "target": "signed_y",
+   "format": "zen",
+   "label": "冒頭の日付（締結日）（年）"
+  },
+  {
+   "key": "c.signed_m",
+   "target": "signed_m",
+   "format": "zen",
+   "label": "冒頭の日付（締結日）（月）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.signed_d",
+   "target": "signed_d",
+   "format": "zen",
+   "label": "冒頭の日付（締結日）（日）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.signed_y",
+   "target": "signed_y_zh",
+   "format": "zen",
+   "label": "冒頭の日付（締結日）（年）（中国語の行）"
+  },
+  {
+   "key": "c.signed_m",
+   "target": "signed_m_zh",
+   "format": "zen",
+   "label": "冒頭の日付（締結日）（月）（中国語の行）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.signed_d",
+   "target": "signed_d_zh",
+   "format": "zen",
+   "label": "冒頭の日付（締結日）（日）（中国語の行）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.worker_name",
+   "target": "worker_name",
+   "format": "text",
+   "label": "特定技能外国人の氏名（殿）",
+   "pad": 15,
+   "align": "left"
+  },
+  {
+   "key": "c.worker_name",
+   "target": "worker_name_zh",
+   "format": "text",
+   "label": "特定技能外国人の氏名（殿）（中国語の行）",
+   "pad": 15,
+   "align": "left"
+  },
+  {
+   "key": "c.host_name",
+   "target": "host_name",
+   "format": "text",
+   "label": "特定技能所属機関名",
+   "pad": 17,
+   "align": "left"
+  },
+  {
+   "key": "c.host_name",
+   "target": "host_name_zh",
+   "format": "text",
+   "label": "特定技能所属機関名（中国語の行）"
+  },
+  {
+   "key": "c.host_address",
+   "target": "host_address",
+   "format": "zen_text",
+   "label": "所在地",
+   "pad": 17,
+   "align": "left"
+  },
+  {
+   "key": "c.host_address",
+   "target": "host_address_zh",
+   "format": "zen_text",
+   "label": "所在地（中国語の行）"
+  },
+  {
+   "key": "c.host_phone",
+   "target": "host_phone",
+   "format": "zen_text",
+   "label": "電話番号",
+   "pad": 17,
+   "align": "left"
+  },
+  {
+   "key": "c.host_phone",
+   "target": "host_phone_zh",
+   "format": "zen_text",
+   "label": "電話番号（中国語の行）"
+  },
+  {
+   "key": "c.host_representative",
+   "target": "host_representative",
+   "format": "text",
+   "label": "代表者 役職・氏名",
+   "pad": 16,
+   "align": "left"
+  },
+  {
+   "key": "c.host_representative",
+   "target": "host_representative_zh",
+   "format": "text",
+   "label": "代表者 役職・氏名（中国語の行）"
+  },
+  {
+   "key": "c.starts_y",
+   "target": "starts_y",
+   "format": "zen",
+   "label": "Ⅰ１ 雇用契約期間（始期）（年）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "c.starts_m",
+   "target": "starts_m",
+   "format": "zen",
+   "label": "Ⅰ１ 雇用契約期間（始期）（月）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.starts_d",
+   "target": "starts_d",
+   "format": "zen",
+   "label": "Ⅰ１ 雇用契約期間（始期）（日）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.ends_y",
+   "target": "ends_y",
+   "format": "zen",
+   "label": "Ⅰ１ 雇用契約期間（終期）（年）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "c.ends_m",
+   "target": "ends_m",
+   "format": "zen",
+   "label": "Ⅰ１ 雇用契約期間（終期）（月）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.ends_d",
+   "target": "ends_d",
+   "format": "zen",
+   "label": "Ⅰ１ 雇用契約期間（終期）（日）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.entry_y",
+   "target": "entry_y",
+   "format": "zen",
+   "label": "Ⅰ１ 入国予定日（年）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "c.entry_m",
+   "target": "entry_m",
+   "format": "zen",
+   "label": "Ⅰ１ 入国予定日（月）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.entry_d",
+   "target": "entry_d",
+   "format": "zen",
+   "label": "Ⅰ１ 入国予定日（日）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.starts_y",
+   "target": "starts_y_zh",
+   "format": "zen",
+   "label": "Ⅰ１ 雇用契約期間（始期）（年）（中国語の行）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "c.starts_m",
+   "target": "starts_m_zh",
+   "format": "zen",
+   "label": "Ⅰ１ 雇用契約期間（始期）（月）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.starts_d",
+   "target": "starts_d_zh",
+   "format": "zen",
+   "label": "Ⅰ１ 雇用契約期間（始期）（日）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.ends_y",
+   "target": "ends_y_zh",
+   "format": "zen",
+   "label": "Ⅰ１ 雇用契約期間（終期）（年）（中国語の行）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "c.ends_m",
+   "target": "ends_m_zh",
+   "format": "zen",
+   "label": "Ⅰ１ 雇用契約期間（終期）（月）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.ends_d",
+   "target": "ends_d_zh",
+   "format": "zen",
+   "label": "Ⅰ１ 雇用契約期間（終期）（日）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.entry_y",
+   "target": "entry_y_zh",
+   "format": "zen",
+   "label": "Ⅰ１ 入国予定日（年）（中国語の行）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.entry_m",
+   "target": "entry_m_zh",
+   "format": "zen",
+   "label": "Ⅰ１ 入国予定日（月）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.entry_d",
+   "target": "entry_d_zh",
+   "format": "zen",
+   "label": "Ⅰ１ 入国予定日（日）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.renewal_automatic",
+   "target": "renewal_automatic",
+   "format": "check",
+   "label": "Ⅰ２ 契約の更新の有無（automatic）"
+  },
+  {
+   "key": "c.renewal_possible",
+   "target": "renewal_possible",
+   "format": "check",
+   "label": "Ⅰ２ 契約の更新の有無（possible）"
+  },
+  {
+   "key": "c.renewal_none",
+   "target": "renewal_none",
+   "format": "check",
+   "label": "Ⅰ２ 契約の更新の有無（none）"
+  },
+  {
+   "key": "c.criterion_workload",
+   "target": "criterion_workload",
+   "format": "check",
+   "label": "Ⅰ２ 更新の判断基準（workload）"
+  },
+  {
+   "key": "c.criterion_performance",
+   "target": "criterion_performance",
+   "format": "check",
+   "label": "Ⅰ２ 更新の判断基準（performance）"
+  },
+  {
+   "key": "c.criterion_ability",
+   "target": "criterion_ability",
+   "format": "check",
+   "label": "Ⅰ２ 更新の判断基準（ability）"
+  },
+  {
+   "key": "c.criterion_business",
+   "target": "criterion_business",
+   "format": "check",
+   "label": "Ⅰ２ 更新の判断基準（business）"
+  },
+  {
+   "key": "c.criterion_progress",
+   "target": "criterion_progress",
+   "format": "check",
+   "label": "Ⅰ２ 更新の判断基準（progress）"
+  },
+  {
+   "key": "c.criterion_other",
+   "target": "criterion_other",
+   "format": "check",
+   "label": "Ⅰ２ 更新の判断基準（other）"
+  },
+  {
+   "key": "c.criterion_other_text",
+   "target": "criterion_other_text",
+   "format": "zen_text",
+   "label": "Ⅰ２ 更新の判断基準（other_text）",
+   "pad": 12,
+   "align": "left"
+  },
+  {
+   "key": "c.criterion_other_text",
+   "target": "criterion_other_text_zh",
+   "format": "zen_text",
+   "label": "Ⅰ２ 更新の判断基準（other_text）（中国語の行）",
+   "pad": 13,
+   "align": "left"
+  },
+  {
+   "key": "c.renewal_limit",
+   "target": "renewal_limit",
+   "format": "text",
+   "label": "Ⅰ３ 更新上限の有無"
+  },
+  {
+   "key": "c.conversion_y",
+   "target": "conversion_y",
+   "format": "zen",
+   "label": "Ⅰ 無期雇用契約への転換（年）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.conversion_m",
+   "target": "conversion_m",
+   "format": "zen",
+   "label": "Ⅰ 無期雇用契約への転換（月）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.conversion_d",
+   "target": "conversion_d",
+   "format": "zen",
+   "label": "Ⅰ 無期雇用契約への転換（日）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.conversion_change",
+   "target": "conversion_change",
+   "format": "text",
+   "label": "Ⅰ 無期雇用契約への転換（change）"
+  },
+  {
+   "key": "c.direct_employment",
+   "target": "direct_employment",
+   "format": "check",
+   "label": "Ⅱ 直接雇用"
+  },
+  {
+   "key": "c.site_name",
+   "target": "site_name",
+   "format": "text",
+   "label": "Ⅱ 就業の場所（事業所）（name）",
+   "pad": 19,
+   "align": "left"
+  },
+  {
+   "key": "c.site_name",
+   "target": "site_name_zh",
+   "format": "text",
+   "label": "Ⅱ 就業の場所（事業所）（name）（中国語の行）",
+   "pad": 19,
+   "align": "left"
+  },
+  {
+   "key": "c.site_address",
+   "target": "site_address",
+   "format": "zen_text",
+   "label": "Ⅱ 就業の場所（事業所）（address）",
+   "pad": 19,
+   "align": "left"
+  },
+  {
+   "key": "c.site_address",
+   "target": "site_address_zh",
+   "format": "zen_text",
+   "label": "Ⅱ 就業の場所（事業所）（address）（中国語の行）",
+   "pad": 19,
+   "align": "left"
+  },
+  {
+   "key": "c.site_phone",
+   "target": "site_phone",
+   "format": "zen_text",
+   "label": "Ⅱ 就業の場所（事業所）（phone）",
+   "pad": 19,
+   "align": "left"
+  },
+  {
+   "key": "c.site_phone",
+   "target": "site_phone_zh",
+   "format": "zen_text",
+   "label": "Ⅱ 就業の場所（事業所）（phone）（中国語の行）",
+   "pad": 19,
+   "align": "left"
+  },
+  {
+   "key": "c.workplace_unchanged",
+   "target": "workplace_unchanged",
+   "format": "check",
+   "label": "Ⅱ 就業の場所（変更の範囲）（unchanged）"
+  },
+  {
+   "key": "c.workplace_change",
+   "target": "workplace_change",
+   "format": "zen_text",
+   "label": "Ⅱ 就業の場所（変更の範囲）（change）",
+   "pad": 19,
+   "align": "left"
+  },
+  {
+   "key": "c.workplace_change",
+   "target": "workplace_change_zh",
+   "format": "zen_text",
+   "label": "Ⅱ 就業の場所（変更の範囲）（change）（中国語の行）",
+   "pad": 19,
+   "align": "left"
+  },
+  {
+   "key": "c.field",
+   "target": "field",
+   "format": "text",
+   "label": "Ⅲ１ 分野",
+   "pad": 11,
+   "align": "left"
+  },
+  {
+   "key": "c.field",
+   "target": "field_zh",
+   "format": "text",
+   "label": "Ⅲ１ 分野（中国語の行）",
+   "pad": 11,
+   "align": "left"
+  },
+  {
+   "key": "c.categories",
+   "target": "categories",
+   "format": "text",
+   "label": "Ⅲ２ 業務区分",
+   "pad": 11,
+   "align": "left"
+  },
+  {
+   "key": "c.categories",
+   "target": "categories_zh",
+   "format": "text",
+   "label": "Ⅲ２ 業務区分（中国語の行）",
+   "pad": 11,
+   "align": "left"
+  },
+  {
+   "key": "c.duties_unchanged",
+   "target": "duties_unchanged",
+   "format": "check",
+   "label": "Ⅲ 業務（変更の範囲）"
+  },
+  {
+   "key": "c.duty_change",
+   "target": "duty_change",
+   "format": "zen_text",
+   "label": "Ⅲ 業務（変更の範囲）",
+   "pad": 11,
+   "align": "left"
+  },
+  {
+   "key": "c.duty_change",
+   "target": "duty_change_zh",
+   "format": "zen_text",
+   "label": "Ⅲ 業務（変更の範囲）（中国語の行）",
+   "pad": 11,
+   "align": "left"
+  },
+  {
+   "key": "c.start_h",
+   "target": "start_h",
+   "format": "zen",
+   "label": "Ⅳ１(1) 始業（時）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.start_mi",
+   "target": "start_mi",
+   "format": "zen_2",
+   "label": "Ⅳ１(1) 始業（分）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.end_h",
+   "target": "end_h",
+   "format": "zen",
+   "label": "Ⅳ１(1) 終業（時）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.end_mi",
+   "target": "end_mi",
+   "format": "zen_2",
+   "label": "Ⅳ１(1) 終業（分）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.daily_h",
+   "target": "daily_h",
+   "format": "zen",
+   "label": "Ⅳ１(1) １日の所定労働時間数（時）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.daily_mi",
+   "target": "daily_mi",
+   "format": "zen_2",
+   "label": "Ⅳ１(1) １日の所定労働時間数（分）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.start_h",
+   "target": "start_h_zh",
+   "format": "zen",
+   "label": "Ⅳ１(1) 始業（時）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.start_mi",
+   "target": "start_mi_zh",
+   "format": "zen_2",
+   "label": "Ⅳ１(1) 始業（分）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.end_h",
+   "target": "end_h_zh",
+   "format": "zen",
+   "label": "Ⅳ１(1) 終業（時）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.end_mi",
+   "target": "end_mi_zh",
+   "format": "zen_2",
+   "label": "Ⅳ１(1) 終業（分）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.daily_h",
+   "target": "daily_h_zh",
+   "format": "zen",
+   "label": "Ⅳ１(1) １日の所定労働時間数（時）（中国語の行）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.daily_mi",
+   "target": "daily_mi_zh",
+   "format": "zen_2",
+   "label": "Ⅳ１(1) １日の所定労働時間数（分）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.variable_hours",
+   "target": "variable_hours",
+   "format": "check",
+   "label": "Ⅳ１(2) 変形労働時間制"
+  },
+  {
+   "key": "c.variable_hours_unit",
+   "target": "variable_hours_unit",
+   "format": "text",
+   "label": "Ⅳ１(2) 変形労働時間制（unit）",
+   "pad": 4,
+   "align": "left"
+  },
+  {
+   "key": "c.variable_hours_unit",
+   "target": "variable_hours_unit_zh",
+   "format": "text",
+   "label": "Ⅳ１(2) 変形労働時間制（unit）（中国語の行）",
+   "pad": 4,
+   "align": "left"
+  },
+  {
+   "key": "c.shifts",
+   "target": "shifts",
+   "format": "check",
+   "label": "Ⅳ１(2) 交代制"
+  },
+  {
+   "key": "c.shift1_start_h",
+   "target": "shift1_start_h",
+   "format": "zen",
+   "label": "Ⅳ１(2) 交代制の勤務時間（1_start_h）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift1_start_mi",
+   "target": "shift1_start_mi",
+   "format": "zen_2",
+   "label": "Ⅳ１(2) 交代制の勤務時間（1_start_mi）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift1_end_h",
+   "target": "shift1_end_h",
+   "format": "zen",
+   "label": "Ⅳ１(2) 交代制の勤務時間（1_end_h）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift1_end_mi",
+   "target": "shift1_end_mi",
+   "format": "zen_2",
+   "label": "Ⅳ１(2) 交代制の勤務時間（1_end_mi）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift1_applies",
+   "target": "shift1_applies",
+   "format": "zen_text",
+   "label": "Ⅳ１(2) 交代制の勤務時間（1_applies）",
+   "pad": 6,
+   "align": "left"
+  },
+  {
+   "key": "c.shift1_daily_h",
+   "target": "shift1_daily_h",
+   "format": "zen",
+   "label": "Ⅳ１(2) 交代制の勤務時間（1_daily_h）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.shift1_daily_mi",
+   "target": "shift1_daily_mi",
+   "format": "zen_2",
+   "label": "Ⅳ１(2) 交代制の勤務時間（1_daily_mi）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift1_start_h",
+   "target": "shift1_start_h_zh",
+   "format": "zen",
+   "label": "Ⅳ１(2) 交代制の勤務時間（1_start_h）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift1_start_mi",
+   "target": "shift1_start_mi_zh",
+   "format": "zen_2",
+   "label": "Ⅳ１(2) 交代制の勤務時間（1_start_mi）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift1_end_h",
+   "target": "shift1_end_h_zh",
+   "format": "zen",
+   "label": "Ⅳ１(2) 交代制の勤務時間（1_end_h）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift1_end_mi",
+   "target": "shift1_end_mi_zh",
+   "format": "zen_2",
+   "label": "Ⅳ１(2) 交代制の勤務時間（1_end_mi）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift1_applies",
+   "target": "shift1_applies_zh",
+   "format": "zen_text",
+   "label": "Ⅳ１(2) 交代制の勤務時間（1_applies）（中国語の行）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.shift1_daily_h",
+   "target": "shift1_daily_h_zh",
+   "format": "zen",
+   "label": "Ⅳ１(2) 交代制の勤務時間（1_daily_h）（中国語の行）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.shift1_daily_mi",
+   "target": "shift1_daily_mi_zh",
+   "format": "zen_2",
+   "label": "Ⅳ１(2) 交代制の勤務時間（1_daily_mi）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift2_start_h",
+   "target": "shift2_start_h",
+   "format": "zen",
+   "label": "Ⅳ１(2) 交代制の勤務時間（2_start_h）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift2_start_mi",
+   "target": "shift2_start_mi",
+   "format": "zen_2",
+   "label": "Ⅳ１(2) 交代制の勤務時間（2_start_mi）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift2_end_h",
+   "target": "shift2_end_h",
+   "format": "zen",
+   "label": "Ⅳ１(2) 交代制の勤務時間（2_end_h）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift2_end_mi",
+   "target": "shift2_end_mi",
+   "format": "zen_2",
+   "label": "Ⅳ１(2) 交代制の勤務時間（2_end_mi）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift2_applies",
+   "target": "shift2_applies",
+   "format": "zen_text",
+   "label": "Ⅳ１(2) 交代制の勤務時間（2_applies）",
+   "pad": 6,
+   "align": "left"
+  },
+  {
+   "key": "c.shift2_daily_h",
+   "target": "shift2_daily_h",
+   "format": "zen",
+   "label": "Ⅳ１(2) 交代制の勤務時間（2_daily_h）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.shift2_daily_mi",
+   "target": "shift2_daily_mi",
+   "format": "zen_2",
+   "label": "Ⅳ１(2) 交代制の勤務時間（2_daily_mi）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift2_start_h",
+   "target": "shift2_start_h_zh",
+   "format": "zen",
+   "label": "Ⅳ１(2) 交代制の勤務時間（2_start_h）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift2_start_mi",
+   "target": "shift2_start_mi_zh",
+   "format": "zen_2",
+   "label": "Ⅳ１(2) 交代制の勤務時間（2_start_mi）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift2_end_h",
+   "target": "shift2_end_h_zh",
+   "format": "zen",
+   "label": "Ⅳ１(2) 交代制の勤務時間（2_end_h）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift2_end_mi",
+   "target": "shift2_end_mi_zh",
+   "format": "zen_2",
+   "label": "Ⅳ１(2) 交代制の勤務時間（2_end_mi）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift2_applies",
+   "target": "shift2_applies_zh",
+   "format": "zen_text",
+   "label": "Ⅳ１(2) 交代制の勤務時間（2_applies）（中国語の行）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.shift2_daily_h",
+   "target": "shift2_daily_h_zh",
+   "format": "zen",
+   "label": "Ⅳ１(2) 交代制の勤務時間（2_daily_h）（中国語の行）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.shift2_daily_mi",
+   "target": "shift2_daily_mi_zh",
+   "format": "zen_2",
+   "label": "Ⅳ１(2) 交代制の勤務時間（2_daily_mi）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift3_start_h",
+   "target": "shift3_start_h",
+   "format": "zen",
+   "label": "Ⅳ１(2) 交代制の勤務時間（3_start_h）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift3_start_mi",
+   "target": "shift3_start_mi",
+   "format": "zen_2",
+   "label": "Ⅳ１(2) 交代制の勤務時間（3_start_mi）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift3_end_h",
+   "target": "shift3_end_h",
+   "format": "zen",
+   "label": "Ⅳ１(2) 交代制の勤務時間（3_end_h）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift3_end_mi",
+   "target": "shift3_end_mi",
+   "format": "zen_2",
+   "label": "Ⅳ１(2) 交代制の勤務時間（3_end_mi）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift3_applies",
+   "target": "shift3_applies",
+   "format": "zen_text",
+   "label": "Ⅳ１(2) 交代制の勤務時間（3_applies）",
+   "pad": 6,
+   "align": "left"
+  },
+  {
+   "key": "c.shift3_daily_h",
+   "target": "shift3_daily_h",
+   "format": "zen",
+   "label": "Ⅳ１(2) 交代制の勤務時間（3_daily_h）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.shift3_daily_mi",
+   "target": "shift3_daily_mi",
+   "format": "zen_2",
+   "label": "Ⅳ１(2) 交代制の勤務時間（3_daily_mi）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift3_start_h",
+   "target": "shift3_start_h_zh",
+   "format": "zen",
+   "label": "Ⅳ１(2) 交代制の勤務時間（3_start_h）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift3_start_mi",
+   "target": "shift3_start_mi_zh",
+   "format": "zen_2",
+   "label": "Ⅳ１(2) 交代制の勤務時間（3_start_mi）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift3_end_h",
+   "target": "shift3_end_h_zh",
+   "format": "zen",
+   "label": "Ⅳ１(2) 交代制の勤務時間（3_end_h）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift3_end_mi",
+   "target": "shift3_end_mi_zh",
+   "format": "zen_2",
+   "label": "Ⅳ１(2) 交代制の勤務時間（3_end_mi）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.shift3_applies",
+   "target": "shift3_applies_zh",
+   "format": "zen_text",
+   "label": "Ⅳ１(2) 交代制の勤務時間（3_applies）（中国語の行）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.shift3_daily_h",
+   "target": "shift3_daily_h_zh",
+   "format": "zen",
+   "label": "Ⅳ１(2) 交代制の勤務時間（3_daily_h）（中国語の行）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.shift3_daily_mi",
+   "target": "shift3_daily_mi_zh",
+   "format": "zen_2",
+   "label": "Ⅳ１(2) 交代制の勤務時間（3_daily_mi）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.break_minutes",
+   "target": "break_minutes",
+   "format": "zen",
+   "label": "Ⅳ２ 休憩時間",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "c.break_minutes",
+   "target": "break_minutes_zh",
+   "format": "zen",
+   "label": "Ⅳ２ 休憩時間（中国語の行）"
+  },
+  {
+   "key": "c.weekly_h",
+   "target": "weekly_h",
+   "format": "zen",
+   "label": "Ⅳ３ 所定労働時間数（週）（時）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.weekly_mi",
+   "target": "weekly_mi",
+   "format": "zen_2",
+   "label": "Ⅳ３ 所定労働時間数（週）（分）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "c.monthly_h",
+   "target": "monthly_h",
+   "format": "zen",
+   "label": "Ⅳ３ 所定労働時間数（月）（時）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.monthly_mi",
+   "target": "monthly_mi",
+   "format": "zen_2",
+   "label": "Ⅳ３ 所定労働時間数（月）（分）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.annual_h",
+   "target": "annual_h",
+   "format": "zen",
+   "label": "Ⅳ３ 所定労働時間数（年）（時）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.annual_mi",
+   "target": "annual_mi",
+   "format": "zen_2",
+   "label": "Ⅳ３ 所定労働時間数（年）（分）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.weekly_h",
+   "target": "weekly_h_zh",
+   "format": "zen",
+   "label": "Ⅳ３ 所定労働時間数（週）（時）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.weekly_mi",
+   "target": "weekly_mi_zh",
+   "format": "zen_2",
+   "label": "Ⅳ３ 所定労働時間数（週）（分）（中国語の行）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.monthly_h",
+   "target": "monthly_h_zh",
+   "format": "zen",
+   "label": "Ⅳ３ 所定労働時間数（月）（時）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.monthly_mi",
+   "target": "monthly_mi_zh",
+   "format": "zen_2",
+   "label": "Ⅳ３ 所定労働時間数（月）（分）（中国語の行）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.annual_h",
+   "target": "annual_h_zh",
+   "format": "zen",
+   "label": "Ⅳ３ 所定労働時間数（年）（時）（中国語の行）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.annual_mi",
+   "target": "annual_mi_zh",
+   "format": "zen_2",
+   "label": "Ⅳ３ 所定労働時間数（年）（分）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.weekly_days",
+   "target": "weekly_days",
+   "format": "zen",
+   "label": "Ⅳ４ 所定労働日数（週）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "c.monthly_days",
+   "target": "monthly_days",
+   "format": "zen",
+   "label": "Ⅳ４ 所定労働日数（月）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "c.annual_days",
+   "target": "annual_days",
+   "format": "zen",
+   "label": "Ⅳ４ 所定労働日数（年）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "c.weekly_days",
+   "target": "weekly_days_zh",
+   "format": "zen",
+   "label": "Ⅳ４ 所定労働日数（週）（中国語の行）"
+  },
+  {
+   "key": "c.monthly_days",
+   "target": "monthly_days_zh",
+   "format": "zen",
+   "label": "Ⅳ４ 所定労働日数（月）（中国語の行）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.annual_days",
+   "target": "annual_days_zh",
+   "format": "zen",
+   "label": "Ⅳ４ 所定労働日数（年）（中国語の行）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.overtime_yes",
+   "target": "overtime_yes",
+   "format": "check",
+   "label": "Ⅳ５ 所定時間外労働の有無（yes）"
+  },
+  {
+   "key": "c.overtime_no",
+   "target": "overtime_no",
+   "format": "check",
+   "label": "Ⅳ５ 所定時間外労働の有無（no）"
+  },
+  {
+   "key": "c.articles_hours",
+   "target": "articles_hours",
+   "format": "zen_text",
+   "label": "Ⅳ 就業規則の条"
+  },
+  {
+   "key": "c.articles_hours",
+   "target": "articles_hours_zh",
+   "format": "zen_text",
+   "label": "Ⅳ 就業規則の条（中国語の行）"
+  },
+  {
+   "key": "c.holiday_weekdays",
+   "target": "holiday_weekdays",
+   "format": "text",
+   "label": "Ⅴ１ 定例日（曜日）",
+   "pad": 3,
+   "align": "left"
+  },
+  {
+   "key": "c.national_holidays",
+   "target": "national_holidays",
+   "format": "text",
+   "label": "Ⅴ１ 定例日（日本の国民の祝日）"
+  },
+  {
+   "key": "c.holidays_other",
+   "target": "holidays_other",
+   "format": "zen_text",
+   "label": "Ⅴ１ 定例日（その他）",
+   "pad": 11,
+   "align": "left"
+  },
+  {
+   "key": "c.annual_holidays",
+   "target": "annual_holidays",
+   "format": "zen",
+   "label": "Ⅴ１ 年間合計休日日数",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "c.holiday_weekdays",
+   "target": "holiday_weekdays_zh",
+   "format": "text",
+   "label": "Ⅴ１ 定例日（曜日）（中国語の行）",
+   "pad": 3,
+   "align": "left"
+  },
+  {
+   "key": "c.holidays_other",
+   "target": "holidays_other_zh",
+   "format": "zen_text",
+   "label": "Ⅴ１ 定例日（その他）（中国語の行）"
+  },
+  {
+   "key": "c.annual_holidays",
+   "target": "annual_holidays_zh",
+   "format": "zen",
+   "label": "Ⅴ１ 年間合計休日日数（中国語の行）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.irregular_holidays",
+   "target": "irregular_holidays",
+   "format": "zen_text",
+   "label": "Ⅴ２ 非定例日"
+  },
+  {
+   "key": "c.articles_holidays",
+   "target": "articles_holidays",
+   "format": "zen_text",
+   "label": "Ⅴ 就業規則の条"
+  },
+  {
+   "key": "c.articles_holidays",
+   "target": "articles_holidays_zh",
+   "format": "zen_text",
+   "label": "Ⅴ 就業規則の条（中国語の行）"
+  },
+  {
+   "key": "c.paid_leave_days",
+   "target": "paid_leave_days",
+   "format": "zen",
+   "label": "Ⅵ１ 年次有給休暇",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "c.paid_leave_days",
+   "target": "paid_leave_days_zh",
+   "format": "zen",
+   "label": "Ⅵ１ 年次有給休暇（中国語の行）"
+  },
+  {
+   "key": "c.early_leave_yes",
+   "target": "early_leave_yes",
+   "format": "check",
+   "label": "Ⅵ１ 継続勤務６か月未満の年次有給休暇（yes）"
+  },
+  {
+   "key": "c.early_leave_no",
+   "target": "early_leave_no",
+   "format": "check",
+   "label": "Ⅵ１ 継続勤務６か月未満の年次有給休暇（no）"
+  },
+  {
+   "key": "c.early_leave_months",
+   "target": "early_leave_months",
+   "format": "zen",
+   "label": "Ⅵ１ 継続勤務６か月未満の年次有給休暇（months）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.early_leave_days",
+   "target": "early_leave_days",
+   "format": "zen",
+   "label": "Ⅵ１ 継続勤務６か月未満の年次有給休暇（days）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.early_leave_months",
+   "target": "early_leave_months_zh",
+   "format": "zen",
+   "label": "Ⅵ１ 継続勤務６か月未満の年次有給休暇（months）（中国語の行）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.early_leave_days",
+   "target": "early_leave_days_zh",
+   "format": "zen",
+   "label": "Ⅵ１ 継続勤務６か月未満の年次有給休暇（days）（中国語の行）",
+   "pad": 3,
+   "align": "right"
+  },
+  {
+   "key": "c.other_paid_leave",
+   "target": "other_paid_leave",
+   "format": "zen_text",
+   "label": "Ⅵ２ その他の休暇（有給）",
+   "pad": 11,
+   "align": "left"
+  },
+  {
+   "key": "c.other_unpaid_leave",
+   "target": "other_unpaid_leave",
+   "format": "zen_text",
+   "label": "Ⅵ２ その他の休暇（無給）",
+   "pad": 11,
+   "align": "left"
+  },
+  {
+   "key": "c.other_paid_leave",
+   "target": "other_paid_leave_zh",
+   "format": "zen_text",
+   "label": "Ⅵ２ その他の休暇（有給）（中国語の行）",
+   "pad": 9,
+   "align": "left"
+  },
+  {
+   "key": "c.other_unpaid_leave",
+   "target": "other_unpaid_leave_zh",
+   "format": "zen_text",
+   "label": "Ⅵ２ その他の休暇（無給）（中国語の行）",
+   "pad": 11,
+   "align": "left"
+  },
+  {
+   "key": "c.articles_leave",
+   "target": "articles_leave",
+   "format": "zen_text",
+   "label": "Ⅵ 就業規則の条"
+  },
+  {
+   "key": "c.articles_leave",
+   "target": "articles_leave_zh",
+   "format": "zen_text",
+   "label": "Ⅵ 就業規則の条（中国語の行）"
+  },
+  {
+   "key": "c.wage_monthly",
+   "target": "wage_monthly",
+   "format": "check",
+   "label": "Ⅶ１ 基本賃金（monthly）"
+  },
+  {
+   "key": "c.wage_monthly_amount",
+   "target": "wage_monthly_amount",
+   "format": "zen_yen",
+   "label": "Ⅶ１ 基本賃金（monthly_amount）",
+   "pad": 7,
+   "align": "right"
+  },
+  {
+   "key": "c.wage_daily",
+   "target": "wage_daily",
+   "format": "check",
+   "label": "Ⅶ１ 基本賃金（daily）"
+  },
+  {
+   "key": "c.wage_daily_amount",
+   "target": "wage_daily_amount",
+   "format": "zen_yen",
+   "label": "Ⅶ１ 基本賃金（daily_amount）",
+   "pad": 7,
+   "align": "right"
+  },
+  {
+   "key": "c.wage_hourly",
+   "target": "wage_hourly",
+   "format": "check",
+   "label": "Ⅶ１ 基本賃金（hourly）"
+  },
+  {
+   "key": "c.wage_hourly_amount",
+   "target": "wage_hourly_amount",
+   "format": "zen_yen",
+   "label": "Ⅶ１ 基本賃金（hourly_amount）",
+   "pad": 7,
+   "align": "right"
+  },
+  {
+   "key": "c.wage_monthly_amount",
+   "target": "wage_monthly_amount_zh",
+   "format": "zen_yen",
+   "label": "Ⅶ１ 基本賃金（monthly_amount）（中国語の行）",
+   "pad": 7,
+   "align": "right"
+  },
+  {
+   "key": "c.wage_daily_amount",
+   "target": "wage_daily_amount_zh",
+   "format": "zen_yen",
+   "label": "Ⅶ１ 基本賃金（daily_amount）（中国語の行）",
+   "pad": 7,
+   "align": "right"
+  },
+  {
+   "key": "c.wage_hourly_amount",
+   "target": "wage_hourly_amount_zh",
+   "format": "zen_yen",
+   "label": "Ⅶ１ 基本賃金（hourly_amount）（中国語の行）"
+  },
+  {
+   "key": "c.allowance1",
+   "target": "allowance1",
+   "format": "zen_text",
+   "label": "Ⅶ２ 諸手当（１つ目）",
+   "pad": 7,
+   "align": "left"
+  },
+  {
+   "key": "c.allowance2",
+   "target": "allowance2",
+   "format": "zen_text",
+   "label": "Ⅶ２ 諸手当（２つ目）",
+   "pad": 7,
+   "align": "left"
+  },
+  {
+   "key": "c.allowance3",
+   "target": "allowance3",
+   "format": "zen_text",
+   "label": "Ⅶ２ 諸手当（３つ目）",
+   "pad": 7,
+   "align": "left"
+  },
+  {
+   "key": "c.allowance1",
+   "target": "allowance1_zh",
+   "format": "zen_text",
+   "label": "Ⅶ２ 諸手当（１つ目）（中国語の行）",
+   "pad": 7,
+   "align": "left"
+  },
+  {
+   "key": "c.allowance2",
+   "target": "allowance2_zh",
+   "format": "zen_text",
+   "label": "Ⅶ２ 諸手当（２つ目）（中国語の行）",
+   "pad": 7,
+   "align": "left"
+  },
+  {
+   "key": "c.allowance3",
+   "target": "allowance3_zh",
+   "format": "zen_text",
+   "label": "Ⅶ２ 諸手当（３つ目）（中国語の行）",
+   "pad": 7,
+   "align": "left"
+  },
+  {
+   "key": "c.rate_overtime_within_60h",
+   "target": "rate_overtime_within_60h",
+   "format": "zen",
+   "label": "Ⅶ３ 割増賃金率（overtime_within_60h）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.rate_overtime_within_60h",
+   "target": "rate_overtime_within_60h_zh",
+   "format": "zen",
+   "label": "Ⅶ３ 割増賃金率（overtime_within_60h）（中国語の行）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.rate_overtime_over_60h",
+   "target": "rate_overtime_over_60h",
+   "format": "zen",
+   "label": "Ⅶ３ 割増賃金率（overtime_over_60h）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.rate_overtime_over_60h",
+   "target": "rate_overtime_over_60h_zh",
+   "format": "zen",
+   "label": "Ⅶ３ 割増賃金率（overtime_over_60h）（中国語の行）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.rate_overtime_scheduled",
+   "target": "rate_overtime_scheduled",
+   "format": "zen",
+   "label": "Ⅶ３ 割増賃金率（overtime_scheduled）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.rate_overtime_scheduled",
+   "target": "rate_overtime_scheduled_zh",
+   "format": "zen",
+   "label": "Ⅶ３ 割増賃金率（overtime_scheduled）（中国語の行）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.rate_holiday_statutory",
+   "target": "rate_holiday_statutory",
+   "format": "zen",
+   "label": "Ⅶ３ 割増賃金率（holiday_statutory）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.rate_holiday_non_statutory",
+   "target": "rate_holiday_non_statutory",
+   "format": "zen",
+   "label": "Ⅶ３ 割増賃金率（holiday_non_statutory）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.rate_holiday_statutory",
+   "target": "rate_holiday_statutory_zh",
+   "format": "zen",
+   "label": "Ⅶ３ 割増賃金率（holiday_statutory）（中国語の行）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.rate_holiday_non_statutory",
+   "target": "rate_holiday_non_statutory_zh",
+   "format": "zen",
+   "label": "Ⅶ３ 割増賃金率（holiday_non_statutory）（中国語の行）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.rate_night",
+   "target": "rate_night",
+   "format": "zen",
+   "label": "Ⅶ３ 割増賃金率（night）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.rate_night",
+   "target": "rate_night_zh",
+   "format": "zen",
+   "label": "Ⅶ３ 割増賃金率（night）（中国語の行）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.wage_closing_day",
+   "target": "wage_closing_day",
+   "format": "zen_text",
+   "label": "Ⅶ４ 賃金締切日"
+  },
+  {
+   "key": "c.wage_payment_day",
+   "target": "wage_payment_day",
+   "format": "zen_text",
+   "label": "Ⅶ５ 賃金支払日"
+  },
+  {
+   "key": "c.payment_bank",
+   "target": "payment_bank",
+   "format": "check",
+   "label": "Ⅶ６ 賃金支払方法（bank）"
+  },
+  {
+   "key": "c.payment_cash",
+   "target": "payment_cash",
+   "format": "check",
+   "label": "Ⅶ６ 賃金支払方法（cash）"
+  },
+  {
+   "key": "c.deduction_agreement_no",
+   "target": "deduction_agreement_no",
+   "format": "check",
+   "label": "Ⅶ７ 労使協定に基づく賃金支払時の控除（no）"
+  },
+  {
+   "key": "c.deduction_agreement_yes",
+   "target": "deduction_agreement_yes",
+   "format": "check",
+   "label": "Ⅶ７ 労使協定に基づく賃金支払時の控除（yes）"
+  },
+  {
+   "key": "c.raise_yes",
+   "target": "raise_yes",
+   "format": "check",
+   "label": "Ⅶ８ 昇給（yes）"
+  },
+  {
+   "key": "c.raise_note",
+   "target": "raise_note",
+   "format": "zen_text",
+   "label": "Ⅶ８ 昇給（note）",
+   "pad": 24,
+   "align": "left"
+  },
+  {
+   "key": "c.raise_no",
+   "target": "raise_no",
+   "format": "check",
+   "label": "Ⅶ８ 昇給（no）"
+  },
+  {
+   "key": "c.raise_note",
+   "target": "raise_note_zh",
+   "format": "zen_text",
+   "label": "Ⅶ８ 昇給（note）（中国語の行）",
+   "pad": 24,
+   "align": "left"
+  },
+  {
+   "key": "c.bonus_yes",
+   "target": "bonus_yes",
+   "format": "check",
+   "label": "Ⅶ９ 賞与（yes）"
+  },
+  {
+   "key": "c.bonus_note",
+   "target": "bonus_note",
+   "format": "zen_text",
+   "label": "Ⅶ９ 賞与（note）",
+   "pad": 24,
+   "align": "left"
+  },
+  {
+   "key": "c.bonus_no",
+   "target": "bonus_no",
+   "format": "check",
+   "label": "Ⅶ９ 賞与（no）"
+  },
+  {
+   "key": "c.bonus_note",
+   "target": "bonus_note_zh",
+   "format": "zen_text",
+   "label": "Ⅶ９ 賞与（note）（中国語の行）",
+   "pad": 24,
+   "align": "left"
+  },
+  {
+   "key": "c.retirement_yes",
+   "target": "retirement_yes",
+   "format": "check",
+   "label": "Ⅶ10 退職金（yes）"
+  },
+  {
+   "key": "c.retirement_note",
+   "target": "retirement_note",
+   "format": "zen_text",
+   "label": "Ⅶ10 退職金（note）",
+   "pad": 24,
+   "align": "left"
+  },
+  {
+   "key": "c.retirement_no",
+   "target": "retirement_no",
+   "format": "check",
+   "label": "Ⅶ10 退職金（no）"
+  },
+  {
+   "key": "c.retirement_note",
+   "target": "retirement_note_zh",
+   "format": "zen_text",
+   "label": "Ⅶ10 退職金（note）（中国語の行）",
+   "pad": 24,
+   "align": "left"
+  },
+  {
+   "key": "c.leave_allowance",
+   "target": "leave_allowance",
+   "format": "check",
+   "label": "Ⅶ11 休業手当"
+  },
+  {
+   "key": "c.leave_allowance_rate",
+   "target": "leave_allowance_rate",
+   "format": "zen_text",
+   "label": "Ⅶ11 休業手当（rate）",
+   "pad": 29,
+   "align": "left"
+  },
+  {
+   "key": "c.leave_allowance_rate",
+   "target": "leave_allowance_rate_zh",
+   "format": "zen_text",
+   "label": "Ⅶ11 休業手当（rate）（中国語の行）"
+  },
+  {
+   "key": "c.resignation_notice_days",
+   "target": "resignation_notice_days",
+   "format": "zen",
+   "label": "Ⅷ１ 自己都合退職の手続",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "c.resignation_notice_days",
+   "target": "resignation_notice_days_zh",
+   "format": "zen",
+   "label": "Ⅷ１ 自己都合退職の手続（中国語の行）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "c.articles_resignation",
+   "target": "articles_resignation",
+   "format": "zen_text",
+   "label": "Ⅷ 就業規則の条"
+  },
+  {
+   "key": "c.articles_resignation",
+   "target": "articles_resignation_zh",
+   "format": "zen_text",
+   "label": "Ⅷ 就業規則の条（中国語の行）"
+  },
+  {
+   "key": "c.insurance_employees_pension",
+   "target": "insurance_employees_pension",
+   "format": "check",
+   "label": "Ⅸ１ 社会保険・労働保険（employees_pension）"
+  },
+  {
+   "key": "c.insurance_health",
+   "target": "insurance_health",
+   "format": "check",
+   "label": "Ⅸ１ 社会保険・労働保険（health）"
+  },
+  {
+   "key": "c.insurance_employment",
+   "target": "insurance_employment",
+   "format": "check",
+   "label": "Ⅸ１ 社会保険・労働保険（employment）"
+  },
+  {
+   "key": "c.insurance_workers_compensation",
+   "target": "insurance_workers_compensation",
+   "format": "check",
+   "label": "Ⅸ１ 社会保険・労働保険（workers_compensation）"
+  },
+  {
+   "key": "c.insurance_national_pension",
+   "target": "insurance_national_pension",
+   "format": "check",
+   "label": "Ⅸ１ 社会保険・労働保険（national_pension）"
+  },
+  {
+   "key": "c.insurance_national_health",
+   "target": "insurance_national_health",
+   "format": "check",
+   "label": "Ⅸ１ 社会保険・労働保険（national_health）"
+  },
+  {
+   "key": "c.insurance_other",
+   "target": "insurance_other",
+   "format": "check",
+   "label": "Ⅸ１ 社会保険・労働保険（other）"
+  },
+  {
+   "key": "c.insurance_other_text",
+   "target": "insurance_other_text",
+   "format": "zen_text",
+   "label": "Ⅸ１ 社会保険・労働保険（other_text）",
+   "pad": 6,
+   "align": "left"
+  },
+  {
+   "key": "c.hiring_check_y",
+   "target": "hiring_check_y",
+   "format": "zen",
+   "label": "Ⅸ２ 雇入れ時の健康診断（年）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "c.hiring_check_m",
+   "target": "hiring_check_m",
+   "format": "zen",
+   "label": "Ⅸ２ 雇入れ時の健康診断（月）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.hiring_check_y",
+   "target": "hiring_check_y_zh",
+   "format": "zen",
+   "label": "Ⅸ２ 雇入れ時の健康診断（年）（中国語の行）",
+   "pad": 2,
+   "align": "right"
+  },
+  {
+   "key": "c.hiring_check_m",
+   "target": "hiring_check_m_zh",
+   "format": "zen",
+   "label": "Ⅸ２ 雇入れ時の健康診断（月）（中国語の行）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.first_check_y",
+   "target": "first_check_y",
+   "format": "zen",
+   "label": "Ⅸ３ 初回の定期健康診断（年）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "c.first_check_m",
+   "target": "first_check_m",
+   "format": "zen",
+   "label": "Ⅸ３ 初回の定期健康診断（月）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.check_interval",
+   "target": "check_interval",
+   "format": "zen_text",
+   "label": "Ⅸ３ 定期健康診断の間隔",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.first_check_y",
+   "target": "first_check_y_zh",
+   "format": "zen",
+   "label": "Ⅸ３ 初回の定期健康診断（年）（中国語の行）"
+  },
+  {
+   "key": "c.first_check_m",
+   "target": "first_check_m_zh",
+   "format": "zen",
+   "label": "Ⅸ３ 初回の定期健康診断（月）（中国語の行）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.check_interval",
+   "target": "check_interval_zh",
+   "format": "zen_text",
+   "label": "Ⅸ３ 定期健康診断の間隔（中国語の行）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.consultation_department",
+   "target": "consultation_department",
+   "format": "zen_text",
+   "label": "Ⅸ５ 雇用管理の改善等の相談窓口（department）",
+   "pad": 7,
+   "align": "left"
+  },
+  {
+   "key": "c.consultation_person",
+   "target": "consultation_person",
+   "format": "text",
+   "label": "Ⅸ５ 雇用管理の改善等の相談窓口（person）",
+   "pad": 8,
+   "align": "left"
+  },
+  {
+   "key": "c.consultation_phone",
+   "target": "consultation_phone",
+   "format": "zen_text",
+   "label": "Ⅸ５ 雇用管理の改善等の相談窓口（phone）",
+   "pad": 9,
+   "align": "left"
+  },
+  {
+   "key": "c.consultation_department",
+   "target": "consultation_department_zh",
+   "format": "zen_text",
+   "label": "Ⅸ５ 雇用管理の改善等の相談窓口（department）（中国語の行）",
+   "pad": 7,
+   "align": "left"
+  },
+  {
+   "key": "c.consultation_person",
+   "target": "consultation_person_zh",
+   "format": "text",
+   "label": "Ⅸ５ 雇用管理の改善等の相談窓口（person）（中国語の行）",
+   "pad": 8,
+   "align": "left"
+  },
+  {
+   "key": "c.consultation_phone",
+   "target": "consultation_phone_zh",
+   "format": "zen_text",
+   "label": "Ⅸ５ 雇用管理の改善等の相談窓口（phone）（中国語の行）",
+   "pad": 9,
+   "align": "left"
+  },
+  {
+   "key": "c.work_rules_location",
+   "target": "work_rules_location",
+   "format": "zen_text",
+   "label": "就業規則を確認できる場所や方法",
+   "pad": 22,
+   "align": "left"
+  },
+  {
+   "key": "c.work_rules_location",
+   "target": "work_rules_location_zh",
+   "format": "zen_text",
+   "label": "就業規則を確認できる場所や方法（中国語の行）",
+   "pad": 23,
+   "align": "left"
+  },
+  {
+   "key": "c.wage_monthly",
+   "target": "annex_wage_monthly",
+   "format": "check",
+   "label": "別紙１ １ 基本賃金（monthly）"
+  },
+  {
+   "key": "c.wage_monthly_amount",
+   "target": "annex_wage_monthly_amount",
+   "format": "zen_yen",
+   "label": "別紙１ １ 基本賃金（monthly_amount）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.wage_daily",
+   "target": "annex_wage_daily",
+   "format": "check",
+   "label": "別紙１ １ 基本賃金（daily）"
+  },
+  {
+   "key": "c.wage_daily_amount",
+   "target": "annex_wage_daily_amount",
+   "format": "zen_yen",
+   "label": "別紙１ １ 基本賃金（daily_amount）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.wage_hourly",
+   "target": "annex_wage_hourly",
+   "format": "check",
+   "label": "別紙１ １ 基本賃金（hourly）"
+  },
+  {
+   "key": "c.wage_hourly_amount",
+   "target": "annex_wage_hourly_amount",
+   "format": "zen_yen",
+   "label": "別紙１ １ 基本賃金（hourly_amount）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.wage_monthly_amount",
+   "target": "annex_wage_monthly_amount_zh",
+   "format": "zen_yen",
+   "label": "別紙１ １ 基本賃金（monthly_amount）（中国語の行）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "c.wage_daily_amount",
+   "target": "annex_wage_daily_amount_zh",
+   "format": "zen_yen",
+   "label": "別紙１ １ 基本賃金（daily_amount）（中国語の行）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "c.wage_hourly_amount",
+   "target": "annex_wage_hourly_amount_zh",
+   "format": "zen_yen",
+   "label": "別紙１ １ 基本賃金（hourly_amount）（中国語の行）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.hourly_equivalent",
+   "target": "hourly_equivalent",
+   "format": "zen_yen",
+   "label": "別紙１ １ １時間当たりの金額",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.hourly_equivalent",
+   "target": "hourly_equivalent_zh",
+   "format": "zen_yen",
+   "label": "別紙１ １ １時間当たりの金額（中国語の行）",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.monthly_equivalent",
+   "target": "monthly_equivalent",
+   "format": "zen_yen",
+   "label": "別紙１ １ １か月当たりの金額",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.monthly_equivalent",
+   "target": "monthly_equivalent_zh",
+   "format": "zen_yen",
+   "label": "別紙１ １ １か月当たりの金額（中国語の行）",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.allowance_a_name",
+   "target": "allowance_a_name",
+   "format": "zen_text",
+   "label": "別紙１ ２(a) 諸手当（name）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.allowance_a_amount",
+   "target": "allowance_a_amount",
+   "format": "zen_yen",
+   "label": "別紙１ ２(a) 諸手当（amount）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.allowance_a_method",
+   "target": "allowance_a_method",
+   "format": "zen_text",
+   "label": "別紙１ ２(a) 諸手当（method）",
+   "pad": 10,
+   "align": "left"
+  },
+  {
+   "key": "c.allowance_a_name",
+   "target": "allowance_a_name_zh",
+   "format": "zen_text",
+   "label": "別紙１ ２(a) 諸手当（name）（中国語の行）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.allowance_a_amount",
+   "target": "allowance_a_amount_zh",
+   "format": "zen_yen",
+   "label": "別紙１ ２(a) 諸手当（amount）（中国語の行）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.allowance_a_method",
+   "target": "allowance_a_method_zh",
+   "format": "zen_text",
+   "label": "別紙１ ２(a) 諸手当（method）（中国語の行）"
+  },
+  {
+   "key": "c.allowance_b_name",
+   "target": "allowance_b_name",
+   "format": "zen_text",
+   "label": "別紙１ ２(b) 諸手当（name）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.allowance_b_amount",
+   "target": "allowance_b_amount",
+   "format": "zen_yen",
+   "label": "別紙１ ２(b) 諸手当（amount）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.allowance_b_method",
+   "target": "allowance_b_method",
+   "format": "zen_text",
+   "label": "別紙１ ２(b) 諸手当（method）",
+   "pad": 10,
+   "align": "left"
+  },
+  {
+   "key": "c.allowance_b_name",
+   "target": "allowance_b_name_zh",
+   "format": "zen_text",
+   "label": "別紙１ ２(b) 諸手当（name）（中国語の行）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.allowance_b_amount",
+   "target": "allowance_b_amount_zh",
+   "format": "zen_yen",
+   "label": "別紙１ ２(b) 諸手当（amount）（中国語の行）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.allowance_b_method",
+   "target": "allowance_b_method_zh",
+   "format": "zen_text",
+   "label": "別紙１ ２(b) 諸手当（method）（中国語の行）"
+  },
+  {
+   "key": "c.allowance_c_name",
+   "target": "allowance_c_name",
+   "format": "zen_text",
+   "label": "別紙１ ２(c) 諸手当（name）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.allowance_c_amount",
+   "target": "allowance_c_amount",
+   "format": "zen_yen",
+   "label": "別紙１ ２(c) 諸手当（amount）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.allowance_c_method",
+   "target": "allowance_c_method",
+   "format": "zen_text",
+   "label": "別紙１ ２(c) 諸手当（method）",
+   "pad": 10,
+   "align": "left"
+  },
+  {
+   "key": "c.allowance_c_name",
+   "target": "allowance_c_name_zh",
+   "format": "zen_text",
+   "label": "別紙１ ２(c) 諸手当（name）（中国語の行）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.allowance_c_amount",
+   "target": "allowance_c_amount_zh",
+   "format": "zen_yen",
+   "label": "別紙１ ２(c) 諸手当（amount）（中国語の行）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.allowance_c_method",
+   "target": "allowance_c_method_zh",
+   "format": "zen_text",
+   "label": "別紙１ ２(c) 諸手当（method）（中国語の行）"
+  },
+  {
+   "key": "c.allowance_d_name",
+   "target": "allowance_d_name",
+   "format": "zen_text",
+   "label": "別紙１ ２(d) 諸手当（name）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.allowance_d_amount",
+   "target": "allowance_d_amount",
+   "format": "zen_yen",
+   "label": "別紙１ ２(d) 諸手当（amount）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.allowance_d_method",
+   "target": "allowance_d_method",
+   "format": "zen_text",
+   "label": "別紙１ ２(d) 諸手当（method）",
+   "pad": 10,
+   "align": "left"
+  },
+  {
+   "key": "c.allowance_d_name",
+   "target": "allowance_d_name_zh",
+   "format": "zen_text",
+   "label": "別紙１ ２(d) 諸手当（name）（中国語の行）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.allowance_d_amount",
+   "target": "allowance_d_amount_zh",
+   "format": "zen_yen",
+   "label": "別紙１ ２(d) 諸手当（amount）（中国語の行）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.allowance_d_method",
+   "target": "allowance_d_method_zh",
+   "format": "zen_text",
+   "label": "別紙１ ２(d) 諸手当（method）（中国語の行）"
+  },
+  {
+   "key": "c.fixed_overtime_name",
+   "target": "fixed_overtime_name",
+   "format": "zen_text",
+   "label": "別紙１ ２(e) 固定残業代（name）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.fixed_overtime_amount",
+   "target": "fixed_overtime_amount",
+   "format": "zen_yen",
+   "label": "別紙１ ２(e) 固定残業代（amount）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.fixed_overtime_hours",
+   "target": "fixed_overtime_hours",
+   "format": "zen",
+   "label": "別紙１ ２(e) 固定残業代（hours）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.fixed_overtime_hours",
+   "target": "fixed_overtime_hours_over",
+   "format": "zen",
+   "label": "別紙１ ２(e) 固定残業代（hours_over）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.fixed_overtime_name",
+   "target": "fixed_overtime_name_zh",
+   "format": "zen_text",
+   "label": "別紙１ ２(e) 固定残業代（name）（中国語の行）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.fixed_overtime_amount",
+   "target": "fixed_overtime_amount_zh",
+   "format": "zen_yen",
+   "label": "別紙１ ２(e) 固定残業代（amount）（中国語の行）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.fixed_overtime_hours",
+   "target": "fixed_overtime_hours_zh",
+   "format": "zen",
+   "label": "別紙１ ２(e) 固定残業代（hours）（中国語の行）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "c.fixed_overtime_hours",
+   "target": "fixed_overtime_hours_over_zh",
+   "format": "zen",
+   "label": "別紙１ ２(e) 固定残業代（hours_over）（中国語の行）",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.monthly_total",
+   "target": "monthly_total",
+   "format": "zen_yen",
+   "label": "別紙１ ３ １か月当たりの支払概算額",
+   "pad": 9,
+   "align": "right"
+  },
+  {
+   "key": "c.monthly_total",
+   "target": "monthly_total_zh",
+   "format": "zen_yen",
+   "label": "別紙１ ３ １か月当たりの支払概算額（中国語の行）",
+   "pad": 8,
+   "align": "right"
+  },
+  {
+   "key": "c.deduction_tax",
+   "target": "deduction_tax",
+   "format": "zen_yen",
+   "label": "別紙１ ４(a) 税金",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.deduction_tax",
+   "target": "deduction_tax_zh",
+   "format": "zen_yen",
+   "label": "別紙１ ４(a) 税金（中国語の行）",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.deduction_social_insurance",
+   "target": "deduction_social_insurance",
+   "format": "zen_yen",
+   "label": "別紙１ ４(b) 社会保険料",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.deduction_social_insurance",
+   "target": "deduction_social_insurance_zh",
+   "format": "zen_yen",
+   "label": "別紙１ ４(b) 社会保険料（中国語の行）",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.deduction_employment_insurance",
+   "target": "deduction_employment_insurance",
+   "format": "zen_yen",
+   "label": "別紙１ ４(c) 雇用保険料",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.deduction_employment_insurance",
+   "target": "deduction_employment_insurance_zh",
+   "format": "zen_yen",
+   "label": "別紙１ ４(c) 雇用保険料（中国語の行）",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.deduction_food",
+   "target": "deduction_food",
+   "format": "zen_yen",
+   "label": "別紙１ ４(d) 食費",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.deduction_food",
+   "target": "deduction_food_zh",
+   "format": "zen_yen",
+   "label": "別紙１ ４(d) 食費（中国語の行）",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.deduction_housing",
+   "target": "deduction_housing",
+   "format": "zen_yen",
+   "label": "別紙１ ４(e) 居住費",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.deduction_housing",
+   "target": "deduction_housing_zh",
+   "format": "zen_yen",
+   "label": "別紙１ ４(e) 居住費（中国語の行）",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.deduction_utilities",
+   "target": "deduction_utilities",
+   "format": "zen_yen",
+   "label": "別紙１ ４(f) 水道光熱費",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.deduction_utilities",
+   "target": "deduction_utilities_zh",
+   "format": "zen_yen",
+   "label": "別紙１ ４(f) 水道光熱費（中国語の行）",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.deduction_other1_name",
+   "target": "deduction_other1_name",
+   "format": "zen_text",
+   "label": "別紙１ ４ その他の控除（1_name）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.deduction_other1_amount",
+   "target": "deduction_other1_amount",
+   "format": "zen_yen",
+   "label": "別紙１ ４ その他の控除（1_amount）",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.deduction_other1_name",
+   "target": "deduction_other1_name_zh",
+   "format": "zen_text",
+   "label": "別紙１ ４ その他の控除（1_name）（中国語の行）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.deduction_other1_amount",
+   "target": "deduction_other1_amount_zh",
+   "format": "zen_yen",
+   "label": "別紙１ ４ その他の控除（1_amount）（中国語の行）",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.deduction_other2_name",
+   "target": "deduction_other2_name",
+   "format": "zen_text",
+   "label": "別紙１ ４ その他の控除（2_name）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.deduction_other2_amount",
+   "target": "deduction_other2_amount",
+   "format": "zen_yen",
+   "label": "別紙１ ４ その他の控除（2_amount）",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.deduction_other2_name",
+   "target": "deduction_other2_name_zh",
+   "format": "zen_text",
+   "label": "別紙１ ４ その他の控除（2_name）（中国語の行）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.deduction_other2_amount",
+   "target": "deduction_other2_amount_zh",
+   "format": "zen_yen",
+   "label": "別紙１ ４ その他の控除（2_amount）（中国語の行）",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.deduction_other3_name",
+   "target": "deduction_other3_name",
+   "format": "zen_text",
+   "label": "別紙１ ４ その他の控除（3_name）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.deduction_other3_amount",
+   "target": "deduction_other3_amount",
+   "format": "zen_yen",
+   "label": "別紙１ ４ その他の控除（3_amount）",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.deduction_other3_name",
+   "target": "deduction_other3_name_zh",
+   "format": "zen_text",
+   "label": "別紙１ ４ その他の控除（3_name）（中国語の行）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.deduction_other3_amount",
+   "target": "deduction_other3_amount_zh",
+   "format": "zen_yen",
+   "label": "別紙１ ４ その他の控除（3_amount）（中国語の行）",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.deduction_other4_name",
+   "target": "deduction_other4_name",
+   "format": "zen_text",
+   "label": "別紙１ ４ その他の控除（4_name）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.deduction_other4_amount",
+   "target": "deduction_other4_amount",
+   "format": "zen_yen",
+   "label": "別紙１ ４ その他の控除（4_amount）",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.deduction_other4_name",
+   "target": "deduction_other4_name_zh",
+   "format": "zen_text",
+   "label": "別紙１ ４ その他の控除（4_name）（中国語の行）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.deduction_other4_amount",
+   "target": "deduction_other4_amount_zh",
+   "format": "zen_yen",
+   "label": "別紙１ ４ その他の控除（4_amount）（中国語の行）",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.deduction_other5_name",
+   "target": "deduction_other5_name",
+   "format": "zen_text",
+   "label": "別紙１ ４ その他の控除（5_name）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.deduction_other5_amount",
+   "target": "deduction_other5_amount",
+   "format": "zen_yen",
+   "label": "別紙１ ４ その他の控除（5_amount）",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.deduction_other5_name",
+   "target": "deduction_other5_name_zh",
+   "format": "zen_text",
+   "label": "別紙１ ４ その他の控除（5_name）（中国語の行）",
+   "pad": 5,
+   "align": "left"
+  },
+  {
+   "key": "c.deduction_other5_amount",
+   "target": "deduction_other5_amount_zh",
+   "format": "zen_yen",
+   "label": "別紙１ ４ その他の控除（5_amount）（中国語の行）",
+   "pad": 6,
+   "align": "right"
+  },
+  {
+   "key": "c.deduction_total",
+   "target": "deduction_total",
+   "format": "zen_yen",
+   "label": "別紙１ ４ 控除する金額",
+   "pad": 9,
+   "align": "right"
+  },
+  {
+   "key": "c.deduction_total",
+   "target": "deduction_total_zh",
+   "format": "zen_yen",
+   "label": "別紙１ ４ 控除する金額（中国語の行）",
+   "pad": 8,
+   "align": "right"
+  },
+  {
+   "key": "c.take_home",
+   "target": "take_home",
+   "format": "zen_yen",
+   "label": "別紙１ ５ 手取り支給額",
+   "pad": 9,
+   "align": "right"
+  },
+  {
+   "key": "c.take_home",
+   "target": "take_home_zh",
+   "format": "zen_yen",
+   "label": "別紙１ ５ 手取り支給額（中国語の行）",
+   "pad": 8,
+   "align": "right"
+  },
+  {
+   "key": "c.treatment_department",
+   "target": "treatment_department",
+   "format": "zen_text",
+   "label": "Ⅸ４ 待遇の相違の説明の窓口（department）",
+   "pad": 7,
+   "align": "left"
+  },
+  {
+   "key": "c.treatment_person",
+   "target": "treatment_person",
+   "format": "text",
+   "label": "Ⅸ４ 待遇の相違の説明の窓口（person）",
+   "pad": 8,
+   "align": "left"
+  },
+  {
+   "key": "c.treatment_phone",
+   "target": "treatment_phone",
+   "format": "zen_text",
+   "label": "Ⅸ４ 待遇の相違の説明の窓口（phone）",
+   "pad": 9,
+   "align": "left"
+  }
+ ],
+ "rules": []
+}

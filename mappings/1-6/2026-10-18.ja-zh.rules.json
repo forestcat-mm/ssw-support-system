@@ -1,0 +1,15 @@
+{
+  "form_id": "1-6",
+  "valid_from": "2026-10-18",
+  "language": "ja-zh",
+  "note": "日中併記の旧い版＋補足の頁の規則（2026-10-20、ADR-0027 の追記）。日本語の版と同じ。T34 の規則（ADR-0023）。締結日が空なら冒頭の日付を空欄にして警告（T34-D5）。行が様式を超える・換算額・月の時間数・窓口・別紙２ は警告。",
+  "rules": [
+    {"id": "version_in_force", "type": "check", "name": "contract_version_in_force", "severity": "warn"},
+    {"id": "signed_on_required", "type": "required", "key": "c.signed_y", "label": "締結日（契約の版の締結日）", "severity": "warn", "fix": {"object": "worker", "url": "workers:contracts"}},
+    {"id": "rows_fit", "type": "check", "name": "contract_rows_fit", "severity": "warn"},
+    {"id": "wage_equivalent", "type": "check", "name": "contract_wage_equivalent", "severity": "warn"},
+    {"id": "monthly_hours_average", "type": "check", "name": "contract_monthly_hours_average", "severity": "warn"},
+    {"id": "contacts_split", "type": "check", "name": "contract_contacts_split", "severity": "warn"},
+    {"id": "conversion_annex", "type": "check", "name": "contract_conversion_annex", "severity": "warn"}
+  ]
+}

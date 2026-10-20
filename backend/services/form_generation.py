@@ -454,6 +454,14 @@ def _render(
     else:
         filled = workdir / f"{template.form_id}.docx"
         form_docx.render(source, filled, values)
+        supplement = (template.manifest or {}).get("supplement")
+        if supplement:
+            # 旧い併記の版に足りない事項の補足の頁（自作）を、同じ値で差し込んで末尾に綴じる
+            # （ADR-0027 の追記）。保存する文書も補足の頁を含む（本人に渡す書面と同じ）
+            extra = workdir / f"{template.form_id}-supplement.docx"
+            form_docx.render(source.parent / supplement["file"], extra, values)
+            form_docx.append_body(filled, extra)
+            extra.unlink()
         layout = (template.manifest or {}).get("pdf_layout")
         if layout:
             # 保存する文書は公式の組み方のまま。変換の直前の一時の写しでだけ詰める（ADR-0032）

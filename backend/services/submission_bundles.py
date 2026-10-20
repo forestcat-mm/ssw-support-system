@@ -105,8 +105,8 @@ WARNING_TEXTS: Mapping[str, Any] = {
         "is not included."
     ),
     Warn.TRANSLATION_MISSING: gettext_lazy(
-        "The worker's support language is Chinese, but the Chinese translation of this form is "
-        "not generated."
+        "The worker's support language is Chinese, but only the Japanese version of this form is "
+        "generated (generate the bilingual version or the Chinese translation)."
     ),
     Warn.OVER_LIMIT: gettext_lazy(
         "The total size is over the limit of the online application system "
@@ -302,8 +302,8 @@ def _translation_parts(
     translation = application_sets.translation_of(document, overview.facts)
     if translation is None:
         worker = overview.facts.worker
-        if form_languages.is_chinese(worker) and form_languages.outdated_notice(
-            worker, document.template.form_id
+        if form_languages.needs_chinese_copy(
+            worker, document.template.form_id, document.template.language
         ):
             entry.warnings.append(Warn.TRANSLATION_MISSING)
         return []

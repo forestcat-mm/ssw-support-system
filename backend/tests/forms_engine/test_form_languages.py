@@ -1,8 +1,9 @@
-"""日中併記の様式（第1-5号・第5-8号・第5-9号。T38、ADR-0027）。
+"""日中併記の様式（第1-5号・第1-6号・第5-8号・第5-9号。T38、ADR-0027）。
 
 - 元は入管の中国語の版の 1 ファイル。様式の部分を道具で取り出し（extracted.docx）、差込タグを置く。
 - 併記の版の日本語の文は、現行の日本語の版と同じ（署名の欄の行の併記だけが違う）。
-  第1-6号・第1-17号の併記の版は現行と違うので使わない（日本語の版だけを作り、画面に注意を出す）。
+  第1-6号の併記の版は旧い版なので、足りない事項を補足の頁（自作の日中併記）で付け足して使う（A）。
+  第1-17号の併記の版は差が多いので使わず、自作の訳文を例外として使う（B。画面に注意を出す）。
 - 生成履歴は版の言語（ja-zh）、交付記録の書面の言語は生成物の版の言語から。
 """
 
@@ -114,20 +115,21 @@ def test_japanese_text_is_the_current_japanese_form(form_id: str) -> None:
 
 
 def test_outdated_bilingual_forms_differ_from_the_current_japanese_forms(tmp_path: Path) -> None:
-    """第1-6号・第1-17号の併記の版は旧い版（現行の文が無い）なので使わない（T38-D1）。"""
+    """第1-6号・第1-17号の併記の版は旧い版（現行の文が無い）。第1-6号は補足の頁で補い（A）、
+    第1-17号は使わない（B。2026-10-20、ADR-0027 の追記）。"""
     source = folder("1-5") / "original.docx"
-    run("extract_zh_forms.py", str(source), "1-6", str(tmp_path / "1-6.docx"))
     run("extract_zh_forms.py", str(source), "1-17", str(tmp_path / "1-17.docx"))
-    text_1_6 = "".join(body_texts(tmp_path / "1-6.docx"))
+    text_1_6 = "".join(body_texts(folder("1-6") / "extracted.docx"))
     text_1_17 = normalized("".join(body_texts(tmp_path / "1-17.docx")))
     assert "待遇の相違" not in text_1_6
     assert "待遇の相違" in "".join(body_texts(ROOT / "1-6/2026-10-18/original.docx"))
+    assert "待遇の相違" in "".join(body_texts(folder("1-6") / "supplement.docx"))
     # 定期的な面談の実施方法の選択肢が違う（現行は「オンライン／対面」）
     assert "対面とオンラインの併用" in text_1_17
     with zipfile.ZipFile(ROOT / "1-17/2026-10-17/original.xlsx") as book:
         assert "対面とオンラインの併用" not in book.read("xl/sharedStrings.xml").decode()
-    assert form_languages.OUTDATED_BILINGUAL == {"1-6", "1-17"}
-    assert not (ROOT / "1-6" / FOLDER).exists() and not (ROOT / "1-17" / FOLDER).exists()
+    assert form_languages.OUTDATED_BILINGUAL == {"1-17"}
+    assert (ROOT / "1-6" / FOLDER).exists() and not (ROOT / "1-17" / FOLDER).exists()
 
 
 @pytest.mark.parametrize("form_id", FORMS)
@@ -146,7 +148,8 @@ def test_bilingual_versions_are_loaded_with_their_language(loaded: None) -> None
         assert template.manifest["source"]["url"].endswith("001339744.docx")
     assert form_templates.version_stem({"valid_from": "2026-10-18", "language": "ja-zh"}) == FOLDER
     assert form_languages.available("5-9") == ["ja", "ja-zh"]
-    assert form_languages.available("1-6") == ["ja", "zh-hans"]  # 自作の訳文（T43）
+    # 第1-6号: 日中併記（旧い版＋補足の頁）と、自作の訳文（T43。残す）
+    assert form_languages.available("1-6") == ["ja", "ja-zh", "zh-hans"]
 
 
 def test_wrong_folder_of_a_bilingual_version_stops_loading(repo_copy: tuple[Path, Path]) -> None:
@@ -212,9 +215,11 @@ def test_generation_screens_offer_the_language_and_the_notice(worker: Any) -> No
     version = contract.versions.get()
     page_1_6 = client.get(
         f"/workers/{worker.pk}/contracts/{contract.pk}/versions/{version.version}/generate/1-6/"
-    ).content.decode()
-    # 第1-6号は併記の版を使わず、自作の訳文を別に作れる（初期値は日本語。T43）
-    assert 'id="bilingual-notice"' in page_1_6 and 'value="zh-hans"' in page_1_6
+    )
+    # 第1-6号は日中併記（旧い版＋補足の頁）が初期値。自作の訳文も選べる（2026-10-20）
+    assert page_1_6.context["form"]["language"].initial == "ja-zh"
+    content_1_6 = page_1_6.content.decode()
+    assert 'id="bilingual-notice"' not in content_1_6 and 'value="zh-hans"' in content_1_6
     page_1_5 = client.get(
         f"/workers/{worker.pk}/contracts/{contract.pk}/versions/{version.version}/generate/1-5/"
     )
@@ -240,7 +245,7 @@ def test_extracted_files_keep_the_other_parts_of_the_official_file() -> None:
 
 def test_notice_only_for_chinese_workers_on_outdated_forms(worker: Any) -> None:  # noqa: F811
     assert form_languages.outdated_notice(worker, "1-17") is True
-    assert form_languages.outdated_notice(worker, "1-6") is True
+    assert form_languages.outdated_notice(worker, "1-6") is False  # 併記の版＋補足の頁
     assert form_languages.outdated_notice(worker, "1-5") is False
     worker.support_language = SupportLanguage.objects.get(code="ja")
     assert form_languages.outdated_notice(worker, "1-17") is False
@@ -292,3 +297,78 @@ def test_pdf_layout_changes_only_the_copy(tmp_path: Path) -> None:
     assert 'w:linePitch="300"' in xml and 'w:top="567"' in xml and 'w:bottom="567"' in xml
     assert '<w:sz w:val="22"/>' not in xml and '<w:sz w:val="32"/>' in xml  # 見出しはそのまま
     assert body_texts(copy) == body_texts(source)  # 文は変えない
+
+
+# --- 第1-6号（日中併記の旧い版＋補足の頁。2026-10-20、ADR-0027 の追記）--------------------------
+
+
+def test_bilingual_1_6_is_reproduced_by_the_tools(tmp_path: Path) -> None:
+    run(
+        "extract_zh_forms.py",
+        str(folder("1-6") / "original.docx"),
+        "1-6",
+        str(tmp_path / "extracted.docx"),
+    )
+    assert (tmp_path / "extracted.docx").read_bytes() == (
+        folder("1-6") / "extracted.docx"
+    ).read_bytes()
+    stdout = run("make_zh_templates.py", "1-6", str(tmp_path))
+    assert (tmp_path / "template.docx").read_bytes() == (
+        folder("1-6") / "template.docx"
+    ).read_bytes()
+    assert stdout == (MAPPINGS / "1-6" / "2026-10-18.ja-zh.json").read_text("utf-8")
+    run("make_zh_supplement.py", "1-6", str(tmp_path))
+    assert (tmp_path / "supplement.docx").read_bytes() == (
+        folder("1-6") / "supplement.docx"
+    ).read_bytes()
+
+
+def test_bilingual_1_6_has_the_same_data_keys_as_the_japanese_form() -> None:
+    japanese = json.loads((MAPPINGS / "1-6" / "2026-10-18.json").read_text("utf-8"))
+    bilingual = json.loads((MAPPINGS / "1-6" / "2026-10-18.ja-zh.json").read_text("utf-8"))
+    assert {f["key"] for f in bilingual["fields"]} == {f["key"] for f in japanese["fields"]}
+    # 中国語の行の欄は名前に _zh を付け、中国語の行の欄の幅で詰める（チェックは同じタグ）
+    zh = [f for f in bilingual["fields"] if f["target"].endswith("_zh")]
+    assert zh and all(f["format"] != "check" for f in zh)
+    with zipfile.ZipFile(folder("1-6") / "template.docx") as archive:
+        template = archive.read("word/document.xml").decode()
+    with zipfile.ZipFile(folder("1-6") / "supplement.docx") as archive:
+        supplement = archive.read("word/document.xml").decode()
+    for item in bilingual["fields"]:
+        tag = "{{ " + item["target"] + " "
+        assert tag in template or tag in supplement, item["target"]
+    for name in ("treatment_department", "treatment_person", "treatment_phone"):
+        assert "{{ " + name + " " in supplement and "{{ " + name + " " not in template
+
+
+def test_bilingual_1_6_rendered_empty_is_the_extracted_form(tmp_path: Path) -> None:
+    out = tmp_path / "empty.docx"
+    form_docx.render(folder("1-6") / "template.docx", out, {"annex2": True})
+    assert body_texts(out) == body_texts(folder("1-6") / "extracted.docx")
+
+
+def test_bilingual_1_6_is_generated_with_the_supplement(loaded: None) -> None:
+    from tests.forms_engine.test_form_contract import BASIS, data_for, explain, full_version
+
+    version = full_version()
+    explain(version)
+    data = data_for("1-6", version)
+    document = form_generation.request(
+        "1-6",
+        target=version,
+        data=data,
+        basis_on=BASIS,
+        by=None,
+        language="ja-zh",
+        accept_warnings=True,
+    )
+    document.refresh_from_db()
+    assert document.status == GenerationStatus.COMPLETED, document.failure_reason
+    assert document.template.language == "ja-zh" and document.template.requires_signed_copy
+    # 本体と別紙１ で 7 頁、補足の頁が 1 頁（別紙２ は出さない）
+    assert document.page_count == 8
+    text = "\n".join(body_texts(Path(document.filled_file.path)))
+    assert "雇用条件書の補足" in text and "雇佣条件书的补充" in text
+    assert data["c.treatment_department"] in text  # Ⅸ４ の窓口は補足の頁に入る
+    assert data["c.worker_name"] in text.split("先生/女士")[0]  # 中国語の行にも氏名
+    assert "参考様式第１－６号　別紙２" not in text

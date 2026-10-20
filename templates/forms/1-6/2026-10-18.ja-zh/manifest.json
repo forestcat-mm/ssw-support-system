@@ -1,0 +1,30 @@
+{
+  "form_id": "1-6",
+  "name": "雇用条件書（参考様式第1-6号。日中併記〔旧い版〕＋補足の頁）",
+  "valid_from": "2026-10-18",
+  "language": "ja-zh",
+  "owner": "common",
+  "method": "docx-tags",
+  "requires_signed_copy": true,
+  "original": "original.docx",
+  "converted": "extracted.docx",
+  "converter": "tools/forms/extract_zh_forms.py（入管の中国語の版の 1 ファイルから、この様式の部分を取り出す）",
+  "template": "template.docx",
+  "supplement": {
+    "file": "supplement.docx",
+    "tool": "tools/forms/make_zh_supplement.py",
+    "sha256": "ecdbd177f5dc9d1a5253d1a426ac218b2825e8b63c4cc8ae629def1a9d30dd75",
+    "note": "旧い併記の版に無い事項（Ⅸ４ 待遇の相違の窓口）と、番号・見出し・語の違いの注を書いた自作の日中併記の補足の頁。生成のときに雇用条件書の末尾に綴じる。訳は人の確認待ち。根拠: 参考様式は必ず使わなければならないものではなく、同様の内容が記載されていればよい（提出書類一覧表の表紙の留意事項６。ADR-0018 の追記）。ADR-0027 の追記（2026-10-20）"
+  },
+  "source": {
+    "url": "https://www.moj.go.jp/isa/content/001339744.docx",
+    "page": "https://www.moj.go.jp/isa/applications/ssw/10_00020.html",
+    "retrieved_on": "2026-10-18",
+    "revision_date": null,
+    "revision_date_unknown": true,
+    "original_sha256": "9f8a6619ed8ff86cac20bfc193d242e77ce24ff9b8786b58ac6c3ad2641ddb37",
+    "converted_sha256": "390ce36390bede208109eb77d0a5264b1a989cffb2c61200fe810c272d1f106a",
+    "template_sha256": "d8b6b7e89e4a32f7135fb29d6c52ddf6100f5d2aeaee42c1ffc960d4f031144b",
+    "adr": "ADR-0027（取得日 2026-10-18（Last-Modified 2025-04-01。改正日の記載なし。10 の様式を 1 つにまとめた中国語の版。第1-6号は旧い版）、2026-10-20 の追記〔A: 旧い併記の版＋補足の頁〕）、ADR-0018"
+  }
+}
