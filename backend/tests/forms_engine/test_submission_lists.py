@@ -1,7 +1,8 @@
 """提出書類一覧表の生成（T42 の追加）。
 
 - 提出確認欄の初期値は状態から（綴じる書類がある行は有、当てはまるが無い行は無）。人が直せる。
-- 入管の Excel に値だけを書く（選ばない側の「有」「無」を消す。表紙に氏名と名称）。
+- 入管の Excel に値だけを書く（表紙に氏名と名称）。提出確認欄の〇・横 1 頁に収める設定・改頁は
+  PDF にする一時の写しにだけ足す（ADR-0032 の例外の一覧）。
 - 統合 PDF の先頭に綴じ、印を生成履歴に残す。
 """
 
@@ -98,6 +99,36 @@ def test_render_writes_only_values(tmp_path: Path) -> None:
         ]
     assert changed == ["xl/worksheets/sheet1.xml"]  # セルの値だけ（制約3）
     form_xlsx.check_targets(filled, ["表紙!F47"])
+
+
+def test_render_fits_each_table_to_the_page_width(tmp_path: Path) -> None:
+    """右の列（提出確認欄）が別の頁にはみ出さず、Excel で印刷したときの行で頁が割れる。"""
+    contract = make_case()
+    overview = application_sets.overview(contract.worker, "chg", BASIS)
+    marks = {row["id"]: "yes" for row in overview.definition.rows}  # すべての表を作る
+    books = submission_lists.workbooks(
+        overview, marks, worker_name="WANG LINA", host_name="テスト株式会社"
+    )
+    assert books[0].page_breaks == (49, 67, 72)  # Excel の改頁（page_breaks.json）
+    pdfs = submission_lists.render(books, tmp_path)
+    for index, (book, pdf) in enumerate(zip(books, pdfs, strict=True)):
+        pages = PdfReader(str(pdf)).pages
+        assert len(pages) == len(book.page_breaks) + 1, book.file
+        for page in pages:
+            text = page.extract_text()
+            # 頁ごとに、書類の名前の列と提出確認欄の列が同じ頁にある（表紙の 1 頁目を除く）
+            if "提出確認欄" in text or "必要書類" in text:
+                assert "提出確認欄" in text and "必要書類" in text, book.file
+        copy = tmp_path / f"list-{index}" / "for-pdf" / book.file
+        with zipfile.ZipFile(copy) as archive:
+            sheet = archive.read("xl/worksheets/sheet1.xml").decode()
+        assert '<pageSetUpPr fitToPage="1"/>' in sheet
+        assert 'fitToWidth="1" fitToHeight="0"' in sheet
+        assert sheet.count('man="1"') == len(book.page_breaks)
+        # 保存するブック（値を書いたもの）は元の印刷の設定のまま
+        with zipfile.ZipFile(tmp_path / f"list-{index}" / book.file) as archive:
+            written = archive.read("xl/worksheets/sheet1.xml").decode()
+        assert 'fitToWidth="1" fitToHeight="0"' not in written
 
 
 def test_bundle_starts_with_the_list_and_keeps_the_marks() -> None:

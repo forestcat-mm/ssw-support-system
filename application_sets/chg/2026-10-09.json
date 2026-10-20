@@ -5,22 +5,37 @@
  "note": "「特定技能１号」に係る提出書類一覧・確認表の第1〜3表の全部の行（T37-D2、ADR-0026）。tools/forms/make_application_sets.py が application_sets/sources の Excel から作る。",
  "sources": [
   {
-   "file": "chg_t1_001472570.xlsx"
+   "file": "chg_t1_001472570.xlsx",
+   "pdf_page_breaks": [
+    49,
+    67,
+    72
+   ]
   },
   {
-   "file": "chg_t2_1_001446575.xlsx"
+   "file": "chg_t2_1_001446575.xlsx",
+   "pdf_page_breaks": []
   },
   {
-   "file": "chg_t2_2_001468653.xlsx"
+   "file": "chg_t2_2_001468653.xlsx",
+   "pdf_page_breaks": [
+    10
+   ]
   },
   {
-   "file": "chg_t2_3_001468654.xlsx"
+   "file": "chg_t2_3_001468654.xlsx",
+   "pdf_page_breaks": [
+    10,
+    15
+   ]
   },
   {
-   "file": "chg_ind_001471202.xlsx"
+   "file": "chg_ind_001471202.xlsx",
+   "pdf_page_breaks": []
   },
   {
-   "file": "chg_food_001471214.xlsx"
+   "file": "chg_food_001471214.xlsx",
+   "pdf_page_breaks": []
   }
  ],
  "cover": {

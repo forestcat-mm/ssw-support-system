@@ -7,6 +7,9 @@ LibreOffice で PDF にして、提出用の統合 PDF の先頭に綴じる。
   T42-D18 の直し）。
   〇は PDF に変換する直前の一時の写しでだけ図形として足す（form_xlsx.with_circles。ADR-0032 の
   例外の一覧）。値は表紙の氏名・名称だけを書く。印を付けない行には何も足さない。
+- 頁の割り方: 同じ一時の写しで、横 1 頁に収め（縦は自動）、Excel で印刷したときの行で改頁する
+  （一覧の定義の sources の pdf_page_breaks。application_sets/sources/page_breaks.json）。
+  一覧表の既定の字体（游ゴシック）が LibreOffice に無く、元の縮小 70% では右の列がはみ出すため。
 - 初期値（T42-D19）: 統合 PDF に綴じる書類がある行は「有」、当てはまるが綴じる書類が無い行は「無」、
   当てはまるかを判断しない行（実績のある機関の書類など）は空。人が画面で直せる。
 - 作る表（T42-D20）: 第1表（表紙を含む）は必ず。ほかの表は、印（有・無）の付いた行があるものだけ。
@@ -97,6 +100,7 @@ class Workbook:
     file: str
     values: dict[str, object]  # 表紙の氏名・名称（値だけ）
     circles: tuple[str, ...] = ()  # 〇を付けるセル（「シート!セル」）
+    page_breaks: tuple[int, ...] = ()  # PDF の各頁の最初の行（Excel で印刷したときの改頁）
 
 
 def workbooks(
@@ -121,7 +125,12 @@ def workbooks(
         chosen = check["yes"] if mark == Mark.YES else check["no"]
         circles.setdefault(check["file"], []).append(f"{check['sheet']}!{chosen}")
     return [
-        Workbook(file, by_file[file], tuple(circles.get(file, ())))
+        Workbook(
+            file,
+            by_file[file],
+            tuple(circles.get(file, ())),
+            definition.page_breaks.get(file, ()),
+        )
         for file in order
         if file in by_file
     ]
@@ -135,8 +144,10 @@ def render(books: list[Workbook], workdir: Path) -> list[Path]:
         folder.mkdir(parents=True, exist_ok=True)
         filled = folder / book.file
         form_xlsx.write_cells(sources_root() / book.file, filled, book.values)
-        # 〇は変換の直前の一時の写しでだけ足す（書いたブックは値だけ。ADR-0032 の例外の一覧）
+        # 〇・横 1 頁に収める設定・改頁は、変換の直前の一時の写しでだけ足す（書いたブックは
+        # 値だけ。ADR-0032 の例外の一覧）
         copy = folder / "for-pdf" / book.file
         form_xlsx.with_circles(filled, copy, list(book.circles))
+        form_xlsx.with_print_layout(copy, copy, list(book.page_breaks))
         pdfs.append(form_convert.convert(copy))
     return pdfs

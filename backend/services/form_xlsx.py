@@ -642,6 +642,82 @@ def with_circles(source: Path, destination: Path, targets: list[str]) -> None:
                     output.writestr(name, data)
 
 
+# rowBreaks の後に来るシートの要素（OOXML の CT_Worksheet の順）
+SHEET_AFTER_ROW_BREAKS = (
+    "<colBreaks",
+    "<customProperties",
+    "<cellWatches",
+    "<ignoredErrors",
+    "<smartTags",
+    "<drawing ",
+    *SHEET_AFTER_DRAWING,
+)
+
+
+def _fit_to_width(sheet_xml: str) -> str:
+    """横 1 頁に収め、縦は頁の数を決めない（Excel の「横 1 × 縦 自動」に合わせて印刷）。"""
+    fit = '<pageSetUpPr fitToPage="1"/>'
+    if "<pageSetUpPr" in sheet_xml:
+        sheet_xml = re.sub(r"<pageSetUpPr\b[^>]*/>", fit, sheet_xml, count=1)
+    elif re.search(r"<sheetPr\b[^>]*/>", sheet_xml):
+        sheet_xml = re.sub(
+            r"<sheetPr\b([^>]*)/>", rf"<sheetPr\1>{fit}</sheetPr>", sheet_xml, count=1
+        )
+    elif "<sheetPr" in sheet_xml:
+        sheet_xml = sheet_xml.replace("</sheetPr>", fit + "</sheetPr>", 1)
+    else:
+        sheet_xml = re.sub(
+            r"(<worksheet\b[^>]*>)", rf"\1<sheetPr>{fit}</sheetPr>", sheet_xml, count=1
+        )
+
+    def page_setup(match: re.Match[str]) -> str:
+        tag = re.sub(r'\sfitTo(?:Width|Height)="\d+"', "", match.group(0))
+        return tag.replace("<pageSetup", '<pageSetup fitToWidth="1" fitToHeight="0"', 1)
+
+    if "<pageSetup " in sheet_xml or "<pageSetup/>" in sheet_xml:
+        return re.sub(r"<pageSetup\b[^>]*/>", page_setup, sheet_xml, count=1)
+    raise XlsxWriteError("pageSetup not found")
+
+
+def _with_row_breaks(sheet_xml: str, first_rows: list[int]) -> str:
+    """改頁を first_rows（各頁の最初の行）だけにする（元の改頁は置き換える）。"""
+    sheet_xml = re.sub(
+        r"<rowBreaks\b.*?</rowBreaks>|<rowBreaks\b[^>]*/>", "", sheet_xml, flags=re.S
+    )
+    if not first_rows:
+        return sheet_xml
+    breaks = "".join(f'<brk id="{row - 1}" max="16383" man="1"/>' for row in sorted(first_rows))
+    element = (
+        f'<rowBreaks count="{len(first_rows)}" manualBreakCount="{len(first_rows)}">'
+        f"{breaks}</rowBreaks>"
+    )
+    position = min(
+        index for index in (sheet_xml.find(tag) for tag in SHEET_AFTER_ROW_BREAKS) if index >= 0
+    )
+    return sheet_xml[:position] + element + sheet_xml[position:]
+
+
+def with_print_layout(source: Path, destination: Path, first_rows: list[int]) -> None:
+    """source を destination に写し、ブックの 1 つのシートを横 1 頁に収めて first_rows で改頁する。
+
+    提出書類一覧表の PDF にする一時の写しでだけ使う（ADR-0032 の例外の一覧）。source と
+    destination は同じでもよい。
+    """
+    with zipfile.ZipFile(source) as archive:
+        paths = list(sheet_paths(archive).values())
+        if len(paths) != 1:
+            raise XlsxWriteError(f"expected one sheet: {len(paths)}")
+        items = [(item, archive.read(item.filename)) for item in archive.infolist()]
+    sheet_path = paths[0]
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(destination, "w", zipfile.ZIP_DEFLATED) as output:
+        for item, data in items:
+            if item.filename == sheet_path:
+                text = _with_row_breaks(_fit_to_width(data.decode("utf-8")), first_rows)
+                data = text.encode("utf-8")
+            output.writestr(item, data)
+
+
 def _column_widths(sheet_xml: str) -> tuple[dict[int, float], float]:
     default = re.search(r'defaultColWidth="([\d.]+)"', sheet_xml)
     widths: dict[int, float] = {}

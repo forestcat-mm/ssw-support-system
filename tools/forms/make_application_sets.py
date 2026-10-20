@@ -209,8 +209,10 @@ def main(out: Path) -> None:
         for key in keys:
             for row in table_rows(key):
                 rows.append(row | {"how": how(row), "applies": applies(key, row)})
+        # PDF にする一時の写しの改頁（Excel で印刷したときの各頁の最初の行。page_breaks.json）
+        breaks = json.loads((SOURCES / "page_breaks.json").read_text(encoding="utf-8"))["breaks"]
         sources = [
-            {"file": path.name}
+            {"file": path.name, "pdf_page_breaks": breaks[path.name]}
             for key in keys
             for path in sorted(SOURCES.glob(f"{key}_*.xlsx"))
         ]

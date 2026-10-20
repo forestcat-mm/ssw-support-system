@@ -107,6 +107,8 @@ class Definition:
     path: Path
     sources: tuple[str, ...] = ()  # 元の Excel のファイル（表の順）
     cover: dict[str, str] = field(default_factory=dict)  # 表紙の氏名・名称の欄（T42 の追加）
+    # 一覧表の PDF にする一時の写しの改頁（ファイルごとの各頁の最初の行。Excel で印刷したときの頁）
+    page_breaks: dict[str, tuple[int, ...]] = field(default_factory=dict)
 
 
 def _root() -> Path:
@@ -124,6 +126,10 @@ def _read(path: Path) -> Definition:
         path=path,
         sources=tuple(source["file"] for source in data.get("sources", [])),
         cover=dict(data.get("cover", {})),
+        page_breaks={
+            source["file"]: tuple(source.get("pdf_page_breaks", ()))
+            for source in data.get("sources", [])
+        },
     )
 
 
