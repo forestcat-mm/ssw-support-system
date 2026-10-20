@@ -6,6 +6,7 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.web_forms import StyledFormMixin
+from apps.forms_engine.models import FormTemplate
 from apps.support.record_forms import MultipleFileField
 
 NOT_LOADED = _("The form is not loaded. Ask an administrator to load the forms (make forms).")
@@ -132,6 +133,34 @@ class PeriodicReportForm(StyledFormMixin, forms.Form):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.style_fields()
+
+
+class SuspendForm(StyledFormMixin, forms.Form):
+    """様式の版の停止の理由（T53-D2）。"""
+
+    reason = forms.CharField(label=_("reason"), max_length=200)
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.style_fields()
+
+
+class VersionChoiceField(forms.ModelChoiceField[FormTemplate]):
+    def label_from_instance(self, obj: FormTemplate) -> str:
+        suffix = f"（{_('suspended')}）" if obj.suspended_at else ""
+        return f"{obj.valid_from:%Y-%m-%d}{suffix}"
+
+
+class RegenerateForm(forms.Form):
+    """別の版で作り直す（同じ様式 ID・言語の版。T53-D2）。"""
+
+    template = VersionChoiceField(label=_("version"), queryset=FormTemplate.objects.none())
+
+    def __init__(self, *args: Any, choices: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        field = self.fields["template"]
+        assert isinstance(field, forms.ModelChoiceField)
+        field.queryset = choices
 
 
 class ApplicationSetForm(StyledFormMixin, forms.Form):

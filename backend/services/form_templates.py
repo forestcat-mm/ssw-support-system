@@ -382,9 +382,9 @@ class Selection:
 
 
 def select_template(form_id: str, basis_on: datetime.date, *, language: str = "ja") -> Selection:
-    """基準日に適用される共通の版（無ければ最も古い版）。"""
+    """基準日に適用される共通の版（無ければ最も古い版）。停止した版は選ばない（T53-D2）。"""
     versions = FormTemplate.objects.filter(
-        form_id=form_id, language=language, owner=FormOwner.COMMON
+        form_id=form_id, language=language, owner=FormOwner.COMMON, suspended_at__isnull=True
     ).order_by("valid_from")
     applicable = versions.filter(valid_from__lte=basis_on).last()
     if applicable is not None:

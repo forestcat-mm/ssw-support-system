@@ -1,6 +1,7 @@
 from django.urls import path
 
 from apps.core import settings_views as views
+from apps.forms_engine import master_views
 
 app_name = "settings"
 
@@ -27,6 +28,8 @@ urlpatterns = [
         views.OfficerVoidView.as_view(),
         name="officer_void",
     ),
+    path("forms/", master_views.FormMasterView.as_view(), name="forms"),
+    path("forms/<int:pk>/", master_views.FormVersionView.as_view(), name="form_version"),
     path("offices/", views.OfficeListView.as_view(), name="offices"),
     path("offices/new/", views.OfficeFormView.as_view(), name="office_create"),
     path("offices/<int:pk>/", views.OfficeFormView.as_view(), name="office_edit"),

@@ -33,10 +33,17 @@ from apps.forms_engine.forms import (
     ConsultationRecordForm,
     PeriodicReportForm,
     PublicDutyPledgeForm,
+    RegenerateForm,
     SignatureForm,
     SubmissionBundleForm,
 )
-from apps.forms_engine.models import GeneratedDocument, GenerationStatus, SubmissionBundle
+from apps.forms_engine.models import (
+    FormOwner,
+    FormTemplate,
+    GeneratedDocument,
+    GenerationStatus,
+    SubmissionBundle,
+)
 from apps.hosts.models import HostOrganization, HostSite
 from apps.support.models import Briefing, DeliveryKind, PeriodicInterview, SupportPlanVersion
 from apps.support.record_forms import ReasonForm
@@ -53,6 +60,7 @@ from services import (
     form_data_consultation,
     form_data_periodic,
     form_generation,
+    form_master,
     form_signatures,
     form_templates,
     periodic_report,
@@ -137,6 +145,19 @@ class GeneratedDocumentView(ActionRequiredMixin, View):
             "back_url": back_url,
             "can_download": form_generation.can_download_pdf(request.user, document),
             "can_download_filled": form_generation.can_download_filled(request.user, document),
+            "regenerate_form": (
+                RegenerateForm(
+                    choices=FormTemplate.objects.filter(
+                        form_id=document.template.form_id,
+                        language=document.template.language,
+                        owner=FormOwner.COMMON,
+                    ).order_by("-valid_from"),
+                    initial={"template": document.template_id},
+                )
+                if document.status != GenerationStatus.REQUESTED
+                else None
+            ),
+            **once_context(request),
             "can_deliver": can_deliver,
             "delivery_kind": delivery_kind,
             "signature_state": form_signatures.state(document),
@@ -169,8 +190,51 @@ def filled_name(document: GeneratedDocument) -> str:
     return f"{document.template.form_id}_記入済み（編集用）_{day}_{document.pk}{suffix}"
 
 
+class GeneratedRegenerateView(ActionRequiredMixin, View):
+    """別の版（同じ版・旧版）で作り直す（生成のときのデータで新しい生成履歴。T53-D2）。"""
+
+    required_action = Action.FORMS_GENERATE
+
+    def post(self, request: HttpRequest, pk: int) -> HttpResponse:
+        document = get_object_or_404(GeneratedDocument.objects.select_related("template"), pk=pk)
+        if not form_generation.can_view(request.user, document):
+            raise PermissionDenied
+        url = reverse("forms:document", args=[document.pk])
+        if not consume_once_token(request):
+            messages.info(request, _("This form has already been submitted."))
+            return redirect(url)
+        form = RegenerateForm(
+            request.POST,
+            choices=FormTemplate.objects.filter(
+                form_id=document.template.form_id,
+                language=document.template.language,
+                owner=FormOwner.COMMON,
+            ),
+        )
+        if not form.is_valid():
+            messages.error(request, _("Choose a version."))
+            return redirect(url)
+        assert isinstance(request.user, User)
+        try:
+            created = form_master.regenerate(
+                document, form.cleaned_data["template"], by=request.user
+            )
+        except form_generation.GenerationBlocked as error:
+            messages.error(
+                request,
+                _("Not generated: %(count)s problem(s) now block the generation.")
+                % {"count": len(error.result.blocking)},
+            )
+            return redirect(url)
+        except ValidationError as error:
+            messages.error(request, " ".join(error.messages))
+            return redirect(url)
+        messages.success(request, _("Requested the generation with the chosen version."))
+        return redirect("forms:document", created.pk)
+
+
 class GeneratedFilledDownloadView(View):
-    """記入済みの xlsx（編集用）。定期届出の様式から（D9。T53 でほかの様式に広げる）。"""
+    """記入済みの docx・xlsx（編集用。D9・T53-D3）。"""
 
     def get(self, request: HttpRequest, pk: int) -> FileResponse:
         document = get_object_or_404(GeneratedDocument.objects.select_related("template"), pk=pk)

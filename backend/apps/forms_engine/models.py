@@ -78,6 +78,9 @@ class FormTemplate(TrackedModel):
     template_path = models.CharField(_("template file"), max_length=255, blank=True)
     template_sha256 = models.CharField(_("template SHA-256"), max_length=64, blank=True)
     manifest = models.JSONField(_("manifest"), default=dict)
+    # 版の停止（不備のある新しい版を選ばれないようにして前の版に戻す。T53-D2）。読み込みでは変えない
+    suspended_at = models.DateTimeField(_("suspended at"), null=True, blank=True)
+    suspended_reason = models.CharField(_("reason for suspension"), max_length=200, blank=True)
 
     class Meta:
         verbose_name = _("form template")
@@ -172,7 +175,7 @@ class GeneratedDocument(TrackedModel):
     failure_reason = models.CharField(_("failure reason"), max_length=200, blank=True)
     generated_at = models.DateTimeField(_("generated at"), null=True, blank=True)
     converter_version = models.CharField(_("converter"), max_length=100, blank=True)
-    # 記入済みの docx・xlsx（保存だけ。取り出しは段階4 の F13 で決める）と PDF
+    # 記入済みの docx・xlsx（「記入済み（編集用）」でダウンロードできる。D9・T53-D3）と PDF
     filled_file = PrivateFileField(
         _("filled file"), upload_to=generated_upload_to, max_length=255, blank=True
     )

@@ -1,0 +1,19 @@
+{% extends "settings/base.html" %}{% load i18n %}
+{% block settings_content %}
+<p class="muted">{% translate "Versions of the forms (form ID × valid-from date × template × mapping). A new version is added to the repository data and loaded with make forms. The version for a basis date is chosen automatically; a suspended version is not chosen." %}</p>
+<div class="table-scroll">
+  <table class="table table--list" id="form-master">
+    <thead><tr><th>{% translate "form ID" %}</th><th>{% translate "name" %}</th><th>{% translate "valid from" %}</th><th>{% translate "language" %}</th><th>{% translate "method" %}</th><th>{% translate "generated" %}</th><th>{% translate "status" %}</th></tr></thead>
+    <tbody>{% for group in groups %}{% for template in group.versions %}
+      <tr data-form="{{ template.form_id }}" data-version="{{ template.pk }}"{% if template.suspended_at %} class="is-voided"{% endif %}>
+        <td class="mono">{% if forloop.first %}{{ template.form_id }}{% endif %}</td>
+        <td><a href="{% url 'settings:form_version' template.pk %}">{{ template.name }}</a></td>
+        <td class="mono">{{ template.valid_from|date:"Y-m-d" }}{% if template.revision_unknown %} <span class="caption">{% translate "revision date unknown" %}</span>{% endif %}</td>
+        <td>{{ template.language }}</td>
+        <td class="caption">{{ template.get_method_display }}</td>
+        <td class="num">{{ template.documents }}</td>
+        <td>{% if template.suspended_at %}<span class="badge badge--overdue">{% translate "suspended" %}</span>{% else %}<span class="badge badge--open">{% translate "used for new forms" %}</span>{% endif %}</td>
+      </tr>{% endfor %}{% endfor %}</tbody>
+  </table>
+</div>
+{% endblock %}

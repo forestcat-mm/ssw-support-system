@@ -36,6 +36,16 @@
       <dt>{% translate "signature" %}</dt><dd id="document-signature">{% if signature_state == "signed" %}{% translate "signed" %}（{{ signed_on|date:"Y-m-d" }}）{% elif signature_state == "awaiting" %}{% translate "awaiting signature" %}{% elif signature_state == "not_required" %}{% translate "no signature needed" %}{% else %}—{% endif %}</dd>
     </dl>
   </section>
+  {% if regenerate_form %}
+  <section class="card" id="document-regenerate">
+    <div class="card__header"><h2 class="card__title">{% translate "Generate again with a version" %}</h2></div>
+    <p class="caption">{% translate "Generate this form again from the data at generation with the chosen version (the same version or an older one). A new generation record is made; this one stays." %}</p>
+    <form class="form cluster" method="post" action="{% url 'forms:document_regenerate' document.pk %}" novalidate>{% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+      {% form_field regenerate_form.template %}
+      <button class="button button--neutral" type="submit">{% translate "Generate again" %}</button>
+    </form>
+  </section>
+  {% endif %}
   {% if document.findings %}
   <section class="card stack" id="document-findings">
     <div class="card__header"><h2 class="card__title">{% translate "Warnings at generation" %}</h2></div>

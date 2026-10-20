@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 01:07+0900\n"
+"POT-Creation-Date: 2026-10-21 01:30+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -1777,6 +1777,9 @@ msgstr "事務所"
 msgid "Standard support plan"
 msgstr "標準の支援計画"
 
+msgid "Form master"
+msgstr "様式マスタ"
+
 msgid "Audit logs"
 msgstr "監査ログ"
 
@@ -3523,6 +3526,12 @@ msgstr "措置を申請した日"
 msgid "specific reason"
 msgstr "具体的な理由"
 
+msgid "Resumed the version."
+msgstr "版の停止を解除しました。"
+
+msgid "Suspended the version. The previous version is used."
+msgstr "版を停止しました。前の版を使います。"
+
 msgid "common"
 msgstr "共通"
 
@@ -3588,6 +3597,12 @@ msgstr "template の SHA-256"
 
 msgid "manifest"
 msgstr "様式の定義（manifest）"
+
+msgid "suspended at"
+msgstr "停止した日時"
+
+msgid "reason for suspension"
+msgstr "停止の理由"
 
 msgid "form template"
 msgstr "様式"
@@ -4175,6 +4190,18 @@ msgstr "署名"
 msgid "no signature needed"
 msgstr "署名は不要"
 
+msgid "Generate again with a version"
+msgstr "版を選んで作り直す"
+
+msgid ""
+"Generate this form again from the data at generation with the chosen version"
+" (the same version or an older one). A new generation record is made; this "
+"one stays."
+msgstr "生成のときのデータで、選んだ版（同じ版・旧い版）でこの様式を作り直します。新しい生成履歴ができ、この生成履歴は残ります。"
+
+msgid "Generate again"
+msgstr "作り直す"
+
 msgid "Warnings at generation"
 msgstr "生成のときの警告"
 
@@ -4264,6 +4291,48 @@ msgid ""
 "Remove the row of %(name)s from the bulk notification. The filing task and "
 "files already generated stay."
 msgstr "%(name)s の行を一括届出から外します。届出タスクと、作ったファイルは残ります。"
+
+msgid "suspended"
+msgstr "停止中"
+
+#, python-format
+msgid "%(counter)s field"
+msgid_plural "%(counter)s fields"
+msgstr[0] "%(counter)s 欄"
+
+#, python-format
+msgid "%(counter)s rule"
+msgid_plural "%(counter)s rules"
+msgstr[0] "%(counter)s 規則"
+
+msgid "Versions of this form"
+msgstr "この様式の版"
+
+msgid "Suspend or resume"
+msgstr "停止・解除"
+
+msgid "Resume this version"
+msgstr "この版の停止を解除する"
+
+msgid ""
+"Suspend a version that has a problem. It is no longer chosen for new forms "
+"and the previous version is used instead. Generated forms stay."
+msgstr "不備のある版を停止します。新しく作る様式でこの版を選ばなくなり、前の版を使います。作った様式は残ります。"
+
+msgid "Suspend this version"
+msgstr "この版を停止する"
+
+msgid ""
+"Versions of the forms (form ID × valid-from date × template × mapping). A "
+"new version is added to the repository data and loaded with make forms. The "
+"version for a basis date is chosen automatically; a suspended version is not"
+" chosen."
+msgstr ""
+"様式の版（様式 ID × 適用開始日 × テンプレート × マッピング定義）の一覧です。新しい版はリポジトリのデータに足し、make forms "
+"で読み込みます。基準日に当たる版を自動で選び、停止した版は選びません。"
+
+msgid "used for new forms"
+msgstr "使用中"
 
 msgid ""
 "Form 3-6, attachment 1 (for each workplace, five people per sheet) and "
@@ -4418,6 +4487,16 @@ msgstr "生成した帳票はありません。"
 
 msgid "Signed documents without a generation record"
 msgstr "生成履歴の無い署名済みの書類"
+
+msgid "Choose a version."
+msgstr "版を選んでください。"
+
+#, python-format
+msgid "Not generated: %(count)s problem(s) now block the generation."
+msgstr "作っていません。今は %(count)s 件の不足で生成できません。"
+
+msgid "Requested the generation with the chosen version."
+msgstr "選んだ版で生成を依頼しました。"
 
 msgid "Attached the signed copy."
 msgstr "署名済みの書類を添付しました。"
@@ -8713,6 +8792,17 @@ msgstr "「%(label)s」は全角で書いてください。"
 #, python-format
 msgid "\"%(label)s\" is longer than %(limit)d characters."
 msgstr "「%(label)s」が %(limit)d 文字を超えています。"
+
+msgid ""
+"This is the only version in use. Load a corrected version before suspending "
+"it."
+msgstr "使っている版はこの 1 つだけです。直した版を読み込んでから停止してください。"
+
+msgid "Choose a version of the same form."
+msgstr "同じ様式の版を選んでください。"
+
+msgid "The target of this form no longer exists."
+msgstr "この様式の対象がもうありません。"
 
 msgid "A signed copy cannot be added to this document."
 msgstr "この帳票には署名済みの書類を添付できません。"

@@ -1,0 +1,41 @@
+{% extends "settings/base.html" %}{% load i18n ui %}
+{% block settings_content %}
+<p class="caption"><a href="{% url 'settings:forms' %}">← {% translate "Form master" %}</a></p>
+<section class="card" id="form-version">
+  <div class="card__header"><h2 class="card__title">{{ template.form_id }} {{ template.name }}</h2>{% if template.suspended_at %}<span class="badge badge--overdue">{% translate "suspended" %}</span>{% endif %}</div>
+  <dl class="fields">
+    <dt>{% translate "valid from" %}</dt><dd class="mono">{{ template.valid_from|date:"Y-m-d" }}</dd>
+    <dt>{% translate "revision date" %}</dt><dd class="mono">{% if template.revision_date %}{{ template.revision_date|date:"Y-m-d" }}{% else %}{% translate "revision date unknown" %}{% endif %}</dd>
+    <dt>{% translate "language" %}</dt><dd>{{ template.language }}</dd>
+    <dt>{% translate "method" %}</dt><dd>{{ template.get_method_display }}</dd>
+    <dt>{% translate "source URL" %}</dt><dd class="mono" style="overflow-wrap: anywhere">{{ template.source_url }}</dd>
+    <dt>{% translate "retrieved on" %}</dt><dd class="mono">{{ template.retrieved_on|date:"Y-m-d" }}</dd>
+    <dt>ADR</dt><dd>{{ source.adr|default:"—" }}</dd>
+    <dt>{% translate "original SHA-256" %}</dt><dd class="mono" style="overflow-wrap: anywhere">{{ template.original_sha256 }}</dd>
+    {% if template.template_sha256 %}<dt>{% translate "template SHA-256" %}</dt><dd class="mono" style="overflow-wrap: anywhere">{{ template.template_sha256 }}</dd>{% endif %}
+    <dt>{% translate "mapping file" %}</dt><dd class="mono" style="overflow-wrap: anywhere">{{ mapping.path }} · {% blocktranslate count counter=field_count %}{{ counter }} field{% plural %}{{ counter }} fields{% endblocktranslate %}</dd>
+    <dt>{% translate "rules file" %}</dt><dd class="mono" style="overflow-wrap: anywhere">{{ mapping.rules_path|default:"—" }} · {% blocktranslate count counter=rule_count %}{{ counter }} rule{% plural %}{{ counter }} rules{% endblocktranslate %}</dd>
+    <dt>{% translate "generated" %}</dt><dd class="num">{{ document_count }}</dd>
+    {% if template.suspended_at %}<dt>{% translate "reason for suspension" %}</dt><dd>{{ template.suspended_reason }} <span class="caption mono">{{ template.suspended_at|date:"Y-m-d H:i" }}</span></dd>{% endif %}
+  </dl>
+</section>
+<section class="card" id="form-versions">
+  <div class="card__header"><h2 class="card__title">{% translate "Versions of this form" %}</h2></div>
+  <ul class="stack" style="list-style: none; padding: 0; margin: 0">{% for other in siblings %}<li data-version="{{ other.pk }}">{% if other.pk == template.pk %}<strong class="mono">{{ other.valid_from|date:"Y-m-d" }}</strong>{% else %}<a class="mono" href="{% url 'settings:form_version' other.pk %}">{{ other.valid_from|date:"Y-m-d" }}</a>{% endif %}{% if other.suspended_at %} <span class="caption">{% translate "suspended" %}</span>{% endif %}</li>{% endfor %}</ul>
+</section>
+<section class="card" id="form-suspension">
+  <div class="card__header"><h2 class="card__title">{% translate "Suspend or resume" %}</h2></div>
+  {% if template.suspended_at %}
+  <form method="post" novalidate id="form-resume">{% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}"><input type="hidden" name="action" value="resume">
+    <button class="button button--primary" type="submit">{% translate "Resume this version" %}</button>
+  </form>
+  {% else %}
+  <p class="caption">{% translate "Suspend a version that has a problem. It is no longer chosen for new forms and the previous version is used instead. Generated forms stay." %}</p>
+  <form class="form stack" method="post" novalidate id="form-suspend">{% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}"><input type="hidden" name="action" value="suspend">
+    {% include "ui/components/form_errors.html" with form=suspend_form %}
+    {% form_field suspend_form.reason %}
+    <div class="form-actions"><button class="button button--danger" type="submit">{% translate "Suspend this version" %}</button></div>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}

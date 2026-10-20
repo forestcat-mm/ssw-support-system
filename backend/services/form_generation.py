@@ -9,7 +9,8 @@
 2. run()（ジョブ）: マッピング定義でデータを様式の欄の値にし、Excel はセルの値だけを書き、Word は
    差込タグに差し込み、PDF に変換する。完了なら記入済みのファイルと PDF を保存する。失敗なら出力を
    残さず、失敗の理由（個人情報を含まない）を残す。
-3. ダウンロード（PDF だけ）は can_download_pdf を通した view からだけ（URL を作らない）。
+3. ダウンロード（PDF と記入済みの docx・xlsx）は can_download_pdf・can_download_filled を通した
+   view からだけ（URL を作らない）。
 
 生成履歴は上書きしない。同じ内容でも再生成は新しい行になる。
 """
@@ -371,9 +372,18 @@ def request(
     by: User | None,
     language: str = "ja",
     accept_warnings: bool = False,
+    template: FormTemplate | None = None,
 ) -> GeneratedDocument:
-    """生成を依頼する（検査を通し、生成履歴を作り、ジョブを登録する）。"""
-    selection = form_templates.select_template(form_id, basis_on, language=language)
+    """生成を依頼する（検査を通し、生成履歴を作り、ジョブを登録する）。
+
+    template は担当者が明示的に選んだ版（別の版で作り直す。T53-D2）。無ければ基準日で選ぶ。
+    """
+    if template is None:
+        selection = form_templates.select_template(form_id, basis_on, language=language)
+    else:
+        if template.form_id != form_id:
+            raise MappingError(f"the chosen version is not {form_id}")
+        selection = form_templates.Selection(template, before_first_version=False)
     template = selection.template
     result = _check(template, target, data, basis_on)
     data = prepared(template, data)
@@ -582,16 +592,12 @@ def can_view(user: AnyUser, document: GeneratedDocument) -> bool:
     return authorization.scope(user, ForeignWorker.objects.filter(pk=document.worker_id)).exists()
 
 
-# 記入済みの xlsx（編集用）を取り出せる様式（D9。定期届出は受入れ機関が記入するので T51 で先に使う。
-# T53 でほかの様式に広げる）
-FILLED_FORM_IDS = frozenset({"3-6", "3-6-1", "3-6-2"})
-
-
 def can_download_filled(user: AnyUser, document: GeneratedDocument) -> bool:
-    """記入済みのファイル（編集用）をダウンロードできるか（生成物を見る権限と同じ。D9）。"""
+    """記入済みのファイル（編集用の docx・xlsx）をダウンロードできるか（D9・T53-D3）。
+
+    生成物を見る権限と同じ（ダウンロードは監査ログに残す）。
+    """
     if document.status != GenerationStatus.COMPLETED or not document.filled_file:
-        return False
-    if document.template.form_id not in FILLED_FORM_IDS:
         return False
     return can_view(user, document)
 

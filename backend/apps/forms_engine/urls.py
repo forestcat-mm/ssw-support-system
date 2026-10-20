@@ -7,6 +7,11 @@ app_name = "forms"
 urlpatterns = [
     path("documents/<int:pk>/", views.GeneratedDocumentView.as_view(), name="document"),
     path(
+        "documents/<int:pk>/regenerate/",
+        views.GeneratedRegenerateView.as_view(),
+        name="document_regenerate",
+    ),
+    path(
         "documents/<int:pk>/filled/",
         views.GeneratedFilledDownloadView.as_view(),
         name="document_filled",
