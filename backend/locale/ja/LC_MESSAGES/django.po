@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 00:46+0900\n"
+"POT-Creation-Date: 2026-10-21 00:53+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -4021,6 +4021,9 @@ msgid ""
 msgstr "%(name)s と申請ごとの入力を一括申請から外します。作ったファイルは残ります。"
 
 msgid "New bulk application"
+msgstr "一括申請を作る"
+
+msgid "Create the bulk application"
 msgstr "一括申請を作る"
 
 msgid ""

@@ -10,7 +10,7 @@
   {% include "ui/components/form_errors.html" %}
   <section class="card stack">{% for field in form %}{% form_field field %}{% endfor %}</section>
   <div class="form-actions">
-    <button class="button button--primary" type="submit">{% translate "Create" %}</button>
+    <button class="button button--primary" type="submit">{% translate "Create the bulk application" %}</button>
     <a class="button button--neutral" href="{% url 'forms:bulk_list' %}">{% translate "Cancel" %}</a>
   </div>
 </form>
