@@ -397,8 +397,11 @@ def test_field_rules(rule: dict[str, Any], value: Any, message: str | None) -> N
 
 
 # 規則を持たない様式（外国人が 1 人に決まらないので、外国人を見る規則を置けない。ADR-0024）
-# 一括登録用ツールの入力チェックは列の表（.columns.json）で確かめる（ADR-0039）
-WITHOUT_RULES = {"5-4", "bulk-coe", "bulk-ext", "bulk-chg"}
+# 一括登録用ツール・一括申込用ツールの入力チェックは列の表（.columns.json）で確かめる
+# （ADR-0039・ADR-0040）
+WITHOUT_RULES = {"5-4", "bulk-coe", "bulk-ext", "bulk-chg"} | {
+    f"efile-{number}" for number in ("3-1", "3-2", "3-3", "3-4", "3-5", "3-7", "4-3")
+}
 
 
 def test_every_rule_file_in_the_repository_loads(loaded: None) -> None:

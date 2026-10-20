@@ -1,0 +1,21 @@
+{
+  "form_id": "efile-3-1",
+  "name": "電子届出 一括申込用Excelツール（特定技能雇用契約に係る届出。参考様式第3-1号（別紙））",
+  "valid_from": "2026-04-01",
+  "language": "ja",
+  "owner": "common",
+  "method": "xlsm-efile",
+  "requires_signed_copy": false,
+  "original": "original.xlsm",
+  "source": {
+    "url": "https://www.moj.go.jp/isa/content/001344485.zip",
+    "page": "https://www.moj.go.jp/isa/applications/online/i-ens_faq_manual_00002.html",
+    "retrieved_on": "2026-10-20",
+    "revision_date": null,
+    "revision_date_unknown": true,
+    "original_sha256": "77ee8b6e688d67504a7e1944e4e411e613a38860b2c6d42bc2fa9e8957b1414c",
+    "archive_sha256": "71d8a0a390f0c42e9d6b4db19517295c530cc19f7da2375abc3a760957bdf6cd",
+    "archive_member": "特定技能雇用契約に係る届出.xlsm",
+    "adr": "ADR-0040（zip の中の xlsm。docProps の更新日 2026-04-01・zip の Last-Modified 2026-04-02。版の記載なし）"
+  }
+}

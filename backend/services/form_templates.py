@@ -154,8 +154,9 @@ def _load_one(manifest_path: Path, *, by: User | None, report: LoadReport) -> No
         definition = json.loads(mapping_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as error:
         raise FormTemplateError(f"{mapping_path}: {error}") from error
-    if data["method"] == FormMethod.XLSM_ROWS:
-        # 一括登録用ツール: 列の表（道具の出力）を欄の対応と一緒に持つ（T47、ADR-0039）
+    if data["method"] in (FormMethod.XLSM_ROWS, FormMethod.XLSM_EFILE):
+        # 一括登録用ツール・一括申込用ツール: 列の表（道具の出力）を欄の対応と一緒に持つ
+        # （T47、ADR-0039。T50、ADR-0040）
         columns_path = mapping_path.with_name(f"{stem}.columns.json")
         definition["columns_table"] = _read_columns(columns_path, data, original_sha, definition)
         mapping_sha = hashlib.sha256(
@@ -296,7 +297,15 @@ def _read_columns(
             raise FormTemplateError(f"{path}: {name} does not match the manifest")
     if table.get("tool", {}).get("sha256") != original_sha:
         raise FormTemplateError(f"{path}: made from another workbook (SHA-256)")
-    cells = {f"{column['sheet']}!{column['column']}" for column in table["columns"]}
+    if manifest["method"] == FormMethod.XLSM_EFILE:
+        # 電子届出: 列（日付は「C,E,G」）・入力規則だけの列（3-2 の大分類）・届出機関の欄
+        cells = (
+            {column["column"] for column in table["columns"]}
+            | set(table.get("lists", {}))
+            | {f"org:{key}" for key in table.get("organization_cells", {})}
+        )
+    else:
+        cells = {f"{column['sheet']}!{column['column']}" for column in table["columns"]}
     unknown = [
         item["target"] for item in definition.get("fields", []) if item["target"] not in cells
     ]

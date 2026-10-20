@@ -28,6 +28,15 @@ class FilingKind(models.TextChoices):
     CONTRACT_NEW = "contract_new", _("notification of conclusion of a new employment contract")
     ACCEPTANCE_DIFFICULTY = "acceptance_difficulty", _("notification of difficulty in acceptance")
     SUPPORT_PLAN_CHANGE = "support_plan_change", _("notification of change of support plan")
+    # 基準不適合（第3-5号）・支援計画の実施困難（第3-7号）。所属機関が手で起票する（T50-D7）
+    STANDARD_NONCONFORMITY = (
+        "standard_nonconformity",
+        _("notification of non-conformity with the standards (form 3-5)"),
+    )
+    SUPPORT_PLAN_DIFFICULTY = (
+        "support_plan_difficulty",
+        _("notification of difficulty in implementing the support plan (form 3-7)"),
+    )
     MISSING = "missing", _("notification of missing worker, etc.")
     SUPPORT_DIFFICULTY = (
         "support_difficulty",

@@ -1,0 +1,21 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{{ name }} | {% translate "Bulk notification" %}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{% url 'forms:efile' bulk.pk %}#rows">← {% translate "Bulk notification" %}: {{ label }}</a></p>
+  <h1>{% translate "Contents of the notification" %}: {{ name }}</h1>
+  <p class="caption"><a href="{% url 'filings:detail' row.filing_id %}">{{ row.filing.get_kind_display }}</a> · <span class="mono">{{ row.filing.basis_on|date:"Y-m-d" }}</span></p>
+{% endblock %}
+{% block content %}
+<form class="form" method="post" novalidate id="efile-row-form">
+  {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+  {% include "ui/components/form_errors.html" %}
+  <section class="card stack">
+    <p class="caption">{% translate "The values are made from the filing task first. The items of the foreign worker, the filer and the registered support organization come from the ledger." %}</p>
+    {% for field in form %}{% form_field field %}{% endfor %}
+  </section>
+  <div class="form-actions">
+    {% if not bulk.submitted_on %}<button class="button button--primary" type="submit">{% translate "Save" %}</button>{% endif %}
+    <a class="button button--neutral" href="{% url 'forms:efile' bulk.pk %}#rows">{% translate "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Bulk notifications" %}{% endblock %}
+{% block heading %}{% translate "Bulk notifications" %}{% endblock %}
+{% block actions %}<a class="button button--primary" href="{% url 'forms:efile_create' %}" id="efile-create">{% translate "New bulk notification" %}</a>{% endblock %}
+{% block content %}
+<p class="caption">{% translate "Excel files for the bulk filing tools of the electronic notification system (notifications of host organizations and the report of a special incident). Open the file in Excel on Windows, enable macros, press “Run” and attach the CSV on the application screen." %}</p>
+{% if rows %}
+<div class="table-wrap">
+  <table class="table table--list" id="efile-list">
+    <thead><tr><th>{% translate "notification" %}</th><th>{% translate "filer" %}</th><th>{% translate "title" %}</th><th>{% translate "rows" %}</th><th>{% translate "files" %}</th><th>{% translate "submitted on" %}</th></tr></thead>
+    <tbody>{% for item in rows %}
+      <tr data-efile="{{ item.bulk.pk }}">
+        <td><a href="{% url 'forms:efile' item.bulk.pk %}">{{ item.label }}</a></td>
+        <td>{% if item.bulk.host_organization %}{{ item.bulk.host_organization.name }}{% else %}{{ item.bulk.get_filer_display }}{% endif %}</td>
+        <td>{{ item.bulk.title|default:"—" }}</td>
+        <td class="num">{{ item.bulk.rows.all|length }}</td>
+        <td class="num">{{ item.bulk.files.all|length }}</td>
+        <td class="mono">{{ item.bulk.submitted_on|date:"Y-m-d"|default:"—" }}</td>
+      </tr>{% endfor %}</tbody>
+  </table>
+</div>
+{% else %}
+<div class="card"><div class="empty">{% translate "No bulk notifications yet." %}</div></div>
+{% endif %}
+{% endblock %}

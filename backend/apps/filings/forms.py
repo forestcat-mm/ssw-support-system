@@ -202,7 +202,13 @@ class ManualFilingForm(StyledFormMixin, forms.Form):
     """手動の起票。対象は外国人・雇用契約・受入れ機関のちょうど 1 つ。期限は種別から計算する。"""
 
     kind = forms.ChoiceField(
-        label=_("kind"), choices=[(k.value, k.label) for k in filings.MANUAL_KINDS]
+        label=_("kind"),
+        choices=[(k.value, k.label) for k in filings.MANUAL_KINDS],
+        # 第3-7号は所属機関が自ら支援を実施する場合。全部委託なら第4-3号（別紙1 の裏面。T50-D7）
+        help_text=_(
+            "Form 3-7 is for a host organization that implements the support itself. With full "
+            "entrustment, the registered support organization reports with form 4-3."
+        ),
     )
     basis_on = forms.DateField(
         label=pgettext_lazy("filing", "basis date"),

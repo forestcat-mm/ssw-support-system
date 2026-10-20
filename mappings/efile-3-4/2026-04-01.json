@@ -1,0 +1,127 @@
+{
+ "form_id": "efile-3-4",
+ "valid_from": "2026-04-01",
+ "note": "電子届出の一括申込用ツールの欄の対応（T50、ADR-0040）。tools/forms/make_efile_mappings.py が作る。値は services/efile_data.py が作る。届出機関は受入れ機関。",
+ "filer": "host",
+ "fields": [
+  {
+   "key": "p.name",
+   "target": "O",
+   "format": "text",
+   "label": "英字氏名"
+  },
+  {
+   "key": "p.sex",
+   "target": "P",
+   "format": "text",
+   "label": "性別",
+   "choices": true
+  },
+  {
+   "key": "p.nationality",
+   "target": "Q",
+   "format": "text",
+   "label": "国籍・地域",
+   "choices": true
+  },
+  {
+   "key": "p.birth_date",
+   "target": "R,T,V",
+   "format": "date3",
+   "label": "生年月日"
+  },
+  {
+   "key": "p.card",
+   "target": "X",
+   "format": "text",
+   "label": "在留カード番号"
+  },
+  {
+   "key": "p.field",
+   "target": "Y",
+   "format": "text",
+   "label": "特定産業分野",
+   "choices": true
+  },
+  {
+   "key": "p.category",
+   "target": "Z",
+   "format": "text",
+   "label": "業務区分",
+   "choices": true
+  },
+  {
+   "key": "e.reason",
+   "target": "B",
+   "format": "text",
+   "label": "届出の事由",
+   "choices": true
+  },
+  {
+   "key": "e.category",
+   "target": "C",
+   "format": "text",
+   "label": "事由の区分",
+   "choices": true
+  },
+  {
+   "key": "e.category_other",
+   "target": "D",
+   "format": "text",
+   "label": "事由の区分 その他内容",
+   "advice_length": 30
+  },
+  {
+   "key": "e.date",
+   "target": "E,G,I",
+   "format": "date3",
+   "label": "届出の事由発生年月日"
+  },
+  {
+   "key": "e.summary",
+   "target": "K",
+   "format": "text",
+   "label": "事案の概要",
+   "advice_length": 20
+  },
+  {
+   "key": "e.state",
+   "target": "L",
+   "format": "text",
+   "label": "特定技能外国人の現状",
+   "choices": true
+  },
+  {
+   "key": "e.intention",
+   "target": "M",
+   "format": "text",
+   "label": "受入れ継続のための措置 活動継続の意思",
+   "choices": true
+  },
+  {
+   "key": "e.measure",
+   "target": "N",
+   "format": "text",
+   "label": "受入れ継続のための措置 措置内容",
+   "choices": true
+  },
+  {
+   "key": "org.corporate_number",
+   "target": "org:corporate_number",
+   "format": "text",
+   "label": "法人番号"
+  },
+  {
+   "key": "org.name",
+   "target": "org:name",
+   "format": "text",
+   "label": "名称"
+  },
+  {
+   "key": "org.address",
+   "target": "org:address",
+   "format": "text",
+   "label": "住所"
+  }
+ ]
+}

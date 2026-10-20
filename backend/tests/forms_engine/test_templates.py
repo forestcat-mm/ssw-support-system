@@ -51,9 +51,16 @@ def test_loading_is_idempotent_and_records_the_sources(loaded: None) -> None:
         "bulk-coe 2026-06-04 ja",
         "bulk-ext 2026-06-04 ja",
         "career-plan 2026-10-18 ja",
+        "efile-3-1 2026-04-01 ja",
+        "efile-3-2 2026-04-01 ja",
+        "efile-3-3 2026-04-01 ja",
+        "efile-3-4 2026-04-01 ja",
+        "efile-3-5 2026-04-01 ja",
+        "efile-3-7 2026-04-01 ja",
+        "efile-4-3 2026-04-01 ja",
         "experience-certificate 2026-10-18 ja",
     ]
-    assert FormTemplate.objects.count() == 27 and FormMapping.objects.count() == 27
+    assert FormTemplate.objects.count() == 34 and FormMapping.objects.count() == 34
 
 
 def test_changed_original_stops_loading(repo_copy: tuple[Path, Path]) -> None:

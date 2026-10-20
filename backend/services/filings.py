@@ -106,6 +106,13 @@ KIND_DEFINITIONS: dict[FilingKind, KindDefinition] = {
     FilingKind.MISSING: KindDefinition(
         Category.IMMIGRATION_FILING, Filer.HOST, deadlines.ad_hoc_filing
     ),
+    # 基準不適合（第3-5号）・支援計画の実施困難（第3-7号）。手で起票する（T50-D7）
+    FilingKind.STANDARD_NONCONFORMITY: KindDefinition(
+        Category.IMMIGRATION_FILING, Filer.HOST, deadlines.ad_hoc_filing
+    ),
+    FilingKind.SUPPORT_PLAN_DIFFICULTY: KindDefinition(
+        Category.IMMIGRATION_FILING, Filer.HOST, deadlines.ad_hoc_filing
+    ),
     FilingKind.SUPPORT_DIFFICULTY: KindDefinition(
         Category.IMMIGRATION_FILING, Filer.SUPPORT_ORGANIZATION, deadlines.ad_hoc_filing
     ),
@@ -160,6 +167,8 @@ MANUAL_KINDS: tuple[FilingKind, ...] = (
     FilingKind.CONTRACT_NEW,
     FilingKind.SUPPORT_CONTRACT_CHANGE,
     FilingKind.SUPPORT_CONTRACT_END_OR_CONCLUSION,
+    FilingKind.STANDARD_NONCONFORMITY,
+    FilingKind.SUPPORT_PLAN_DIFFICULTY,
 )
 
 # 受入れ困難届出を併せて起票しない終了理由

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 23:13+0900\n"
+"POT-Creation-Date: 2026-10-21 00:46+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -1181,6 +1181,9 @@ msgstr "相談"
 
 msgid "Bulk applications"
 msgstr "一括申請"
+
+msgid "Bulk notifications"
+msgstr "一括届出"
 
 msgid "Settings"
 msgstr "設定"
@@ -2811,6 +2814,12 @@ msgstr "理由"
 msgid "Required when the task is not required, cancelled, or reopened."
 msgstr "対応不要・取消、または完了を取り消すときは必須。"
 
+msgid ""
+"Form 3-7 is for a host organization that implements the support itself. With"
+" full entrustment, the registered support organization reports with form "
+"4-3."
+msgstr "第3-7号は、受入れ機関が自ら支援を実施する場合の届出です。支援の全部を委託しているときは、登録支援機関が第4-3号で報告します。"
+
 msgctxt "filing"
 msgid "basis date"
 msgstr "起算日"
@@ -2838,6 +2847,12 @@ msgstr "受入れ困難届出"
 
 msgid "notification of change of support plan"
 msgstr "支援計画変更届出"
+
+msgid "notification of non-conformity with the standards (form 3-5)"
+msgstr "基準不適合に係る届出（第3-5号）"
+
+msgid "notification of difficulty in implementing the support plan (form 3-7)"
+msgstr "支援計画の実施困難に係る届出（第3-7号）"
 
 msgid "notification of missing worker, etc."
 msgstr "行方不明等届出"
@@ -3327,6 +3342,46 @@ msgstr "%(count)s 人を追加しました。"
 msgid "Removed the worker from the bulk application."
 msgstr "一括申請から外しました。"
 
+msgid "notification"
+msgstr "届出"
+
+msgid ""
+"The filer of forms 3-1 to 3-7. Not used for form 4-3 (own organization)."
+msgstr "第3-1号〜第3-7号の届出機関。第4-3号（自機関）では使いません。"
+
+msgid "title"
+msgstr "表題"
+
+msgid "Choose the host organization."
+msgstr "受入れ機関を選んでください。"
+
+#, python-format
+msgid "The heading of the form says up to %(count)s full-width characters."
+msgstr "様式の見出しは全角 %(count)s 文字以内です。"
+
+msgid "Estimated from the filing task. Check it."
+msgstr "届出タスクから推定した値です。確かめてください。"
+
+msgid "Created the bulk notification. Add filing tasks."
+msgstr "一括届出を作りました。届出タスクを追加してください。"
+
+#, python-format
+msgid "Not generated: fix the %(count)s problem(s) shown for each row."
+msgstr "作っていません。行ごとに出ている %(count)s 件を直してください。"
+
+msgid "Add filing tasks first."
+msgstr "先に届出タスクを追加してください。"
+
+#, python-format
+msgid "Added %(count)s row(s)."
+msgstr "%(count)s 行を追加しました。"
+
+msgid "The submission of this bulk notification has been recorded."
+msgstr "この一括届出は提出を記録済みです。"
+
+msgid "Removed the row from the bulk notification."
+msgstr "一括届出から行を外しました。"
+
 msgid ""
 "The form is not loaded. Ask an administrator to load the forms (make forms)."
 msgstr "様式が読み込まれていません。管理者に様式の読み込み（make forms）を依頼してください。"
@@ -3445,6 +3500,9 @@ msgstr "Word: 差込タグに差し込む"
 
 msgid "Excel tool with macros: one row per person"
 msgstr "マクロつきの Excel ツール（1 人 1 行）"
+
+msgid "Excel tool with macros for electronic notifications"
+msgstr "マクロつきの Excel ツール（電子届出）"
 
 msgid "form ID"
 msgstr "様式 ID"
@@ -3624,9 +3682,6 @@ msgstr "在留資格変更許可申請"
 msgid "procedure"
 msgstr "手続"
 
-msgid "title"
-msgstr "表題"
-
 msgid "intermediary (user of the online system)"
 msgstr "取次者（オンラインシステム利用者）"
 
@@ -3665,6 +3720,33 @@ msgstr "一括申請のファイル"
 
 msgid "bulk application files"
 msgstr "一括申請のファイル"
+
+msgid "bulk notification"
+msgstr "一括届出"
+
+msgid "bulk notifications"
+msgstr "一括届出"
+
+msgid "order"
+msgstr "並び順"
+
+msgid "values of the notification"
+msgstr "届出の内容"
+
+msgid "bulk notification row"
+msgstr "一括届出の行"
+
+msgid "bulk notification rows"
+msgstr "一括届出の行"
+
+msgid "rows"
+msgstr "行"
+
+msgid "bulk notification file"
+msgstr "一括届出のファイル"
+
+msgid "bulk notification files"
+msgstr "一括届出のファイル"
 
 msgid "Generate the missing documents"
 msgstr "不足の書類をまとめて生成"
@@ -4058,6 +4140,81 @@ msgstr "署名は不要"
 
 msgid "Warnings at generation"
 msgstr "生成のときの警告"
+
+msgid "Bulk notification"
+msgstr "一括届出"
+
+msgid "The bulk filing tool is not loaded. Run make forms."
+msgstr "一括申込用ツールが読み込まれていません。make forms を実行してください。"
+
+msgid "Rows"
+msgstr "行"
+
+msgid "estimated: check"
+msgstr "推定: 要確認"
+
+msgid ""
+"The check copies the input check of the macro of the tool. The macro checks "
+"future dates against the day it is run."
+msgstr "検査はツールのマクロの入力チェックを写したものです。マクロは、実行した日で未来の日付かを確かめます。"
+
+msgid "No rows yet."
+msgstr "まだ行がありません。"
+
+msgid "Add filing tasks"
+msgstr "届出タスクを追加"
+
+#, python-format
+msgid "%(counter)s row"
+msgid_plural "%(counter)s rows"
+msgstr[0] "%(counter)s 行"
+
+msgid ""
+"One file holds as many rows as the numbered rows of the form. Open the file "
+"in Excel on Windows, enable macros and press “Run” to make the CSV. On the "
+"application screen of the electronic notification system, choose “Attach "
+"(several people)” and attach only the CSV made by the tool, without editing "
+"it. The filer is the logged-in organization."
+msgstr ""
+"1 つのファイルには様式の番号の付いた行の数まで入れます。Windows の Excel で開き、マクロを有効にして「実行」を押すと CSV "
+"ができます。電子届出システムの申込の画面で「添付（複数人の場合）」を選び、ツールが出した CSV "
+"を編集せずに添付してください。届出機関はログインした機関です。"
+
+msgid "New bulk notification"
+msgstr "一括届出を作る"
+
+msgid "Create the bulk notification"
+msgstr "一括届出を作る"
+
+msgid ""
+"Excel files for the bulk filing tools of the electronic notification system "
+"(notifications of host organizations and the report of a special incident). "
+"Open the file in Excel on Windows, enable macros, press “Run” and attach the"
+" CSV on the application screen."
+msgstr ""
+"電子届出システムの一括申込用ツール（所属機関の随時届出・特異事案報告）の Excel ファイルです。Windows の Excel "
+"で開き、マクロを有効にして「実行」を押し、できた CSV を申込の画面で添付します。"
+
+msgid "No bulk notifications yet."
+msgstr "まだ一括届出がありません。"
+
+msgid "Contents of the notification"
+msgstr "届出の内容"
+
+msgid ""
+"The values are made from the filing task first. The items of the foreign "
+"worker, the filer and the registered support organization come from the "
+"ledger."
+msgstr "値は、はじめに届出タスクから作ります。外国人・届出機関・登録支援機関の欄は台帳から入れます。"
+
+msgid "Remove from the bulk notification"
+msgstr "一括届出から外す"
+
+#, python-format
+msgid ""
+"Remove the row of %(name)s from the bulk notification. The filing task and "
+"files already generated stay."
+msgstr "%(name)s の行を一括届出から外します。届出タスクと、作ったファイルは残ります。"
 
 msgid ""
 "Generate the pledge on the fulfillment of public obligations (form 1-26)"
@@ -4807,9 +4964,6 @@ msgstr "キャリアアッププランの版"
 
 msgid "career-up plan versions"
 msgstr "キャリアアッププランの版"
-
-msgid "order"
-msgstr "並び順"
 
 msgid "from year"
 msgstr "◯年目から"
@@ -7526,6 +7680,36 @@ msgstr "%(name)s がツールの選択肢にありません。"
 #, python-format
 msgid "When %(child)s is entered, enter %(parent)s."
 msgstr "%(child)s を入力している場合は、%(parent)s を入力してください。"
+
+msgid "This form cannot be filed in bulk."
+msgstr "この様式は一括届出にできません。"
+
+msgid "The filing task is for another form."
+msgstr "届出タスクが別の様式のものです。"
+
+msgid "The filing task has no foreign worker."
+msgstr "届出タスクに外国人がありません。"
+
+msgid "The filing task is not open."
+msgstr "届出タスクが未着手・対応中ではありません。"
+
+msgid "The filing task is for another host organization."
+msgstr "届出タスクが別の受入れ機関のものです。"
+
+msgid "The filing task is already in this bulk notification."
+msgstr "届出タスクはすでにこの一括届出に入っています。"
+
+msgid "This filing task cannot be filed in bulk."
+msgstr "この届出タスクは一括届出にできません。"
+
+msgid "name of the filer"
+msgstr "届出機関の名称"
+
+msgid "Enter it in the ledger."
+msgstr "台帳に入れてください。"
+
+msgid "Create the Excel file first."
+msgstr "先に Excel ファイルを作ってください。"
 
 msgid "Select a field of a site of this host organization."
 msgstr "この受入れ機関の事業所の分野を選んでください。"

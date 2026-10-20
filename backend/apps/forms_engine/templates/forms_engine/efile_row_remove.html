@@ -1,0 +1,16 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Remove from the bulk notification" %}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{% url 'forms:efile' bulk.pk %}#rows">← {% translate "Bulk notification" %}</a></p>
+  <h1>{% translate "Remove from the bulk notification" %}</h1>
+{% endblock %}
+{% block content %}
+<form class="form stack" method="post" novalidate id="efile-remove-form">
+  {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+  <p>{% blocktranslate %}Remove the row of {{ name }} from the bulk notification. The filing task and files already generated stay.{% endblocktranslate %}</p>
+  <div class="form-actions">
+    <button class="button button--danger" type="submit">{% translate "Remove" %}</button>
+    <a class="button button--neutral" href="{% url 'forms:efile' bulk.pk %}#rows">{% translate "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

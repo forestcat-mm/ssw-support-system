@@ -1,0 +1,6 @@
+{
+ "form_id": "efile-3-7",
+ "valid_from": "2026-04-01",
+ "note": "電子届出の一括申込用ツールの検査は列の表（.columns.json）で行う（services/efile_checks.py）。",
+ "rules": []
+}

@@ -1,0 +1,175 @@
+{
+ "form_id": "efile-3-3",
+ "valid_from": "2026-04-01",
+ "note": "電子届出の一括申込用ツールの欄の対応（T50、ADR-0040）。tools/forms/make_efile_mappings.py が作る。値は services/efile_data.py が作る。届出機関は受入れ機関。",
+ "filer": "host",
+ "fields": [
+  {
+   "key": "p.name",
+   "target": "O",
+   "format": "text",
+   "label": "英字氏名"
+  },
+  {
+   "key": "p.sex",
+   "target": "P",
+   "format": "text",
+   "label": "性別",
+   "choices": true
+  },
+  {
+   "key": "p.nationality",
+   "target": "Q",
+   "format": "text",
+   "label": "国籍・地域",
+   "choices": true
+  },
+  {
+   "key": "p.birth_date",
+   "target": "R,T,V",
+   "format": "date3",
+   "label": "生年月日"
+  },
+  {
+   "key": "p.card",
+   "target": "X",
+   "format": "text",
+   "label": "在留カード番号"
+  },
+  {
+   "key": "p.field",
+   "target": "Y",
+   "format": "text",
+   "label": "特定産業分野",
+   "choices": true
+  },
+  {
+   "key": "p.category",
+   "target": "Z",
+   "format": "text",
+   "label": "業務区分",
+   "choices": true
+  },
+  {
+   "key": "e.reason",
+   "target": "B",
+   "format": "text",
+   "label": "届出の事由",
+   "choices": true
+  },
+  {
+   "key": "e.date",
+   "target": "C,E,G",
+   "format": "date3",
+   "label": "届出の事由発生年月日"
+  },
+  {
+   "key": "e.conclusion_content",
+   "target": "I",
+   "format": "text",
+   "label": "Ａ 契約の締結 契約の内容",
+   "advice_length": 20
+  },
+  {
+   "key": "e.change_item",
+   "target": "J",
+   "format": "text",
+   "label": "Ｂ 変更の内容 変更事項",
+   "choices": true
+  },
+  {
+   "key": "e.change_content",
+   "target": "K",
+   "format": "text",
+   "label": "Ｂ 変更の内容 変更後の内容",
+   "advice_length": 20
+  },
+  {
+   "key": "e.end_major",
+   "target": "L",
+   "format": "text",
+   "label": "Ｃ 契約の終了 終了の事由 大分類",
+   "choices": true
+  },
+  {
+   "key": "e.end_minor",
+   "target": "M",
+   "format": "text",
+   "label": "Ｃ 契約の終了 終了の事由 小分類",
+   "choices": true
+  },
+  {
+   "key": "e.end_other",
+   "target": "N",
+   "format": "text",
+   "label": "Ｃ 契約の終了 終了の事由 その他の理由",
+   "advice_length": 20
+  },
+  {
+   "key": "s.registration_prefix",
+   "target": "AA",
+   "format": "text",
+   "label": "登録支援機関 登録番号（前２桁）"
+  },
+  {
+   "key": "s.registration_number",
+   "target": "AC",
+   "format": "text",
+   "label": "登録支援機関 登録番号（後６桁）"
+  },
+  {
+   "key": "s.corporate_number",
+   "target": "AD",
+   "format": "text",
+   "label": "登録支援機関 法人番号"
+  },
+  {
+   "key": "s.name",
+   "target": "AE",
+   "format": "text",
+   "label": "登録支援機関 機関の氏名又は名称"
+  },
+  {
+   "key": "s.postal_code",
+   "target": "AF",
+   "format": "text",
+   "label": "登録支援機関 郵便番号"
+  },
+  {
+   "key": "s.prefecture",
+   "target": "AG",
+   "format": "text",
+   "label": "登録支援機関 都道府県"
+  },
+  {
+   "key": "s.city",
+   "target": "AH",
+   "format": "text",
+   "label": "登録支援機関 市区町村"
+  },
+  {
+   "key": "s.street",
+   "target": "AI",
+   "format": "text",
+   "label": "登録支援機関 町名丁目番地号等"
+  },
+  {
+   "key": "org.corporate_number",
+   "target": "org:corporate_number",
+   "format": "text",
+   "label": "法人番号"
+  },
+  {
+   "key": "org.name",
+   "target": "org:name",
+   "format": "text",
+   "label": "名称"
+  },
+  {
+   "key": "org.address",
+   "target": "org:address",
+   "format": "text",
+   "label": "住所"
+  }
+ ]
+}

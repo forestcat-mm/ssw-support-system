@@ -37,6 +37,8 @@ class FormMethod(models.TextChoices):
     DOCX_TAGS = "docx-tags", _("Word: fill in tags")
     # 入管のマクロつきの一括登録用ツール（1 人 1 行。T47、ADR-0039）
     XLSM_ROWS = "xlsm-rows", _("Excel tool with macros: one row per person")
+    # 電子届出の一括申込用ツール（1 行 1 人。日付は 3 セル。T50、ADR-0040）
+    XLSM_EFILE = "xlsm-efile", _("Excel tool with macros for electronic notifications")
 
 
 class FormTemplate(TrackedModel):
@@ -485,3 +487,114 @@ class BulkApplicationFile(TrackedModel):
 
     def __str__(self) -> str:
         return f"{self.application} ({self.part}/{self.parts})"
+
+
+class BulkFilingFiler(models.TextChoices):
+    """一括届出の届出機関（受入れ機関の届出か、自機関の報告か。ADR-0040 決定 6）。"""
+
+    HOST = "host", _("host organization")
+    ORGANIZATION = "organization", _("own organization")
+
+
+class BulkFiling(TrackedModel):
+    """一括届出の 1 件（電子届出の一括申込用ツール 1 本・届出機関）。行と作った xlsm を持つ。"""
+
+    form_id = models.CharField(_("form ID"), max_length=32)
+    filer = models.CharField(_("filer"), max_length=16, choices=BulkFilingFiler.choices)
+    host_organization = models.ForeignKey(
+        "hosts.HostOrganization",
+        verbose_name=_("host organization"),
+        on_delete=models.PROTECT,
+        related_name="bulk_filings",
+        null=True,
+        blank=True,
+    )
+    title = models.CharField(_("title"), max_length=100, blank=True)
+    # 提出の記録（電子届出の申込の日と受付番号。行の届出タスクにも写す。T52）
+    submitted_on = models.DateField(_("submitted on"), null=True, blank=True)
+    receipt_number = models.CharField(_("receipt number"), max_length=50, blank=True)
+
+    class Meta:
+        verbose_name = _("bulk notification")
+        verbose_name_plural = _("bulk notifications")
+        ordering = ["-pk"]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(filer="organization", host_organization__isnull=True)
+                | Q(filer="host", host_organization__isnull=False),
+                name="forms_engine_bulk_filing_filer",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.form_id} #{self.pk}"
+
+
+class BulkFilingRow(TrackedModel):
+    """一括届出の 1 行（届出タスク 1 件。雇用契約の変更は変更事項ごとに行を分ける。T50-D10）。
+
+    inputs は届出の内容の欄の値（表示名。届出タスクから作った既定値を画面で直したもの）。
+    """
+
+    bulk = models.ForeignKey(
+        BulkFiling,
+        verbose_name=_("bulk notification"),
+        on_delete=models.CASCADE,
+        related_name="rows",
+    )
+    filing = models.ForeignKey(
+        "filings.Filing",
+        verbose_name=_("filing task"),
+        on_delete=models.PROTECT,
+        related_name="bulk_rows",
+    )
+    worker = models.ForeignKey(
+        "workers.ForeignWorker",
+        verbose_name=_("foreign worker"),
+        on_delete=models.PROTECT,
+        related_name="bulk_filing_rows",
+    )
+    position = models.PositiveSmallIntegerField(_("order"), default=0)
+    inputs = models.JSONField(_("values of the notification"), default=dict, blank=True)
+
+    class Meta:
+        verbose_name = _("bulk notification row")
+        verbose_name_plural = _("bulk notification rows")
+        ordering = ["position", "pk"]
+
+    def __str__(self) -> str:
+        return f"{self.bulk}: {self.worker}"
+
+
+class BulkFilingFile(TrackedModel):
+    """作った一括届出の xlsm（様式の行数ごとに 1 つ。追記だけ。T50-D3）。"""
+
+    bulk = models.ForeignKey(
+        BulkFiling,
+        verbose_name=_("bulk notification"),
+        on_delete=models.CASCADE,
+        related_name="files",
+    )
+    template = models.ForeignKey(
+        FormTemplate, verbose_name=_("form template"), on_delete=models.PROTECT, related_name="+"
+    )
+    part = models.PositiveSmallIntegerField(_("part"))
+    parts = models.PositiveSmallIntegerField(_("number of parts"))
+    file = PrivateFileField(_("file"), upload_to=bulk_upload_to, max_length=255)
+    sha256 = models.CharField("SHA-256", max_length=64)
+    row_ids = models.JSONField(_("rows"), default=list)
+    worker_ids = models.JSONField(_("foreign workers"), default=list)
+    snapshot = EncryptedCharField(_("data snapshot"))
+
+    class Meta:
+        verbose_name = _("bulk notification file")
+        verbose_name_plural = _("bulk notification files")
+        ordering = ["-pk"]
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        if not self._state.adding:
+            raise ImmutableRowError("bulk notification files cannot be changed")
+        super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return f"{self.bulk} ({self.part}/{self.parts})"

@@ -1,0 +1,55 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{{ label }} | {% translate "Bulk notifications" %}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{% url 'forms:efile_list' %}">← {% translate "Bulk notifications" %}</a></p>
+  <h1>{% translate "Bulk notification" %}: {{ label }}</h1>
+  <p class="caption">{% translate "filer" %}: <span id="efile-filer">{% if bulk.host_organization %}{{ bulk.host_organization.name }}{% else %}{{ bulk.get_filer_display }}{% endif %}</span>{% if bulk.title %} · {{ bulk.title }}{% endif %}</p>
+{% endblock %}
+{% block content %}
+<div class="stack">
+  {% if not_loaded %}<p class="message message--danger">{% translate "The bulk filing tool is not loaded. Run make forms." %}</p>{% endif %}
+  {% if general %}<ul class="messages" id="efile-general">{% for problem in general %}<li class="message message--danger"><strong>{{ problem.label }}</strong>: {{ problem.message }}</li>{% endfor %}</ul>{% endif %}
+  <section class="card" id="rows">
+    <div class="card__header"><h2 class="card__title">{% translate "Rows" %}</h2></div>
+    {% if lines %}
+    <div class="table-scroll"><table class="table table--list" id="efile-rows">
+      <thead><tr><th>{% translate "name" %}</th><th>{% translate "filing task" %}</th><th>{% translate "check" %}</th><th>{% translate "Actions" %}</th></tr></thead>
+      <tbody>{% for line in lines %}
+        <tr data-row="{{ line.row.pk }}" data-worker="{{ line.row.worker_id }}" data-filing="{{ line.row.filing_id }}">
+          <td><a href="{% url 'workers:detail' line.row.worker_id %}">{{ line.name }}</a></td>
+          <td><a href="{% url 'filings:detail' line.row.filing_id %}">{{ line.row.filing.get_kind_display }}</a> <span class="caption mono">{{ line.row.filing.basis_on|date:"Y-m-d" }}</span></td>
+          <td>{% if line.errors %}<details data-problems="{{ line.errors|length }}"><summary class="badge badge--overdue">{% blocktranslate count counter=line.errors|length %}{{ counter }} problem{% plural %}{{ counter }} problems{% endblocktranslate %}</summary><ul class="caption">{% for problem in line.errors %}<li><strong>{{ problem.label }}</strong>: {{ problem.message }}</li>{% endfor %}</ul></details>{% else %}<span class="badge badge--open" data-problems="0">{% translate "OK" %}</span>{% endif %}
+            {% if line.warnings %}<details data-warnings="{{ line.warnings|length }}"><summary class="badge badge--within-14">{% blocktranslate count counter=line.warnings|length %}{{ counter }} warning{% plural %}{{ counter }} warnings{% endblocktranslate %}</summary><ul class="caption">{% for problem in line.warnings %}<li><strong>{{ problem.label }}</strong>: {{ problem.message }}</li>{% endfor %}</ul></details>{% endif %}
+            {% if line.estimated %}<span class="badge badge--within-14" data-estimated>{% translate "estimated: check" %}</span>{% endif %}</td>
+          <td><div class="actions"><a class="button button--neutral button--small" href="{% url 'forms:efile_row' bulk.pk line.row.pk %}">{% translate "Inputs" %}</a>{% if not bulk.submitted_on %}<a class="button button--danger button--small" href="{% url 'forms:efile_row_remove' bulk.pk line.row.pk %}">{% translate "Remove" %}</a>{% endif %}</div></td>
+        </tr>{% endfor %}</tbody>
+    </table></div>
+    <p class="caption">{% translate "The check copies the input check of the macro of the tool. The macro checks future dates against the day it is run." %}</p>
+    {% else %}<p class="muted">{% translate "No rows yet." %}</p>{% endif %}
+    {% if add_form.fields.filings.choices %}
+    <form class="form stack" method="post" action="{% url 'forms:efile_add' bulk.pk %}" novalidate id="efile-add-form" style="margin-top: var(--space-12)">
+      {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+      <details><summary class="button button--neutral button--small">{% translate "Add filing tasks" %}</summary>
+        <div class="stack" style="margin-top: var(--space-8)">{% form_field add_form.filings %}
+          <div class="form-actions"><button class="button button--primary" type="submit">{% translate "Add" %}</button></div></div>
+      </details>
+    </form>
+    {% endif %}
+  </section>
+
+  <section class="card" id="files">
+    <div class="card__header"><h2 class="card__title">{% translate "Files" %}</h2></div>
+    {% if lines %}
+    <form method="post" novalidate id="efile-generate-form">
+      {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+      <button class="button button--primary" type="submit"{% if blocking %} disabled{% endif %}>{% translate "Generate the Excel file" %}</button>
+      {% if blocking %}<span class="caption">{% translate "Fix the problems first." %}</span>{% endif %}
+    </form>
+    {% endif %}
+    {% if files %}<ul class="attachment-list" style="margin-top: var(--space-12)">{% for record, downloadable in files %}
+      <li data-file="{{ record.pk }}">{% if downloadable %}<a class="attachment-list__name" href="{% url 'forms:efile_file' record.pk %}">{% translate "filled in (for editing)" %} {{ record.part }}/{{ record.parts }}</a>{% else %}<span>{% translate "filled in (for editing)" %} {{ record.part }}/{{ record.parts }}</span>{% endif %} <span class="caption mono">{{ record.created_at|date:"Y-m-d H:i" }} · {{ record.template.form_id }} {{ record.template.valid_from|date:"Y-m-d" }} · {% blocktranslate count counter=record.row_ids|length %}{{ counter }} row{% plural %}{{ counter }} rows{% endblocktranslate %}</span></li>
+    {% endfor %}</ul>{% endif %}
+    <p class="caption">{% translate "One file holds as many rows as the numbered rows of the form. Open the file in Excel on Windows, enable macros and press “Run” to make the CSV. On the application screen of the electronic notification system, choose “Attach (several people)” and attach only the CSV made by the tool, without editing it. The filer is the logged-in organization." %}</p>
+  </section>
+</div>
+{% endblock %}

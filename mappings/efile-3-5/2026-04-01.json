@@ -1,0 +1,125 @@
+{
+ "form_id": "efile-3-5",
+ "valid_from": "2026-04-01",
+ "note": "電子届出の一括申込用ツールの欄の対応（T50、ADR-0040）。tools/forms/make_efile_mappings.py が作る。値は services/efile_data.py が作る。届出機関は受入れ機関。",
+ "filer": "host",
+ "fields": [
+  {
+   "key": "p.name",
+   "target": "T",
+   "format": "text",
+   "label": "英字氏名"
+  },
+  {
+   "key": "p.sex",
+   "target": "U",
+   "format": "text",
+   "label": "性別",
+   "choices": true
+  },
+  {
+   "key": "p.nationality",
+   "target": "V",
+   "format": "text",
+   "label": "国籍・地域",
+   "choices": true
+  },
+  {
+   "key": "p.birth_date",
+   "target": "W,Y,AA",
+   "format": "date3",
+   "label": "生年月日"
+  },
+  {
+   "key": "p.card",
+   "target": "AC",
+   "format": "text",
+   "label": "在留カード番号"
+  },
+  {
+   "key": "p.field",
+   "target": "AD",
+   "format": "text",
+   "label": "特定産業分野",
+   "choices": true
+  },
+  {
+   "key": "p.category",
+   "target": "AE",
+   "format": "text",
+   "label": "業務区分",
+   "choices": true
+  },
+  {
+   "key": "e.known_on",
+   "target": "B,D,F",
+   "format": "date3",
+   "label": "基準不適合を知った日"
+  },
+  {
+   "key": "e.occurred_on",
+   "target": "H,J,L",
+   "format": "date3",
+   "label": "基準不適合が発生した日"
+  },
+  {
+   "key": "e.content",
+   "target": "N",
+   "format": "text",
+   "label": "基準不適合の内容",
+   "choices": true
+  },
+  {
+   "key": "e.trigger",
+   "target": "O",
+   "format": "text",
+   "label": "基準不適合を知った経緯・内容 端緒",
+   "choices": true
+  },
+  {
+   "key": "e.trigger_other",
+   "target": "P",
+   "format": "text",
+   "label": "端緒 その他内容"
+  },
+  {
+   "key": "e.detail",
+   "target": "Q",
+   "format": "text",
+   "label": "基準不適合の具体的な内容",
+   "advice_length": 30
+  },
+  {
+   "key": "e.response",
+   "target": "R",
+   "format": "text",
+   "label": "基準不適合への対応 対応区分",
+   "choices": true
+  },
+  {
+   "key": "e.result",
+   "target": "S",
+   "format": "text",
+   "label": "基準不適合への対応 対応結果",
+   "advice_length": 30
+  },
+  {
+   "key": "org.corporate_number",
+   "target": "org:corporate_number",
+   "format": "text",
+   "label": "法人番号"
+  },
+  {
+   "key": "org.name",
+   "target": "org:name",
+   "format": "text",
+   "label": "名称"
+  },
+  {
+   "key": "org.address",
+   "target": "org:address",
+   "format": "text",
+   "label": "住所"
+  }
+ ]
+}
