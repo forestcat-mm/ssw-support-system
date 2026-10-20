@@ -14,6 +14,7 @@ from playwright.sync_api import Page, Request, expect
 
 from apps.core.models import AttachmentKind, User
 from apps.hosts.models import HostMembership, SupportContract
+from apps.seed import support_builders
 from apps.workers.models import ForeignWorker
 from e2e.conftest import SignIn
 from services import attachments, form_templates, support_plans
@@ -27,7 +28,11 @@ from tests.workers.factories import add_residence, make_worker
 def worker() -> ForeignWorker:
     form_templates.load_all()
     today = timezone.localdate()
-    make_organization(name_kana="さんぷるとうろくしえんきかん", support_start_planned_on=today)
+    make_organization(
+        name_kana="さんぷるとうろくしえんきかん",
+        support_start_planned_on=today,
+        phone_number="03-0000-0001",
+    )
     office = make_office()
     manager = make_staff(
         office=office, name="山田 一郎", position="支援責任者", is_support_manager=True
@@ -53,7 +58,10 @@ def worker() -> ForeignWorker:
     SupportContract.objects.create(
         host_organization=host, concluded_on=today - timedelta(days=60), starts_on=today
     )
-    support_plans.create_plan(worker, host, applies_from=today, by=None)
+    # 第1-17号の欄が空にならないように、計画の欄を埋める（seed と同じ値。2026-10-20 の検査）
+    content = support_plans.content_for_worker(worker)
+    support_builders.fill_plan(content, today)
+    support_plans.create_plan(worker, host, applies_from=today, by=None, content=content)
     return worker
 
 

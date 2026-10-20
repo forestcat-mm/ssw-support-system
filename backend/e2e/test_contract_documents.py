@@ -37,6 +37,8 @@ def version() -> EmploymentContractVersion:
         consultation_contact_department="総務部",
         consultation_contact_person="総務課長 窓口 一郎",
         consultation_contact_phone="03-0000-0100",
+        has_deduction_agreement=True,  # 居住費の控除がある
+        work_rules_location="事務室に掲示",
     )
     add_residence(contract.worker, status_of_residence=StatusOfResidence.TECHNICAL_INTERN_2)
     return contract.versions.get()
