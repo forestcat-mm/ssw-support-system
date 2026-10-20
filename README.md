@@ -101,7 +101,9 @@ make messages       # UI 文言を .po に抽出し .mo にコンパイルする
 ```
 
 `tools/run_checks.sh` が `make checks` の検査を順に流し、`.checks/logs/<日時>_<名前>_checks.log` に、検査ごとの開始・終了の時刻・件数・終了コードと、最後に必ず `=== DONE` を書く（出力そのものは同じ名前の `.full.log`）。
-- 名前は `CHECKS_NAME` で付ける（例: `make checks CHECKS_NAME=phase4-blockD` → `.checks/logs/2026-10-21_1530_phase4-blockD_checks.log`）。付けなければ `<日時>_checks.log`。
+- 名前は `CHECKS_NAME` で付ける（例: `make checks CHECKS_NAME=phase4-blockD` → `.checks/logs/2026-10-21_1530_phase4-blockD_checks.log`）。
+- `CHECKS_NAME` を付けなければ、既定の名前は `.checks/logs/<日時>_checks.log`（例: `.checks/logs/2026-10-21_0833_checks.log`。`make -n checks` で確かめた）。日時は `make checks` を始めた時刻（`YYYY-MM-DD_HHMM`）。出力そのものは `<日時>_checks.full.log`。
+- ログの名前をまるごと決めたいときは `CHECKS_LOG=.checks/logs/<名前>.log` を渡す（このときは `CHECKS_NAME` を使わない）。
 - いちばん新しいログは `.checks/logs/latest.log`（出力は `latest.full.log`）でも開ける（実行の始めにリンクを付け替える）。
 - `.checks/` の並べ方は `.checks/README.md`（目次）と CLAUDE.md の「.checks/ の置き方」。
 - 1 件の上限は `CHECK_LIMIT`（秒。既定 900）。超えたら止めて、終了コード 124 にする。
