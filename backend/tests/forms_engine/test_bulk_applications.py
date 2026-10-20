@@ -155,3 +155,20 @@ def test_bulk_application_and_the_application_set_link_each_other(loaded: None) 
     bulk_applications.generate(application, by=None)
     entry.refresh_from_db()
     assert len(bulk_applications.files_of_worker(entry)) == 1
+
+
+@pytest.mark.parametrize("procedure", ["extension", "change"])
+def test_desired_period_can_be_chosen_on_the_screen(loaded: None, procedure: str) -> None:
+    """希望する在留期間の選択肢: 更新は「特定技能１号（…）」に絞る。
+
+    変更の表（「１年」など）は絞らない（絞ると空になり、画面で選べなかった）。
+    """
+    from apps.forms_engine.bulk_forms import EntryForm
+
+    application = complete_application(procedure, people=1)
+    entry = application.entries.get()
+    template = bulk_applications.template_of(application)
+    form = EntryForm(entry=entry, definition=template.mapping.definition, show_sensitive=False)
+    field = form.fields["desired_period"]
+    choices = [value for value, _label in field.choices if value]  # type: ignore[attr-defined]
+    assert entry.inputs["desired_period"] in choices

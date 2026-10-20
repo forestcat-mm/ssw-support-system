@@ -218,7 +218,12 @@ class EntryForm(StyledFormMixin, forms.Form):
                 return None
             rows = immigration_codes.procedure_table(code, self.procedure)
             if spec.prefix:
-                rows = [(value, label) for value, label in rows if label.startswith(spec.prefix)]
+                # 表示名の頭で絞る（更新の表は「特定技能１号（１年）」。変更の表は「１年」で、
+                # 絞ると空になるので絞らない）
+                narrowed = [
+                    (value, label) for value, label in rows if label.startswith(spec.prefix)
+                ]
+                rows = narrowed or rows
             return forms.ChoiceField(
                 label=spec.label,
                 choices=[("", "---------")]
