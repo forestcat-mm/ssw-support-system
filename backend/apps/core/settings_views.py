@@ -28,6 +28,7 @@ from apps.core.models import (
     Office,
     OfficeManagerPeriod,
     Organization,
+    OrganizationOfficer,
     Staff,
     User,
 )
@@ -38,6 +39,7 @@ from apps.core.settings_forms import (
     InviteForm,
     OfficeForm,
     OrganizationForm,
+    OrganizationOfficerForm,
     StaffForm,
 )
 from apps.core.views import invitation_url_builder
@@ -52,6 +54,7 @@ from apps.support.forms import PlanEditor
 from services import (
     audit_search,
     authorization,
+    host_application,
     invitations,
     mfa,
     organization,
@@ -517,8 +520,13 @@ class OrganizationView(SettingsView):
         org = Organization.objects.first()
         certificates = organization.council_certificates(org) if org else []
         current = next((c for c in certificates if c.voided_at is None), None)
+        officers = list(org.officers.all()) if org else []
         return self.render(
-            request, organization=org, certificates=certificates, current_certificate=current
+            request,
+            organization=org,
+            certificates=certificates,
+            current_certificate=current,
+            officers=officers,
         )
 
 
@@ -532,6 +540,84 @@ class OrganizationEditView(RecordFormView):
 
     def instance(self, pk: int | None) -> Model | None:
         return Organization.objects.first()  # 1 行だけ（無ければ登録）
+
+
+class OfficerEditView(SettingsView):
+    """自機関の役員の追加（pk なし）・編集（T46b。帳簿①）。"""
+
+    tab = "organization"
+    template_name = "settings/form.html"
+    required_action = Action.ORGANIZATION_MANAGE
+
+    def target(self, pk: int | None) -> tuple[Organization, OrganizationOfficer | None]:
+        org = Organization.objects.first()
+        if org is None:
+            raise Http404
+        if pk is None:
+            return org, None
+        return org, get_object_or_404(
+            OrganizationOfficer, pk=pk, organization=org, voided_at__isnull=True
+        )
+
+    def page(self, request: HttpRequest, officer: Any, form: Any) -> HttpResponse:
+        return self.render(
+            request,
+            form=form,
+            title=_("Edit the officer") if officer else _("Add an officer"),
+            back=reverse("settings:organization") + "#officers",
+        )
+
+    def get(self, request: HttpRequest, pk: int | None = None) -> HttpResponse:
+        _org, officer = self.target(pk)
+        return self.page(request, officer, OrganizationOfficerForm(instance=officer))
+
+    def post(self, request: HttpRequest, pk: int | None = None) -> HttpResponse:
+        org, officer = self.target(pk)
+        back = reverse("settings:organization") + "#officers"
+        if not consume_once_token(request):
+            return self.already_submitted(request, back)
+        form = OrganizationOfficerForm(request.POST, instance=officer)
+        if not form.is_valid():
+            return self.page(request, officer, form)
+        record = form.save(commit=False)
+        record.organization = org
+        host_application.save_row(record, by=_actor(request))
+        messages.success(request, _("Saved."))
+        return redirect(back)
+
+
+class OfficerVoidView(SettingsView):
+    """自機関の役員の行の取消（理由は必須）。"""
+
+    tab = "organization"
+    template_name = "settings/form.html"
+    required_action = Action.ORGANIZATION_MANAGE
+
+    def target(self, pk: int) -> OrganizationOfficer:
+        return get_object_or_404(OrganizationOfficer, pk=pk, voided_at__isnull=True)
+
+    def page(self, request: HttpRequest, officer: OrganizationOfficer, form: Any) -> HttpResponse:
+        return self.render(
+            request,
+            form=form,
+            title=_("Void the officer: %(name)s") % {"name": officer.name},
+            back=reverse("settings:organization") + "#officers",
+        )
+
+    def get(self, request: HttpRequest, pk: int) -> HttpResponse:
+        return self.page(request, self.target(pk), PeriodVoidForm())
+
+    def post(self, request: HttpRequest, pk: int) -> HttpResponse:
+        officer = self.target(pk)
+        back = reverse("settings:organization") + "#officers"
+        if not consume_once_token(request):
+            return self.already_submitted(request, back)
+        form = PeriodVoidForm(request.POST)
+        if not form.is_valid():
+            return self.page(request, officer, form)
+        host_application.void_row(officer, by=_actor(request), reason=form.cleaned_data["reason"])
+        messages.success(request, _("Voided the record."))
+        return redirect(back)
 
 
 class CertificateView(SettingsView):

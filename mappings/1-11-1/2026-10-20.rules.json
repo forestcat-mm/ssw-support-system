@@ -1,0 +1,9 @@
+{
+  "form_id": "1-11-1",
+  "valid_from": "2026-10-20",
+  "note": "T46b の規則（ADR-0038）。作成責任者が無ければ生成不可。役員・決算・申告の人数が台帳に無ければ警告（空のまま印刷される）。役員が 5 人を超えれば「別紙のとおり」の別紙が要る（警告）。",
+  "rules": [
+    {"id": "author_required", "type": "required", "key": "a.author", "label": "作成責任者", "severity": "block"},
+    {"id": "overview", "type": "check", "name": "host_overview_filled", "severity": "warn"}
+  ]
+}

@@ -190,6 +190,10 @@ DJANGO_PERMISSION_ACTIONS: dict[str, Action] = {
             "hosts.hostdocument",
             "hosts.hostsite",
             "hosts.supportcontract",
+            "hosts.hostfinancialyear",
+            "hosts.hostdeclaration",
+            "hosts.hostofficer",
+            "hosts.hostapplicantcontact",
         )
         for perm, action in _model_permissions(
             model,
@@ -204,6 +208,7 @@ DJANGO_PERMISSION_ACTIONS: dict[str, Action] = {
             "core.organization",
             "core.office",
             "core.officemanagerperiod",
+            "core.organizationofficer",
             "core.staff",
             "core.supportlanguage",
             "core.attachment",

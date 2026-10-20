@@ -306,6 +306,11 @@ class Organization(TrackedModel):
         blank=True,
         help_text=_("Article 8 of the support entrustment contract (form 5-10). Example: Tokyo."),
     )
+    # 一括申請の区分V「登録支援機関」(2)(3)（T46b。ADR-0038）
+    corporate_number = models.CharField(_("corporate number"), max_length=13, blank=True)
+    employment_insurance_number = models.CharField(
+        _("employment insurance office number"), max_length=11, blank=True
+    )
     # 署名済み書類の回収のタスクを、生成から何日たったら起票するか（T33、ADR-0022）
     signed_copy_due_days = models.PositiveSmallIntegerField(
         _("days until the signed copy is collected"), default=14
@@ -435,6 +440,13 @@ class Staff(TrackedModel):
         null=True,
         blank=True,
     )
+    # 在留申請オンラインシステムの利用者（一括申請の取次者。T46-D9）
+    is_online_application_user = models.BooleanField(
+        _("user of the online residence application system"), default=False
+    )
+    online_application_email = models.EmailField(
+        _("email registered in the online residence application system"), blank=True
+    )
     is_active = models.BooleanField(_("active"), default=True)
 
     class Meta:
@@ -452,6 +464,58 @@ class Staff(TrackedModel):
 
     def __str__(self) -> str:
         return self.name
+
+
+class VoidableRecord(TrackedModel):
+    """取消（理由は必須）で残す行の共通列（受入れ機関の決算・役員など。T46b）。"""
+
+    voided_at = models.DateTimeField(_("voided at"), null=True, blank=True, editable=False)
+    voided_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("voided by"),
+        on_delete=models.PROTECT,
+        related_name="+",
+        null=True,
+        blank=True,
+        editable=False,
+    )
+    void_reason = models.CharField(_("void reason"), max_length=200, blank=True, editable=False)
+
+    class Meta:
+        abstract = True
+
+
+class Officer(VoidableRecord):
+    """役員の 1 行（就任日・退任日で残す。T46-D10）。受入れ機関と自機関で使う。"""
+
+    name = models.CharField(_("full name"), max_length=100)
+    name_kana = models.CharField(_("name (kana)"), max_length=100, blank=True)
+    position = models.CharField(_("position"), max_length=50)
+    address = models.CharField(_("address"), max_length=255, blank=True)
+    appointed_on = models.DateField(_("appointed on"), null=True, blank=True)
+    resigned_on = models.DateField(_("resigned on"), null=True, blank=True)
+
+    class Meta:
+        abstract = True
+
+
+class OrganizationOfficer(Officer):
+    """自機関の役員（帳簿① 支援実施体制に関する管理簿。ADR-0036・0038）。"""
+
+    organization = models.ForeignKey(
+        Organization,
+        verbose_name=_("own organization"),
+        on_delete=models.CASCADE,
+        related_name="officers",
+    )
+
+    class Meta:
+        verbose_name = _("officer of the own organization")
+        verbose_name_plural = _("officers of the own organization")
+        ordering = ["pk"]
+
+    def __str__(self) -> str:
+        return f"{self.organization}: {self.name}"
 
 
 class StaffPeriod(TrackedModel):

@@ -15,8 +15,10 @@ from services import (
     career_plans,
     condition_templates,
     deadlines,
+    host_declarations,
     host_detail,
     host_documents,
+    immigration_codes,
 )
 
 
@@ -60,6 +62,10 @@ class HostDetailView(ActionRequiredMixin, TemplateView):
                 "shown": {
                     "sites": [site.pk for site in detail.sites],
                     "workers": [row.worker.pk for row in detail.workers],
+                    "officers": list(host.officers.values_list("pk", flat=True)),
+                    "applicant_contacts": list(
+                        host.applicant_contacts.values_list("pk", flat=True)
+                    ),
                 }
             },
         )
@@ -72,6 +78,28 @@ class HostDetailView(ActionRequiredMixin, TemplateView):
             can_reopen=authorization.has_action(user, Action.CONTRACTS_REOPEN),
         )
         context["career_plans"] = career_plans.plans_of(host)  # キャリアアッププラン（T36）
+        # 一括申請の項目（T46b。ADR-0038）
+        declaration = host_declarations.latest(host)
+        context["application"] = {
+            "industries": [
+                (
+                    immigration_codes.label(immigration_codes.INDUSTRY, code),
+                    other,
+                )
+                for code, other in (
+                    (host.industry_1, host.industry_1_other),
+                    (host.industry_2, host.industry_2_other),
+                    (host.industry_3, host.industry_3_other),
+                )
+                if code
+            ],
+            "declaration": declaration,
+            "unusual": host_declarations.unusual(declaration) if declaration else [],
+            "missing": host_declarations.missing(declaration) if declaration else [],
+            "financial_years": list(host.financial_years.all()),
+            "officers": list(host.officers.all()),
+            "contacts": list(host.applicant_contacts.all()),
+        }
         # 受入れ機関・事業所の書類の保管庫（T42 の追加）
         context["host_document_rows"] = [
             {

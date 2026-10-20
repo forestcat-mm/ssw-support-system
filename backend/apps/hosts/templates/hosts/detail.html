@@ -19,6 +19,40 @@
     </dl>
   </section>
 
+  <section class="card" id="host-application">
+    <div class="card__header"><h2 class="card__title">{% translate "Items for the bulk application" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'hosts:edit' host.pk %}">{% translate "Edit" %}</a>{% endif %}</div>
+    <dl class="fields">
+      <dt>{% translate "industry" %}</dt><dd id="host-industries">{% for label, other in application.industries %}{{ label }}{% if other %}（{{ other }}）{% endif %}{% if not forloop.last %}、{% endif %}{% empty %}<span class="muted">—</span>{% endfor %}</dd>
+      <dt>{% translate "capital (yen)" %}</dt><dd class="mono">{% if host.capital is not None %}¥{{ host.capital|yen }}{% else %}—{% endif %}</dd>
+    </dl>
+
+    <div class="card__header" style="margin-top: var(--space-12)"><h3 class="card__title">{% translate "Declarations (items (11) to (32))" %}</h3>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'hosts:declaration_create' host.pk %}" id="declaration-create">{% translate "New version" %}</a>{% endif %}</div>
+    {% with declaration=application.declaration %}{% if declaration %}
+    <p id="declaration-latest">{% blocktranslate with day=declaration.declared_on|date:"Y-m-d" %}Latest version: declared on {{ day }}{% endblocktranslate %}{% if can_manage %} <a class="caption" href="{% url 'hosts:declaration_void' host.pk declaration.pk %}">{% translate "Void" %}</a>{% endif %}</p>
+    {% if application.missing %}<p class="caption"><span class="badge badge--within-14">{% blocktranslate count counter=application.missing|length %}{{ counter }} required item is not answered.{% plural %}{{ counter }} required items are not answered.{% endblocktranslate %}</span></p>{% endif %}
+    {% if application.unusual %}<ul class="caption" id="declaration-unusual">{% for item in application.unusual %}<li>{{ item.label }}</li>{% endfor %}</ul>{% endif %}
+    {% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}{% endwith %}
+
+    <div class="card__header" style="margin-top: var(--space-12)"><h3 class="card__title">{% translate "Financial results" %}</h3>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'hosts:application_row_create' host.pk 'financial-years' %}">{% translate "Add" %}</a>{% endif %}</div>
+    {% if application.financial_years %}<div class="table-scroll"><table class="table table--list" id="financial-years">
+      <thead><tr><th>{% translate "end of the fiscal year" %}</th><th>{% translate "sales (yen)" %}</th><th>{% translate "ordinary profit or loss (yen)" %}</th><th>{% translate "net profit or loss (yen)" %}</th><th>{% translate "net assets (yen)" %}</th>{% if can_manage %}<th>{% translate "Actions" %}</th>{% endif %}</tr></thead>
+      <tbody>{% for row in application.financial_years %}<tr{% if row.voided_at %} class="is-voided"{% endif %}>
+        <td class="mono">{{ row.fiscal_year_end|date:"Y-m-d" }}</td><td class="mono">{{ row.sales|yen }}</td><td class="mono">{{ row.ordinary_profit|default_if_none:"—" }}</td><td class="mono">{{ row.net_profit|default_if_none:"—" }}</td><td class="mono">{{ row.net_assets|default_if_none:"—" }}</td>
+        {% if can_manage %}<td>{% if row.voided_at %}<span class="caption">{{ row.void_reason }}</span>{% else %}<a class="button button--danger button--small" href="{% url 'hosts:application_row_void' host.pk 'financial-years' row.pk %}">{% translate "Void" %}</a>{% endif %}</td>{% endif %}
+      </tr>{% endfor %}</tbody></table></div>{% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}
+
+    <div class="card__header" style="margin-top: var(--space-12)"><h3 class="card__title">{% translate "Officers" %}</h3>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'hosts:application_row_create' host.pk 'officers' %}">{% translate "Add" %}</a>{% endif %}</div>
+    {% if application.officers %}<div class="table-scroll"><table class="table table--list" id="officers">
+      <thead><tr><th>{% translate "full name" %}</th><th>{% translate "position" %}</th><th>{% translate "appointed on" %}</th><th>{% translate "resigned on" %}</th>{% if can_manage %}<th>{% translate "Actions" %}</th>{% endif %}</tr></thead>
+      <tbody>{% for row in application.officers %}<tr{% if row.voided_at or row.resigned_on %} class="is-voided"{% endif %}>
+        <td>{{ row.name }}{% if row.name_kana %} <span class="caption">{{ row.name_kana }}</span>{% endif %}</td><td>{{ row.position }}</td><td class="mono">{{ row.appointed_on|date:"Y-m-d"|default:"—" }}</td><td class="mono">{{ row.resigned_on|date:"Y-m-d"|default:"—" }}</td>
+        {% if can_manage %}<td>{% if row.voided_at %}<span class="caption">{{ row.void_reason }}</span>{% else %}<div class="actions"><a class="button button--neutral button--small" href="{% url 'hosts:application_row_edit' host.pk 'officers' row.pk %}">{% translate "Edit" %}</a><a class="button button--danger button--small" href="{% url 'hosts:application_row_void' host.pk 'officers' row.pk %}">{% translate "Void" %}</a></div>{% endif %}</td>{% endif %}
+      </tr>{% endfor %}</tbody></table></div>{% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}
+
+    <div class="card__header" style="margin-top: var(--space-12)"><h3 class="card__title">{% translate "Applicant contacts (agent of the bulk application)" %}</h3>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'hosts:application_row_create' host.pk 'applicant-contacts' %}">{% translate "Add" %}</a>{% endif %}</div>
+    {% if application.contacts %}<ul class="attachment-list" id="applicant-contacts">{% for row in application.contacts %}<li{% if not row.is_active %} class="is-voided"{% endif %}><span>{{ row.name }}（{{ row.relationship }}）</span><span class="caption">{% if row.address %}〒{{ row.postal_code }} {{ row.address }}{% else %}{% translate "address of the host organization" %}{% endif %}</span>{% if can_manage %} <a class="button button--neutral button--small" href="{% url 'hosts:application_row_edit' host.pk 'applicant-contacts' row.pk %}">{% translate "Edit" %}</a>{% endif %}</li>{% endfor %}</ul>{% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}
+  </section>
+
   <section class="card" id="support-contracts">
     <div class="card__header"><h2 class="card__title">{% translate "Support contracts" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'hosts:support_contract_create' host.pk %}">{% translate "Add" %}</a>{% endif %}</div>
     {% if detail.support_contracts %}

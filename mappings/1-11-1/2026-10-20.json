@@ -1,0 +1,266 @@
+{
+ "form_id": "1-11-1",
+ "valid_from": "2026-10-20",
+ "note": "第1-11-1号の 1〜3 と末尾（T46b、ADR-0038）。値は services/form_data_application.py が作る。4・5 は支援計画の全部を委託するので記載不要（空のまま）。",
+ "fields": [
+  {
+   "key": "a.officer1_kana",
+   "target": "officer1_kana",
+   "format": "text",
+   "label": "役員1（ふりがな）"
+  },
+  {
+   "key": "a.officer1_position",
+   "target": "officer1_position",
+   "format": "text",
+   "label": "役員1（役職）"
+  },
+  {
+   "key": "a.officer1_name",
+   "target": "officer1_name",
+   "format": "text",
+   "label": "役員1（氏名）"
+  },
+  {
+   "key": "a.officer2_kana",
+   "target": "officer2_kana",
+   "format": "text",
+   "label": "役員2（ふりがな）"
+  },
+  {
+   "key": "a.officer2_position",
+   "target": "officer2_position",
+   "format": "text",
+   "label": "役員2（役職）"
+  },
+  {
+   "key": "a.officer2_name",
+   "target": "officer2_name",
+   "format": "text",
+   "label": "役員2（氏名）"
+  },
+  {
+   "key": "a.officer3_kana",
+   "target": "officer3_kana",
+   "format": "text",
+   "label": "役員3（ふりがな）"
+  },
+  {
+   "key": "a.officer3_position",
+   "target": "officer3_position",
+   "format": "text",
+   "label": "役員3（役職）"
+  },
+  {
+   "key": "a.officer3_name",
+   "target": "officer3_name",
+   "format": "text",
+   "label": "役員3（氏名）"
+  },
+  {
+   "key": "a.officer4_kana",
+   "target": "officer4_kana",
+   "format": "text",
+   "label": "役員4（ふりがな）"
+  },
+  {
+   "key": "a.officer4_position",
+   "target": "officer4_position",
+   "format": "text",
+   "label": "役員4（役職）"
+  },
+  {
+   "key": "a.officer4_name",
+   "target": "officer4_name",
+   "format": "text",
+   "label": "役員4（氏名）"
+  },
+  {
+   "key": "a.officer5_kana",
+   "target": "officer5_kana",
+   "format": "text",
+   "label": "役員5（ふりがな）"
+  },
+  {
+   "key": "a.officer5_position",
+   "target": "officer5_position",
+   "format": "text",
+   "label": "役員5（役職）"
+  },
+  {
+   "key": "a.officer5_name",
+   "target": "officer5_name",
+   "format": "text",
+   "label": "役員5（氏名）"
+  },
+  {
+   "key": "a.sales_1",
+   "target": "sales_1",
+   "format": "zen_yen",
+   "label": "売上高（前年度）"
+  },
+  {
+   "key": "a.sales_2",
+   "target": "sales_2",
+   "format": "zen_yen",
+   "label": "売上高（前々年度）"
+  },
+  {
+   "key": "a.sales_3",
+   "target": "sales_3",
+   "format": "zen_yen",
+   "label": "売上高（前々々年度）"
+  },
+  {
+   "key": "a.ordinary_1",
+   "target": "ordinary_1",
+   "format": "zen_yen",
+   "label": "経常損益（前年度）"
+  },
+  {
+   "key": "a.ordinary_2",
+   "target": "ordinary_2",
+   "format": "zen_yen",
+   "label": "経常損益（前々年度）"
+  },
+  {
+   "key": "a.ordinary_3",
+   "target": "ordinary_3",
+   "format": "zen_yen",
+   "label": "経常損益（前々々年度）"
+  },
+  {
+   "key": "a.net_1",
+   "target": "net_1",
+   "format": "zen_yen",
+   "label": "純損益（前年度）"
+  },
+  {
+   "key": "a.net_2",
+   "target": "net_2",
+   "format": "zen_yen",
+   "label": "純損益（前々年度）"
+  },
+  {
+   "key": "a.net_3",
+   "target": "net_3",
+   "format": "zen_yen",
+   "label": "純損益（前々々年度）"
+  },
+  {
+   "key": "a.assets_1",
+   "target": "assets_1",
+   "format": "zen_yen",
+   "label": "純資産（前年度）"
+  },
+  {
+   "key": "a.assets_2",
+   "target": "assets_2",
+   "format": "zen_yen",
+   "label": "純資産（前々年度）"
+  },
+  {
+   "key": "a.assets_3",
+   "target": "assets_3",
+   "format": "zen_yen",
+   "label": "純資産（前々々年度）"
+  },
+  {
+   "key": "a.left_japanese_voluntary",
+   "target": "left_japanese_voluntary",
+   "format": "zen",
+   "label": "日本人労働者（自発的離職者）"
+  },
+  {
+   "key": "a.left_japanese_involuntary",
+   "target": "left_japanese_involuntary",
+   "format": "zen",
+   "label": "日本人労働者（非自発的離職者）"
+  },
+  {
+   "key": "a.left_foreign_voluntary",
+   "target": "left_foreign_voluntary",
+   "format": "zen",
+   "label": "外国人労働者（自発的離職者）"
+  },
+  {
+   "key": "a.left_foreign_involuntary",
+   "target": "left_foreign_involuntary",
+   "format": "zen",
+   "label": "外国人労働者（非自発的離職者）"
+  },
+  {
+   "key": "a.missing_ssw",
+   "target": "missing_ssw",
+   "format": "zen",
+   "label": "行方不明者数（特定技能）"
+  },
+  {
+   "key": "a.missing_ssw_fault",
+   "target": "missing_ssw_fault",
+   "format": "check",
+   "label": "特定技能: 責めに帰すべき事由 該当あり"
+  },
+  {
+   "key": "a.missing_ssw_no_fault",
+   "target": "missing_ssw_no_fault",
+   "format": "check",
+   "label": "特定技能: 該当なし"
+  },
+  {
+   "key": "a.missing_interns",
+   "target": "missing_interns",
+   "format": "zen",
+   "label": "行方不明者数（技能実習）"
+  },
+  {
+   "key": "a.missing_interns_fault",
+   "target": "missing_interns_fault",
+   "format": "check",
+   "label": "技能実習: 責めに帰すべき事由 該当あり"
+  },
+  {
+   "key": "a.missing_interns_no_fault",
+   "target": "missing_interns_no_fault",
+   "format": "check",
+   "label": "技能実習: 該当なし"
+  },
+  {
+   "key": "a.author",
+   "target": "author",
+   "format": "text",
+   "label": "作成責任者",
+   "pad": 16,
+   "align": "left"
+  },
+  {
+   "key": "a.made_y",
+   "target": "made_y",
+   "format": "zen",
+   "label": "作成年月日（年）"
+  },
+  {
+   "key": "a.made_m",
+   "target": "made_m",
+   "format": "zen",
+   "label": "作成年月日（月）",
+   "pad": 5,
+   "align": "right"
+  },
+  {
+   "key": "a.made_d",
+   "target": "made_d",
+   "format": "zen",
+   "label": "作成年月日（日）",
+   "pad": 4,
+   "align": "right"
+  },
+  {
+   "key": "a.host_name",
+   "target": "host_name",
+   "format": "text",
+   "label": "特定技能所属機関の氏名又は名称"
+  }
+ ],
+ "rules": []
+}

@@ -2,7 +2,7 @@ from django.urls import path
 
 from apps.contracts import template_views
 from apps.forms_engine.views import ConsultationRecordView
-from apps.hosts import career_plan_views, document_views, edit_views, views
+from apps.hosts import application_views, career_plan_views, document_views, edit_views, views
 
 app_name = "hosts"
 
@@ -55,6 +55,33 @@ urlpatterns = [
         "<int:pk>/documents/<int:document_id>/void/",
         document_views.HostDocumentVoidView.as_view(),
         name="host_document_void",
+    ),
+    # 一括申請の項目（T46b）
+    path(
+        "<int:pk>/application/declarations/new/",
+        application_views.DeclarationCreateView.as_view(),
+        name="declaration_create",
+    ),
+    path(
+        "<int:pk>/application/declarations/<int:row_id>/void/",
+        application_views.DeclarationVoidView.as_view(),
+        {"kind": "declarations"},
+        name="declaration_void",
+    ),
+    path(
+        "<int:pk>/application/<str:kind>/new/",
+        application_views.HostRowEditView.as_view(),
+        name="application_row_create",
+    ),
+    path(
+        "<int:pk>/application/<str:kind>/<int:row_id>/",
+        application_views.HostRowEditView.as_view(),
+        name="application_row_edit",
+    ),
+    path(
+        "<int:pk>/application/<str:kind>/<int:row_id>/void/",
+        application_views.HostRowVoidView.as_view(),
+        name="application_row_void",
     ),
     path("<int:pk>/sites/new/", edit_views.SiteEditView.as_view(), name="site_create"),
     path(

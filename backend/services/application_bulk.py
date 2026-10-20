@@ -42,7 +42,7 @@ ATTACHMENT_GAPS = frozenset(
     {Status.MISSING, Status.EXPIRED, Status.OUT_OF_PERIOD, Status.DATE_MISSING}
 )
 # 作成責任者を入れる様式（契約を対象にする申請の書類。edit_views.AUTHOR_FORMS と同じ）
-AUTHOR_FORMS = frozenset({"3-1", "13-1", "13-2", "1-25"})
+AUTHOR_FORMS = frozenset({"3-1", "13-1", "13-2", "1-25", "1-11-1"})
 # 生成の画面で入れる申告の規則（一覧の行の検査の結果には出さない）
 SCREEN_INPUT_RULES = frozenset({"propriety"})
 

@@ -702,10 +702,11 @@ OWN_FORMS = {
     "13-2": gettext_lazy("pledge of the food manufacturing field by us (form 13-2)"),
     "5-10": gettext_lazy("support entrustment contract (form 5-10)"),
     "1-25": gettext_lazy("explanation of the support entrustment contract (form 1-25)"),
+    "1-11-1": gettext_lazy("overview of the host organization (form 1-11-1)"),
 }
 # 作成責任者を画面で入れる様式（初期値は form_data_application.default_author。T37-D10）
-AUTHOR_FORMS = frozenset({"3-1", "13-1", "13-2", "1-25"})
-APPLICATION_FORMS = frozenset({"3-1", "13-1", "13-2", "5-10", "1-25"})
+AUTHOR_FORMS = frozenset({"3-1", "13-1", "13-2", "1-25", "1-11-1"})
+APPLICATION_FORMS = frozenset({"3-1", "13-1", "13-2", "5-10", "1-25", "1-11-1"})
 
 
 class OwnDocumentGenerateView(WorkerFormView):

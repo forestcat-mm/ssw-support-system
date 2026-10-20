@@ -49,7 +49,7 @@ INDUSTRIAL = "industrial_products"
 FOOD = "food_manufacturing"
 # 雇用契約を対象に生成する様式（契約タブ・申請の書類の一覧から生成する）
 CONTRACT_VERSION_FORMS = ("1-4", "1-5", "1-6")
-CONTRACT_FORMS = ("3-1", "13-1", "13-2", "5-10", "1-25")
+CONTRACT_FORMS = ("3-1", "13-1", "13-2", "5-10", "1-25", "1-11-1")
 # 外国人を対象に、理由などを入れて 1 件ずつ生成する様式（第1-26号。T42 の追加）
 WORKER_FORMS = ("1-26",)
 

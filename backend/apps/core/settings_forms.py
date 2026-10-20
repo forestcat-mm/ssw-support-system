@@ -7,10 +7,18 @@ from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.forms import InvitationForm
-from apps.core.models import AttachmentKind, AuditAction, Office, Organization, Staff, User
+from apps.core.forms import InvitationForm, allow_formatted_number_input
+from apps.core.models import (
+    AttachmentKind,
+    AuditAction,
+    Office,
+    Organization,
+    OrganizationOfficer,
+    Staff,
+    User,
+)
 from apps.core.web_forms import StyledFormMixin
-from services import attachments, audit
+from services import attachments, audit, corporate_number
 from services.audit_search import AuditQuery
 
 
@@ -38,6 +46,8 @@ class StaffForm(StyledFormMixin, forms.ModelForm[Staff]):
             "has_life_consultation_experience",
             "life_consultation_experience_note",
             "user",
+            "is_online_application_user",
+            "online_application_email",
             "is_active",
         )
         widgets = {
@@ -81,6 +91,8 @@ class OrganizationForm(StyledFormMixin, forms.ModelForm[Organization]):
             "food_council_joined_on",
             "court_name",
             "signed_copy_due_days",
+            "corporate_number",
+            "employment_insurance_number",
         )
         widgets = {
             "registered_on": forms.DateInput,
@@ -88,6 +100,33 @@ class OrganizationForm(StyledFormMixin, forms.ModelForm[Organization]):
             "registration_expires_on": forms.DateInput,
             "food_council_joined_on": forms.DateInput,
         }
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        allow_formatted_number_input(self.fields["corporate_number"])
+        allow_formatted_number_input(self.fields["employment_insurance_number"])
+        self.style_fields()
+
+    def clean_corporate_number(self) -> str:
+        value = corporate_number.normalize(self.cleaned_data.get("corporate_number") or "")
+        corporate_number.validate(value)
+        return value
+
+    def clean_employment_insurance_number(self) -> str:
+        value = self.cleaned_data.get("employment_insurance_number") or ""
+        digits = "".join(char for char in value if char.isdigit())
+        if digits and len(digits) != 11:
+            raise forms.ValidationError(_("The employment insurance office number is 11 digits."))
+        return digits
+
+
+class OrganizationOfficerForm(StyledFormMixin, forms.ModelForm[OrganizationOfficer]):
+    """自機関の役員（帳簿①。T46b）。"""
+
+    class Meta:
+        model = OrganizationOfficer
+        fields = ("name", "name_kana", "position", "address", "appointed_on", "resigned_on")
+        widgets = {"appointed_on": forms.DateInput, "resigned_on": forms.DateInput}
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)

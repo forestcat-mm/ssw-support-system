@@ -548,7 +548,7 @@
     "no": "I9"
    },
    "how": {
-    "out": true
+    "generate": "1-11-1"
    },
    "applies": [
     "track_record"
@@ -617,7 +617,7 @@
     "no": "I5"
    },
    "how": {
-    "out": true
+    "generate": "1-11-1"
    },
    "applies": [
     "corporate"
@@ -945,7 +945,7 @@
     "no": "I5"
    },
    "how": {
-    "out": true
+    "generate": "1-11-1"
    },
    "applies": [
     "individual"

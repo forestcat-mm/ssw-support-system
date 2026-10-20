@@ -582,6 +582,56 @@ def _empty(value: object) -> bool:
     return value is None or (isinstance(value, str) and not value.strip())
 
 
+@check("host_overview_filled")
+def _host_overview_filled(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
+    """第1-11-1号で空になる欄（役員・決算・申告の人数）と、5 人を超える役員（T46b）。"""
+    host = context.host
+    if host is None:
+        return []
+    data = context.data
+    destination = Destination("hosts:detail", {"pk": host.pk})
+    issues = []
+    if _empty(data.get("a.officer1_name")):
+        issues.append(
+            Issue(
+                "overview_officers",
+                _("No officer of the host organization is registered (section 1 stays empty)."),
+                destination,
+            )
+        )
+    elif data.get("a.officers_over"):
+        issues.append(
+            Issue(
+                "overview_officers_over",
+                _(
+                    "The host organization has more than 5 officers. Write “see the attached "
+                    "sheet” and attach a list of all officers."
+                ),
+                destination,
+            )
+        )
+    if _empty(data.get("a.sales_1")):
+        issues.append(
+            Issue(
+                "overview_financial",
+                _("No financial results are registered (section 2 stays empty)."),
+                destination,
+            )
+        )
+    if _empty(data.get("a.left_japanese_voluntary")) or _empty(data.get("a.missing_ssw")):
+        issues.append(
+            Issue(
+                "overview_counts",
+                _(
+                    "The numbers of people who left and of missing persons are not in the "
+                    "declaration of the host organization (section 3 stays empty)."
+                ),
+                destination,
+            )
+        )
+    return issues
+
+
 @check("plan_fields_filled")
 def _plan_fields_filled(context: CheckContext, params: Mapping[str, Any]) -> list[Issue]:
     """第1-17号で空になる欄（実施予定時間・送迎・住居の概要・相談窓口・共生施策・作成責任者・電話）。"""

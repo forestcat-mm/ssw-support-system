@@ -1,4 +1,5 @@
-"""受入れ機関・分野の書類（第3-1号・第13-1号・第13-2号・第5-10号・第1-25号）のデータ（T37、ADR-0026）。
+"""受入れ機関・分野の書類（第3-1号・第13-1号・第13-2号・第5-10号・第1-25号・第1-11-1号）のデータ
+（T37、ADR-0026。第1-11-1号は T46b、ADR-0038）。
 
 対象は雇用契約（外国人×受入れ機関）。支援委託契約は基準日に有効なもの（受入れ機関ごと。ADR-0015）で、
 第5-10号・第1-25号は対象の外国人ごとに作る（T37-D6）。作成責任者は生成の画面で入れる（初期値は
@@ -14,7 +15,13 @@ from typing import Any
 
 from apps.contracts.models import EmploymentContract
 from apps.core.models import Organization
-from apps.hosts.models import FeeTiming, SupportContract, SupportScope
+from apps.hosts.models import (
+    FeeTiming,
+    HostOfficer,
+    HostOrganization,
+    SupportContract,
+    SupportScope,
+)
 from apps.workers.models import Sex
 from services import contracts, hosts
 from services.form_data_contract import representative
@@ -94,7 +101,73 @@ def build(
         data |= _support_contract_5_10(contract, on, organization)
     elif form_id == "1-25":
         data |= _explanation_1_25(contract, on, organization, author)
+    elif form_id == "1-11-1":
+        data |= overview_1_11_1(contract.host_organization, on, author)
     return {f"a.{key}": value for key, value in data.items()}
+
+
+OVERVIEW_OFFICERS = 5
+OVERVIEW_YEARS = 3
+
+
+def overview_officers(host: HostOrganization, on: datetime.date) -> list[HostOfficer]:
+    """基準日に在任の役員（取り消していない・退任していない。登録の順）。"""
+    return [
+        officer
+        for officer in host.officers.filter(voided_at__isnull=True)
+        if (officer.appointed_on is None or officer.appointed_on <= on)
+        and (officer.resigned_on is None or officer.resigned_on > on)
+    ]
+
+
+def overview_1_11_1(host: HostOrganization, on: datetime.date, author: str) -> dict[str, Any]:
+    """第1-11-1号 特定技能所属機関概要書（T46b、ADR-0038）。
+
+    1 所属役員は 5 人まで（多ければ規則が「別紙」を警告する）。2 決算状況は基準日までに終わった
+    年度の新しい 3 つ。3 は基準日までの最新の申告の版の人数。行方不明者が 0 人なら「該当なし」、
+    1 人以上なら責めに帰すべき事由の有無で印を付ける。4・5 は全部委託なので空のまま。
+    """
+    data: dict[str, Any] = {"host_name": SP + host.name, "author": author} | _ymd("made", on)
+    for number, officer in enumerate(overview_officers(host, on)[:OVERVIEW_OFFICERS], start=1):
+        data |= {
+            f"officer{number}_kana": officer.name_kana,
+            f"officer{number}_name": officer.name,
+            f"officer{number}_position": officer.position,
+        }
+    years = list(
+        host.financial_years.filter(voided_at__isnull=True, fiscal_year_end__lte=on)[
+            :OVERVIEW_YEARS
+        ]
+    )
+    for number, year in enumerate(years, start=1):
+        data |= {
+            f"sales_{number}": year.sales,
+            f"ordinary_{number}": year.ordinary_profit,
+            f"net_{number}": year.net_profit,
+            f"assets_{number}": year.net_assets,
+        }
+    declaration = host.declarations.filter(voided_at__isnull=True, declared_on__lte=on).first()
+    if declaration is not None:
+        for name in (
+            "left_japanese_voluntary",
+            "left_japanese_involuntary",
+            "left_foreign_voluntary",
+            "left_foreign_involuntary",
+        ):
+            data[name] = getattr(declaration, name)
+        for key, count in (
+            ("ssw", declaration.missing_ssw),
+            ("interns", declaration.missing_interns),
+        ):
+            data[f"missing_{key}"] = count
+            if count is None:
+                continue
+            fault = bool(count) and declaration.missing_at_fault is True
+            if count == 0 or declaration.missing_at_fault is not None:
+                data[f"missing_{key}_fault"] = fault
+                data[f"missing_{key}_no_fault"] = not fault
+    data["officers_over"] = len(overview_officers(host, on)) > OVERVIEW_OFFICERS
+    return data
 
 
 def _support_contract_5_10(

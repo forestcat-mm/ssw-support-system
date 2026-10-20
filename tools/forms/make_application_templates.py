@@ -25,10 +25,13 @@ import docx_tags  # noqa: E402
 from make_contract_templates import SP, apply, width  # noqa: E402
 
 VALID_FROM = "2026-10-18"
-VALID_FROMS = {"1-26": "2026-10-20"}  # 第1-26号の取得日（改正日の記載なし）
+# 第1-26号・第1-11-1号の取得日（改正日の記載なし）
+VALID_FROMS = {"1-26": "2026-10-20", "1-11-1": "2026-10-20"}
 NOTES = {
     "1-26": "第1-26号の全欄（T42 の追加）。値は services/form_data_application.py が作る。"
     "署名の欄は申請人が手で書く（値を入れない）。",
+    "1-11-1": "第1-11-1号の 1〜3 と末尾（T46b、ADR-0038）。値は services/form_data_application.py が"
+    "作る。4・5 は支援計画の全部を委託するので記載不要（空のまま）。",
 }
 FEE_ROWS = 10
 
@@ -76,6 +79,10 @@ SPECS: dict[str, list[str]] = {
         "納付受託等）又は社会保険料の納付免除措置の申請しているため。",
         "[other:□]＿上記以外にやむを得ない理由がある場合は、以下に具体的な理由を記載。",
         "＿＿＿＿＿[made_y:5]年[made_m:5]月[made_d:5]日",
+    ],
+    "1-11-1": [
+        "＿＿＿＿＿＿＿＿＿＿[made_y:]年[made_m:5]月[made_d:4]日",
+        "＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿特定技能所属機関の氏名又は名称[host_name:]",
     ],
     "1-25": [
         "（[registration_year:2]登－[registration_serial:5]）",
@@ -212,6 +219,88 @@ def author_1_25(document: docx_tags.Document) -> list[dict]:
     return [{"name": "author", "original": original}]
 
 
+OVERVIEW_MARKS = "①②③④⑤"
+OVERVIEW_MONEY = (("売上高", "sales"), ("経常損益", "ordinary"), ("純損益", "net"), ("純資産", "assets"))
+OVERVIEW_YEARS = ("前年度", "前々年度", "前々々年度")
+
+
+def _slot(document: docx_tags.Document, index: int, name: str, label: str) -> dict:
+    document.append_to_empty(index, docx_tags.default_tag(name, ""))
+    LABELS[name] = label
+    TEXT.add(name)
+    return {"name": name, "original": ""}
+
+
+def _before_unit(document: docx_tags.Document, index: int, unit: str, name: str, label: str) -> dict:
+    """「円」「名」の段落の前に値を置く（値が無ければ単位だけの元の段落）。"""
+    if document.text(index) != unit:
+        raise docx_tags.TagError(f"paragraph {index} is not {unit!r}: {document.text(index)!r}")
+    document.put_range(index, 0, 0, docx_tags.default_tag(name, ""))
+    LABELS[name] = label
+    return {"name": name, "original": ""}
+
+
+def _check(document: docx_tags.Document, index: int, name: str, label: str) -> dict:
+    document.put_tag(index, "□", name)
+    LABELS[name] = label
+    return {"name": name, "original": "□"}
+
+
+def overview_1_11_1(document: docx_tags.Document) -> list[dict]:
+    """第1-11-1号の表（1 所属役員・2 決算状況・3 基準適合性）と作成責任者。"""
+    slots: list[dict] = []
+    start = document.find("所属役員")
+    # 1 所属役員: 番号の段落の次が「ふりがな」、その 2 つ後が役職、次の行の 3 つ目の欄が氏名
+    for number, mark in enumerate(OVERVIEW_MARKS, start=1):
+        index = next(
+            i for i in range(start, len(document.paragraphs())) if document.text(i) == mark
+        )
+        if document.text(index + 2) != "役職":
+            raise docx_tags.TagError(f"officer row {number}")
+        slots.append(_slot(document, index + 1, f"officer{number}_kana", f"役員{number}（ふりがな）"))
+        slots.append(_slot(document, index + 3, f"officer{number}_position", f"役員{number}（役職）"))
+        slots.append(_slot(document, index + 6, f"officer{number}_name", f"役員{number}（氏名）"))
+        start = index + 1
+    # 2 決算状況: 行の見出しの次の 3 つの「円」が前年度・前々年度・前々々年度
+    start = document.find("決算状況")
+    for heading, key in OVERVIEW_MONEY:
+        index = document.find(heading, start=start)
+        for year, year_label in enumerate(OVERVIEW_YEARS, start=1):
+            name = f"{key}_{year}"
+            slots.append(_before_unit(document, index + year, "円", name, f"{heading}（{year_label}）"))
+            YEN.add(name)
+        start = index + 1
+    # 3 (1) 離職状況
+    for heading, key in (("日本人労働者", "japanese"), ("外国人労働者", "foreign")):
+        index = document.find(heading, start=start)
+        slots.append(
+            _before_unit(document, index + 1, "名", f"left_{key}_voluntary", f"{heading}（自発的離職者）")
+        )
+        slots.append(
+            _before_unit(
+                document, index + 2, "名", f"left_{key}_involuntary", f"{heading}（非自発的離職者）"
+            )
+        )
+        start = index + 1
+    # 3 (2) 行方不明者数（特定技能・技能実習）と、責めに帰すべき事由の該当
+    for heading, key, label in (("１号及び２号", "ssw", "特定技能"), ("技能実習", "interns", "技能実習")):
+        index = next(
+            i for i in range(start, len(document.paragraphs())) if document.text(i) == heading
+        )
+        slots.append(_before_unit(document, index + 1, "名", f"missing_{key}", f"行方不明者数（{label}）"))
+        slots.append(_check(document, index + 3, f"missing_{key}_fault", f"{label}: 責めに帰すべき事由 該当あり"))
+        slots.append(_check(document, index + 4, f"missing_{key}_no_fault", f"{label}: 該当なし"))
+        start = index + 1
+    # 作成責任者（「役職・氏名」の後ろの空白をすべて欄にする）
+    index = document.find("作成責任者", start=start)
+    text = document.text(index)
+    position = text.index("役職・氏名") + len("役職・氏名")
+    original = text[position:]
+    document.put_range(index, position, len(text), docx_tags.default_tag("author", original))
+    slots.append({"name": "author", "original": original})
+    return slots
+
+
 def make(form_id: str, document: docx_tags.Document) -> list[dict]:
     slots: list[dict] = []
     start = 0
@@ -229,6 +318,8 @@ def make(form_id: str, document: docx_tags.Document) -> list[dict]:
         slots += fee_rows(document)
     if form_id == "1-25":
         slots += author_1_25(document)
+    if form_id == "1-11-1":
+        slots = overview_1_11_1(document) + slots
     return fields_of(slots)
 
 
@@ -261,6 +352,6 @@ def main(form_id: str, folder: str) -> None:
 if __name__ == "__main__":
     if len(sys.argv) != 3 or sys.argv[1] not in SPECS:
         raise SystemExit(
-            "usage: make_application_templates.py <3-1|13-1|13-2|5-10|1-25|1-26> <folder>"
+            "usage: make_application_templates.py <3-1|13-1|13-2|5-10|1-25|1-26|1-11-1> <folder>"
         )
     main(sys.argv[1], sys.argv[2])

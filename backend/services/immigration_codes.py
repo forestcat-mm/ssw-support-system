@@ -23,6 +23,7 @@ INTERN_WORK = "CB30"
 INTERN_PROOF = "CC07"
 PERIOD_OF_STAY = "CB20"
 PREFECTURE = "CA69_1"  # 都道府県（市区町村は都道府県ごとの連動の表）
+INDUSTRY = "CC13"  # 所属機関の業種
 
 # 「日本語の名前 English name」の英語の部分（最初の空白の後が ASCII の英字で始まる）
 _ENGLISH = re.compile(r"[ 　]+(?=[A-Za-z(]).*$")

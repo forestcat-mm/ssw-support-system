@@ -1,0 +1,27 @@
+{
+ "description": "受入れ機関の申告の項目（在留申請オンラインの一括登録用ツール 2026/06/04 の区分V (11)〜(32)。列 FJ〜HB）。expected は通常の答え（違えば内容を書く。T46b、ADR-0038）。detail は内容の欄（200 字）の有無。required はツールの必須。",
+ "items": [
+  {"key": "11", "label": "(11) 労働、社会保険及び租税に関する法令の規定に違反したことの有無", "expected": "no", "detail": true, "required": true},
+  {"key": "12", "label": "(12) 契約締結日前1年以内又は以後に、同種の業務の労働者を非自発的に離職させたことの有無", "expected": "no", "detail": true, "required": true},
+  {"key": "13", "label": "(13) 所属機関の責めに帰すべき事由により外国人の行方不明者を発生させたことの有無", "expected": "no", "detail": true, "required": true},
+  {"key": "14", "label": "(14) 機関・役員・支援責任者等が法令に違反して刑に処せられたことの有無", "expected": "no", "detail": true, "required": true},
+  {"key": "15", "label": "(15) 機関・役員・支援責任者等が精神の機能の障害を有することの有無", "expected": "no", "detail": true, "required": true},
+  {"key": "16", "label": "(16) 機関・役員・支援責任者等が破産手続開始の決定を受けて復権を得ないことの有無", "expected": "no", "detail": true, "required": true},
+  {"key": "17", "label": "(17) 機関・役員等が技能実習法第16条第1項の規定により実習認定を取り消されたことの有無", "expected": "no", "detail": true, "required": true},
+  {"key": "18", "label": "(18) 機関・役員・支援責任者等が実習認定を取り消された法人の役員であったことの有無", "expected": "no", "detail": true, "required": true},
+  {"key": "19", "label": "(19) 機関・役員・支援責任者等が法令に関し不正又は著しく不当な行為をしたことの有無", "expected": "no", "detail": true, "required": true},
+  {"key": "20", "label": "(20) 役員・支援責任者等が暴力団員であること又は5年以内に暴力団員であったことの有無", "expected": "no", "detail": true, "required": true},
+  {"key": "21", "label": "(21) 機関・役員・支援責任者等の法定代理人が(14)から(20)に該当することの有無", "expected": "no", "detail": true, "required": false},
+  {"key": "22", "label": "(22) 暴力団員又は5年以内に暴力団員であった者がその事業活動を支配する者であることの有無", "expected": "no", "detail": true, "required": true},
+  {"key": "23", "label": "(23) 外国人の活動内容に関する文書を契約終了の日から1年以上備えて置くことの有無", "expected": "yes", "detail": false, "required": true},
+  {"key": "24", "label": "(24) 契約に係る保証金の徴収その他財産管理又は違約金等の支払契約があることの認識の有無", "expected": "no", "detail": true, "required": true},
+  {"key": "25", "label": "(25) 契約の不履行について違約金等の支払契約を締結していることの有無", "expected": "no", "detail": true, "required": true},
+  {"key": "26", "label": "(26) 1号特定技能外国人支援に要する費用について、外国人に負担させないことの有無", "expected": "yes", "detail": false, "required": false},
+  {"key": "27", "label": "(27) 労働者派遣の場合の要件（派遣元）のいずれかに該当することの有無", "expected": "", "detail": true, "required": false},
+  {"key": "28", "label": "(28) 労働者派遣をすることとしている派遣先が(11)から(22)に該当していることの有無", "expected": "", "detail": true, "required": false},
+  {"key": "29", "label": "(29) 労災保険加入等の措置の有無", "expected": "yes", "detail": true, "required": true},
+  {"key": "30", "label": "(30) 契約を継続して履行する体制が適切に整備されていることの有無", "expected": "yes", "detail": false, "required": true},
+  {"key": "31", "label": "(31) 外国人に現実に支払われた報酬額を振込又は確認できる方法で支払われていることの有無", "expected": "yes", "detail": false, "required": true},
+  {"key": "32", "label": "(32) 契約の適正な履行の確保につき告示で定められる基準に適合することの有無", "expected": "yes", "detail": false, "required": false}
+ ]
+}

@@ -1,0 +1,21 @@
+{
+  "form_id": "1-11-1",
+  "name": "特定技能所属機関概要書（参考様式第1-11-1号）",
+  "valid_from": "2026-10-20",
+  "language": "ja",
+  "owner": "common",
+  "method": "docx-tags",
+  "requires_signed_copy": false,
+  "original": "original.docx",
+  "template": "template.docx",
+  "source": {
+    "url": "https://www.moj.go.jp/isa/content/001338980.docx",
+    "page": "https://www.moj.go.jp/isa/applications/ssw/10_00020.html",
+    "retrieved_on": "2026-10-20",
+    "revision_date": null,
+    "revision_date_unknown": true,
+    "original_sha256": "05f0e9516cabda90dcc30ec11eecb73812ac64722398641d72a7ed23e16e5fc0",
+    "template_sha256": "6969e781d9523ee123ae68bb3a1d0c50346ba6f4cc93a57e6fe3c05d23f5c0f8",
+    "adr": "ADR-0038（取得日 2026-10-20（Last-Modified 2024-04-01。改正日の記載なし））、ADR-0018"
+  }
+}

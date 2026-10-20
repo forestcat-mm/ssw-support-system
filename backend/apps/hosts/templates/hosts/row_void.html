@@ -1,0 +1,25 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Void a record" %} | {{ host.name }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{{ back }}">← {{ host.name }}</a></p>
+  <h1>{% translate "Void a record" %}</h1>
+{% endblock %}
+{% block content %}
+<div class="stack form">
+  <section class="card">
+    <dl class="fields">
+      <dt>{% translate "target" %}</dt><dd>{{ row }}</dd>
+      <dt>{% translate "registered on" %}</dt><dd class="mono">{{ row.created_at|date:"Y-m-d" }}</dd>
+    </dl>
+  </section>
+  <p class="message message--warning">{% translate "A voided record stays with a strikethrough and is no longer used. This cannot be undone. To correct it, add a new record." %}</p>
+  <form class="form" method="post" novalidate id="void-form">
+    {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+    {% for field in form %}{% form_field field %}{% endfor %}
+    <div class="form-actions">
+      <button class="button button--danger" type="submit">{% translate "Void" %}</button>
+      <a class="button button--neutral" href="{{ back }}">{% translate "Cancel" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

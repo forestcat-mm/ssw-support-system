@@ -18,7 +18,7 @@ from django.db.models.functions import Least
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import pgettext_lazy
 
-from apps.core.models import Attachment, TrackedModel
+from apps.core.models import Attachment, Officer, TrackedModel, VoidableRecord
 from services import corporate_number
 
 
@@ -112,6 +112,14 @@ class HostOrganization(TrackedModel):
     postal_code = models.CharField(_("postal code"), max_length=8)
     address = models.CharField(_("address"), max_length=255)
     phone_number = models.CharField(_("phone number"), max_length=20, blank=True)
+    # 一括申請の区分V「特定技能所属機関」(4)(6)（T46b。業種は一括申請ツールの CC13 のコード）
+    industry_1 = models.CharField(_("main industry"), max_length=4, blank=True)
+    industry_1_other = models.CharField(_("main industry (other)"), max_length=40, blank=True)
+    industry_2 = models.CharField(_("other industry 1"), max_length=4, blank=True)
+    industry_2_other = models.CharField(_("other industry 1 (other)"), max_length=40, blank=True)
+    industry_3 = models.CharField(_("other industry 2"), max_length=4, blank=True)
+    industry_3_other = models.CharField(_("other industry 2 (other)"), max_length=40, blank=True)
+    capital = models.BigIntegerField(_("capital (yen)"), null=True, blank=True)
     is_active = models.BooleanField(_("active"), default=True)
     # 同一年度内に特定技能外国人を既に受け入れている（提出書類一覧表 第2表の書類は提出不要。表紙の
     # 留意事項１）。台帳の外の外国人もいるので、人が印を付ける（T42-D25 の直し）
@@ -246,6 +254,24 @@ class HostSite(TrackedModel):
     )
     # 雇用条件書（参考様式第1-6号）Ⅱ 就業の場所の「連絡先」（T28b、ADR-0016）
     phone_number = models.CharField(_("phone number"), max_length=20, blank=True)
+    # 一括申請の区分V (3)(8)(10)（主に勤務させる事業所について。T46-D6）
+    full_time_employees = models.PositiveIntegerField(
+        _("number of full-time employees"), null=True, blank=True
+    )
+    employment_insurance_number = models.CharField(
+        _("employment insurance office number"), max_length=11, blank=True
+    )
+    labour_insurance_number = models.CharField(
+        _("labour insurance number"), max_length=14, blank=True
+    )
+    health_pension_insured = models.BooleanField(
+        _("covered by health insurance and employees' pension insurance"), null=True, blank=True
+    )
+    labour_insurance_covered = models.BooleanField(
+        _("covered by workers' accident compensation and employment insurance"),
+        null=True,
+        blank=True,
+    )
     field = models.ForeignKey(
         SpecifiedSkillField,
         verbose_name=_("specified skill field"),
@@ -690,3 +716,142 @@ class HostDocument(TrackedModel):
 
     def __str__(self) -> str:
         return f"{self.host_organization}: {self.get_kind_display()}"
+
+
+# --- 一括申請の欄から逆算して足した行（T46b。ADR-0038）------------------------------------
+
+
+class HostFinancialYear(VoidableRecord):
+    """受入れ機関の決算（年度ごと。区分V (7)・第1-11-1号 2）。個人事業主の純資産は元入金。"""
+
+    host_organization = models.ForeignKey(
+        HostOrganization,
+        verbose_name=_("host organization"),
+        on_delete=models.CASCADE,
+        related_name="financial_years",
+    )
+    fiscal_year_end = models.DateField(_("end of the fiscal year"))
+    sales = models.BigIntegerField(_("sales (yen)"))
+    ordinary_profit = models.BigIntegerField(
+        _("ordinary profit or loss (yen)"), null=True, blank=True
+    )
+    net_profit = models.BigIntegerField(_("net profit or loss (yen)"), null=True, blank=True)
+    net_assets = models.BigIntegerField(
+        _("net assets (yen)"),
+        null=True,
+        blank=True,
+        help_text=_("For a sole proprietor, the capital contribution."),
+    )
+
+    class Meta:
+        verbose_name = _("financial results of the host organization")
+        verbose_name_plural = _("financial results of the host organization")
+        ordering = ["-fiscal_year_end", "-pk"]
+
+    def __str__(self) -> str:
+        return f"{self.host_organization}: {self.fiscal_year_end}"
+
+
+class HostDeclaration(VoidableRecord):
+    """受入れ機関の申告（区分V (11)〜(32) の有無と内容、第1-11-1号 3 の人数）の版（T46-D5）。
+
+    上書きしない。申告が変われば新しい版（申告日）を足す。answers は
+    {"11": {"answer": "yes" | "no" | "", "detail": "..."}, ...}
+    （項目は services/host_declarations）。
+    """
+
+    host_organization = models.ForeignKey(
+        HostOrganization,
+        verbose_name=_("host organization"),
+        on_delete=models.CASCADE,
+        related_name="declarations",
+    )
+    declared_on = models.DateField(_("declared on"))
+    answers = models.JSONField(_("answers"), default=dict, blank=True)
+    # 第1-11-1号 3 (1) 過去 1 年の同種の業務の労働者の離職（区分V (12) と同じ元）
+    left_japanese_voluntary = models.PositiveIntegerField(
+        _("Japanese workers who left voluntarily"), null=True, blank=True
+    )
+    left_japanese_involuntary = models.PositiveIntegerField(
+        _("Japanese workers who left involuntarily"), null=True, blank=True
+    )
+    left_foreign_voluntary = models.PositiveIntegerField(
+        _("foreign workers who left voluntarily"), null=True, blank=True
+    )
+    left_foreign_involuntary = models.PositiveIntegerField(
+        _("foreign workers who left involuntarily"), null=True, blank=True
+    )
+    # 同 (2) 前 1 年の行方不明者（区分V (13) と同じ元）
+    missing_ssw = models.PositiveIntegerField(
+        _("missing Specified Skilled Workers"), null=True, blank=True
+    )
+    missing_interns = models.PositiveIntegerField(
+        _("missing technical intern trainees"), null=True, blank=True
+    )
+    missing_at_fault = models.BooleanField(
+        _("missing persons due to reasons attributable to the organization"),
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = _("declaration of the host organization")
+        verbose_name_plural = _("declarations of the host organization")
+        ordering = ["-declared_on", "-pk"]
+
+    def __str__(self) -> str:
+        return f"{self.host_organization}: {self.declared_on}"
+
+
+class HostOfficer(Officer):
+    """受入れ機関の役員（第1-11-1号 1・第1-23号。T46-D10）。"""
+
+    host_organization = models.ForeignKey(
+        HostOrganization,
+        verbose_name=_("host organization"),
+        on_delete=models.CASCADE,
+        related_name="officers",
+    )
+
+    class Meta:
+        verbose_name = _("officer of the host organization")
+        verbose_name_plural = _("officers of the host organization")
+        ordering = ["pk"]
+
+    def __str__(self) -> str:
+        return f"{self.host_organization}: {self.name}"
+
+
+class HostApplicantContact(TrackedModel):
+    """受入れ機関の申請担当者（一括申請の区分V「代理人」。T46-D9）。住所の既定は受入れ機関。"""
+
+    host_organization = models.ForeignKey(
+        HostOrganization,
+        verbose_name=_("host organization"),
+        on_delete=models.CASCADE,
+        related_name="applicant_contacts",
+    )
+    name = models.CharField(_("full name"), max_length=26)
+    relationship = models.CharField(
+        _("relationship with the applicant"),
+        max_length=30,
+        help_text=_("Example: employee of the host organization (person in charge)."),
+    )
+    postal_code = models.CharField(_("postal code"), max_length=8, blank=True)
+    address = models.CharField(
+        _("address"),
+        max_length=255,
+        blank=True,
+        help_text=_("Leave blank to use the address of the host organization."),
+    )
+    phone_number = models.CharField(_("phone number"), max_length=20, blank=True)
+    mobile_number = models.CharField(_("mobile phone number"), max_length=20, blank=True)
+    is_active = models.BooleanField(_("active"), default=True)
+
+    class Meta:
+        verbose_name = _("applicant contact of the host organization")
+        verbose_name_plural = _("applicant contacts of the host organization")
+        ordering = ["-is_active", "pk"]
+
+    def __str__(self) -> str:
+        return f"{self.host_organization}: {self.name}"

@@ -1,0 +1,28 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "New version of the declaration" %} | {{ host.name }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{{ back }}">← {{ host.name }}</a></p>
+  <h1>{% translate "New version of the declaration" %}</h1>
+{% endblock %}
+{% block content %}
+<form class="form" method="post" novalidate id="declaration-form">
+  {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+  {% include "ui/components/form_errors.html" %}
+  <section class="card stack">
+    <p class="caption">{% translate "Declarations of the host organization for the bulk application (items (11) to (32) of section V). The previous version stays. The usual answer is selected first; when the answer is different, write the details." %}</p>
+    {% form_field form.declared_on %}
+    {% for answer, detail in form.answer_fields %}
+    <div class="stack" data-item="{{ answer.name }}">{% form_field answer %}{% if detail %}{% form_field detail %}{% endif %}</div>
+    {% endfor %}
+  </section>
+  <section class="card stack">
+    <h2 class="card__title">{% translate "Form 1-11-1, section 3: people who left and missing persons" %}</h2>
+    <p class="caption">{% translate "Workers in the same kind of work in the past year, and missing persons in the past year." %}</p>
+    {% for field in form.count_fields %}{% form_field field %}{% endfor %}
+  </section>
+  <div class="form-actions">
+    <button class="button button--primary" type="submit">{% translate "Save" %}</button>
+    <a class="button button--neutral" href="{{ back }}">{% translate "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

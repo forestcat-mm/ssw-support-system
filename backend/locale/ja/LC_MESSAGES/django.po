@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 21:27+0900\n"
+"POT-Creation-Date: 2026-10-20 21:46+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -246,6 +246,9 @@ msgstr "支援委託契約書（第5-10号）"
 
 msgid "explanation of the support entrustment contract (form 1-25)"
 msgstr "支援委託契約に関する説明書（第1-25号）"
+
+msgid "overview of the host organization (form 1-11-1)"
+msgstr "特定技能所属機関概要書（第1-11-1号）"
 
 msgid "Printed in the form. The default is the representative."
 msgstr "様式に印字します。初期値は代表者です。"
@@ -1377,6 +1380,12 @@ msgid ""
 "Article 8 of the support entrustment contract (form 5-10). Example: Tokyo."
 msgstr "支援委託契約書（第5-10号）第8条。例: 東京"
 
+msgid "corporate number"
+msgstr "法人番号"
+
+msgid "employment insurance office number"
+msgstr "雇用保険適用事業所番号"
+
 msgid "days until the signed copy is collected"
 msgstr "署名済み書類の回収のタスクを起票するまでの日数（生成から）"
 
@@ -1461,11 +1470,32 @@ msgstr "対応言語"
 msgid "login user"
 msgstr "ログインユーザー"
 
+msgid "user of the online residence application system"
+msgstr "在留申請オンラインシステムの利用者（取次者）"
+
+msgid "email registered in the online residence application system"
+msgstr "在留申請オンラインシステムに登録したメールアドレス"
+
 msgid "staff members"
 msgstr "支援責任者・支援担当者"
 
 msgid "Select at least one of support manager or support staff."
 msgstr "支援責任者・支援担当者のどちらか一方以上を選択してください。"
+
+msgid "appointed on"
+msgstr "就任日"
+
+msgid "resigned on"
+msgstr "退任日"
+
+msgid "own organization"
+msgstr "自機関"
+
+msgid "officer of the own organization"
+msgstr "自機関の役員"
+
+msgid "officers of the own organization"
+msgstr "自機関の役員"
 
 msgid "from"
 msgstr "開始日"
@@ -1701,6 +1731,9 @@ msgstr "監査ログ"
 msgid "The login user of this staff member (optional)."
 msgstr "この担当者がログインに使うユーザー（任意）。"
 
+msgid "The employment insurance office number is 11 digits."
+msgstr "雇用保険適用事業所番号は 11 桁です。"
+
 #, python-format
 msgid "Allowed: %(extensions)s, up to %(size)s MB."
 msgstr "使えるファイル: %(extensions)s（%(size)s MB まで）"
@@ -1851,6 +1884,16 @@ msgstr "自機関の登録"
 
 msgid "Edit the own organization"
 msgstr "自機関の編集"
+
+msgid "Edit the officer"
+msgstr "役員を編集"
+
+msgid "Add an officer"
+msgstr "役員を追加"
+
+#, python-format
+msgid "Void the officer: %(name)s"
+msgstr "役員の行を取り消す: %(name)s"
 
 msgid "Replace the membership certificate"
 msgstr "構成員証明書の差し替え"
@@ -2169,6 +2212,17 @@ msgstr "古い証明書"
 msgid "Not registered."
 msgstr "未登録"
 
+msgid "Officers"
+msgstr "役員"
+
+msgid ""
+"For the books of the support system (ADR-0036). Enter the resignation date "
+"when an officer resigns; the row stays."
+msgstr "帳簿（支援実施体制に関する管理簿）に使います。役員が退任したら退任日を入れます（行は残ります）。"
+
+msgid "Actions"
+msgstr "操作"
+
 msgid "The own organization is not registered yet."
 msgstr "自機関はまだ登録されていません。"
 
@@ -2231,9 +2285,6 @@ msgstr "未設定"
 
 msgid "last login"
 msgstr "最終ログイン"
-
-msgid "Actions"
-msgstr "操作"
 
 msgid ""
 "Each action asks for confirmation and is recorded in the audit log. Roles "
@@ -3782,6 +3833,47 @@ msgstr "代表者"
 msgid "Contact"
 msgstr "連絡先"
 
+msgid "In yen. Used as the annual sales of the bulk application."
+msgstr "円。一括申請の年間売上金額に使います。"
+
+msgid "Enter it when the officer resigns. The row stays."
+msgstr "退任したときに入れます。行は残ります。"
+
+msgid "The resignation date is before the appointment date."
+msgstr "退任日が就任日より前です。"
+
+msgid "not answered"
+msgstr "未回答"
+
+msgid "yes"
+msgstr "あり"
+
+#, python-format
+msgid "details of %(item)s"
+msgstr "%(item)s の内容"
+
+msgid "Enter the details when the answer is not the usual one."
+msgstr "通常と違う答えのときは、内容を書いてください。"
+
+msgid "Add financial results"
+msgstr "決算を追加"
+
+msgid "Financial results"
+msgstr "決算"
+
+msgid "Add an applicant contact"
+msgstr "申請担当者を追加"
+
+msgid "Edit the applicant contact"
+msgstr "申請担当者を編集"
+
+msgid ""
+"Items of the bulk application tool of the online residence application."
+msgstr "在留申請オンラインの一括登録用ツールの項目です。"
+
+msgid "Added a new version of the declaration."
+msgstr "申告の新しい版を足しました。"
+
 msgid "specified skill field"
 msgstr "分野"
 
@@ -4006,6 +4098,15 @@ msgstr "支援委託契約書の追加"
 msgid "Example: a file of another host was attached."
 msgstr "例: ほかの受入れ機関のファイルを添付した。"
 
+msgid "main industry"
+msgstr "主たる業種"
+
+msgid "other industry 1"
+msgstr "他業種１"
+
+msgid "other industry 2"
+msgstr "他業種２"
+
 msgid ""
 "If checked, the documents of table 2 of the list of documents to submit are "
 "not required (note 1 on the cover of the list)."
@@ -4027,6 +4128,13 @@ msgid "Head office or principal office."
 msgstr "本店または主たる事務所。"
 
 msgid ""
+"Only when the industry is “other manufacturing (not elsewhere classified)”."
+msgstr "業種が「その他の製造業（他に分類されないもの）」のときだけ書きます。"
+
+msgid "In yen. For the bulk application."
+msgstr "円。一括申請に使います。"
+
+msgid ""
 "Select the categories of the site's field. More than one can be selected."
 msgstr "事業所の分野の業務区分を選びます。複数選べます。"
 
@@ -4038,6 +4146,9 @@ msgid ""
 "Japan Standard Industrial Classification. 2 to 4 digits (e.g. 09, 0991, "
 "2194)."
 msgstr "日本標準産業分類。2〜4 桁（例: 09、0991、2194）。"
+
+msgid "For the bulk application: the site where the worker mainly works."
+msgstr "一括申請用。外国人を主に勤務させる事業所について入れます。"
 
 msgid "membership certificate"
 msgstr "加入証明"
@@ -4142,6 +4253,9 @@ msgid ""
 "understands."
 msgstr "年間カレンダーは日本語と申請人が十分に理解できる言語。"
 
+msgid "The labour insurance number is 14 digits."
+msgstr "労働保険番号は 14 桁です。"
+
 msgid "registered corporation"
 msgstr "登録法人"
 
@@ -4175,9 +4289,6 @@ msgstr "個人事業主"
 msgid "entity type"
 msgstr "法人・個人の区別"
 
-msgid "corporate number"
-msgstr "法人番号"
-
 msgid "13 digits. A sole proprietor has none (leave it blank)."
 msgstr "13 桁。個人事業主には法人番号がありません（空にします）。"
 
@@ -4186,6 +4297,18 @@ msgstr "代表者の役職"
 
 msgid "representative name"
 msgstr "代表者の氏名"
+
+msgid "main industry (other)"
+msgstr "主たる業種（その他の内容）"
+
+msgid "other industry 1 (other)"
+msgstr "他業種１（その他の内容）"
+
+msgid "other industry 2 (other)"
+msgstr "他業種２（その他の内容）"
+
+msgid "capital (yen)"
+msgstr "資本金（円）"
 
 msgid "already accepts specified skilled workers this fiscal year"
 msgstr "同一年度内に特定技能外国人を受け入れている"
@@ -4234,6 +4357,18 @@ msgstr "日本標準産業分類コード"
 
 msgid "Enter 2 to 4 digits (e.g. 09, 0991, 2194)."
 msgstr "数字 2〜4 桁で入力してください（例: 09、0991、2194）。"
+
+msgid "number of full-time employees"
+msgstr "常勤職員数"
+
+msgid "labour insurance number"
+msgstr "労働保険番号"
+
+msgid "covered by health insurance and employees' pension insurance"
+msgstr "健康保険・厚生年金保険の適用事業所"
+
+msgid "covered by workers' accident compensation and employment insurance"
+msgstr "労災保険・雇用保険の適用事業所"
 
 msgid "host sites"
 msgstr "事業所"
@@ -4389,6 +4524,84 @@ msgstr "取消の理由"
 msgid "documents of the host organization"
 msgstr "受入れ機関の書類"
 
+msgid "end of the fiscal year"
+msgstr "決算期末"
+
+msgid "sales (yen)"
+msgstr "売上高（円）"
+
+msgid "ordinary profit or loss (yen)"
+msgstr "経常損益（円）"
+
+msgid "net profit or loss (yen)"
+msgstr "純損益（円）"
+
+msgid "net assets (yen)"
+msgstr "純資産（円）"
+
+msgid "For a sole proprietor, the capital contribution."
+msgstr "個人事業主は元入金。"
+
+msgid "financial results of the host organization"
+msgstr "受入れ機関の決算"
+
+msgid "declared on"
+msgstr "申告日"
+
+msgid "answers"
+msgstr "答え"
+
+msgid "Japanese workers who left voluntarily"
+msgstr "日本人労働者の自発的離職者数"
+
+msgid "Japanese workers who left involuntarily"
+msgstr "日本人労働者の非自発的離職者数"
+
+msgid "foreign workers who left voluntarily"
+msgstr "外国人労働者の自発的離職者数"
+
+msgid "foreign workers who left involuntarily"
+msgstr "外国人労働者の非自発的離職者数"
+
+msgid "missing Specified Skilled Workers"
+msgstr "行方不明者数（特定技能１号・２号）"
+
+msgid "missing technical intern trainees"
+msgstr "行方不明者数（技能実習）"
+
+msgid "missing persons due to reasons attributable to the organization"
+msgstr "責めに帰すべき事由による行方不明（該当あり）"
+
+msgid "declaration of the host organization"
+msgstr "受入れ機関の申告"
+
+msgid "declarations of the host organization"
+msgstr "受入れ機関の申告"
+
+msgid "officer of the host organization"
+msgstr "受入れ機関の役員"
+
+msgid "officers of the host organization"
+msgstr "受入れ機関の役員"
+
+msgid "relationship with the applicant"
+msgstr "申請人との関係"
+
+msgid "Example: employee of the host organization (person in charge)."
+msgstr "例: 所属機関の職員（申請担当）。"
+
+msgid "Leave blank to use the address of the host organization."
+msgstr "空なら受入れ機関の所在地を使います。"
+
+msgid "mobile phone number"
+msgstr "携帯電話番号"
+
+msgid "applicant contact of the host organization"
+msgstr "受入れ機関の申請担当者"
+
+msgid "applicant contacts of the host organization"
+msgstr "受入れ機関の申請担当者"
+
 msgid "Career-up plan"
 msgstr "キャリアアッププラン"
 
@@ -4439,15 +4652,57 @@ msgstr "レベルを追加"
 msgid "previous file"
 msgstr "前のファイル"
 
+msgid "New version of the declaration"
+msgstr "申告の新しい版"
+
+msgid ""
+"Declarations of the host organization for the bulk application (items (11) "
+"to (32) of section V). The previous version stays. The usual answer is "
+"selected first; when the answer is different, write the details."
+msgstr ""
+"一括申請の受入れ機関の申告（区分V の (11)〜(32)）です。前の版は残ります。最初は通常の答えが選ばれています。違う答えのときは内容を書きます。"
+
+msgid "Form 1-11-1, section 3: people who left and missing persons"
+msgstr "第1-11-1号 ３ 離職者と行方不明者の人数"
+
+msgid ""
+"Workers in the same kind of work in the past year, and missing persons in "
+"the past year."
+msgstr "過去 1 年に同種の業務に従事した労働者の離職と、前 1 年間の行方不明者です。"
+
 msgid "Basic information"
 msgstr "基本情報"
-
-msgid "yes"
-msgstr "あり"
 
 #, python-format
 msgid "since %(day)s"
 msgstr "%(day)s から"
+
+msgid "Items for the bulk application"
+msgstr "一括申請の項目"
+
+msgid "industry"
+msgstr "業種"
+
+msgid "Declarations (items (11) to (32))"
+msgstr "申告（(11)〜(32)）"
+
+msgid "New version"
+msgstr "新しい版"
+
+#, python-format
+msgid "Latest version: declared on %(day)s"
+msgstr "最新の版: %(day)s の申告"
+
+#, python-format
+msgid "%(counter)s required item is not answered."
+msgid_plural "%(counter)s required items are not answered."
+msgstr[0] "必須の項目のうち %(counter)s 件が未回答です。"
+
+msgid "Applicant contacts (agent of the bulk application)"
+msgstr "申請担当者（一括申請の代理人）"
+
+msgid "address of the host organization"
+msgstr "受入れ機関の所在地"
 
 msgid "Support contracts"
 msgstr "支援委託契約"
@@ -4613,6 +4868,17 @@ msgstr "支援委託契約の終了日"
 
 msgid "No host organizations are registered."
 msgstr "受入れ機関は登録されていません。"
+
+msgid "Void a record"
+msgstr "履歴の取消"
+
+msgid "registered on"
+msgstr "登録日"
+
+msgid ""
+"A voided record stays with a strikethrough and is no longer used. This "
+"cannot be undone. To correct it, add a new record."
+msgstr "取り消した行は取り消し線つきで残り、使われなくなります。元に戻せません。直すときは新しい行を足します。"
 
 msgid "Breakdown"
 msgstr "内訳"
@@ -6532,9 +6798,6 @@ msgstr "住所から都道府県・市区町村を分けられませんでした
 msgid "No date (registered on %(day)s)"
 msgstr "適用開始日なし（登録 %(day)s）"
 
-msgid "Items for the bulk application"
-msgstr "一括申請の項目"
-
 msgid ""
 "Items of the bulk application tool of the online residence application. "
 "Enter what applies; the check before generating the bulk file shows what is "
@@ -6686,9 +6949,6 @@ msgid ""
 "The history keeps the previous staff member. The periodic report uses the "
 "staff member on March 31."
 msgstr "前の担当者は履歴に残ります。定期届出には 3月31日時点の担当者を使います。"
-
-msgid "Void a record"
-msgstr "履歴の取消"
 
 msgid ""
 "A voided row stays in the history with a strikethrough. The current assigned"
@@ -7503,6 +7763,23 @@ msgstr "寝室の広さ"
 
 msgid "explanation that the rent is appropriate"
 msgstr "適正な額である旨の説明"
+
+msgid ""
+"No officer of the host organization is registered (section 1 stays empty)."
+msgstr "受入れ機関の役員が登録されていません（１ 所属役員は空になります）。"
+
+msgid ""
+"The host organization has more than 5 officers. Write “see the attached "
+"sheet” and attach a list of all officers."
+msgstr "受入れ機関の役員が 5 人を超えています。「別紙のとおり」と書き、全員の一覧を別紙で添付してください。"
+
+msgid "No financial results are registered (section 2 stays empty)."
+msgstr "決算が登録されていません（２ 決算状況は空になります）。"
+
+msgid ""
+"The numbers of people who left and of missing persons are not in the "
+"declaration of the host organization (section 3 stays empty)."
+msgstr "受入れ機関の申告に離職者・行方不明者の人数がありません（３ は空になります）。"
 
 msgid "The reading (kana) of our name is empty."
 msgstr "自機関の名称のふりがなが空です。"

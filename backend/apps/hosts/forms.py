@@ -27,7 +27,7 @@ from apps.hosts.models import (
     SupportTerminationReason,
 )
 from apps.support.record_forms import MultipleFileField
-from services import attachments, corporate_number, hosts
+from services import attachments, corporate_number, hosts, immigration_codes
 
 FILES_HELP = _("PDF, PNG or JPEG, up to 10 MB each. You can select more than one.")
 
@@ -57,8 +57,20 @@ class HostOrganizationForm(StyledFormMixin, forms.ModelForm[HostOrganization]):
             "phone_number",
             "accepts_ssw_workers",
             "accepts_ssw_workers_since",
+            "industry_1",
+            "industry_1_other",
+            "industry_2",
+            "industry_2_other",
+            "industry_3",
+            "industry_3_other",
+            "capital",
         )
         widgets = {"accepts_ssw_workers_since": forms.DateInput}
+
+    # 業種は一括申請ツールの表（CC13。T46b）
+    industry_1 = forms.ChoiceField(label=_("main industry"), required=False)
+    industry_2 = forms.ChoiceField(label=_("other industry 1"), required=False)
+    industry_3 = forms.ChoiceField(label=_("other industry 2"), required=False)
 
     def __init__(self, *args: Any, suggested_since: Any = None, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
@@ -80,6 +92,14 @@ class HostOrganizationForm(StyledFormMixin, forms.ModelForm[HostOrganization]):
                 ) % {"day": suggested_since.isoformat()}
         self.fields["name_kana"].help_text = _("Used for the furigana of the support plan.")
         self.fields["address"].help_text = _("Head office or principal office.")
+        for name in ("industry_1", "industry_2", "industry_3"):
+            field = self.fields[name]
+            assert isinstance(field, forms.ChoiceField)
+            field.choices = immigration_codes.choices(immigration_codes.INDUSTRY)
+        self.fields["industry_1_other"].help_text = _(
+            "Only when the industry is “other manufacturing (not elsewhere classified)”."
+        )
+        self.fields["capital"].help_text = _("In yen. For the bulk application.")
         self.style_fields()
         # 個人事業主を選ぶと入力できなくする（JS が無いときは保存時の検査で弾く）
         self.enable_when("corporate_number", entity_type="corporation")
@@ -128,6 +148,11 @@ class HostSiteForm(StyledFormMixin, forms.ModelForm[HostSite]):
             "industry_code",
             "field",
             "is_active",
+            "full_time_employees",
+            "employment_insurance_number",
+            "labour_insurance_number",
+            "health_pension_insured",
+            "labour_insurance_covered",
         )
 
     field_order = (
@@ -138,6 +163,11 @@ class HostSiteForm(StyledFormMixin, forms.ModelForm[HostSite]):
         "industry_code",
         "field",
         "categories",
+        "full_time_employees",
+        "employment_insurance_number",
+        "labour_insurance_number",
+        "health_pension_insured",
+        "labour_insurance_covered",
     )
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -178,7 +208,20 @@ class HostSiteForm(StyledFormMixin, forms.ModelForm[HostSite]):
         self.fields["industry_code"].help_text = _(
             "Japan Standard Industrial Classification. 2 to 4 digits (e.g. 09, 0991, 2194)."
         )
+        self.fields["full_time_employees"].help_text = _(
+            "For the bulk application: the site where the worker mainly works."
+        )
+        for name in ("employment_insurance_number", "labour_insurance_number"):
+            allow_formatted_number_input(self.fields[name])
         self.style_fields()
+
+    def clean_employment_insurance_number(self) -> str:
+        return clean_employment_insurance_number(
+            self.cleaned_data.get("employment_insurance_number") or ""
+        )
+
+    def clean_labour_insurance_number(self) -> str:
+        return clean_labour_insurance_number(self.cleaned_data.get("labour_insurance_number") or "")
 
     def clean(self) -> dict[str, Any]:
         cleaned = super().clean() or {}
@@ -453,3 +496,20 @@ class HostDocumentForm(StyledFormMixin, forms.ModelForm[HostDocument]):
         assert isinstance(languages, forms.ModelMultipleChoiceField)
         languages.queryset = SupportLanguage.objects.order_by("pk")
         self.style_fields()
+
+
+def _digits(value: str, length: int, message: Any) -> str:
+    digits = "".join(char for char in value if char.isdigit())
+    if digits and len(digits) != length:
+        raise ValidationError(message)
+    return digits
+
+
+def clean_employment_insurance_number(value: str) -> str:
+    """雇用保険適用事業所番号（11 桁。ハイフンは除く）。"""
+    return _digits(value, 11, _("The employment insurance office number is 11 digits."))
+
+
+def clean_labour_insurance_number(value: str) -> str:
+    """労働保険番号（14 桁。ハイフンは除く）。"""
+    return _digits(value, 14, _("The labour insurance number is 14 digits."))

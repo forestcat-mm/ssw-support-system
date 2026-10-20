@@ -20,6 +20,13 @@ urlpatterns = [
         views.CertificateView.as_view(),
         name="organization_certificate",
     ),
+    path("organization/officers/new/", views.OfficerEditView.as_view(), name="officer_create"),
+    path("organization/officers/<int:pk>/", views.OfficerEditView.as_view(), name="officer_edit"),
+    path(
+        "organization/officers/<int:pk>/void/",
+        views.OfficerVoidView.as_view(),
+        name="officer_void",
+    ),
     path("offices/", views.OfficeListView.as_view(), name="offices"),
     path("offices/new/", views.OfficeFormView.as_view(), name="office_create"),
     path("offices/<int:pk>/", views.OfficeFormView.as_view(), name="office_edit"),
