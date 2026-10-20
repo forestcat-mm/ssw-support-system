@@ -1,0 +1,27 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Void a record" %} | {{ worker }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{% url 'workers:history' worker.pk %}#staff-periods">← {{ worker }}</a></p>
+  <h1>{% translate "Void a record" %}</h1>
+{% endblock %}
+{% block content %}
+<div class="stack form">
+  <section class="card">
+    <div class="card__header"><h2 class="card__title">{% translate "Assigned staff (history)" %}</h2></div>
+    <dl class="fields">
+      <dt>{% translate "from" %}</dt><dd class="mono">{{ period.starts_on|date:"Y-m-d" }}</dd>
+      <dt>{% translate "assigned staff" %}</dt><dd>{{ period.staff.name|default:_("not assigned") }}</dd>
+      <dt>{% translate "reason for the change" %}</dt><dd>{{ period.reason|default:"—" }}</dd>
+    </dl>
+  </section>
+  <p class="message message--warning">{% translate "A voided row stays in the history with a strikethrough. The current assigned staff goes back to the newest remaining row. To correct it, change the assigned staff again." %}</p>
+  <form class="form" method="post" novalidate id="void-form">
+    {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+    {% for field in form %}{% form_field field %}{% endfor %}
+    <div class="form-actions">
+      <button class="button button--danger" type="submit">{% translate "Void" %}</button>
+      <a class="button button--neutral" href="{% url 'workers:history' worker.pk %}#staff-periods">{% translate "Cancel" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% load i18n %}<section class="card" id="manager-periods" style="margin-top: var(--space-16)">
+  <div class="card__header"><h2 class="card__title">{% translate "Support manager (history)" %}</h2><a class="button button--neutral button--small" href="{% url 'settings:office_manager_change' office.pk %}" id="manager-change-link">{% translate "Change the support manager" %}</a></div>
+  <dl class="fields">
+    <dt>{% translate "current support manager" %}</dt><dd id="current-manager">{{ office.support_manager.name|default:_("not chosen") }}</dd>
+  </dl>
+  {% translate "support manager" as staff_label %}{% include "ui/components/staff_periods.html" with periods=manager_periods table_id="manager-period-table" owner=office void_kind="office" can_void=True %}
+</section>

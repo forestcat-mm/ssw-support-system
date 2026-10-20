@@ -18,7 +18,14 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.fields import BlindIndexField, EncryptedCharField
-from apps.core.models import Attachment, Country, Staff, SupportLanguage, TrackedModel
+from apps.core.models import (
+    Attachment,
+    Country,
+    Staff,
+    StaffPeriod,
+    SupportLanguage,
+    TrackedModel,
+)
 from services import passport, residence_card
 
 
@@ -254,6 +261,32 @@ class PassportRecord(HistoryRecord):
 
     def __str__(self) -> str:
         return f"{self.worker}: {self.issuing_country} ~{self.expires_on}"
+
+
+class StaffAssignment(StaffPeriod):
+    """外国人の担当者の履歴（T45。ADR-0037）。今の担当者は ForeignWorker.assigned_staff に写す。"""
+
+    worker = models.ForeignKey(
+        ForeignWorker,
+        verbose_name=_("foreign worker"),
+        on_delete=models.CASCADE,
+        related_name="staff_assignments",
+    )
+
+    class Meta:
+        verbose_name = _("assigned staff (history)")
+        verbose_name_plural = _("assigned staff (history)")
+        ordering = ["-starts_on", "-pk"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["worker", "starts_on"],
+                condition=Q(voided_at__isnull=True),
+                name="workers_staff_assignment_one_per_day",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.worker}: {self.starts_on}~"
 
 
 class WorkerAddress(HistoryRecord, ConfirmedValue):

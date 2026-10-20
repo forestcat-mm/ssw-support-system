@@ -15,9 +15,14 @@ from django.utils.translation import gettext_lazy as _
 from django.views import View
 from django.views.generic import TemplateView
 
-from apps.core.models import Action, User
+from apps.core.models import Action, Staff, User
 from apps.core.permissions import ActionRequiredMixin
-from apps.core.web_forms import consume_once_token, once_context
+from apps.core.web_forms import (
+    PeriodVoidForm,
+    StaffPeriodForm,
+    consume_once_token,
+    once_context,
+)
 from apps.workers.forms import (
     RECORD_FORMS,
     DeactivateForm,
@@ -32,6 +37,7 @@ from apps.workers.models import (
     ForeignWorker,
     PassportRecord,
     ResidenceRecord,
+    StaffAssignment,
     WorkerAddress,
     WorkerContact,
     WorkerStatus,
@@ -42,6 +48,7 @@ from services import (
     books,
     contracts,
     deadlines,
+    staff_periods,
     wage_explanations,
     worker_detail,
     worker_documents,
@@ -240,7 +247,9 @@ class WorkerHistoryView(WorkerDetailView):
     def tab_context(self, context: dict[str, Any]) -> dict[str, Any]:
         entries = worker_detail.history(self.worker)
         context["entries"] = entries
-        shown: dict[str, list[int]] = {}
+        periods = staff_periods.worker_periods(self.worker)
+        context["staff_periods"] = periods
+        shown: dict[str, list[int]] = {"staff_assignment": [period.pk for period in periods]}
         for entry in entries:
             shown.setdefault(entry.kind, []).append(entry.record.pk)
         return {"shown": shown}
@@ -453,6 +462,81 @@ class RecordVoidView(WorkerFormView):
                 messages.success(request, _("Voided the record."))
                 return redirect(history_url)
         return self.render(request, worker=worker, entry=entry, form=form)
+
+
+class StaffChangeView(WorkerFormView):
+    """担当者を変える（新しい担当者・開始日・理由。T45-D4）。履歴の行を足す。"""
+
+    template_name = "workers/staff_change.html"
+
+    def form(self, data: Any = None) -> StaffPeriodForm:
+        return StaffPeriodForm(
+            data,
+            queryset=Staff.objects.filter(is_active=True).order_by("name_kana", "name"),
+            label=_("new assigned staff"),
+            empty_label=_("not assigned"),
+        )
+
+    def get(self, request: HttpRequest, pk: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        return self.render(request, worker=worker, form=self.form())
+
+    def post(self, request: HttpRequest, pk: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        history_url = reverse("workers:history", args=[pk]) + "#staff-periods"
+        if not consume_once_token(request):
+            return self.already_submitted(request, history_url)
+        form = self.form(request.POST)
+        if form.is_valid():
+            try:
+                staff_periods.change_worker_staff(
+                    worker,
+                    form.cleaned_data["staff"],
+                    starts_on=form.cleaned_data["starts_on"],
+                    reason=form.cleaned_data["reason"],
+                    by=_actor(request),
+                    today=timezone.localdate(),
+                )
+            except ValidationError as error:
+                apply_service_errors(form, error)
+            else:
+                messages.success(request, _("Changed the assigned staff."))
+                return redirect(history_url)
+        return self.render(request, worker=worker, form=form)
+
+
+class StaffVoidView(WorkerFormView):
+    """担当者の履歴の行の取消（理由は必須）。"""
+
+    template_name = "workers/staff_void.html"
+
+    def period(self, worker: ForeignWorker, period_id: int) -> StaffAssignment:
+        return get_object_or_404(
+            StaffAssignment.objects.select_related("staff"),
+            pk=period_id,
+            worker=worker,
+            voided_at__isnull=True,
+        )
+
+    def get(self, request: HttpRequest, pk: int, period_id: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        period = self.period(worker, period_id)
+        return self.render(request, worker=worker, period=period, form=PeriodVoidForm())
+
+    def post(self, request: HttpRequest, pk: int, period_id: int) -> HttpResponse:
+        worker = self.worker(request, pk)
+        history_url = reverse("workers:history", args=[pk]) + "#staff-periods"
+        if not consume_once_token(request):
+            return self.already_submitted(request, history_url)
+        period = self.period(worker, period_id)
+        form = PeriodVoidForm(request.POST)
+        if form.is_valid():
+            staff_periods.void_worker_period(
+                period, by=_actor(request), reason=form.cleaned_data["reason"]
+            )
+            messages.success(request, _("Voided the record."))
+            return redirect(history_url)
+        return self.render(request, worker=worker, period=period, form=form)
 
 
 class WorkerDeactivateView(WorkerFormView):

@@ -1,0 +1,13 @@
+{% load i18n %}{# 担当者・支援責任者の履歴の表（T45）。periods・void_url_name・void_args・can_void を受ける #}
+<div class="table-wrap">
+  <table class="table table--list" id="{{ table_id }}">
+    <thead><tr><th>{% translate "from" %}</th><th>{{ staff_label }}</th><th>{% translate "reason for the change" %}</th><th>{% translate "void" %}</th></tr></thead>
+    <tbody>{% for period in periods %}
+      <tr data-period="{{ period.pk }}"{% if period.voided_at %} class="is-voided"{% endif %}>
+        <td class="mono">{{ period.starts_on|date:"Y-m-d" }}{% if period.is_estimated %} <span class="badge badge--within-14" data-estimated="true" title="{% translate 'Made from the registration date because there is no record of the change. Check it and correct it if needed.' %}">{% translate "estimated" %}</span>{% endif %}</td>
+        <td>{{ period.staff.name|default:_("not assigned") }}{% if period.staff and not period.staff.is_active %} <span class="caption">{% translate "(inactive)" %}</span>{% endif %}</td>
+        <td><span class="truncate-line truncate-line--wide" title="{{ period.reason }}"><span class="truncate">{{ period.reason|default:"—" }}</span></span></td>
+        <td>{% if period.voided_at %}<span class="truncate-line truncate-line--wide" title="{{ period.void_reason }}"><span class="truncate">{{ period.voided_at|date:"Y-m-d" }} {{ period.void_reason }}</span></span>{% elif can_void %}<a class="button button--danger button--small" href="{% if void_kind == 'office' %}{% url 'settings:office_manager_void' owner.pk period.pk %}{% else %}{% url 'workers:staff_void' owner.pk period.pk %}{% endif %}">{% translate "Void" %}</a>{% endif %}</td>
+      </tr>{% empty %}<tr><td colspan="4" class="muted">{% translate "None." %}</td></tr>{% endfor %}</tbody>
+  </table>
+</div>

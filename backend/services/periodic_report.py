@@ -19,12 +19,11 @@ from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
 
-from django.contrib.contenttypes.models import ContentType
 from django.db.models import Min
 from django.utils import timezone
 
 from apps.contracts.models import EmploymentContract, EmploymentContractVersion
-from apps.core.models import AuditAction, AuditLog, Organization, Staff
+from apps.core.models import Organization, Staff
 from apps.filings.models import Filing, FilingKind, FilingStatus
 from apps.hosts.models import HostOrganization, HostSite, SupportContract, SupportScope
 from apps.support.models import (
@@ -35,7 +34,13 @@ from apps.support.models import (
     SupportRecord,
 )
 from apps.workers.models import ForeignWorker, LatestResidenceRecord
-from services import incident_reports, support_interviews, support_records, workers
+from services import (
+    incident_reports,
+    staff_periods,
+    support_interviews,
+    support_records,
+    workers,
+)
 from services.support_catalog import SupportItem
 
 MATCH_DAYS = 14  # 照合の幅（候補の日付の前後。第4-3号の報告期限と同じ日数）
@@ -77,11 +82,11 @@ class SupportRow:
     support_until: datetime.date  # 同じく最後の日
     fully_outsourced_on_reference: bool  # 基準日に自機関へ全部委託か（支援の形態）
     organization_name: str
-    staff: Staff | None  # 支援担当者（担当の履歴が無いため、作成時点の担当者で代える。ADR-0012）
+    staff: Staff | None  # 基準日の支援担当者（担当者の履歴から。T45、ADR-0037）
     staff_phone: str  # 担当者の所属事務所の電話番号
-    # 基準日より後に担当者を変えた記録が監査ログにある
-    # （3月31日時点の担当者と違うかもしれない。要確認）
-    staff_changed_after_reference: bool
+    # 基準日の担当者を推定の行（監査ログが無く、開始日を登録の日とみなした行）か、履歴の外
+    # （最初の行より前・行が無い）から出した。要確認
+    staff_estimated: bool
     residence_record_id: int | None  # 在留情報の最新行（番号は復号しない）
 
 
@@ -104,20 +109,6 @@ def _clip(
     return max(start, period.start), min(end or period.end, period.end)
 
 
-def _staff_change_dates() -> dict[int, list[datetime.date]]:
-    """外国人ごとの、担当者（assigned_staff）を変えた日（監査ログの更新の記録から。東京の日付）。"""
-    content_type = ContentType.objects.get_for_model(ForeignWorker)
-    logs = AuditLog.objects.filter(
-        content_type=content_type,
-        action=AuditAction.UPDATE,
-        changes__has_key="assigned_staff",
-    ).values_list("object_id", "occurred_at")
-    result: dict[int, list[datetime.date]] = defaultdict(list)
-    for object_id, occurred_at in logs:
-        result[int(object_id)].append(timezone.localdate(occurred_at))
-    return result
-
-
 def support_rows(fiscal_year: int) -> list[SupportRow]:
     """期間中に 1 日でも自機関が全部委託を受けていた 1号の外国人の、雇用契約ごとの行。
 
@@ -138,7 +129,7 @@ def support_rows(fiscal_year: int) -> list[SupportRow]:
     for support in SupportContract.objects.filter(scope=SupportScope.FULL):
         support_contracts[support.host_organization_id].append(support)
     residence = dict(LatestResidenceRecord.objects.values_list("worker_id", "record_id"))
-    staff_changes = _staff_change_dates()
+    periods = staff_periods.periods_by_worker(list(contracts.values_list("worker_id", flat=True)))
 
     rows = []
     for contract in contracts:
@@ -155,7 +146,11 @@ def support_rows(fiscal_year: int) -> list[SupportRow]:
         if not overlaps:
             continue
         reference_on = contract_until  # 3月31日、期間中に終了したらその日
-        staff = contract.worker.assigned_staff
+        staff = staff_periods.staff_on(
+            periods.get(contract.worker_id, []),
+            reference_on,
+            fallback=contract.worker.assigned_staff,
+        )
         rows.append(
             SupportRow(
                 worker=contract.worker,
@@ -172,12 +167,9 @@ def support_rows(fiscal_year: int) -> list[SupportRow]:
                     begin <= reference_on <= finish for begin, finish, _support in overlaps
                 ),
                 organization_name=organization_name,
-                staff=staff,
-                staff_phone=staff.office.phone_number if staff is not None else "",
-                staff_changed_after_reference=any(
-                    changed_on > reference_on
-                    for changed_on in staff_changes.get(contract.worker_id, [])
-                ),
+                staff=staff.staff,
+                staff_phone=staff.staff.office.phone_number if staff.staff is not None else "",
+                staff_estimated=staff.estimated,
                 residence_record_id=residence.get(contract.worker_id),
             )
         )

@@ -1,7 +1,8 @@
 """通しのテスト: 事務所の支援責任者を選ぶ（修正 1 回目 A5）と、外国人の氏名のカナ（A4）。
 
-管理者が設定の事務所の画面で支援責任者を選んで保存する。担当者が外国人の編集でカナをひらがなで入れると
-カタカナで保存され、一覧でひらがなで検索できる。管理画面には行かない。
+管理者が設定の事務所の画面の「支援責任者を変える」で支援責任者を選ぶ（履歴が残る。T45）。
+担当者が外国人の編集でカナをひらがなで入れるとカタカナで保存され、一覧でひらがなで検索できる。
+管理画面には行かない。
 """
 
 from urllib.parse import urlparse
@@ -47,9 +48,16 @@ def test_choose_the_support_manager_of_the_office(
     page.set_viewport_size({"width": width, "height": 900})
     sign_in(administrator)
     page.goto(page.url.rstrip("/") + f"/settings/offices/{office.pk}/")
-    page.locator("#id_support_manager").select_option(label="山田 一郎")
+    # 支援責任者は「支援責任者を変える」で、開始日と理由を入れて選ぶ（履歴。T45-D5）
+    page.locator("#manager-change-link").click()
+    page.get_by_label("新しい支援責任者").select_option(label="山田 一郎")
+    page.get_by_label("変更の理由").fill("支援責任者の就任")
     assert page.evaluate("document.documentElement.scrollWidth") <= width
-    page.get_by_role("button", name="保存する").click()
+    page.get_by_role("button", name="変更").click()
+    expect(page.get_by_text("支援責任者を変えました。")).to_be_visible()
+    expect(page.locator("#current-manager")).to_have_text("山田 一郎")
+    expect(page.locator("#manager-period-table tbody tr")).to_have_count(1)
+    assert page.evaluate("document.documentElement.scrollWidth") <= width
     office.refresh_from_db()
     assert office.support_manager is not None and office.support_manager.name == "山田 一郎"
     assert admin_requests == []

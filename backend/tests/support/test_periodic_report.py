@@ -1,23 +1,23 @@
 """定期届出の元データ（T24、ADR-0012）: 別紙1 の支援の欄・特異事案の候補と第4-3号のタスクの照合・
 社内の確認用の集計。届出対象期間は 2026-04-01〜2027-03-31（2026 年度）。"""
 
-from datetime import date, datetime
+from datetime import date
 from typing import Any
 from zoneinfo import ZoneInfo
 
 import pytest
-from django.contrib.contenttypes.models import ContentType
 
 from apps.contracts.models import EmploymentContractVersion
-from apps.core.models import AuditAction, AuditLog
 from apps.filings.models import Filing, FilingKind, FilingStatus, Trigger
 from apps.hosts.models import SupportContract
 from apps.support.models import ConsultationStatus, SupportRecord
+from apps.workers.models import StaffAssignment
 from services import (
     consultations,
     contracts,
     filings,
     periodic_report,
+    staff_periods,
     support_interviews,
     support_plans,
     support_records,
@@ -465,33 +465,32 @@ def test_job_change_candidates_follow_the_separation(supported: Any) -> None:
     assert voluntary.pk != unknown.pk
 
 
-def test_staff_change_after_the_reference_date_needs_review(supported: Any) -> None:
+def test_staff_on_the_reference_date_comes_from_the_history(supported: Any) -> None:
+    """3月31日時点の担当者は担当者の履歴から出す（T45。ADR-0012 の要確認の印を解く）。"""
+    first = supported.assigned_staff
     [row] = rows_by_worker()[supported.pk]
-    assert not row.staff_changed_after_reference
-    supported.assigned_staff = make_staff(name="鈴木")
-    supported.save()  # 監査ログに assigned_staff の変更が残る（今日 2026-10-17。基準日より前）
-    assert (
-        "assigned_staff"
-        in AuditLog.objects.filter(action=AuditAction.UPDATE, object_id=str(supported.pk))
-        .latest("pk")
-        .changes
+    assert (row.staff, row.staff_estimated) == (first, True)  # 履歴の行が無い（今の担当者で推定）
+    StaffAssignment.objects.create(worker=supported, staff=first, starts_on=date(2026, 4, 1))
+    [row] = rows_by_worker()[supported.pk]
+    assert (row.staff, row.staff_estimated) == (first, False)
+    # 基準日より後に替わっても、基準日の担当者のまま
+    later = make_staff(name="鈴木")
+    staff_periods.change_worker_staff(
+        supported,
+        later,
+        starts_on=date(2027, 4, 2),
+        reason="異動",
+        by=None,
+        today=date(2027, 4, 10),
+    )
+    supported.refresh_from_db()
+    assert supported.assigned_staff == later
+    [row] = rows_by_worker()[supported.pk]
+    assert (row.staff, row.staff_estimated) == (first, False)
+    # 推定の行（監査ログが無く、開始日を登録の日とみなした行）を使うときは要確認
+    StaffAssignment.objects.filter(worker=supported, starts_on=date(2026, 4, 1)).delete()
+    StaffAssignment.objects.create(
+        worker=supported, staff=first, starts_on=date(2026, 10, 1), is_estimated=True
     )
     [row] = rows_by_worker()[supported.pk]
-    assert not row.staff_changed_after_reference
-
-    def change_logged_at(when: datetime) -> None:
-        # 監査ログは追記専用なので、変更の記録を指定の日時で足す
-        AuditLog.objects.create(
-            action=AuditAction.UPDATE,
-            content_type=ContentType.objects.get_for_model(supported),
-            object_id=str(supported.pk),
-            changes={"assigned_staff": [1, 2]},
-            occurred_at=when,
-        )
-
-    change_logged_at(datetime(2027, 3, 31, 23, 30, tzinfo=TOKYO))  # 基準日の当日
-    [row] = rows_by_worker()[supported.pk]
-    assert not row.staff_changed_after_reference
-    change_logged_at(datetime(2027, 4, 2, 9, tzinfo=TOKYO))
-    [row] = rows_by_worker()[supported.pk]
-    assert row.staff_changed_after_reference
+    assert (row.staff, row.staff_estimated) == (first, True)

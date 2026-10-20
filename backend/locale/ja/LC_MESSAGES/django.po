@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 20:38+0900\n"
+"POT-Creation-Date: 2026-10-20 20:59+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -1461,6 +1461,21 @@ msgstr "支援責任者・支援担当者"
 msgid "Select at least one of support manager or support staff."
 msgstr "支援責任者・支援担当者のどちらか一方以上を選択してください。"
 
+msgid "from"
+msgstr "開始日"
+
+msgid "reason for the change"
+msgstr "変更の理由"
+
+msgid "estimated"
+msgstr "推定"
+
+msgid "support manager of the office (history)"
+msgstr "事務所の支援責任者（履歴）"
+
+msgid "support managers of the office (history)"
+msgstr "事務所の支援責任者（履歴）"
+
 msgid "access the management site"
 msgstr "管理画面に入る"
 
@@ -1684,13 +1699,6 @@ msgstr "この担当者がログインに使うユーザー（任意）。"
 msgid "Allowed: %(extensions)s, up to %(size)s MB."
 msgstr "使えるファイル: %(extensions)s（%(size)s MB まで）"
 
-msgid ""
-"Printed as the support manager in form 1-17 (section III, item 7) for "
-"workers whose staff member belongs to this office. Staff members of this "
-"office marked as support managers can be chosen (register the office first)."
-msgstr ""
-"担当者がこの事務所に所属する外国人の第1-17号（Ⅲ欄７）に、支援責任者として書きます。この事務所の、支援責任者の印のある担当者から選べます（事務所を登録してから選びます）。"
-
 msgid "All users"
 msgstr "すべての操作者"
 
@@ -1702,9 +1710,6 @@ msgstr "すべての種類"
 
 msgid "Part of the name, or the ID."
 msgstr "名称の一部、または ID"
-
-msgid "from"
-msgstr "開始日"
 
 msgid "to"
 msgstr "終了日"
@@ -1815,6 +1820,25 @@ msgstr "事務所を追加"
 
 msgid "Edit the office"
 msgstr "事務所の編集"
+
+msgid "new support manager"
+msgstr "新しい支援責任者"
+
+msgid "not chosen"
+msgstr "未選択"
+
+msgid ""
+"Printed as the support manager in form 1-17 (section III, item 7) for "
+"workers whose staff member belongs to this office. Staff members of this "
+"office marked as support managers can be chosen."
+msgstr ""
+"担当者がこの事務所に所属する外国人の第1-17号（Ⅲ欄７）に、支援責任者として印字します。この事務所の、支援責任者の印のある担当者を選べます。"
+
+msgid "Changed the support manager."
+msgstr "支援責任者を変えました。"
+
+msgid "Voided the record."
+msgstr "取り消しました。"
 
 msgid "Register the own organization"
 msgstr "自機関の登録"
@@ -2091,6 +2115,20 @@ msgstr "一覧へ戻る"
 msgid "item"
 msgstr "項目"
 
+msgid "Change the support manager"
+msgstr "支援責任者を変える"
+
+msgid "current support manager"
+msgstr "今の支援責任者"
+
+msgid "Support manager (history)"
+msgstr "支援責任者の履歴"
+
+msgid ""
+"A voided row stays in the history with a strikethrough. The current support "
+"manager goes back to the newest remaining row."
+msgstr "取り消した行は取り消し線つきで履歴に残ります。今の支援責任者は、残った行のうち開始日がいちばん新しい行に戻ります。"
+
 msgid ""
 "Offices of the own organization where support work is done. An office is not"
 " deleted; turn off “active” when it closes."
@@ -2285,6 +2323,17 @@ msgstr "時間"
 msgctxt "duration"
 msgid "minutes"
 msgstr "分"
+
+msgid "void"
+msgstr "取り消す"
+
+msgid ""
+"Made from the registration date because there is no record of the change. "
+"Check it and correct it if needed."
+msgstr "変更の記録が無いため、登録の日を開始日として作った行です。確かめて、違っていれば直してください。"
+
+msgid "(inactive)"
+msgstr "（無効）"
 
 msgid "Back"
 msgstr "戻る"
@@ -2522,6 +2571,17 @@ msgstr "カレンダー"
 
 msgid "Today"
 msgstr "今日"
+
+msgid "Example: handed over because of a transfer."
+msgstr "例: 異動のため引き継いだ。"
+
+msgid ""
+"The day the new person takes over. A past date is allowed; a future date is "
+"not."
+msgstr "新しい人が引き継いだ日。過去の日は入れられますが、未来の日は入れられません。"
+
+msgid "Example: the start date was entered incorrectly."
+msgstr "例: 開始日を誤って入力した。"
 
 msgid "page background"
 msgstr "ページの背景"
@@ -5931,9 +5991,6 @@ msgstr "交付を記録"
 msgid "signed copy"
 msgstr "署名済みの控え"
 
-msgid "void"
-msgstr "取り消す"
-
 msgctxt "delivery receipt"
 msgid "attached"
 msgstr "あり"
@@ -6175,6 +6232,9 @@ msgstr "旅券"
 msgid "This passport number is registered to another foreign worker."
 msgstr "この旅券番号は別の外国人に登録されています。"
 
+msgid "assigned staff (history)"
+msgstr "担当者（履歴）"
+
 msgid "residential address"
 msgstr "住所"
 
@@ -6271,6 +6331,9 @@ msgstr ""
 
 msgid "Personal information"
 msgstr "本人の情報"
+
+msgid "history"
+msgstr "履歴"
 
 msgid "records kept until (estimate)"
 msgstr "帳簿の保存義務の満了日（目安）"
@@ -6407,6 +6470,12 @@ msgstr "第1-25号を作る"
 msgid "No filing tasks for this foreign worker."
 msgstr "この外国人の届出タスクはありません。"
 
+msgid "Assigned staff (history)"
+msgstr "担当者の履歴"
+
+msgid "Change the assigned staff"
+msgstr "担当者を変える"
+
 msgid "number"
 msgstr "番号"
 
@@ -6432,8 +6501,23 @@ msgid ""
 " are required."
 msgstr "任意の区画です。入れる場合は、「入れる場合は必須」の欄を入れます。"
 
+msgid "current assigned staff"
+msgstr "今の担当者"
+
+msgid ""
+"The history keeps the previous staff member. The periodic report uses the "
+"staff member on March 31."
+msgstr "前の担当者は履歴に残ります。定期届出には 3月31日時点の担当者を使います。"
+
 msgid "Void a record"
 msgstr "履歴の取消"
+
+msgid ""
+"A voided row stays in the history with a strikethrough. The current assigned"
+" staff goes back to the newest remaining row. To correct it, change the "
+"assigned staff again."
+msgstr ""
+"取り消した行は取り消し線つきで履歴に残ります。今の担当者は、残った行のうち開始日がいちばん新しい行に戻ります。正しい担当者は、もう一度「担当者を変える」で入れてください。"
 
 msgid ""
 "A voided record stays in the history with a strikethrough and is no longer "
@@ -6466,8 +6550,11 @@ msgstr "外国人を登録しました。"
 msgid "Added: %(what)s"
 msgstr "保存しました: %(what)s"
 
-msgid "Voided the record."
-msgstr "取り消しました。"
+msgid "new assigned staff"
+msgstr "新しい担当者"
+
+msgid "Changed the assigned staff."
+msgstr "担当者を変えました。"
 
 msgid "Deactivated the foreign worker."
 msgstr "外国人を無効化しました。"
@@ -7654,6 +7741,18 @@ msgstr "この事務所の、支援責任者の印のある有効な担当者を
 
 msgid "Enter a passport number of 6 to 12 letters and digits."
 msgstr "旅券番号は英数字 6〜12 桁で入力してください。"
+
+msgid "Choose a different staff member from the current one."
+msgstr "今と違う人を選んでください。"
+
+msgid "The start date cannot be in the future."
+msgstr "開始日に未来の日は入れられません。"
+
+#, python-format
+msgid ""
+"Enter a date after %(day)s (the start of the current one). To correct the "
+"current one, void it first."
+msgstr "%(day)s（今の行の開始日）より後の日を入れてください。今の行を直すときは、先に取り消してください。"
 
 msgid "Not generated, so it is not included."
 msgstr "未生成のため綴じません。"

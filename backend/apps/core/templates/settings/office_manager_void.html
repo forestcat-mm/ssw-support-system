@@ -1,0 +1,23 @@
+{% extends "settings/base.html" %}{% load i18n ui %}
+{% block settings_content %}
+<p class="caption"><a href="{{ back }}">← {{ office.name }}</a></p>
+<div class="stack form">
+  <section class="card">
+    <div class="card__header"><h2 class="card__title">{% translate "Support manager (history)" %}</h2></div>
+    <dl class="fields">
+      <dt>{% translate "from" %}</dt><dd class="mono">{{ period.starts_on|date:"Y-m-d" }}</dd>
+      <dt>{% translate "support manager" %}</dt><dd>{{ period.staff.name|default:_("not chosen") }}</dd>
+      <dt>{% translate "reason for the change" %}</dt><dd>{{ period.reason|default:"—" }}</dd>
+    </dl>
+  </section>
+  <p class="message message--warning">{% translate "A voided row stays in the history with a strikethrough. The current support manager goes back to the newest remaining row." %}</p>
+  <form class="form" method="post" novalidate id="void-form">
+    {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+    {% for field in form %}{% form_field field %}{% endfor %}
+    <div class="form-actions">
+      <button class="button button--danger" type="submit">{% translate "Void" %}</button>
+      <a class="button button--neutral" href="{{ back }}">{% translate "Cancel" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

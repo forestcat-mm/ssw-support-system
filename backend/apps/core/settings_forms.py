@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.core.forms import InvitationForm
 from apps.core.models import AttachmentKind, AuditAction, Office, Organization, Staff, User
 from apps.core.web_forms import StyledFormMixin
-from services import attachments, audit, organization
+from services import attachments, audit
 from services.audit_search import AuditQuery
 
 
@@ -118,24 +118,12 @@ class CertificateForm(StyledFormMixin, forms.Form):
 class OfficeForm(StyledFormMixin, forms.ModelForm[Office]):
     class Meta:
         model = Office
-        fields = ("name", "postal_code", "address", "phone_number", "support_manager", "is_active")
+        # 支援責任者は「支援責任者を変える」で、開始日と理由を入れて変える（履歴。T45-D5）
+        fields = ("name", "postal_code", "address", "phone_number", "is_active")
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        manager = self.fields["support_manager"]
-        assert isinstance(manager, forms.ModelChoiceField)
-        manager.queryset = organization.manager_choices(self.instance)
-        manager.help_text = _(
-            "Printed as the support manager in form 1-17 (section III, item 7) for workers whose "
-            "staff member belongs to this office. Staff members of this office marked as support "
-            "managers can be chosen (register the office first)."
-        )
         self.style_fields()
-
-    def clean_support_manager(self) -> Any:
-        staff = self.cleaned_data.get("support_manager")
-        organization.validate_support_manager(self.instance, staff)
-        return staff
 
 
 def _content_type_label(content_type: ContentType) -> str:

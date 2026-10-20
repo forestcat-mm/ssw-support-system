@@ -339,3 +339,53 @@ class PresetOrOtherField(forms.MultiValueField):
         if choice == OTHER:
             return str(text or "").strip()
         return str(choice or "")
+
+
+class StaffPeriodForm(StyledFormMixin, forms.Form):
+    """担当者・支援責任者を変える（新しい人・開始日・理由。T45）。検査は services.staff_periods。"""
+
+    staff: forms.ModelChoiceField[Any] = forms.ModelChoiceField(queryset=None, required=False)
+    starts_on = forms.DateField(label=gettext_lazy("from"), widget=forms.DateInput)
+    reason = forms.CharField(
+        label=gettext_lazy("reason for the change"),
+        max_length=200,
+        widget=forms.Textarea(attrs={"rows": 2}),
+        help_text=gettext_lazy("Example: handed over because of a transfer."),
+    )
+
+    def __init__(
+        self,
+        *args: Any,
+        queryset: Any,
+        label: Any,
+        empty_label: Any = None,
+        help_text: Any = "",
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        staff = self.fields["staff"]
+        assert isinstance(staff, forms.ModelChoiceField)
+        staff.queryset = queryset
+        staff.label = label
+        staff.empty_label = empty_label
+        staff.required = empty_label is None
+        staff.help_text = help_text
+        self.fields["starts_on"].help_text = gettext_lazy(
+            "The day the new person takes over. A past date is allowed; a future date is not."
+        )
+        if not self.is_bound:
+            self.initial.setdefault("starts_on", timezone.localdate())
+        self.style_fields()
+
+
+class PeriodVoidForm(StyledFormMixin, forms.Form):
+    reason = forms.CharField(
+        label=gettext_lazy("void reason"),
+        max_length=200,
+        widget=forms.Textarea(attrs={"rows": 3}),
+        help_text=gettext_lazy("Example: the start date was entered incorrectly."),
+    )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.style_fields()

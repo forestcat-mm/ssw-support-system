@@ -169,9 +169,15 @@ class WorkerForm(StyledFormMixin, forms.ModelForm[ForeignWorker]):
         super().__init__(*args, **kwargs)
         self.style_fields()
         self.normalize_field("name_kana", "kana")  # 外国人の氏名のカナはカタカナ（修正 1 回目 A4）
-        staff_field = self.fields["assigned_staff"]
-        assert isinstance(staff_field, forms.ModelChoiceField)
-        staff_field.queryset = Staff.objects.filter(is_active=True).order_by("name_kana", "name")
+        if self.instance.pk is not None:
+            # 担当者は「担当者を変える」で、開始日と理由を入れて変える（履歴。T45-D4）
+            del self.fields["assigned_staff"]
+        else:
+            staff_field = self.fields["assigned_staff"]
+            assert isinstance(staff_field, forms.ModelChoiceField)
+            staff_field.queryset = Staff.objects.filter(is_active=True).order_by(
+                "name_kana", "name"
+            )
         if self.instance.pk is not None and not self.is_bound:
             self.initial["loaded_updated_at"] = self.instance.updated_at.isoformat()
 

@@ -445,6 +445,66 @@ class Staff(TrackedModel):
         return self.name
 
 
+class StaffPeriod(TrackedModel):
+    """「いつから誰が」の履歴の 1 行（外国人の担当者・事務所の支援責任者。T45、ADR-0037）。
+
+    上書きしない。誤りは取消（理由は必須）して新しい行を足す。担当者が空の行は「担当なし」。
+    推定の行（is_estimated）は、監査ログが無く、開始日を登録の日とみなして作った行。
+    """
+
+    staff = models.ForeignKey(
+        "core.Staff",
+        verbose_name=_("staff member"),
+        on_delete=models.PROTECT,
+        related_name="+",
+        null=True,
+        blank=True,
+    )
+    starts_on = models.DateField(_("from"))
+    reason = models.CharField(_("reason for the change"), max_length=200, blank=True)
+    is_estimated = models.BooleanField(_("estimated"), default=False, editable=False)
+    voided_at = models.DateTimeField(_("voided at"), null=True, blank=True, editable=False)
+    voided_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("voided by"),
+        on_delete=models.PROTECT,
+        related_name="+",
+        null=True,
+        blank=True,
+        editable=False,
+    )
+    void_reason = models.CharField(_("void reason"), max_length=200, blank=True, editable=False)
+
+    class Meta:
+        abstract = True
+
+
+class OfficeManagerPeriod(StaffPeriod):
+    """事務所の支援責任者の履歴（T45-D5）。今の値は Office.support_manager に写す。"""
+
+    office = models.ForeignKey(
+        Office,
+        verbose_name=_("office"),
+        on_delete=models.CASCADE,
+        related_name="manager_periods",
+    )
+
+    class Meta:
+        verbose_name = _("support manager of the office (history)")
+        verbose_name_plural = _("support managers of the office (history)")
+        ordering = ["-starts_on", "-pk"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["office", "starts_on"],
+                condition=Q(voided_at__isnull=True),
+                name="core_office_manager_period_one_per_day",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.office}: {self.starts_on}~"
+
+
 class Action(models.TextChoices):
     """権限判定の操作（services.authorization）。機能を追加するタスクで行を足す。"""
 

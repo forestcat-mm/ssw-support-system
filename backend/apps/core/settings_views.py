@@ -16,12 +16,21 @@ from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.functional import Promise
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from django.views import View
 
-from apps.core.models import Action, AuditLog, Office, Organization, Staff, User
+from apps.core.models import (
+    Action,
+    AuditLog,
+    Office,
+    OfficeManagerPeriod,
+    Organization,
+    Staff,
+    User,
+)
 from apps.core.permissions import ActionRequiredMixin
 from apps.core.settings_forms import (
     AuditSearchForm,
@@ -32,7 +41,12 @@ from apps.core.settings_forms import (
     StaffForm,
 )
 from apps.core.views import invitation_url_builder
-from apps.core.web_forms import consume_once_token, once_context
+from apps.core.web_forms import (
+    PeriodVoidForm,
+    StaffPeriodForm,
+    consume_once_token,
+    once_context,
+)
 from apps.support.display import plan_view
 from apps.support.forms import PlanEditor
 from services import (
@@ -41,6 +55,7 @@ from services import (
     invitations,
     mfa,
     organization,
+    staff_periods,
     support_plans,
     users,
 )
@@ -318,6 +333,10 @@ class RecordFormView(SettingsView):
     def instance(self, pk: int | None) -> Model | None:
         return get_object_or_404(self.model, pk=pk) if pk is not None else None
 
+    def extra_context(self, instance: Model | None) -> dict[str, Any]:
+        """フォームの下に出すもの（事務所の支援責任者の履歴など）。"""
+        return {}
+
     def get(self, request: HttpRequest, pk: int | None = None) -> HttpResponse:
         instance = self.instance(pk)
         return self.render(
@@ -325,6 +344,7 @@ class RecordFormView(SettingsView):
             form=self.form_class(instance=instance),
             title=self.edit_title if instance else self.create_title,
             back=reverse(self.list_url_name),
+            **self.extra_context(instance),
         )
 
     def post(self, request: HttpRequest, pk: int | None = None) -> HttpResponse:
@@ -338,6 +358,7 @@ class RecordFormView(SettingsView):
                 form=form,
                 title=self.edit_title if instance else self.create_title,
                 back=reverse(self.list_url_name),
+                **self.extra_context(instance),
             )
         record = form.save(commit=False)
         organization.save_record(record, by=_actor(request))
@@ -381,6 +402,110 @@ class OfficeFormView(RecordFormView):
     list_url_name = "settings:offices"
     create_title = gettext_lazy("Add an office")
     edit_title = gettext_lazy("Edit the office")
+
+    def extra_context(self, instance: Model | None) -> dict[str, Any]:
+        if not isinstance(instance, Office):
+            return {}
+        return {
+            "after_form": "settings/office_managers.html",
+            "office": instance,
+            "manager_periods": staff_periods.office_periods(instance),
+        }
+
+
+class OfficeManagerView(SettingsView):
+    """事務所の支援責任者の変更・履歴の行の取消（T45-D5）の共通部分。"""
+
+    tab = "offices"
+    required_action = Action.ORGANIZATION_MANAGE
+
+    def office(self, pk: int) -> Office:
+        return get_object_or_404(Office, pk=pk)
+
+    def back(self, office: Office) -> str:
+        return reverse("settings:office_edit", args=[office.pk]) + "#manager-periods"
+
+
+class OfficeManagerChangeView(OfficeManagerView):
+    """支援責任者を変える（新しい支援責任者・開始日・理由）。"""
+
+    template_name = "settings/office_manager_change.html"
+
+    def form(self, office: Office, data: Any = None) -> StaffPeriodForm:
+        return StaffPeriodForm(
+            data,
+            queryset=organization.manager_choices(office),
+            label=gettext_lazy("new support manager"),
+            empty_label=gettext_lazy("not chosen"),
+            help_text=gettext_lazy(
+                "Printed as the support manager in form 1-17 (section III, item 7) for workers "
+                "whose staff member belongs to this office. Staff members of this office marked "
+                "as support managers can be chosen."
+            ),
+        )
+
+    def get(self, request: HttpRequest, pk: int) -> HttpResponse:
+        office = self.office(pk)
+        return self.render(request, office=office, form=self.form(office), back=self.back(office))
+
+    def post(self, request: HttpRequest, pk: int) -> HttpResponse:
+        office = self.office(pk)
+        if not consume_once_token(request):
+            return self.already_submitted(request, self.back(office))
+        form = self.form(office, request.POST)
+        if form.is_valid():
+            try:
+                staff_periods.change_office_manager(
+                    office,
+                    form.cleaned_data["staff"],
+                    starts_on=form.cleaned_data["starts_on"],
+                    reason=form.cleaned_data["reason"],
+                    by=_actor(request),
+                    today=timezone.localdate(),
+                )
+            except ValidationError as error:
+                for name, field_messages in error.message_dict.items():
+                    for message in field_messages:
+                        form.add_error(name if name in form.fields else None, message)
+            else:
+                messages.success(request, _("Changed the support manager."))
+                return redirect(self.back(office))
+        return self.render(request, office=office, form=form, back=self.back(office))
+
+
+class OfficeManagerVoidView(OfficeManagerView):
+    """支援責任者の履歴の行の取消（理由は必須）。"""
+
+    template_name = "settings/office_manager_void.html"
+
+    def period(self, office: Office, period_id: int) -> OfficeManagerPeriod:
+        return get_object_or_404(
+            OfficeManagerPeriod.objects.select_related("staff"),
+            pk=period_id,
+            office=office,
+            voided_at__isnull=True,
+        )
+
+    def get(self, request: HttpRequest, pk: int, period_id: int) -> HttpResponse:
+        office = self.office(pk)
+        period = self.period(office, period_id)
+        return self.render(
+            request, office=office, period=period, form=PeriodVoidForm(), back=self.back(office)
+        )
+
+    def post(self, request: HttpRequest, pk: int, period_id: int) -> HttpResponse:
+        office = self.office(pk)
+        if not consume_once_token(request):
+            return self.already_submitted(request, self.back(office))
+        period = self.period(office, period_id)
+        form = PeriodVoidForm(request.POST)
+        if form.is_valid():
+            staff_periods.void_office_period(
+                period, by=_actor(request), reason=form.cleaned_data["reason"]
+            )
+            messages.success(request, _("Voided the record."))
+            return redirect(self.back(office))
+        return self.render(request, office=office, period=period, form=form, back=self.back(office))
 
 
 class OrganizationView(SettingsView):

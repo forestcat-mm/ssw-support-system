@@ -12,7 +12,7 @@
       <dt>{% translate "date of birth" %}</dt><dd class="mono">{{ worker.birth_date|date:"Y-m-d" }}</dd>
       <dt>{% translate "sex" %}</dt><dd>{{ worker.get_sex_display }}</dd>
       <dt>{% translate "support language" %}</dt><dd>{{ worker.support_language }}</dd>
-      <dt>{% translate "assigned staff" %}</dt><dd>{{ worker.assigned_staff.name|default:_("not assigned") }}</dd>
+      <dt>{% translate "assigned staff" %}</dt><dd id="worker-assigned-staff">{{ worker.assigned_staff.name|default:_("not assigned") }} <a class="caption" href="{% url 'workers:history' worker.pk %}#staff-periods">{% translate "history" %}</a>{% if can_manage %} · <a class="caption" href="{% url 'workers:staff_change' worker.pk %}" id="staff-change-link">{% translate "Change" %}</a>{% endif %}</dd>
       <dt>{% translate "status" %}</dt><dd>{{ worker.get_status_display }}</dd>
       <dt>{% translate "records kept until (estimate)" %}</dt><dd id="worker-retention-until">{% if retention_until %}<span class="mono">{{ retention_until|date:"Y-m-d" }}</span>{% else %}<span class="muted">{% translate "not fixed yet (one year after the employment contract ends)" %}</span>{% endif %}</dd>
     </dl>

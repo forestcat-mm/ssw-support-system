@@ -72,24 +72,27 @@ def test_missing_manager_points_to_the_office_screen(office: Office) -> None:
 
 
 def test_office_screen_offers_only_its_managers(office: Office) -> None:
+    """支援責任者は事務所の編集の欄ではなく「支援責任者を変える」で選ぶ（履歴。T45-D5）。"""
     manager = make_staff(office=office, name="山田", is_support_manager=True)
     client = verified_client(make_user("kanri", roles=("admin",)))
-    page = client.get(f"/settings/offices/{office.pk}/")
-    choices = list(page.context["form"].fields["support_manager"].queryset)
+    edit = client.get(f"/settings/offices/{office.pk}/")
+    assert "support_manager" not in edit.context["form"].fields
+    assert 'id="manager-periods"' in edit.content.decode()
+    page = client.get(f"/settings/offices/{office.pk}/manager/")
+    choices = list(page.context["form"].fields["staff"].queryset)
     assert choices == [manager]
     data = {
-        "name": office.name,
-        "postal_code": office.postal_code,
-        "address": office.address,
-        "phone_number": "",
-        "support_manager": str(manager.pk),
-        "is_active": "on",
+        "staff": str(manager.pk),
+        "starts_on": today().isoformat(),
+        "reason": "支援責任者の就任",
         page.context["once_field"]: page.context["once_token"],
     }
-    response = client.post(f"/settings/offices/{office.pk}/", data)
+    response = client.post(f"/settings/offices/{office.pk}/manager/", data)
     assert response.status_code == 302
     office.refresh_from_db()
     assert office.support_manager == manager
+    [period] = office.manager_periods.all()
+    assert (period.staff, period.starts_on, period.is_estimated) == (manager, today(), False)
 
 
 # --- カナ（A4）---------------------------------------------------------------------------

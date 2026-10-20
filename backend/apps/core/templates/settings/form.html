@@ -13,4 +13,5 @@
     <a class="button button--neutral" href="{{ back }}">{% translate "Cancel" %}</a>
   </div>
 </form>
+{% if after_form %}{% include after_form %}{% endif %}
 {% endblock %}

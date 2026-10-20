@@ -38,6 +38,7 @@ from apps.core.models import (
     Country,
     EmploymentType,
     Office,
+    OfficeManagerPeriod,
     Organization,
     Role,
     Staff,
@@ -75,6 +76,7 @@ from apps.workers.models import (
     PassportRecord,
     ResidenceRecord,
     Sex,
+    StaffAssignment,
     StatusOfResidence,
     WorkerAddress,
     WorkerContact,
@@ -201,6 +203,8 @@ def seed_staff(ctx: SeedContext) -> None:
         if manager:
             office.support_manager = staff  # 第1-17号 Ⅲ欄７（修正 1 回目 A5）
             office.save(update_fields=["support_manager", "updated_at"])
+            # 支援責任者の履歴（T45）。ダミーは 2 年前から
+            OfficeManagerPeriod.objects.create(office=office, staff=staff, starts_on=ctx.days(-730))
 
 
 # --- 受入れ機関 ------------------------------------------------------------------
@@ -467,6 +471,13 @@ def _id_name(ctx: SeedContext) -> tuple[str, str, str]:
     return "", native, native.upper()
 
 
+def _staff_period(ctx: SeedContext, worker: ForeignWorker) -> None:
+    """担当者の履歴（T45）。ダミーは 2 年前から今の担当者（外国人を消すと一緒に消える）。"""
+    StaffAssignment.objects.create(
+        worker=worker, staff=worker.assigned_staff, starts_on=ctx.days(-730)
+    )
+
+
 def seed_workers(ctx: SeedContext) -> None:
     countries = {c.code: c for c in Country.objects.filter(code__in=["CN", "VN", "ID"])}
     languages = {lang.code: lang for lang in SupportLanguage.objects.all()}
@@ -499,6 +510,7 @@ def seed_workers(ctx: SeedContext) -> None:
         )
         ctx.keep(worker)
         ctx.workers.append(worker)
+        _staff_period(ctx, worker)
         _residence_history(ctx, worker, spec)
         ctx.keep(
             PassportRecord.objects.create(
@@ -960,6 +972,7 @@ def seed_uncertified_host(ctx: SeedContext) -> None:
         status=WorkerStatus.PRE_ENTRY,
     )
     ctx.keep(worker)
+    _staff_period(ctx, worker)
     ctx.uncertified_worker = worker
     _residence(
         ctx,
@@ -1226,6 +1239,14 @@ def delete_rows(by_model: dict[type[models.Model], list[int]]) -> int:
     # 報酬の説明は版ごとに 1 つ（画面で入れ直したものも、その版のものなら消す）
     deleted += ContractWageExplanation.objects.filter(
         version_id__in=by_model.get(EmploymentContractVersion, [])
+    ).delete()[0]
+    # 担当者・支援責任者の履歴は外国人・事務所と一緒に消えるが、担当者を先に消すので先に消す（T45）
+    staff_ids = by_model.get(Staff, [])
+    deleted += StaffAssignment.objects.filter(
+        models.Q(worker_id__in=by_model.get(ForeignWorker, [])) | models.Q(staff_id__in=staff_ids)
+    ).delete()[0]
+    deleted += OfficeManagerPeriod.objects.filter(
+        models.Q(office_id__in=by_model.get(Office, [])) | models.Q(staff_id__in=staff_ids)
     ).delete()[0]
     for model in DELETE_ORDER:
         ids = by_model.get(model, [])

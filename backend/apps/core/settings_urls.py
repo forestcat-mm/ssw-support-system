@@ -23,6 +23,16 @@ urlpatterns = [
     path("offices/", views.OfficeListView.as_view(), name="offices"),
     path("offices/new/", views.OfficeFormView.as_view(), name="office_create"),
     path("offices/<int:pk>/", views.OfficeFormView.as_view(), name="office_edit"),
+    path(
+        "offices/<int:pk>/manager/",
+        views.OfficeManagerChangeView.as_view(),
+        name="office_manager_change",
+    ),
+    path(
+        "offices/<int:pk>/manager/<int:period_id>/void/",
+        views.OfficeManagerVoidView.as_view(),
+        name="office_manager_void",
+    ),
     path("support-plan/", views.StandardPlanView.as_view(), name="support_plan"),
     path("support-plan/edit/", views.StandardPlanEditView.as_view(), name="support_plan_edit"),
     path("audit/", views.AuditListView.as_view(), name="audit"),

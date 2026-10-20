@@ -30,7 +30,7 @@ from apps.workers.models import (
     ResidenceRecord,
     WorkerStatus,
 )
-from services import audit, crypto, filings, passport, residence_card
+from services import audit, crypto, filings, passport, residence_card, staff_periods
 
 
 def conflicting_worker_id(
@@ -143,6 +143,8 @@ def register_worker(
     """外国人を登録し、最初の在留情報・旅券・住所・連絡先（任意）を同じトランザクションで足す。"""
     _stamp(worker, by)
     worker.save()
+    # 担当者の履歴の最初の行（登録の日から。T45）
+    staff_periods.start_worker(worker, starts_on=timezone.localdate(), by=by)
     for record in records:
         add_record(worker, record, by=by)
     return worker

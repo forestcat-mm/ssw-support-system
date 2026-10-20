@@ -103,6 +103,12 @@ urlpatterns = [
     ),
     path("<int:pk>/history/", views.WorkerHistoryView.as_view(), name="history"),
     path("<int:pk>/edit/", views.WorkerUpdateView.as_view(), name="edit"),
+    path("<int:pk>/staff/change/", views.StaffChangeView.as_view(), name="staff_change"),
+    path(
+        "<int:pk>/staff/<int:period_id>/void/",
+        views.StaffVoidView.as_view(),
+        name="staff_void",
+    ),
     path("<int:pk>/support/", support_views.SupportPlanTabView.as_view(), name="support"),
     path(
         "<int:pk>/support/plans/new/",
