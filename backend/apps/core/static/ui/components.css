@@ -95,6 +95,7 @@
 /* --- 期限の表示（色の点＋文字。色だけで区別しない） ------------------------------------- */
 .badge {
   display: inline-flex;
+  vertical-align: middle;
   align-items: center;
   gap: 6px;
   min-height: 24px; /* 中身（日付など）で表の行の高さを変えない */
@@ -520,6 +521,7 @@ a.badge:hover {
 
 /* --- 表 ----------------------------------------------------------------------------- */
 .table-wrap {
+  position: relative; /* 中の visually-hidden（絶対位置）が横に送る枠の外へはみ出さないように */
   background: var(--color-surface);
   border: 1px solid var(--color-line-structure);
   border-radius: var(--radius-card);
@@ -528,6 +530,7 @@ a.badge:hover {
 
 /* カードの中の表（枠なし）。狭い画面では表だけを横に送る */
 .table-scroll {
+  position: relative;
   overflow-x: auto;
 }
 
@@ -870,20 +873,43 @@ a.badge:hover {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-8);
-  align-items: end;
+  align-items: center;
   margin-bottom: var(--space-16);
 }
 
 .filter-bar .input,
 .filter-bar .select {
   width: auto;
-  min-width: 160px;
+  min-width: 0;
+  max-width: 18em;
   min-height: 32px;
+  padding: var(--space-4) var(--space-8);
   font-size: var(--text-small);
 }
 
 .filter-bar .filter-bar__search {
   min-width: 280px;
+}
+
+/* 日付・文字の欄は、項目名を左に小さく並べる */
+.filter-bar__field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.filter-bar__field .form-row__label {
+  font-size: var(--text-small);
+  color: var(--color-graphite);
+  white-space: nowrap;
+}
+
+.filter-bar__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-small);
+  color: var(--color-ink-2);
 }
 
 @media (max-width: 959px) {
@@ -892,9 +918,18 @@ a.badge:hover {
     width: 100%;
   }
 
-  .filter-bar > .form-row:first-child {
+  .filter-bar > .filter-bar__field:first-child {
     flex-basis: 100%;
   }
+
+  .filter-bar .select {
+    max-width: 100%;
+  }
+}
+
+/* 一覧のタブ（期限）。タブの下の線と絞り込みの間をあける */
+.list-tabs {
+  margin-bottom: var(--space-12);
 }
 
 /* --- タブ（下線 2px。選択中は accent の線と太字） ---------------------------------------- */
@@ -1415,4 +1450,10 @@ input[list="time-options"] {
 .preset-or-other .input {
   width: auto;
   max-width: 100%;
+}
+
+/* 行の右端の操作（1 つ） */
+.table td.cell-action {
+  text-align: right;
+  white-space: nowrap;
 }

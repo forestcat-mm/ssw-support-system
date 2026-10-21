@@ -18,7 +18,7 @@
     <tbody>
       {% for row in rows %}
         <tr data-host="{{ row.host.pk }}">
-          <td><span class="truncate-line truncate-line--full" title="{{ row.host.name }}"><a class="truncate" href="{% url 'hosts:detail' row.host.pk %}">{{ row.host.name }}</a></span></td>
+          <td><span class="truncate-line truncate-line--full" title="{{ row.host.name }}"><a class="truncate cell-name" href="{% url 'hosts:detail' row.host.pk %}">{{ row.host.name }}</a></span></td>
           <td><span class="cluster">{% for skill_field in row.fields %}{% field_tag skill_field %}{% empty %}<span class="muted">—</span>{% endfor %}</span></td>
           <td class="num">{{ row.site_count }}</td>
           <td class="num">{{ row.worker_count }}</td>

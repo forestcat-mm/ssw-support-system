@@ -1,3 +1,6 @@
+// JS が動いている印（.js .js-hidden は JS が動くときだけ隠す。絞り込みの「絞り込む」ボタンなど）。
+document.documentElement.classList.add("js");
+
 // 二重送信の防止: 送信したら、そのフォームの送信ボタンを押せなくする（サーバー側でも 1 回だけ受け付ける）。
 document.addEventListener("submit", (event) => {
   const form = event.target;
@@ -774,6 +777,17 @@ document.addEventListener("click", (event) => {
     if (!(event.target instanceof Node) || !menu.contains(event.target)) menu.open = false;
   });
 });
+
+// 一覧の絞り込み（form[data-auto-submit]。U2-D4）: 選ぶ・チェックを変えると、そのまま送る（「絞り込む」を押さない）。
+// 日付の欄は選んで欄を離れたとき、検索の欄は Enter で送る。JS が動かないときは「絞り込む」ボタンが出る。
+initializers.push((root) => root.querySelectorAll("form[data-auto-submit]").forEach((form) => {
+  form.addEventListener("change", (event) => {
+    const field = event.target;
+    const chosen = field instanceof HTMLSelectElement
+      || (field instanceof HTMLInputElement && (field.type === "checkbox" || field.type === "date" || field.closest(".date-field")));
+    if (chosen) form.requestSubmit();
+  });
+}));
 
 const initAll = (root) => initializers.forEach((init) => init(root));
 initAll(document);

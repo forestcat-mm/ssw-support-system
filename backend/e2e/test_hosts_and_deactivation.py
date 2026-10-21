@@ -66,7 +66,6 @@ def test_admin_deactivates_and_worker_leaves_the_list(
 
     page.goto(f"{base}/workers/?status=all")
     expect(page.locator(f'#worker-list tr[data-worker="{worker.pk}"]')).to_have_count(0)
-    page.get_by_label("無効化済みを含む").check()
-    page.get_by_role("button", name="絞り込む").click()
+    page.get_by_label("無効化済みを含む").check()  # 変えるとそのまま送る（U2-D4）
     row = page.locator(f'#worker-list tr[data-worker="{worker.pk}"]')
     expect(row).to_contain_text("無効化済み")

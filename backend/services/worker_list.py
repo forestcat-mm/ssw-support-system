@@ -69,6 +69,7 @@ class WorkerRow:
 class WorkerList:
     rows: list[WorkerRow]
     level_counts: Counter[deadlines.Level] = field(default_factory=Counter)
+    total: int = 0  # 期限のレベルで絞る前の人数（一覧のタブ「すべて」の件数）
 
 
 def normalize_name(value: str) -> str:
@@ -168,7 +169,9 @@ def list_workers(user: User, query: WorkerListQuery, today: date) -> WorkerList:
     }
     rows: list[WorkerRow] = []
     counts: Counter[deadlines.Level] = Counter()
+    total = 0
     for worker in annotated:
+        total += 1
         expires_on: date | None = worker.expires_on
         # 在留資格認定証明書の行（在留カード番号なし）の期限は、認定証明書の有効期限で在留期限では
         # ない（修正 1 回目 B5）。認定証明書で入国して在留カードの番号がある行は在留期限
@@ -202,4 +205,4 @@ def list_workers(user: User, query: WorkerListQuery, today: date) -> WorkerList:
                 skill_field=skill_fields.get(worker.skill_field_id),
             )
         )
-    return WorkerList(rows=rows, level_counts=counts)
+    return WorkerList(rows=rows, level_counts=counts, total=total)

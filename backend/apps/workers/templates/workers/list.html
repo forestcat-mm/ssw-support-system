@@ -2,28 +2,13 @@
 {% block title %}{% translate "Foreign workers" %}{% endblock %}
 {% block heading %}{% translate "Foreign workers" %}{% endblock %}
 {% block actions %}
-  {% for level, count in level_counts %}{% level_count_badge level count %}{% endfor %}
   {% if can_manage %}<a class="button button--primary" href="{% url 'workers:create' %}">{% translate "Register" %}</a>{% endif %}
 {% endblock %}
 {% block content %}
-<form class="filter-bar" role="search" method="get">
-  <div class="form-row">
-    <label class="form-row__label" for="{{ form.q.id_for_label }}">{% translate "Search" %}</label>
-    <input class="input filter-bar__search" type="search" name="q" id="{{ form.q.id_for_label }}" value="{{ form.q.value|default:'' }}" placeholder="{% translate 'Name or residence card / passport number' %}" maxlength="100">
-  </div>
-  {% for bound in form %}{% if bound.name == "include_deactivated" %}
-    <div class="form-row"><label class="form-row__label cluster">{{ bound }} {{ bound.label }}</label></div>
-  {% elif bound.name != "q" %}
-    <div class="form-row">
-      <label class="form-row__label" for="{{ bound.id_for_label }}">{{ bound.label }}</label>
-      {{ bound }}
-    </div>
-  {% endif %}{% endfor %}
-  <div class="cluster">
-    <button class="button button--neutral" type="submit">{% translate "Filter" %}</button>
-    {% if filtered %}<a class="button button--neutral button--small" href="{% url 'workers:list' %}">{% translate "Clear" %}</a>{% endif %}
-  </div>
-</form>
+{% translate "Filter by period of stay" as tabs_label %}
+{% include "ui/components/list_tabs.html" with tabs=level_tabs label=tabs_label tabs_id="worker-level-tabs" %}
+{% url 'workers:list' as clear_url %}
+{% include "ui/components/filter_bar.html" with form=form skip="level" keep=keep filtered=filtered clear_url=clear_url filter_id="worker-filter" %}
 
 <p class="caption" data-count="{{ rows|length }}">{% blocktranslate count counter=rows|length %}{{ counter }} person{% plural %}{{ counter }} people{% endblocktranslate %}</p>
 

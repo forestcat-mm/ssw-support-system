@@ -183,8 +183,12 @@ def test_dashboard_shows_counts_and_awaiting_chip(
     submitted = task(contract, FilingKind.CONTRACT_NEW)
     filings.transition(submitted, FilingStatus.SUBMITTED, by=None, submitted_on=today())
     html = admin_client.get("/").content.decode()
-    assert 'data-level-count="overdue"' in html and "超過 1件" in html
-    assert "受理待ち 1件" in html
+    # 期限のタブ（U2-D5）: すべて・期限超過・7日以内・14日以内・受理待ちと件数
+    tabs = {tab.key: tab for tab in admin_client.get("/").context["level_tabs"]}
+    assert list(tabs) == ["all", "overdue", "within_7", "within_14", "awaiting"]
+    assert tabs["overdue"].count == 1 and tabs["overdue"].danger
+    assert tabs["awaiting"].count == 1 and tabs["all"].selected
+    assert 'data-level-count="overdue"' in html
     page = admin_client.get("/?status=submitted")
     assert [row.filing for row in page.context["rows"]] == [submitted]
 

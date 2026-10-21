@@ -1,0 +1,13 @@
+{% load i18n ui %}{# 一覧の絞り込み（仕様 4「絞り込み」。U2-D4）。select は項目名を中に入れ（web_forms.label_inside）、選ぶとそのまま送る（forms.js の data-auto-submit）。文字の欄は Enter で送る。JS が動かないときは「絞り込む」ボタンが出る。keep は送るときに残す条件（タブで選んだ期限など）、skip は出さない欄（空白区切り） #}
+<form class="filter-bar" method="get" role="search" data-auto-submit{% if filter_id %} id="{{ filter_id }}"{% endif %}>
+  {% for name, value in keep %}{% if value %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endif %}{% endfor %}
+  {% for bound in form|fields_except:skip %}
+    {% if bound.is_hidden %}{{ bound }}
+    {% elif bound.widget_type == "select" %}{{ bound }}
+    {% elif bound.widget_type == "checkbox" %}<label class="filter-bar__check">{{ bound }} {{ bound.label }}</label>
+    {% else %}<div class="form-row filter-bar__field"><label class="form-row__label" for="{{ bound.id_for_label }}">{{ bound.label }}</label>{{ bound }}</div>
+    {% endif %}
+  {% endfor %}
+  <button class="button button--neutral button--small js-hidden" type="submit">{% translate "Filter" %}</button>
+  {% if filtered %}<a class="button button--light" href="{{ clear_url }}">{% translate "Clear" %}</a>{% endif %}
+</form>

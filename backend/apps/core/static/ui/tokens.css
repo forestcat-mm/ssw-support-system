@@ -108,8 +108,8 @@
   --input-caution-border: var(--palette-caution-border);
   --input-disabled-bg: var(--palette-bg);
   --table-cell-padding-y: 10px;
-  --table-cell-padding-x: 16px;
-  --table-row-height: 40px; /* 文字の種類（漢字・簡体字・ラテン文字）や札の有無で行の高さを変えない */
+  --table-cell-padding-x: 12px;
+  --table-row-height: 46px; /* 文字の種類（漢字・簡体字・ラテン文字）や札の有無で行の高さを変えない */
 
   /* --- 期限のレベル（点＋文字。面は在留期限の帯・知らせだけに使う） --- */
   --level-overdue-bg: var(--palette-danger-soft);

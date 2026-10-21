@@ -13,45 +13,70 @@
 <body>
 <a class="skip-link" href="#main">{% translate "Skip to content" %}</a>
 <div class="app">
-  <header class="topbar">
-    <span class="topbar__org">{{ organization_name }}</span>
-    <span class="topbar__spacer"></span>
-    {% if user.is_authenticated %}
-      <span class="topbar__user">{{ user.get_username }}</span>
-      <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}
-        <button class="button button--neutral button--small" type="submit">{% translate "Sign out" %}</button>
-      </form>
-    {% endif %}
-  </header>
+  {# サイドバー（仕様 5.1）: 上に機関名、項目、下に設定・ユーザー名・ログアウト。狭い幅では「メニュー」で畳む #}
   <nav class="nav" aria-label="{% translate 'Main menu' %}">
+    <div class="nav__org">{{ organization_name }}</div>
     <ul class="nav__list nav__desktop">
       {% for item in nav_items %}
         <li><a class="nav__link" href="{{ item.url }}"{% if item.active %} aria-current="page"{% endif %}>{{ item.label }}</a></li>
       {% endfor %}
     </ul>
+    {% if user.is_authenticated %}
+    <div class="nav__footer nav__desktop">
+      {% for item in nav_footer %}<a class="nav__link nav__link--footer" href="{{ item.url }}"{% if item.active %} aria-current="page"{% endif %}>{{ item.label }}</a>{% endfor %}
+      <form class="nav__user" method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}
+        <span>{{ user.get_username }}</span> ・ <button class="nav__logout" type="submit">{% translate "Sign out" %}</button>
+      </form>
+    </div>
+    {% endif %}
     <details class="nav__mobile">
       <summary>{% translate "Menu" %}</summary>
       <ul class="nav__list">
         {% for item in nav_items %}
           <li><a class="nav__link" href="{{ item.url }}"{% if item.active %} aria-current="page"{% endif %}>{{ item.label }}</a></li>
         {% endfor %}
+        {% for item in nav_footer %}
+          <li><a class="nav__link" href="{{ item.url }}"{% if item.active %} aria-current="page"{% endif %}>{{ item.label }}</a></li>
+        {% endfor %}
       </ul>
+      {% if user.is_authenticated %}
+      <form class="nav__user" method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}
+        <span>{{ user.get_username }}</span> ・ <button class="nav__logout" type="submit">{% translate "Sign out" %}</button>
+      </form>
+      {% endif %}
     </details>
   </nav>
-  <main class="main" id="main">
-    <div class="main__inner">
-      {% if messages %}
-        <ul class="messages">
-          {% for message in messages %}<li class="message message--{{ message.tags }}">{{ message }}</li>{% endfor %}
-        </ul>
+  <div class="app__body">
+    {% block topbar %}
+    <header class="topbar">
+      {% if global_search_url %}
+      <form class="topbar__search" method="get" action="{{ global_search_url }}" role="search">
+        <label class="search-field">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+          <span class="visually-hidden">{% translate "Search foreign workers" %}</span>
+          <input class="search-field__input" type="search" name="q" maxlength="100" placeholder="{% translate 'Search by name, residence card or passport number' %}">
+        </label>
+      </form>
       {% endif %}
-      <div class="page-header">
-        <div class="page-header__title">{% block page_header %}<h1>{% block heading %}{% endblock %}</h1>{% endblock %}</div>
-        <div class="page-header__actions">{% block actions %}{% endblock %}</div>
+    </header>
+    {% endblock %}
+    <main class="main" id="main">
+      <div class="main__inner">
+        {% if messages %}
+          <ul class="messages">
+            {% for message in messages %}<li class="message message--{{ message.tags }}">{{ message }}</li>{% endfor %}
+          </ul>
+        {% endif %}
+        {% block page_header_wrap %}
+        <div class="page-header">
+          <div class="page-header__title">{% block page_header %}<h1>{% block heading %}{% endblock %}</h1>{% endblock %}</div>
+          <div class="page-header__actions">{% block actions %}{% endblock %}</div>
+        </div>
+        {% endblock %}
+        {% block content %}{% endblock %}
       </div>
-      {% block content %}{% endblock %}
-    </div>
-  </main>
+    </main>
+  </div>
 </div>
 {% if time_options %}<datalist id="time-options">{% for option in time_options %}<option value="{{ option }}"></option>{% endfor %}</datalist>{% endif %}
 {% if session_timing %}{# 自動ログアウトの知らせ（forms.js の initSessionNotice。修正 1 回目 J8） #}

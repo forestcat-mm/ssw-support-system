@@ -55,10 +55,11 @@ def test_settings_are_admin_only(support_staff_client: Client, admin_client: Cli
     ):
         assert support_staff_client.get(url).status_code == 403, url
     assert "設定" not in [
-        str(i["label"]) for i in support_staff_client.get("/workers/").context["nav_items"]
+        str(i["label"]) for i in support_staff_client.get("/workers/").context["nav_footer"]
     ]
     assert admin_client.get("/settings/")["Location"] == "/settings/users/"
-    assert "設定" in [str(i["label"]) for i in admin_client.get("/workers/").context["nav_items"]]
+    # 設定はサイドバーの下（仕様 5.1）
+    assert "設定" in [str(i["label"]) for i in admin_client.get("/workers/").context["nav_footer"]]
 
 
 def test_moved_items_are_hidden_from_admin_menu(admin_client: Client) -> None:

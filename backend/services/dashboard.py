@@ -130,6 +130,7 @@ class DashboardResult:
     rows: list[FilingRow]
     level_counts: Counter[deadlines.Level] = field(default_factory=Counter)
     awaiting_receipt: int = 0  # 受理待ち（提出済）の件数。既定の一覧には出さない
+    total: int = 0  # 期限のレベルで絞る前の件数（タブ「すべて」の件数）
 
 
 def base_queryset() -> QuerySet[Filing]:
@@ -160,9 +161,10 @@ def dashboard(query: DashboardQuery, today: datetime.date) -> DashboardResult:
     counts: Counter[deadlines.Level] = Counter(
         row.level for row in rows if row.level is not None and row.level in COUNTED_LEVELS
     )
+    total = len(rows)
     if query.level is not None:
         rows = [row for row in rows if row.level is query.level]
-    return DashboardResult(rows=rows, level_counts=counts, awaiting_receipt=awaiting)
+    return DashboardResult(rows=rows, level_counts=counts, awaiting_receipt=awaiting, total=total)
 
 
 # --- 担当者なし・今後の予定（修正 1 回目 A3）------------------------------------------------

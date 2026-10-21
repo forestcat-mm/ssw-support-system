@@ -19,7 +19,11 @@ def test_sign_in_with_mfa_shows_business_screen(
 
 def test_admin_sees_ui_components(page: Page, sign_in: SignIn, administrator: User) -> None:
     sign_in(administrator)
-    page.get_by_role("link", name="部品の見本").first.click()
+    # 管理画面へのリンクは誰にも出さない。部品の見本は DEBUG のときだけナビに出る（U2-D3）
+    nav = page.get_by_role("navigation", name="メインメニュー")
+    expect(nav.get_by_role("link", name="管理画面")).to_have_count(0)
+    expect(nav.get_by_role("link", name="部品の見本")).to_have_count(0)
+    page.goto(page.url.rstrip("/") + "/ui/")
     expect(page.get_by_role("heading", level=1)).to_have_text("部品の見本")
     expect(page.locator('[data-level="overdue"]').first).to_be_visible()
 

@@ -1,0 +1,4 @@
+{# 一覧の期限のタブ（apps/core/list_tabs.ListTab の並び）。押すとその条件の一覧の URL へ移る（リンク） #}
+<nav class="tabs list-tabs" aria-label="{{ label }}" id="{{ tabs_id|default:'list-tabs' }}">
+  {% for tab in tabs %}<a class="tabs__link" href="{{ tab.href }}" data-level-count="{{ tab.key }}"{% if tab.selected %} aria-current="page"{% endif %}>{{ tab.label }} <span class="count{% if tab.danger %} count--danger{% endif %}">{{ tab.count }}</span></a>{% endfor %}
+</nav>

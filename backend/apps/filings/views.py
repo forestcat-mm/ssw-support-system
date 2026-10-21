@@ -13,6 +13,7 @@ from django.utils.translation import gettext as _
 from django.views import View
 from django.views.generic import TemplateView
 
+from apps.core import list_tabs
 from apps.core.models import Action, User
 from apps.core.permissions import ActionRequiredMixin
 from apps.core.web_forms import consume_once_token, once_context
@@ -80,21 +81,35 @@ class DashboardView(ActionRequiredMixin, TemplateView):
         result = dashboard.dashboard(query, today)
         unassigned_rows = dashboard.unassigned(query, today)
         upcoming_rows = dashboard.upcoming(query, today)
-        base = self.request.GET.copy()
-        base.pop("level", None)
-        base.pop("status", None)
+        base = list_tabs.query_without(self.request.GET, "level", "status")
         base["assignee"] = form.selected_assignee()
+        awaiting_selected = form.cleaned_data.get("status") == STATUS_AWAITING
+        tabs = list_tabs.level_tabs(
+            base,
+            result.total,
+            result.level_counts,
+            query.level,
+            all_selected=query.level is None and not awaiting_selected,
+        )
+        awaiting = base.copy()
+        awaiting["status"] = STATUS_AWAITING
+        tabs.append(
+            list_tabs.ListTab(
+                label=_("Awaiting receipt"),
+                count=result.awaiting_receipt,
+                href=f"?{awaiting.urlencode()}",
+                selected=awaiting_selected,
+                key="awaiting",
+            )
+        )
         context.update(
             form=form,
             selected_assignee=form.selected_assignee(),
             rows=result.rows,
-            level_counts=[
-                (level, result.level_counts[level], query.level is level)
-                for level in dashboard.COUNTED_LEVELS
-            ],
+            level_tabs=tabs,
+            selected_level=query.level.value if query.level else "",
             awaiting_receipt=result.awaiting_receipt,
-            awaiting_selected=(form.cleaned_data.get("status") == STATUS_AWAITING),
-            chip_query=base.urlencode(),
+            awaiting_selected=awaiting_selected,
             can_manage=authorization.has_action(user, Action.FILINGS_MANAGE),
             unassigned_rows=unassigned_rows,
             upcoming_rows=upcoming_rows,

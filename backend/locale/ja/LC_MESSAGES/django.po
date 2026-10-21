@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 10:50+0900\n"
+"POT-Creation-Date: 2026-10-21 11:09+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -1194,23 +1194,20 @@ msgstr "外国人台帳"
 msgid "Host organizations"
 msgstr "受入れ機関台帳"
 
-msgid "Consultations"
-msgstr "相談"
-
 msgid "Bulk applications"
 msgstr "一括申請"
 
 msgid "Bulk notifications"
 msgstr "一括届出"
 
-msgid "Settings"
-msgstr "設定"
-
-msgid "Management site"
-msgstr "管理画面"
+msgid "Consultations"
+msgstr "相談"
 
 msgid "UI components"
 msgstr "部品の見本"
+
+msgid "Settings"
+msgstr "設定"
 
 msgid "6-digit code"
 msgstr "6 桁のコード"
@@ -1229,6 +1226,18 @@ msgstr "このメールアドレスのユーザーはすでに登録されてい
 
 msgid "Email address"
 msgstr "メールアドレス"
+
+msgid "Overdue"
+msgstr "期限超過"
+
+msgid "Within 7 days"
+msgstr "7日以内"
+
+msgid "Within 14 days"
+msgstr "14日以内"
+
+msgid "All"
+msgstr "すべて"
 
 #, python-format
 msgid ""
@@ -2350,14 +2359,20 @@ msgstr "ユーザー名"
 msgid "Skip to content"
 msgstr "本文へ移動"
 
-msgid "Sign out"
-msgstr "ログアウト"
-
 msgid "Main menu"
 msgstr "メインメニュー"
 
+msgid "Sign out"
+msgstr "ログアウト"
+
 msgid "Menu"
 msgstr "メニュー"
+
+msgid "Search foreign workers"
+msgstr "外国人台帳から探す"
+
+msgid "Search by name, residence card or passport number"
+msgstr "氏名・在留カード番号・旅券番号で探す"
 
 #, python-brace-format
 msgid "in {minutes} min {seconds} s"
@@ -2394,11 +2409,14 @@ msgstr "保存せずに移動"
 msgid "Stay on this page"
 msgstr "このページに残る"
 
-msgid "filer"
-msgstr "届出主体"
+msgid "deadline status"
+msgstr "期限の状態"
 
 msgid "due date"
 msgstr "期限"
+
+msgid "filer"
+msgstr "届出主体"
 
 msgid "assignee"
 msgstr "担当者"
@@ -2640,6 +2658,9 @@ msgstr "今日まで"
 msgid "%(days)s d left"
 msgstr "あと%(days)s日"
 
+msgid "not yet open"
+msgstr "受付前"
+
 #, python-format
 msgid "Overdue: %(count)s"
 msgstr "超過 %(count)s人"
@@ -2796,9 +2817,6 @@ msgstr "緑の点＋文字"
 
 msgid "grey dot and text"
 msgstr "灰色の点＋文字"
-
-msgid "not yet open"
-msgstr "受付前"
 
 msgid "date only"
 msgstr "日付の文字のみ"
@@ -3076,33 +3094,11 @@ msgstr "届出タスク"
 msgid "filing tasks"
 msgstr "届出タスク"
 
-msgid "Create a filing task"
-msgstr "届出を起票"
+msgid "+ Create a filing task"
+msgstr "＋ 届出を起票"
 
-#, python-format
-msgctxt "filing tasks"
-msgid "Overdue: %(count)s"
-msgstr "超過 %(count)s件"
-
-#, python-format
-msgctxt "filing tasks"
-msgid "Within 7 days: %(count)s"
-msgstr "7日以内 %(count)s件"
-
-#, python-format
-msgctxt "filing tasks"
-msgid "Within 14 days: %(count)s"
-msgstr "14日以内 %(count)s件"
-
-#, python-format
-msgctxt "filing tasks"
-msgid "Open: %(count)s"
-msgstr "対応期間中 %(count)s件"
-
-#, python-format
-msgid "Awaiting receipt: %(counter)s"
-msgid_plural "Awaiting receipt: %(counter)s"
-msgstr[0] "受理待ち %(counter)s件"
+msgid "Filter by deadline"
+msgstr "期限で絞る"
 
 #, python-format
 msgid "%(counter)s task"
@@ -3225,6 +3221,9 @@ msgstr "起算日の訂正"
 msgid "Recalculate the due date"
 msgstr "期限を計算し直す"
 
+msgid "Create a filing task"
+msgstr "届出を起票"
+
 msgid ""
 "Select exactly one target: a foreign worker, an employment contract or a "
 "host organization. The due date is calculated from the kind and the basis "
@@ -3233,6 +3232,9 @@ msgstr "対象は、外国人・雇用契約・受入れ機関のどれか 1 つ
 
 msgid "Create"
 msgstr "起票する"
+
+msgid "Awaiting receipt"
+msgstr "受理待ち"
 
 #, python-format
 msgid "Changed the status to %(status)s."
@@ -6516,9 +6518,6 @@ msgstr "実施日（から）"
 msgid "date of support (to)"
 msgstr "実施日（まで）"
 
-msgid "All"
-msgstr "すべて"
-
 msgid "report not needed"
 msgstr "不要"
 
@@ -7268,6 +7267,9 @@ msgstr "任意。運用で決める削除時期の目安。自動では削除し
 msgid "Added the health check documents."
 msgstr "健康診断の書類を添付しました。"
 
+msgid "Name or residence card / passport number"
+msgstr "氏名、在留カード番号・旅券番号"
+
 msgid "Before entry and residing"
 msgstr "入国前・在留中"
 
@@ -7845,8 +7847,8 @@ msgstr "履歴はありません。"
 msgid "Add health check documents"
 msgstr "健康診断の書類を添付"
 
-msgid "Name or residence card / passport number"
-msgstr "氏名、在留カード番号・旅券番号"
+msgid "Filter by period of stay"
+msgstr "在留期限で絞る"
 
 msgid "Register a foreign worker"
 msgstr "外国人の登録"

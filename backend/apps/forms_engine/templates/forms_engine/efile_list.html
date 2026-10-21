@@ -10,7 +10,7 @@
     <thead><tr><th>{% translate "notification" %}</th><th>{% translate "filer" %}</th><th>{% translate "title" %}</th><th>{% translate "rows" %}</th><th>{% translate "files" %}</th><th>{% translate "submitted on" %}</th></tr></thead>
     <tbody>{% for item in rows %}
       <tr data-efile="{{ item.bulk.pk }}">
-        <td><a href="{% url 'forms:efile' item.bulk.pk %}">{{ item.label }}</a></td>
+        <td><a class="cell-name" href="{% url 'forms:efile' item.bulk.pk %}">{{ item.label }}</a></td>
         <td>{% if item.bulk.host_organization %}{{ item.bulk.host_organization.name }}{% else %}{{ item.bulk.get_filer_display }}{% endif %}</td>
         <td>{{ item.bulk.title|default:"—" }}</td>
         <td class="num">{{ item.bulk.rows.all|length }}</td>

@@ -2,18 +2,8 @@
 {% block title %}{% translate "Consultations" %}{% endblock %}
 {% block heading %}{% translate "Consultations" %}{% endblock %}
 {% block content %}
-<form class="filter-bar" method="get" id="consultation-filter">
-  {% for bound in form %}
-  <div class="form-row">
-    <label class="form-row__label" for="{{ bound.id_for_label }}">{{ bound.label }}</label>
-    {{ bound }}
-  </div>
-  {% endfor %}
-  <div class="cluster">
-    <button class="button button--neutral" type="submit">{% translate "Filter" %}</button>
-    {% if filtered %}<a class="button button--neutral button--small" href="{% url 'consultations:list' %}">{% translate "Clear" %}</a>{% endif %}
-  </div>
-</form>
+{% url 'consultations:list' as clear_url %}
+{% include "ui/components/filter_bar.html" with form=form skip="" filtered=filtered clear_url=clear_url filter_id="consultation-filter" %}
 <p class="caption" data-count="{{ page.paginator.count }}">{% blocktranslate count counter=page.paginator.count %}{{ counter }} consultation{% plural %}{{ counter }} consultations{% endblocktranslate %}</p>
 {% if page.object_list %}
 <div class="table-wrap"><div class="table-scroll">

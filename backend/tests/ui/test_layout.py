@@ -3,6 +3,7 @@
 import re
 from datetime import date, timedelta
 from pathlib import Path
+from typing import Any
 
 import pytest
 from django.template import Context, Template
@@ -23,11 +24,36 @@ def test_home_after_sign_in_uses_business_layout(support_staff_client: Client) -
     assert "ログアウト" in html
 
 
-def test_navigation_depends_on_role(admin_client: Client, support_staff_client: Client) -> None:
-    staff_nav = [item["label"] for item in support_staff_client.get("/").context["nav_items"]]
-    admin_nav = [item["label"] for item in admin_client.get("/").context["nav_items"]]
-    assert "管理画面" not in [str(label) for label in staff_nav]
-    assert {"管理画面", "部品の見本"} <= {str(label) for label in admin_nav}
+def labels(client: Client) -> list[str]:
+    context = client.get("/").context
+    return [str(item["label"]) for item in [*context["nav_items"], *context["nav_footer"]]]
+
+
+def test_navigation_depends_on_role(
+    admin_client: Client, support_staff_client: Client, settings: Any
+) -> None:
+    # 並びは見本 03〜07（U2-D2）。設定は下。管理画面へのリンクは誰にも出さない（U2-D3）
+    assert labels(admin_client) == [
+        "ダッシュボード",
+        "外国人台帳",
+        "受入れ機関台帳",
+        "一括申請",
+        "一括届出",
+        "相談",
+        "設定",
+    ]
+    assert "設定" not in labels(support_staff_client)
+    assert "管理画面" not in labels(support_staff_client)
+    # 部品の見本は DEBUG のときだけ出す（/ui/ は今の権限のまま開ける）
+    settings.DEBUG = True
+    assert "部品の見本" in labels(admin_client)
+    assert "部品の見本" not in labels(support_staff_client)
+
+
+def test_global_search_goes_to_the_worker_list(support_staff_client: Client) -> None:
+    html = support_staff_client.get("/").content.decode()
+    assert 'action="/workers/"' in html and 'name="q"' in html
+    assert 'id="main"' in html
 
 
 def test_showcase_is_admin_only(admin_client: Client, support_staff_client: Client) -> None:

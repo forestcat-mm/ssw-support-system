@@ -52,11 +52,11 @@ def test_open_list_from_navigation_and_search_by_card_number(
     expect(page.get_by_role("heading", level=1)).to_have_text("外国人台帳")
     rows = page.locator("#worker-list tbody tr")
     expect(rows).to_have_count(4)
-    expect(page.locator('[data-level-count="within_7"]')).to_have_text("7日以内 1人")
+    expect(page.locator('[data-level-count="within_7"]')).to_have_text("7日以内 1")
 
-    # 番号は表記ゆれ（小文字・空白）を吸収して完全一致で探す
-    page.get_by_label("検索").fill("ab1234 5678cd")
-    page.get_by_role("button", name="絞り込む").click()
+    # 番号は表記ゆれ（小文字・空白）を吸収して完全一致で探す（検索の欄は Enter で送る）
+    page.locator("#worker-filter").get_by_label("検索").fill("ab1234 5678cd")
+    page.locator("#worker-filter").get_by_label("検索").press("Enter")
     expect(rows).to_have_count(1)
     expect(rows.first).to_contain_text("王芳")
     expect(page.get_by_role("link", name="条件を消す")).to_be_visible()
@@ -105,7 +105,7 @@ def test_dummy_30_workers_fit_one_line_per_row(
     expect(rows).to_have_count(31)
     heights = rows.evaluate_all(ROW_HEIGHTS)
     assert max(heights) - min(heights) < 0.5, heights
-    assert 34 <= heights[0] <= 40, heights[0]
+    assert 40 <= heights[0] <= 48, heights[0]  # 行の上下 10px（仕様 3。ADR-0046）で 1 行
     # 省略しても title で全文が読める
     host = page.locator("#worker-list .truncate-line--wide").first
     assert "株式会社" in (host.get_attribute("title") or "")

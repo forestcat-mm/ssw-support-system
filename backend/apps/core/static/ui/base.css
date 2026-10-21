@@ -115,45 +115,49 @@ code {
   box-shadow: var(--shadow-float);
 }
 
-/* --- レイアウト ------------------------------------------------------------------ */
+/* --- レイアウト（仕様 5.1: 白いサイドバー＋右の上の白い帯＋本文） ------------------------------------ */
 
 .app {
   display: grid;
   /* minmax(0, 1fr): 幅の広い表があっても本文の列が画面からはみ出さない（表は .table-wrap の中で横に送る） */
   grid-template-columns: var(--layout-nav) minmax(0, 1fr);
-  grid-template-rows: var(--layout-topbar) 1fr;
   min-height: 100vh;
+  /* サイドバーは画面の高さに留めるので、長い画面でもサイドバーの列を白く塗り、右の線を引いておく */
+  background: linear-gradient(
+    to right,
+    var(--nav-bg) calc(var(--layout-nav) - 1px),
+    var(--color-line-structure) calc(var(--layout-nav) - 1px),
+    var(--color-line-structure) var(--layout-nav),
+    transparent var(--layout-nav)
+  );
 }
 
-.topbar {
-  grid-column: 1 / -1;
+.app__body {
   display: flex;
-  align-items: center;
-  gap: var(--space-16);
-  padding: 0 var(--space-24);
-  background: var(--topbar-bg);
-  border-bottom: 1px solid var(--color-line-structure);
+  flex-direction: column;
+  min-width: 0;
 }
 
-.topbar__org {
-  font-weight: 600;
-  font-size: var(--text-body);
-}
-
-.topbar__spacer {
-  flex: 1;
-}
-
-.topbar__user {
-  color: var(--color-graphite);
-  font-size: var(--text-table);
-}
-
+/* サイドバーは画面の高さに留め、下の設定・ログアウトをいつも見えるところに置く */
 .nav {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 18px var(--space-12);
   background: var(--nav-bg);
   color: var(--nav-mobile-fg);
   border-right: 1px solid var(--color-line-structure);
-  padding: var(--space-16) var(--space-12);
+}
+
+.nav__org {
+  padding: var(--space-4) 10px 18px;
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--color-ink);
 }
 
 .nav__list {
@@ -161,7 +165,7 @@ code {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: var(--space-4);
+  gap: 2px;
 }
 
 .nav__link {
@@ -169,8 +173,8 @@ code {
   padding: var(--space-8) var(--space-12);
   border-radius: var(--button-radius);
   color: var(--nav-fg);
-  font-size: var(--text-table);
-  font-weight: 500;
+  font-size: var(--text-body);
+  font-weight: 400;
   text-decoration: none;
 }
 
@@ -183,15 +187,94 @@ code {
 .nav__link[aria-current="page"] {
   background: var(--nav-active-bg);
   color: var(--nav-active-fg);
+  font-weight: 500;
   box-shadow: var(--nav-active-indicator);
+}
+
+/* サイドバーの下（設定・ユーザー名・ログアウト）。画面の下に寄せる */
+.nav__footer {
+  margin-top: auto;
+  padding: var(--space-12) 0 0;
+  border-top: 1px solid var(--color-line);
+  display: grid;
+  gap: var(--space-4);
+}
+
+.nav__link--footer {
+  font-size: var(--text-small);
+}
+
+.nav__user {
+  padding: var(--space-4) var(--space-12);
+  font-size: var(--text-small);
+  color: var(--color-graphite);
+}
+
+.nav__logout {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--nav-fg);
+  cursor: pointer;
+}
+
+.nav__logout:hover {
+  color: var(--color-link-hover);
+  text-decoration: underline;
 }
 
 .nav__mobile {
   display: none;
 }
 
+/* 右の上の白い帯（全体の検索） */
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-12);
+  min-height: var(--layout-topbar);
+  padding: var(--space-12) var(--space-32);
+  background: var(--topbar-bg);
+  border-bottom: 1px solid var(--color-line-structure);
+}
+
+.topbar__search {
+  flex: 1 1 320px;
+  max-width: 420px;
+}
+
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: 7px 10px;
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-input);
+  background: var(--color-field);
+  color: var(--color-graphite);
+}
+
+.search-field:focus-within {
+  outline: var(--focus-width) solid var(--color-accent);
+  outline-offset: var(--focus-offset);
+  border-color: var(--input-focus-border);
+}
+
+.search-field__input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-small);
+  color: var(--color-ink);
+}
+
 .main {
-  padding: var(--space-24);
+  padding: var(--space-24) var(--space-32) 40px;
   min-width: 0;
 }
 
@@ -203,8 +286,9 @@ code {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-16);
-  margin-bottom: var(--space-24);
+  justify-content: space-between;
+  gap: var(--space-12);
+  margin-bottom: var(--space-16);
 }
 
 .page-header__title {
@@ -231,17 +315,34 @@ code {
   align-items: center;
 }
 
-/* 960px 未満: ナビを上部の折りたたみにする（第9章「レスポンシブ」） */
+/* JS が動くときだけ隠す（絞り込みの「絞り込む」ボタン: 選ぶと送る） */
+.js .js-hidden {
+  display: none;
+}
+
+/* 960px 未満: サイドバーを上の「メニュー」の折りたたみにする（第9章「レスポンシブ」） */
 @media (max-width: 959px) {
   .app {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: var(--layout-topbar) auto 1fr;
+    background: none;
   }
 
   .nav {
+    position: static;
+    height: auto;
+    overflow: visible;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-8) var(--space-16);
     border-right: 0;
     border-bottom: 1px solid var(--color-line-structure);
     padding: var(--space-8) var(--space-16);
+  }
+
+  .nav__org {
+    padding: 0;
+    flex: 1 1 auto;
   }
 
   .nav__desktop {
@@ -250,6 +351,25 @@ code {
 
   .nav__mobile {
     display: block;
+  }
+
+  .nav__mobile[open] {
+    flex-basis: 100%;
+    order: 2;
+  }
+
+  .nav__mobile > summary {
+    cursor: pointer;
+    font-size: var(--text-small);
+    font-weight: 500;
+  }
+
+  .topbar {
+    padding: var(--space-8) var(--space-16);
+  }
+
+  .topbar__search {
+    max-width: none;
   }
 
   .main {

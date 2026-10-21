@@ -7,6 +7,7 @@ from typing import Any
 from django import forms
 from django.http import HttpRequest
 from django.utils import timezone
+from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy, pgettext_lazy
 
 from services import normalize
@@ -182,6 +183,37 @@ class StyledFormMixin:
         """
         rule = " ".join(f"{self.add_prefix(other)}={value}" for other, value in conditions.items())
         self.fields[name].widget.attrs["data-enabled-when"] = rule
+
+
+def label_inside(
+    form: forms.Form, skip: tuple[str, ...] = (), keep_text: tuple[str, ...] = ()
+) -> None:
+    """一覧の絞り込みの select に、項目名を中に入れる（仕様 4「絞り込み」。U2-D4）。
+
+    最初の選択肢を「担当者: すべて」「状態: 入国前・在留中」の形にし、項目名は aria-label に残す
+    （画面のラベルは出さない。e2e の get_by_label はそのまま使える）。ほかの選択肢の文は変えない。
+    最初の選択肢の値が空か "all" なら「すべて」、keep_text の欄（既定が「すべて」でない状態など）は
+    元の文のまま。
+    """
+    for name, field in form.fields.items():
+        widget = field.widget
+        if name in skip or not isinstance(widget, forms.Select):
+            continue
+        if isinstance(widget, forms.SelectMultiple):
+            continue
+        widget.attrs["aria-label"] = field.label
+        if isinstance(field, forms.ModelChoiceField):
+            if field.empty_label is not None:
+                field.empty_label = format_lazy("{}: {}", field.label, gettext_lazy("All"))
+            continue
+        if isinstance(field, forms.ChoiceField):
+            choices: list[Any] = list(field.choices)  # type: ignore[arg-type]
+            if choices:
+                value, text = choices[0]
+                generic = value in ("", "all") and name not in keep_text
+                first = gettext_lazy("All") if generic else text
+                choices[0] = (value, format_lazy("{}: {}", field.label, first))
+                field.choices = choices
 
 
 def issue_once_token(request: HttpRequest) -> str:

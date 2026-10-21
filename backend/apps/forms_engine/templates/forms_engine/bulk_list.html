@@ -10,7 +10,7 @@
     <thead><tr><th>{% translate "procedure" %}</th><th>{% translate "basis date" context "generated document" %}</th><th>{% translate "title" %}</th><th>{% translate "foreign workers" %}</th><th>{% translate "files" %}</th></tr></thead>
     <tbody>{% for application in applications %}
       <tr data-bulk="{{ application.pk }}">
-        <td><a href="{% url 'forms:bulk' application.pk %}">{{ application.get_procedure_display }}</a></td>
+        <td><a class="cell-name" href="{% url 'forms:bulk' application.pk %}">{{ application.get_procedure_display }}</a></td>
         <td class="mono">{{ application.basis_on|date:"Y-m-d" }}</td>
         <td>{{ application.title|default:"—" }}</td>
         <td class="num">{{ application.entries.all|length }}</td>

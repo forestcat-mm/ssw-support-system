@@ -12,7 +12,6 @@ seed_dummy を流し、担当者 2 人（dummy_tanto・dummy_tanto2）が、定�
 """
 
 import os
-import re
 import time
 from collections import Counter
 from collections.abc import Iterator
@@ -31,6 +30,7 @@ from pytest_django.fixtures import Settings
 from pytest_django.live_server_helper import LiveServer
 
 from apps.contracts.models import EmploymentContract, EmploymentContractVersion
+from apps.core import list_tabs
 from apps.core.models import Staff, User
 from apps.filings.models import Filing, FilingKind, FilingStatus
 from apps.seed import support_builders
@@ -45,7 +45,7 @@ from apps.support.models import (
 )
 from apps.workers.models import ForeignWorker, WorkerStatus
 from e2e.conftest import SignIn, answer_all_no
-from services import dashboard, deadlines, filings, periodic_report
+from services import deadlines, filings, periodic_report
 from services.support_catalog import SupportItem
 from tests.core.factories import TEST_PASSWORD
 
@@ -172,9 +172,10 @@ def check_dashboard(
         expect(row.locator("[data-level]")).to_have_attribute("data-level", str(level))
         if level is not deadlines.Level.NOT_YET:  # 受付前はバッジが日付（日付の欄を重ねない）
             expect(row.locator(".mono").first).to_have_text(deadline.unadjusted_due_on.isoformat())
-    for level in dashboard.COUNTED_LEVELS:
-        expect(page.locator(f'[data-level-count="{level}"]')).to_have_text(
-            re.compile(rf"(?<!\d){levels[level]}件")
+    # 期限のタブ（すべて・期限超過・7日以内・14日以内。U2-D5）の件数
+    for level in list_tabs.TAB_LEVELS:
+        expect(page.locator(f'[data-level-count="{level}"] .count')).to_have_text(
+            str(levels[level])
         )
 
 

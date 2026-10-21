@@ -32,16 +32,22 @@ def level_text(assessment: deadlines.Assessment, due_on: date) -> str:
 
 
 @register.inclusion_tag("ui/components/level_badge.html")
-def level_badge(deadline: deadlines.Deadline, today: date | None = None) -> dict[str, Any]:
+def level_badge(
+    deadline: deadlines.Deadline, today: date | None = None, not_yet_label: bool = False
+) -> dict[str, Any]:
     """T10 の Deadline から警告レベルのバッジ。
 
-    色は繰り延べ前の期限が基準。閉庁日で繰り延べた法令上の期限は title に出す。
+    色は繰り延べ前の期限が基準。閉庁日で繰り延べた法令上の期限は title に出す。受付前は日付を
+    出すが、期限の日付を別の列に出す表（届出タスクの表）では not_yet_label で「受付前」と出す。
     """
     today = today or timezone.localdate()
     assessment = deadlines.assess(deadline, today)
+    text = level_text(assessment, deadline.unadjusted_due_on)
+    if not_yet_label and assessment.level is deadlines.Level.NOT_YET:
+        text = _("not yet open")
     return {
         "css": LEVEL_CLASSES[assessment.level],
-        "text": level_text(assessment, deadline.unadjusted_due_on),
+        "text": text,
         "due_on": deadline.unadjusted_due_on,
         "legal_due_on": deadline.due_on if deadline.adjusted else None,
         "level": assessment.level.value,
@@ -173,3 +179,10 @@ def bound_field(form: Any, name: str) -> Any:
 def sections_without(form: Any, names: Any) -> Any:
     """版のフォームの節（names の欄を除く。T41）。"""
     return form.sections(exclude=set(names or ()))
+
+
+@register.filter
+def fields_except(form: Any, names: str) -> list[Any]:
+    """フォームの欄（names〔空白区切り〕の欄を除く）。一覧の絞り込みで、タブで決める欄を除く（U2）。"""
+    skip = set(names.split())
+    return [bound for bound in form if bound.name not in skip]

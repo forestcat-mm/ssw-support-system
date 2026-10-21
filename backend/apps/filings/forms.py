@@ -9,7 +9,7 @@ from django.utils.translation import pgettext_lazy
 
 from apps.contracts.models import EmploymentContract
 from apps.core.models import Staff, User
-from apps.core.web_forms import StyledFormMixin
+from apps.core.web_forms import StyledFormMixin, label_inside
 from apps.filings.models import Filing, FilingKind, FilingStatus
 from apps.hosts.models import HostOrganization
 from apps.workers.models import ForeignWorker
@@ -93,6 +93,7 @@ class DashboardForm(forms.Form):
         ]
         for bound_field in self.fields.values():
             bound_field.widget.attrs["class"] = "select"
+        label_inside(self, keep_text=("status",))
 
     def selected_assignee(self) -> str:
         value = self.data.get("assignee")

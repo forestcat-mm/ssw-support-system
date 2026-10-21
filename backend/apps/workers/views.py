@@ -18,6 +18,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views import View
 from django.views.generic import TemplateView
 
+from apps.core import list_tabs
 from apps.core.models import Action, AuditAction, Staff, User
 from apps.core.permissions import ActionRequiredMixin
 from apps.core.web_forms import (
@@ -56,7 +57,6 @@ from services import (
     book_exports,
     books,
     contracts,
-    deadlines,
     form_convert,
     staff_periods,
     wage_explanations,
@@ -92,19 +92,12 @@ class WorkerListView(ActionRequiredMixin, TemplateView):
             conditions=form.cleaned_data,
             object_ids=[row.worker.pk for row in result.rows],
         )
-        counts = result.level_counts
+        base = list_tabs.query_without(self.request.GET, "level")
         context.update(
             form=form,
             rows=result.rows,
-            level_counts=[
-                (level, counts[level])
-                for level in (
-                    deadlines.Level.OVERDUE,
-                    deadlines.Level.WITHIN_7,
-                    deadlines.Level.WITHIN_14,
-                )
-                if counts[level]
-            ],
+            level_tabs=list_tabs.level_tabs(base, result.total, result.level_counts, query.level),
+            keep=[("level", query.level.value if query.level else "")],
             filtered=any(value for key, value in self.request.GET.items() if key != "order"),
             can_manage=authorization.has_action(user, Action.WORKERS_MANAGE),
         )

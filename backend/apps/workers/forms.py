@@ -9,7 +9,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core.forms import allow_formatted_number_input
 from apps.core.models import AttachmentKind, Staff, User
-from apps.core.web_forms import DateSelectWidget, StyledFormMixin
+from apps.core.web_forms import DateSelectWidget, StyledFormMixin, label_inside
 from apps.hosts.models import HostOrganization, SpecifiedSkillField
 from apps.workers.models import (
     ForeignWorker,
@@ -45,7 +45,18 @@ LEVEL_CHOICES = [
 class WorkerListForm(forms.Form):
     """外国人一覧の検索・絞り込み（GET。条件は URL に残す）。"""
 
-    q = forms.CharField(label=_("Search"), required=False, max_length=100)
+    q = forms.CharField(
+        label=_("Search"),
+        required=False,
+        max_length=100,
+        widget=forms.TextInput(
+            attrs={
+                "type": "search",
+                "class": "input filter-bar__search",
+                "placeholder": _("Name or residence card / passport number"),
+            }
+        ),
+    )
     host = forms.ModelChoiceField(
         label=_("host organization"),
         queryset=HostOrganization.objects.order_by("name_kana", "name"),
@@ -100,6 +111,7 @@ class WorkerListForm(forms.Form):
         for name, bound_field in self.fields.items():
             if name not in ("q", "include_deactivated"):
                 bound_field.widget.attrs["class"] = "select"
+        label_inside(self, keep_text=("status",))
 
     def to_query(self, user: User) -> WorkerListQuery:
         """検査を通った条件だけを使う（不正な値は既定に戻す）。"""

@@ -12,7 +12,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.contracts.models import EmploymentContract
 from apps.core.models import Staff, SupportLanguage
-from apps.core.web_forms import StyledFormMixin
+from apps.core.web_forms import StyledFormMixin, label_inside
 from apps.forms_engine.models import GeneratedDocument
 from apps.support.forms import StaffChoiceField, active_staff
 from apps.support.models import (
@@ -282,6 +282,7 @@ class RecordFilterForm(StyledFormMixin, forms.Form):
             "name_kana", "name"
         )
         self.style_fields()
+        label_inside(self, keep_text=("status",))
 
 
 # --- 定期面談（T19）---------------------------------------------------------------------
@@ -836,6 +837,7 @@ class ConsultationFilterForm(StyledFormMixin, forms.Form):
             "name_kana", "name"
         )
         self.style_fields()
+        label_inside(self, keep_text=("status",))
 
     def statuses(self) -> tuple[str, ...]:
         key = self.cleaned_data.get("status") or STATUS_OPEN if self.is_bound else STATUS_OPEN

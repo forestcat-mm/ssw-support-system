@@ -57,8 +57,7 @@ def test_receive_progress_and_resolve(
     # 一覧（既定は未解決）には出ず、「解決」で絞ると出る
     page.get_by_role("link", name="相談", exact=True).first.click()
     expect(page.get_by_text("条件に合う相談はありません。")).to_be_visible()
-    page.get_by_label("対応状況").select_option(label="解決")
-    page.get_by_role("button", name="絞り込む").click()
+    page.get_by_label("対応状況").select_option(label="解決")  # 選ぶとそのまま送る（U2-D4）
     expect(page.locator("#consultations tbody tr")).to_have_count(1)
 
 
