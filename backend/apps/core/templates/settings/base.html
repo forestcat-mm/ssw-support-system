@@ -1,11 +1,11 @@
 {% extends "ui/base.html" %}{% load i18n ui %}
 {% block title %}{% translate "Settings" %}{% endblock %}
-{% block page_header %}<h1>{% translate "Settings" %}</h1>{% endblock %}
+{% block page_header %}<div class="page-band" id="page-band"><div class="page-band__title"><h1>{% translate "Settings" %}</h1>{% for tab in settings_tabs %}{% if tab.active %}<span class="chip">{{ tab.label }}</span>{% endif %}{% endfor %}</div></div>{% endblock %}
 {% block content %}
 <nav class="tabs" aria-label="{% translate 'Settings' %}">
   {% for tab in settings_tabs %}<a class="tabs__link" href="{{ tab.url }}"{% if tab.active %} aria-current="page"{% endif %}>{{ tab.label }}</a>{% endfor %}
 </nav>
-<div class="stack">
+<div class="stack numbered">
   {% block settings_content %}{% endblock %}
 </div>
 {% endblock %}

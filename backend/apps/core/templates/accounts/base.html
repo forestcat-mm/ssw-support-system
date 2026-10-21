@@ -1,28 +1,18 @@
-{% load i18n %}<!doctype html>
+{% load i18n static %}<!doctype html>
 <html lang="{{ LANGUAGE_CODE|default:'ja' }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{% translate "Support organization management" %}{% endblock %}</title>
-  <style>
-    body { font-family: system-ui, sans-serif; background: #f5f6f8; color: #1f2328; margin: 0; }
-    main { max-width: 28rem; margin: 3rem auto; padding: 2rem; background: #fff; border-radius: 8px;
-           box-shadow: 0 1px 3px rgba(0,0,0,.12); }
-    h1 { font-size: 1.25rem; margin-top: 0; }
-    label { display: block; margin: 1rem 0 .25rem; font-weight: 600; }
-    input[type=text], input[type=password] { width: 100%; padding: .5rem; font-size: 1rem; box-sizing: border-box; }
-    button { margin-top: 1.25rem; padding: .6rem 1.2rem; font-size: 1rem; cursor: pointer; }
-    .errorlist, .error { color: #b42318; }
-    .messages { padding: 0; list-style: none; }
-    .messages li { background: #fff4e5; padding: .5rem .75rem; border-radius: 4px; }
-    .qr svg { width: 200px; height: 200px; }
-    code, .codes { font-family: ui-monospace, monospace; }
-    .codes { columns: 2; font-size: 1.05rem; line-height: 1.8; }
-    .muted { color: #59636e; font-size: .9rem; }
-  </style>
+  {# ログインなどの画面（U7）: 業務画面と同じ字体・色の変数・部品（外から何も読まない） #}
+  <link rel="stylesheet" href="{% static 'ui/fonts.css' %}">
+  <link rel="stylesheet" href="{% static 'ui/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'ui/base.css' %}">
+  <link rel="stylesheet" href="{% static 'ui/components.css' %}">
 </head>
-<body>
-<main>
+<body class="auth-page">
+<main class="auth-card">
+  <p class="auth-card__brand">{% translate "Support organization management" %}</p>
   {% if messages %}<ul class="messages">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
   {% block content %}{% endblock %}
 </main>

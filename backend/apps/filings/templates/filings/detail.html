@@ -1,12 +1,14 @@
 {% extends "ui/base.html" %}{% load i18n ui %}
 {% block title %}{{ filing.get_kind_display }}{% endblock %}
 {% block page_header %}
+<div class="page-band" id="page-band">
   <p class="caption"><a href="{{ back_url }}">← {% translate "Back to dashboard" %}</a></p>
-  <h1>{{ filing.get_kind_display }}</h1>
-  <div class="cluster"><span class="status" id="filing-status">{{ filing.get_status_display }}</span><span class="caption">{{ category_label }} · {{ row.filer_label }}</span></div>
+  <div class="page-band__title"><h1>{{ filing.get_kind_display }}</h1><span class="status-dot {% if row.is_open %}status-dot--caution{% elif filing.status == "cancelled" %}status-dot--muted{% else %}status-dot--ok{% endif %}" id="filing-status">{{ filing.get_status_display }}</span>{% if row.is_open %}{% level_badge row.deadline %}{% endif %}</div>
+  <p class="page-band__meta">{{ category_label }} · {{ row.filer_label }}</p>
+</div>
 {% endblock %}
 {% block content %}
-<div class="stack">
+<div class="stack numbered">
   <div class="grid-2">
     <section class="card" id="filing-info">
       <div class="card__header"><h2 class="card__title">{% translate "Task" %}</h2></div>

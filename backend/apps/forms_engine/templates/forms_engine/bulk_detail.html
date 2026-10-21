@@ -1,12 +1,14 @@
 {% extends "ui/base.html" %}{% load i18n ui %}
 {% block title %}{{ application.get_procedure_display }} | {% translate "Bulk applications" %}{% endblock %}
 {% block page_header %}
+<div class="page-band" id="page-band">
   <p class="caption"><a href="{% url 'forms:bulk_list' %}">← {% translate "Bulk applications" %}</a></p>
-  <h1>{% translate "Bulk application" %}: {{ application.get_procedure_display }}</h1>
-  <p class="caption">{% translate "basis date" context "generated document" %} <span class="mono">{{ application.basis_on|date:"Y-m-d" }}</span>{% if application.title %} · {{ application.title }}{% endif %} · {% translate "intermediary (user of the online system)" %}: <span id="bulk-intermediary">{{ application.intermediary.name|default:_("not chosen") }}</span></p>
+  <div class="page-band__title"><h1>{% translate "Bulk application" %}: {{ application.get_procedure_display }}</h1>{% if files %}<span class="status-dot status-dot--ok" id="bulk-state">{% translate "Excel made" %}</span>{% else %}<span class="status-dot status-dot--caution" id="bulk-state">{% translate "Excel not made yet" %}</span>{% endif %}</div>
+  <p class="page-band__meta">{% translate "basis date" context "generated document" %} <span class="mono">{{ application.basis_on|date:"Y-m-d" }}</span>{% if application.title %} · {{ application.title }}{% endif %} · {% translate "intermediary (user of the online system)" %}: <span id="bulk-intermediary">{{ application.intermediary.name|default:_("not chosen") }}</span></p>
+</div>
 {% endblock %}
 {% block content %}
-<div class="stack">
+<div class="stack numbered">
   {% if not_loaded %}<p class="message message--danger">{% translate "The bulk registration tool is not loaded. Run make forms." %}</p>{% endif %}
   <section class="card" id="rows">
     <div class="card__header"><h2 class="card__title">{% translate "Foreign workers" %}</h2></div>

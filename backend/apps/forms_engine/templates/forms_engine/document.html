@@ -1,11 +1,14 @@
 {% extends "ui/base.html" %}{% load i18n ui %}
 {% block title %}{{ document.template.name }}{% if worker %} | {{ worker }}{% endif %}{% endblock %}
 {% block page_header %}
+<div class="page-band" id="page-band">
   {% if back_url %}<p class="caption"><a href="{{ back_url }}">← {% if worker %}{{ worker }}{% else %}{{ document.target }}{% endif %}</a></p>{% endif %}
-  <h1>{{ document.template.name }}</h1>
+  <div class="page-band__title"><h1>{{ document.template.name }}</h1><span class="status-dot {% if document.status == "failed" %}status-dot--danger{% elif document.status == "requested" %}status-dot--caution{% else %}status-dot--ok{% endif %}" id="document-state">{{ document.get_status_display }}</span></div>
+  <p class="page-band__meta">{{ document.template.form_id }}{% if document.basis_on %} · {% translate "basis date" context "generated document" %} <span class="mono">{{ document.basis_on|date:"Y-m-d" }}</span>{% endif %}</p>
+</div>
 {% endblock %}
 {% block content %}
-<div class="stack">
+<div class="stack numbered">
   {% if document.status == "requested" and stale %}
   <p class="message message--error" id="document-status">{% blocktranslate with minutes=stale_minutes %}Requested more than {{ minutes }} minutes ago. Ask an administrator to check the job worker (qcluster), and generate it again if needed.{% endblocktranslate %}</p>
   {% elif document.status == "requested" %}

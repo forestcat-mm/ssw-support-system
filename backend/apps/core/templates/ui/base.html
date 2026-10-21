@@ -92,7 +92,7 @@
 </div>
 {% endif %}
 {# 入力の画面の下の帯と欄を離れたときの確かめの文（forms.js の initFormBar。U6） #}
-<template id="form-bar-text" data-missing="{% translate 'Missing items: {count}' %}" data-caution="{% translate 'Notes: {count}' %}" data-required="{% translate 'Enter this item.' %}" data-has-errors="{% translate 'This section has missing items.' %}"></template>
+<template id="form-bar-text" data-missing="{% translate 'Missing items: {count}' %}" data-caution="{% translate 'Notes: {count}' %}" data-required="{% translate 'Enter this item.' %}" data-has-errors="{% translate 'This section has missing items.' %}" data-page-toc="{% translate 'Contents of this page' %}"></template>
 {# モーダル（forms.js の initModal。a[data-modal] のリンク先の [data-modal-content] を読み込む） #}
 <dialog class="modal" id="modal" aria-labelledby="modal-title">
   <div class="modal__header"><h2 class="modal__title" id="modal-title" data-modal-title></h2><button class="button button--neutral button--small" type="button" data-modal-close>{% translate "Close" %}</button></div>

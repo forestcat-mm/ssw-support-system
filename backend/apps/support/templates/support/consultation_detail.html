@@ -1,8 +1,11 @@
 {% extends "workers/detail_base.html" %}{% load i18n ui %}
 {% block tab_content %}
 {% include "support/subtabs.html" %}
-<div class="stack" style="margin-top: var(--space-16)">
-  <p class="caption"><a href="{% url 'workers:support_records' worker.pk %}">← {% translate "Back to records" %}</a> · <a href="{% url 'consultations:list' %}">{% translate "Consultations" %}</a></p>
+<div class="stack numbered" style="margin-top: var(--space-16)">
+  <div class="page-band page-band--inner" id="page-band">
+    <p class="caption"><a href="{% url 'workers:support_records' worker.pk %}">← {% translate "Back to records" %}</a> · <a href="{% url 'consultations:list' %}">{% translate "Consultations" %}</a></p>
+    <div class="page-band__title"><span class="page-band__name">{% translate "Consultation" %}: {{ consultation.get_category_display }}</span><span class="status-dot {% if consultation.voided_at %}status-dot--muted{% elif consultation.status in open_statuses %}status-dot--caution{% else %}status-dot--ok{% endif %}" id="consultation-state">{% if consultation.voided_at %}{% translate "voided" %}{% else %}{{ consultation.get_status_display }}{% endif %}</span></div>
+  </div>
   {% if consultation.voided_at %}
   <p class="message message--warning" role="status" id="consultation-voided">{% blocktranslate with day=consultation.voided_at|date:"Y-m-d H:i" by=consultation.voided_by.get_username|default:"—" reason=consultation.void_reason %}This consultation was voided on {{ day }} by {{ by }}. Reason: {{ reason }}. It is not counted.{% endblocktranslate %}</p>
   {% endif %}

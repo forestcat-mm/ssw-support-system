@@ -28,6 +28,7 @@ from apps.filings.models import Filing
 from apps.forms_engine.forms import NOT_LOADED, BriefingGenerateForm
 from apps.forms_engine.models import GeneratedDocument
 from apps.support.models import (
+    OPEN_CONSULTATION_STATUSES,
     Briefing,
     Consultation,
     DeliveryKind,
@@ -615,6 +616,7 @@ class ConsultationDetailView(ConsultationMixin, RecordTabMixin, WorkerDetailView
             timeline=items,
             can_add_entry=open_case,
             support_subtab="records",
+            open_statuses=[status.value for status in OPEN_CONSULTATION_STATUSES],
         )
         return {
             "shown": {

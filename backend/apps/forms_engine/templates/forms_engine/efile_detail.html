@@ -1,12 +1,14 @@
 {% extends "ui/base.html" %}{% load i18n ui %}
 {% block title %}{{ label }} | {% translate "Bulk notifications" %}{% endblock %}
 {% block page_header %}
+<div class="page-band" id="page-band">
   <p class="caption"><a href="{% url 'forms:efile_list' %}">← {% translate "Bulk notifications" %}</a></p>
-  <h1>{% translate "Bulk notification" %}: {{ label }}</h1>
-  <p class="caption">{% translate "filer" %}: <span id="efile-filer">{% if bulk.host_organization %}{{ bulk.host_organization.name }}{% else %}{{ bulk.get_filer_display }}{% endif %}</span>{% if bulk.title %} · {{ bulk.title }}{% endif %}</p>
+  <div class="page-band__title"><h1>{% translate "Bulk notification" %}: {{ label }}</h1>{% if bulk.submitted_on %}<span class="status-dot status-dot--ok" id="efile-state">{% blocktranslate with day=bulk.submitted_on|date:"Y-m-d" %}submitted on {{ day }}{% endblocktranslate %}</span>{% else %}<span class="status-dot status-dot--caution" id="efile-state">{% translate "not submitted yet" %}</span>{% endif %}</div>
+  <p class="page-band__meta">{% translate "filer" %}: <span id="efile-filer">{% if bulk.host_organization %}{{ bulk.host_organization.name }}{% else %}{{ bulk.get_filer_display }}{% endif %}</span>{% if bulk.title %} · {{ bulk.title }}{% endif %}</p>
+</div>
 {% endblock %}
 {% block content %}
-<div class="stack">
+<div class="stack numbered">
   {% if not_loaded %}<p class="message message--danger">{% translate "The bulk filing tool is not loaded. Run make forms." %}</p>{% endif %}
   {% if general %}<ul class="messages" id="efile-general">{% for problem in general %}<li class="message message--danger"><strong>{{ problem.label }}</strong>: {{ problem.message }}</li>{% endfor %}</ul>{% endif %}
   <section class="card" id="rows">

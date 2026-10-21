@@ -1063,9 +1063,34 @@ initializers.push((root) => root.querySelectorAll("form.form").forEach((form) =>
   update();
 }));
 
+// 中の画面の目次（U7）: .numbered の中の見出しつきのセクションが 4 つ以上なら、上に目次を作る（番号は CSS）。
+const initNumberedToc = () => document.querySelectorAll(".numbered").forEach((container, order) => {
+  const children = Array.from(container.children).flatMap((child) => (child.matches(".grid-2") ? Array.from(child.children) : [child]));
+  const sections = children.filter((child) => child.matches("section.card")
+    && (child.querySelector(":scope > .card__header > .card__title") || child.firstElementChild?.tagName === "H2"));
+  if (sections.length < 4) return;
+  const toc = document.createElement("nav");
+  toc.className = "toc";
+  toc.dataset.toc = "";
+  toc.setAttribute("aria-label", document.getElementById("form-bar-text")?.dataset.pageToc || "");
+  sections.forEach((section, index) => {
+    if (!section.id) section.id = `section-${order + 1}-${index + 1}`;
+    const title = section.querySelector(":scope > .card__header > .card__title") || section.firstElementChild;
+    const link = document.createElement("a");
+    link.className = "toc__link";
+    link.href = `#${section.id}`;
+    link.dataset.tocTarget = section.id;
+    link.textContent = `${index + 1} ${title.textContent.trim()}`;
+    toc.append(link);
+  });
+  container.before(toc);
+  observeToc(Array.from(toc.querySelectorAll("[data-toc-target]")), 16);
+});
+
 const initAll = (root) => initializers.forEach((init) => init(root));
 initAll(document);
 initModal();
 initPersonBar();
+initNumberedToc();
 initUnsavedLinks();
 initSessionNotice();

@@ -2367,3 +2367,170 @@ input[list="time-options"] {
     display: none;
   }
 }
+
+/* --- 中の画面の上の帯と番号つきのセクション（U7: 一括申請・一括届出・相談・設定の各画面） ------------- */
+.page-band {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.page-band__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8) var(--space-12);
+}
+
+.page-band__title h1 {
+  font-size: var(--text-person);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.page-band__meta {
+  font-size: var(--text-small);
+  color: var(--color-graphite);
+}
+
+/* 番号は CSS の counter（権限で出さないセクションは描かれないので番号が詰まる） */
+.numbered {
+  counter-reset: page-section;
+}
+
+.numbered > section.card > .card__header > .card__title,
+.numbered > section.card > h2:first-child,
+.numbered > .grid-2 > section.card > .card__header > .card__title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.numbered > section.card > .card__header > .card__title::before,
+.numbered > section.card > h2:first-child::before,
+.numbered > .grid-2 > section.card > .card__header > .card__title::before {
+  counter-increment: page-section;
+  content: counter(page-section);
+  font-size: var(--text-small);
+  font-weight: 500;
+  color: var(--color-ash);
+}
+
+.numbered > section.card > .card__header,
+.numbered > section.card > h2:first-child,
+.numbered > .grid-2 > section.card > .card__header {
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--color-section-rule);
+}
+
+/* 外国人の詳細の中の画面（相談など）の名前と状態の行 */
+.page-band__name {
+  font-size: var(--text-subheading);
+  font-weight: 700;
+}
+
+/* --- ログイン・多要素認証・パスワードの再設定の画面（U7） ---------------------------------- */
+.auth-page {
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--space-16);
+  box-sizing: border-box;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 26rem;
+  margin: 10vh auto auto;
+  padding: var(--space-24) var(--space-24) var(--space-20);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line-structure);
+  border-radius: var(--radius-card);
+}
+
+.auth-card__brand {
+  margin: 0 0 var(--space-16);
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.auth-card h1 {
+  margin: 0 0 var(--space-16);
+  font-size: var(--text-person);
+  font-weight: 700;
+}
+
+.auth-card label {
+  display: block;
+  margin: var(--space-16) 0 var(--space-4);
+  font-size: var(--text-small);
+  font-weight: 700;
+}
+
+.auth-card input[type="text"],
+.auth-card input[type="password"],
+.auth-card input[type="email"] {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--control-height);
+  padding: 0 10px;
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-input);
+  background: var(--color-field);
+  color: var(--color-ink);
+  font: inherit;
+}
+
+.auth-card input:focus {
+  outline: var(--focus-width) solid var(--color-accent);
+  outline-offset: var(--focus-offset);
+}
+
+.auth-card button {
+  margin-top: var(--space-20);
+  min-height: var(--control-height);
+  padding: 0 var(--space-20);
+  border: 0;
+  border-radius: var(--radius-input);
+  background: var(--button-primary-bg);
+  color: var(--button-primary-fg);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.auth-card .errorlist,
+.auth-card .error {
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-caption);
+  color: var(--notice-error-fg);
+}
+
+.auth-card .messages {
+  margin: 0 0 var(--space-12);
+  padding: 0;
+  list-style: none;
+}
+
+.auth-card .messages li {
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-input);
+  background: var(--notice-warning-bg);
+}
+
+.auth-card .qr svg {
+  width: 200px;
+  height: 200px;
+}
+
+.auth-card .codes {
+  columns: 2;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.8;
+}
+
+.auth-card .muted {
+  font-size: var(--text-small);
+}
