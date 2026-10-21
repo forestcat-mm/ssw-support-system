@@ -10,7 +10,7 @@ from urllib.parse import urlparse
 
 import pytest
 from django.utils import timezone
-from playwright.sync_api import Page, Request, expect
+from playwright.sync_api import FilePayload, Page, Request, expect
 
 from apps.core.models import User
 from apps.hosts.models import HostOrganization, HostSite
@@ -31,7 +31,7 @@ def admin_requests(page: Page) -> Iterator[list[str]]:
     yield seen
 
 
-def pdf(name: str) -> dict[str, object]:
+def pdf(name: str) -> FilePayload:
     return {"name": name, "mimeType": "application/pdf", "buffer": PDF_BYTES}
 
 
