@@ -327,8 +327,10 @@ code {
 
 /* 960px 未満: サイドバーを上の「メニュー」の折りたたみにする（第9章「レスポンシブ」） */
 @media (max-width: 959px) {
+  /* 短い画面でも上の帯（機関名・メニュー）を伸ばさず、本文の行に残りの高さを渡す */
   .app {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
     background: none;
   }
 
