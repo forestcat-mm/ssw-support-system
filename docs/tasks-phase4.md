@@ -123,7 +123,7 @@ T44〜T57 を 4 つのブロックで進める（T57 はブロック A の計画
 
 ## ブロック B・C・D で決めたこと（2026-10-20〜21。不在の間の指示により、すべておすすめのとおり）
 
-計画は `.checks/phase4/blockB/plan.md`・`plan-blockC.md`・`plan-blockD.md`、決めた点の全部は `.checks/phase4/decisions-blockBCD.md`（番号・内容・選んだ案・理由・人の確認が要るか）。要点:
+計画は `.checks/phase4/blockB/plan.md`・`plan-blockC.md`・`plan-blockD.md`、決めた点の全部は `docs/decisions/log/phase4-blockBCD.md`（番号・内容・選んだ案・理由・人の確認が要るか）。要点:
 
 | # | 決めたこと |
 |---|---|
@@ -153,7 +153,7 @@ T44〜T57 を 4 つのブロックで進める（T57 はブロック A の計画
 
 ## 画面の見直し（U1〜U8。2026-10-21）
 
-業務画面の見た目と画面の型を、`docs/design/design-2026-10/`（仕様と見本 01〜08）に合わせて作り直した。決めたことは ADR-0046（U1〜U7 の追記）と ADR-0047（申請用の写真）、計画は `.checks/ui-redesign/plan.md`、決めた細部は `.checks/ui-redesign/decisions.md`、報告は `.checks/ui-redesign/report.md`。
+業務画面の見た目と画面の型を、`docs/design/design-2026-10/`（仕様と見本 01〜08）に合わせて作り直した。決めたことは ADR-0046（U1〜U7 の追記）と ADR-0047（申請用の写真）、計画は `.checks/ui-redesign/plan.md`、決めた細部は `docs/design/design-2026-10/decisions.md`、報告は `.checks/ui-redesign/report.md`。
 
 | タスク | 中身 | 状態 |
 |---|---|---|

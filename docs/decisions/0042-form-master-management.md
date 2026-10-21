@@ -1,6 +1,6 @@
 # ADR-0042: 様式マスタの管理（F13）— 版の一覧・停止・別の版での作り直し・記入済みの取り出し
 
-- 状態: 採用（T53）。不在の間の指示（2026-10-20・21）により、決めてほしい点はおすすめで決めた（`.checks/phase4/blockD/plan.md`・`.checks/phase4/decisions-blockBCD.md` の T53-D1〜D4）
+- 状態: 採用（T53）。不在の間の指示（2026-10-20・21）により、決めてほしい点はおすすめで決めた（`.checks/phase4/blockD/plan.md`・`docs/decisions/log/phase4-blockBCD.md` の T53-D1〜D4）
 - 日付: 2026-10-21
 - 関連: ADR-0018（生成と変換）・0019（生成前の検査）・0022（署名済みの写し）、仕様書 第5章 F13・第6章「様式のバージョン管理」、`docs/tasks-phase4.md` の D8・D9
 

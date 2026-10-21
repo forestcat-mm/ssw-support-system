@@ -1,6 +1,6 @@
 # ADR-0041: 定期届出の第3-6号・別紙1・別紙2 を作る
 
-- 状態: 採用（T51）。不在の間の指示（2026-10-20・21）により、決めてほしい点はおすすめで決めた（`.checks/phase4/blockC/plan.md`・`.checks/phase4/decisions-blockBCD.md` の T51-D1〜D8）
+- 状態: 採用（T51）。不在の間の指示（2026-10-20・21）により、決めてほしい点はおすすめで決めた（`.checks/phase4/blockC/plan.md`・`docs/decisions/log/phase4-blockBCD.md` の T51-D1〜D8）
 - 日付: 2026-10-21
 - 関連: ADR-0012（定期届出の元データ）・0037（担当者の履歴）・0018（Excel の書き方）・0040（一括届出）、`docs/tasks-phase4.md` の D6・D9
 

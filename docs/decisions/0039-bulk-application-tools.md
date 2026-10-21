@@ -1,6 +1,6 @@
 # ADR-0039: 在留申請オンラインの一括登録用ツールへの書き込み（一括申請）
 
-- 状態: 採用（T47 書き込みの基盤・T48 生成・T49 申請の書類との合わせ）。不在の間の指示（2026-10-20）により、決めてほしい点はおすすめで決めた（`.checks/phase4/blockB/plan.md`・`.checks/phase4/decisions-blockBCD.md`）
+- 状態: 採用（T47 書き込みの基盤・T48 生成・T49 申請の書類との合わせ）。不在の間の指示（2026-10-20）により、決めてほしい点はおすすめで決めた（`.checks/phase4/blockB/plan.md`・`docs/decisions/log/phase4-blockBCD.md`）
 - 日付: 2026-10-20
 - 関連: ADR-0018（Excel の書き方）・0038（台帳の項目）、`docs/tasks-phase4.md` の D1〜D4
 

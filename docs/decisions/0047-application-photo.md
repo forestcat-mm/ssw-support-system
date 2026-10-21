@@ -1,6 +1,6 @@
 # ADR-0047: 申請用の写真
 
-- 状態: 採用（U4）。決めてほしい点 U4-D1〜D6 はおすすめ (a) で決まり、EXIF と監査ログは人の指示で補った（`.checks/ui-redesign/decisions.md`）
+- 状態: 採用（U4）。決めてほしい点 U4-D1〜D6 はおすすめ (a) で決まり、EXIF と監査ログは人の指示で補った（`docs/design/design-2026-10/decisions.md`）
 - 日付: 2026-10-21
 - 関連: 仕様 `docs/design/design-2026-10/design-spec.md` の 6、ADR-0046（上の帯）・0011（要配慮添付）・0033（統合 PDF の写真の扱い）、仕様書 第7章（テーブルを足す）
 
