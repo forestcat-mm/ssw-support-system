@@ -13,8 +13,9 @@
 - 頁数と字体: 様式・版・ファイル・頁数・PDF に埋め込まれた字体
 - 代わりの字体: 文書が求める字体（元の字体名）と、PDF で使われた字体が違う所。字ごとに、
   文書の書式（直接の指定・スタイル・既定・テーマ）から求める字体を決め、PDF の同じ字の字体と比べる。
-  理由は「規則が無い」（元の字体が無く、置き換えの規則も無い）、「置き換え先に字が無い」（規則の
-  置き換え先や元の字体に、その字が無い）、「文書の文字に無い」（番号・記号など、本文の文字に無い字）。
+  理由は「規則が無い」（元の字体が無く、置き換えの規則も無い）、「置き換え先で描かれない」（規則の
+  置き換え先や元の字体があるのに、別の字体になった。その字が無い、文書の言語の指定〔zh-CN など〕で
+  fontconfig が別の字体を選ぶ、など）、「文書の文字に無い」（番号・記号など、本文の文字に無い字）。
   字の当てはめは近似（同じ字が複数の字体で出るときは、PDF と同じになる指定を優先する）。
   元の字体名に［テーマ］が付くものは、テーマの指定（minorEastAsia など）を Word の解き方で
   字体名にしたもの（LibreOffice は別の字体に解くことがある）。
@@ -379,7 +380,7 @@ def fallbacks(
             continue
         requested = candidates.most_common(1)[0][0]
         target, kind = targets[requested]
-        reason = "規則が無い" if target is None else "置き換え先に字が無い"
+        reason = "規則が無い" if target is None else "置き換え先で描かれない"
         label = f"{target}（{kind}）" if target else "—"
         result[Fallback(requested, label, family, reason)][char] += count
     return result

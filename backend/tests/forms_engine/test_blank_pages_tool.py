@@ -42,7 +42,7 @@ def test_fallbacks_skip_chars_drawn_in_the_expected_font() -> None:
     found = blank_pages.fallbacks(requested, embedded, FONTS)
     assert {(fb.requested, fb.chosen, fb.reason): dict(chars) for fb, chars in found.items()} == {
         ("Century", "Inter", "規則が無い"): {"1": 1},
-        ("ＭＳ 明朝", "WenQuanYiZenHei", "置き換え先に字が無い"): {"⑴": 1},
+        ("ＭＳ 明朝", "WenQuanYiZenHei", "置き換え先で描かれない"): {"⑴": 1},
         ("（文書の文字に無い）", "Inter", "文書の文字に無い"): {"※": 1},
     }
 
