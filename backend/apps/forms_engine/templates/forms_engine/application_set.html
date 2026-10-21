@@ -3,7 +3,14 @@
 <div class="stack" style="margin-top: var(--space-16)">
   <p class="caption"><a href="{% url 'workers:documents' worker.pk %}">← {% translate "Generated forms" %}</a></p>
   <section class="card stack" id="application-set">
-    <div class="card__header"><h2 class="card__title">{% translate "Documents for the application" %}</h2></div>
+    <div class="section-head">
+      <h2 class="section-head__title">{% translate "Documents for the application" %}</h2>
+      <span class="section-head__meta">{{ overview.definition.name }} · {% translate "basis date" context "generated document" %} {{ basis_on|date:"Y-m-d" }}{% if overview.facts.contract %} · {{ overview.facts.contract.host_organization.name }}{% endif %}</span>
+      {% if can_generate %}<div class="section-head__actions" id="application-set-actions">
+        {% if row_checks %}<a class="button button--neutral" href="{% url 'workers:application_bulk' worker.pk %}?{{ query }}" id="application-bulk-link">{% translate "Generate the missing documents" %}</a>{% endif %}
+        <a class="button button--primary" href="{% url 'workers:submission_bundle_create' worker.pk %}?{{ query }}" id="submission-bundle-link">{% translate "Make the PDF for the submission" %}</a>
+      </div>{% endif %}
+    </div>
     <form class="filter-bar" method="get" id="application-set-form">
       {% form_field selector.set_id %}
       {% form_field selector.basis_on %}
@@ -12,46 +19,39 @@
     <p class="caption" id="application-set-source">{% blocktranslate with name=overview.definition.name day=overview.definition.valid_from|date:"Y-m-d" %}{{ name }}: the list of documents to submit (revised on {{ day }}). Rows marked ○ are required; △ only when they apply.{% endblocktranslate %}</p>
     {% if not overview.facts.contract %}<p class="message message--warning" id="application-set-no-contract">{% translate "There is no employment contract on the basis date, so rows that depend on the host organization cannot be judged." %}</p>{% endif %}
     {% if photo_notice %}<p class="section-notice section-notice--caution" id="photo-notice">{{ photo_notice }}{% if photo %} <a href="{% url 'workers:history' worker.pk %}#photos">{% translate "Application photos" %}</a>{% elif can_manage %} <a href="{% url 'workers:photo_create' worker.pk %}">{% translate "Register a photo" %}</a>{% endif %}</p>{% endif %}
-    <p id="application-set-open">{% blocktranslate count counter=overview.open_count %}{{ counter }} required document is not ready.{% plural %}{{ counter }} required documents are not ready.{% endblocktranslate %}</p>
-    {% if can_generate %}<div class="cluster" id="application-set-actions">
-      {% if row_checks %}<a class="button button--primary" href="{% url 'workers:application_bulk' worker.pk %}?{{ query }}" id="application-bulk-link">{% translate "Generate the missing documents" %}</a>{% endif %}
-      <a class="button button--neutral" href="{% url 'workers:submission_bundle_create' worker.pk %}?{{ query }}" id="submission-bundle-link">{% translate "Make the PDF for the submission" %}</a>
-    </div>{% endif %}
-    <div class="table-scroll"><table class="table table--list application-set" id="application-set-rows">
-      <thead><tr><th>{% translate "status" %}</th><th>{% translate "table" %}</th><th>{% translate "document" %}</th><th>{% translate "form" %}</th><th>{% translate "required" context "application set" %}</th></tr></thead>
+    {# 件数の要約（見本 08。U7）: 不足・要確認・そろっている・システムの外（行の区分 tone の数え上げ） #}
+    <ul class="tone-summary" id="application-set-summary">{% with counts=overview.tone_counts %}
+      <li class="tone-summary__item" data-summary="danger"><span class="status-dot status-dot--danger">{% translate "missing" context "application set summary" %}</span> <span class="tone-summary__count">{{ counts.danger }}</span></li>
+      <li class="tone-summary__item" data-summary="warning"><span class="status-dot status-dot--caution">{% translate "to check" context "application set summary" %}</span> <span class="tone-summary__count">{{ counts.warning }}</span></li>
+      <li class="tone-summary__item" data-summary="ok"><span class="status-dot status-dot--ok">{% translate "ready" context "application set summary" %}</span> <span class="tone-summary__count">{{ counts.ok }}</span></li>
+      <li class="tone-summary__item" data-summary="muted"><span class="status-dot status-dot--muted">{% translate "outside the system" context "application set summary" %}</span> <span class="tone-summary__count">{{ counts.muted }}</span></li>
+    {% endwith %}</ul>
+    <p id="application-set-open" class="caption">{% blocktranslate count counter=overview.open_count %}{{ counter }} required document is not ready.{% plural %}{{ counter }} required documents are not ready.{% endblocktranslate %}</p>
+    <div class="table-scroll"><table class="table table--list table--cards application-set" id="application-set-rows">
+      <thead><tr><th>{% translate "status" %}</th><th>{% translate "number" context "application set" %}</th><th>{% translate "document" %}</th><th>{% translate "operation" %}</th></tr></thead>
       <tbody>{% for state in overview.rows %}{% with row=state.row %}
-        <tr data-row="{{ row.id }}" data-status="{{ state.status }}" data-tone="{{ state.tone }}" class="application-set__row application-set__row--{{ state.tone }}">
-          <td class="application-set__status">
-            {% if state.status == "generated" %}<span class="badge badge--within-14">{% translate "generated" %}</span>
-            {% elif state.status == "generating" %}<span class="badge badge--open">{% translate "generating" %}</span>
-            {% elif state.status == "other_target" %}<span class="badge badge--within-7">{% translate "generated for another contract or version" %}</span>
-            {% elif state.status == "not_generated" %}<span class="badge badge--overdue">{% translate "not generated" %}</span>
-            {% elif state.status == "attached" %}<span class="badge badge--within-14">{% translate "attached" context "application set" %}</span>
-            {% elif state.status == "expired" %}<span class="badge badge--overdue">{% translate "expired" %}</span>
-            {% elif state.status == "out_of_period" %}<span class="badge badge--within-7">{% translate "examined too long before the application" %}</span>
-            {% elif state.status == "date_missing" %}<span class="badge badge--within-7">{% translate "examination date not entered" %}</span>
-            {% elif state.status == "check_document" %}<span class="badge badge--within-7">{% translate "document to check" %}</span>
-            {% elif state.status == "missing" %}<span class="badge badge--overdue">{% translate "not attached" context "application set" %}</span>
-            {% elif state.status == "alternative" %}<span class="muted">{% translate "for organizations with a track record (not judged in the system)" %}</span>
-            {% elif state.status == "upload_required" %}<span class="badge badge--within-7" data-upload-required>{% translate "required: the system cannot make it, so add the file on the PDF screen" %}</span>
-            {% elif state.status == "unknown" %}<span class="muted">{% translate "cannot be judged" %}</span>
-            {% else %}<span class="muted">{% translate "prepared outside the system" %}</span>{% endif %}
-            {% with check=row_checks|get_item:row.id %}{% if check %}<br>{% if check.blocked %}<span class="badge badge--overdue" data-check="blocked">{% translate "cannot generate" %}</span>{% elif check.warnings %}<span class="badge badge--within-7" data-check="warning">{% blocktranslate count counter=check.warnings %}{{ counter }} warning{% plural %}{{ counter }} warnings{% endblocktranslate %}</span>{% else %}<span class="badge badge--within-14" data-check="ok">{% translate "can be generated" %}</span>{% endif %}{% endif %}{% endwith %}
-            {% if state.applicable is None and state.status != "alternative" %}<br><span class="caption">{% translate "Check whether it applies." %}</span>{% endif %}
-            {% if state.detail %}<br><span class="caption mono">{{ state.detail }}</span>{% endif %}
-            {% if state.host_document %}<br><span class="caption" data-host-document="{{ state.host_document.pk }}">{% translate "from the documents of the host organization" %}</span>{% endif %}
-            {% for text in state.issue_texts %}<br><span class="caption" data-issue>{{ text }}</span>{% endfor %}
-            {% if state.signature == "awaiting" %}<br><span class="caption">{% translate "awaiting signature" %}</span>{% elif state.signature == "signed" %}<br><span class="caption">{% translate "signed" %}</span>{% endif %}
-            <div class="cluster">
-              {% if state.document and state.status != "generating" %}<a class="button button--neutral button--small" href="{% url 'forms:document' state.document.pk %}">{% translate "Open" %}</a>{% endif %}
-              {% if state.attach_url and can_manage %}<a class="button button--neutral button--small" href="{{ state.attach_url }}" data-modal data-modal-return>{% translate "Attach" %}</a>{% endif %}
-              {% if state.action_url %}{% if row.how.generate %}<a class="button button--neutral button--small" href="{{ state.action_url }}" data-modal data-modal-return>{% translate "Generate" %}</a>{% else %}<a class="button button--neutral button--small" href="{{ state.action_url }}">{% translate "Go to the record" %}</a>{% endif %}{% endif %}
-            </div>
+        {% ifchanged row.table %}<tr class="table__group"><td colspan="4">{{ row.table }}</td></tr>{% endifchanged %}
+        <tr data-row="{{ row.id }}" data-status="{{ state.status }}" data-tone="{{ state.tone }}" class="application-set__row">
+          <td class="application-set__status card-head">
+            <span class="status-dot status-dot--{% if state.tone == 'danger' %}danger{% elif state.tone == 'warning' %}caution{% elif state.tone == 'ok' %}ok{% else %}muted{% endif %}">{% if state.status == "generated" %}{% translate "generated" %}{% elif state.status == "generating" %}{% translate "generating" %}{% elif state.status == "other_target" %}{% translate "generated for another contract or version" %}{% elif state.status == "not_generated" %}{% translate "not generated" %}{% elif state.status == "attached" %}{% translate "attached" context "application set" %}{% elif state.status == "expired" %}{% translate "expired" %}{% elif state.status == "out_of_period" %}{% translate "examined too long before the application" %}{% elif state.status == "date_missing" %}{% translate "examination date not entered" %}{% elif state.status == "check_document" %}{% translate "document to check" %}{% elif state.status == "missing" %}{% translate "not attached" context "application set" %}{% elif state.status == "alternative" %}{% translate "for organizations with a track record (not judged in the system)" %}{% elif state.status == "upload_required" %}<span data-upload-required>{% translate "required: the system cannot make it, so add the file on the PDF screen" %}</span>{% elif state.status == "unknown" %}{% translate "cannot be judged" %}{% else %}{% translate "prepared outside the system" %}{% endif %}</span>
+            {% with check=row_checks|get_item:row.id %}{% if check %}<span class="application-set__check">{% if check.blocked %}<span class="status-dot status-dot--danger" data-check="blocked">{% translate "cannot generate" %}</span>{% elif check.warnings %}<span class="status-dot status-dot--caution" data-check="warning">{% blocktranslate count counter=check.warnings %}{{ counter }} warning{% plural %}{{ counter }} warnings{% endblocktranslate %}</span>{% else %}<span class="status-dot status-dot--ok" data-check="ok">{% translate "can be generated" %}</span>{% endif %}</span>{% endif %}{% endwith %}
+            {% if state.signature == "awaiting" %}<span class="caption">{% translate "awaiting signature" %}</span>{% elif state.signature == "signed" %}<span class="caption">{% translate "signed" %}</span>{% endif %}
           </td>
-          <td>{{ row.table }} {{ row.number }}</td>
-          <td>{% if row.group or row.condition %}<span class="caption">{{ row.group }}{% if row.group and row.condition %} · {% endif %}{{ row.condition }}</span><br>{% endif %}{{ row.document|linebreaksbr }}{% if row.note %}<details class="caption"><summary>{% translate "points to note" %}</summary>{{ row.note|linebreaksbr }}</details>{% endif %}</td>
-          <td>{{ row.form|default:"—" }}</td>
-          <td>{{ row.need }}</td>
+          <td class="mono card-meta" data-label="{% translate 'number' context 'application set' %}">{{ row.number }}</td>
+          <td class="card-title application-set__document">
+            {% if row.group or row.condition %}<span class="caption">{{ row.group }}{% if row.group and row.condition %} · {% endif %}{{ row.condition }}</span>{% endif %}
+            <span class="application-set__name">{{ row.document|linebreaksbr }}</span>
+            <span class="caption">{% if row.form %}{{ row.form }} · {% endif %}{% translate "required" context "application set" %} {{ row.need }}{% if state.applicable is None and state.status != "alternative" %} · {% translate "Check whether it applies." %}{% endif %}</span>
+            {% if state.detail %}<span class="caption mono">{{ state.detail }}</span>{% endif %}
+            {% if state.host_document %}<span class="caption" data-host-document="{{ state.host_document.pk }}">{% translate "from the documents of the host organization" %}</span>{% endif %}
+            {% for text in state.issue_texts %}<span class="caption" data-issue>{{ text }}</span>{% endfor %}
+            {% if row.note %}<details class="caption"><summary>{% translate "points to note" %}</summary>{{ row.note|linebreaksbr }}</details>{% endif %}
+          </td>
+          <td class="cell-action card-action">
+            {% if state.action_url %}{% if row.how.generate %}<a class="button button--ghost button--small" href="{{ state.action_url }}" data-modal data-modal-return>{% translate "Generate" %}</a>{% else %}<a class="button button--ghost button--small" href="{{ state.action_url }}">{% translate "Go to the record" %}</a>{% endif %}{% endif %}
+            {% if state.attach_url and can_manage %}<a class="button button--ghost button--small" href="{{ state.attach_url }}" data-modal data-modal-return>{% translate "Attach" %}</a>{% endif %}
+            {% if state.document and state.status != "generating" %}<a class="button button--ghost button--small" href="{% url 'forms:document' state.document.pk %}">{% translate "Open" %}</a>{% endif %}
+          </td>
         </tr>{% endwith %}{% endfor %}</tbody>
     </table></div>
     {% if overview.not_applicable %}

@@ -650,7 +650,9 @@ def test_rows_have_a_tone_and_show_generation_in_progress(
     content = client.get(
         f"/workers/{worker.pk}/documents/application/?set_id=chg&basis_on=2026-10-18"
     ).content.decode()
-    assert 'data-row="chg_ind-2-1" data-status="generating" data-tone="muted"' in content
+    row = re.search(r'<tr data-row="chg_ind-2-1"[^>]*>', content)
+    assert row is not None  # 属性ごとに確かめる（並びに頼らない。U7-D1）
+    assert 'data-status="generating"' in row.group(0) and 'data-tone="muted"' in row.group(0)
     # 生成のリンクはモーダルで開き、終わったら一覧に戻る
     assert "data-modal data-modal-return" in content
 

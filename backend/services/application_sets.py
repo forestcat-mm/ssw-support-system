@@ -577,6 +577,14 @@ class Overview:
         return sum(1 for row in self.rows if not row.done and row.row["need"] == "○")
 
     @property
+    def tone_counts(self) -> dict[str, int]:
+        """行の区分ごとの件数（画面の要約: 不足・要確認・そろっている・システムの外。U7）。"""
+        counts = dict.fromkeys(("danger", "warning", "ok", "muted"), 0)
+        for row in self.rows:
+            counts[row.tone] += 1
+        return counts
+
+    @property
     def shown_documents(self) -> list[int]:
         return [row.document.pk for row in self.rows if row.document is not None]
 

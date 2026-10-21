@@ -117,3 +117,6 @@ def test_capture_screens_like_the_mocks(
         if contract:
             page.goto(f"{base}/workers/{worker.pk}/contracts/{contract.pk}/versions/new/")
             shoot(page, "07-contract-version-form", width)
+        # 08: 申請の書類の一覧（件数の要約・状態の点・操作の列。U7）
+        page.goto(f"{base}/workers/{seeded[0].pk}/documents/application/")
+        shoot(page, "08-application-documents", width)

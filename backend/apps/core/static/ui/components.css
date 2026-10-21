@@ -1146,38 +1146,65 @@ input[list="time-options"] {
   color: var(--button-primary-fg);
 }
 
-/* 申請の書類の一覧（修正 1 回目 B9）: 状態を先頭の列にし、行の左の線と地の色で分ける。色だけに頼らず
-   状態の文字を必ず出す */
-.application-set__row td:first-child {
-  border-left: 4px solid transparent;
+/* 申請の書類の一覧（見本 08。U7）: 行は塗らない。状態は点＋文字、2 行目に検査の結果。上に件数の要約 */
+.application-set__status {
+  min-width: 11em;
 }
 
-.application-set__row--danger td:first-child {
-  border-left-color: var(--level-overdue-fg);
+.application-set__status > *,
+.application-set__document > * {
+  display: block;
 }
 
-.application-set__row--danger {
-  background: var(--level-overdue-bg);
+.application-set__status > .status-dot {
+  display: flex;
+  white-space: normal;
 }
 
-.application-set__row--warning td:first-child {
-  border-left-color: var(--level-within-7-mark);
+.application-set__check {
+  margin-top: 2px;
 }
 
-.application-set__row--warning {
-  background: var(--level-within-7-bg);
+.application-set__check .status-dot {
+  font-size: var(--text-caption);
+  font-weight: 400;
 }
 
-.application-set__row--ok td:first-child {
-  border-left-color: var(--level-within-14-fg);
+.application-set__name {
+  font-weight: 500;
 }
 
-.application-set__row--muted {
+.status-dot--muted {
   color: var(--color-graphite);
 }
 
-.application-set__status {
-  min-width: 12em;
+.status-dot--muted::before {
+  background: var(--color-line-structure);
+}
+
+.tone-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tone-summary__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-8) var(--space-12);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.tone-summary__count {
+  font-size: var(--text-subheading);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 /* 自動ログアウトの知らせ（修正 1 回目 J8）: 画面の下に固定して出す（影はここだけの浮いた要素と同じ） */
@@ -1978,6 +2005,19 @@ input[list="time-options"] {
 
 /* カードの中の並びの順（表の列の順と変えたいとき） */
 @media (max-width: 719px) {
+  /* 表ごとの見出しの行は、カードにせず見出しの文字だけ */
+  .table--cards tbody tr.table__group {
+    padding: var(--space-8) 0 0;
+    border: 0;
+    background: none;
+  }
+
+  .table.table--cards tr.table__group td {
+    padding: 0;
+    background: none;
+    border: 0;
+  }
+
   .table--cards td.card-o1 { order: 1; }
   .table--cards td.card-o2 { order: 2; }
   .table--cards td.card-o3 { order: 3; }
@@ -2255,4 +2295,14 @@ input[list="time-options"] {
 
 .form-bar > .button--primary {
   order: 2;
+}
+
+/* 申請の書類の一覧の書類の列は折り返す（長い書類名・留意事項） */
+.table--list td.application-set__document {
+  white-space: normal;
+  min-width: 16em;
+}
+
+.table--list td.application-set__status {
+  white-space: normal;
 }
