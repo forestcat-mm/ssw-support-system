@@ -9,21 +9,29 @@
     tools/cloud/host_run.sh python ../tools/forms/blank_pages.py [--markdown] [様式ID ...]
 
 出力（タブ区切り。--markdown なら表）:
-- 環境: LibreOffice の版、字体の規則（backend/config/fonts/99-form-fonts.conf）の SHA-256
-- 頁数と字体: 様式・版・ファイル・頁数・PDF に埋め込まれた字体
-- 代わりの字体: 文書が求める字体（元の字体名）と、PDF で使われた字体が違う所。字ごとに、
-  文書の書式（直接の指定・スタイル・既定・テーマ）から求める字体を決め、PDF の同じ字の字体と比べる。
-  理由は「規則が無い」（元の字体が無く、置き換えの規則も無い）、「置き換え先で描かれない」（規則の
-  置き換え先や元の字体があるのに、別の字体になった。その字が無い、文書の言語の指定〔zh-CN など〕で
-  fontconfig が別の字体を選ぶ、など）、「文書の文字に無い」（番号・記号など、本文の文字に無い字）。
-  字の当てはめは近似（同じ字が複数の字体で出るときは、PDF と同じになる指定を優先する）。
+- 環境: LibreOffice の版、字体の規則（backend/config/fonts/99-form-fonts.conf）の SHA-256、
+  入っている字体の一覧
+- 頁数と字体: 様式・版・ファイル・頁数・PDF に埋め込まれた字体・位置で当たった字の割合
+- 代わりの字体: 文書が求める字体（元の字体名）と、PDF で使われた字体が違う所。文書の run
+  ごとに書式（直接の指定・スタイル・既定・テーマ）から字ごとに求める字体を決め、文書の字の並びと
+  PDF の字の並びを位置で突き合わせて（difflib）、同じ所の字の字体と比べる。同じ字が日本語と中国語の
+  run に出ても、位置で正しい run に当たる。位置で当たらない字（頁ごとのヘッダー・番号など）
+  だけは、字で推定する（当てはめの列が「字」）。理由:
+  - 規則が無い: 元の字体が無く、置き換えの規則も無い（fontconfig の既定や言語で字体が決まる）
+  - 置き換え先に字が無い: 規則の置き換え先（か元の字体）に、その字が無い（⑴・㊞ など）
+  - 欧文の字体で描かれた: Word は日本語の字体で描く記号（w:hint="eastAsia" の □ ※ など）を、
+    LibreOffice が同じ run の欧文の字体で描いた
+  - 置き換え先で描かれない: 置き換え先に字があるのに、別の字体になった（上のどれでもない）
+  - 文書の文字に無い: 番号・記号など、本文の文字に無い字
   元の字体名に［テーマ］が付くものは、テーマの指定（minorEastAsia など）を Word の解き方で
-  字体名にしたもの（LibreOffice は別の字体に解くことがある）。
+  字体名にしたもの。
 """
 
 from __future__ import annotations
 
 import argparse
+import difflib
+import functools
 import hashlib
 import os
 import re
@@ -35,7 +43,7 @@ import unicodedata
 import xml.etree.ElementTree as ET
 import zipfile
 from collections import Counter, defaultdict
-from collections.abc import Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -89,6 +97,16 @@ def read_rules(path: Path = RULES) -> dict[str, str]:
     return rules
 
 
+def family_names() -> list[str]:
+    """入っている字体の名前（fc-list : family の、行ごとの最初の名前）。"""
+    if shutil.which("fc-list") is None:
+        return []
+    result = subprocess.run(["fc-list", ":", "family"], capture_output=True, text=True, check=True)
+    return sorted(
+        {line.split(",")[0].replace("\\", "") for line in result.stdout.splitlines() if line}
+    )
+
+
 def installed_families() -> set[str]:
     if shutil.which("fc-list") is None:
         return set()
@@ -96,10 +114,37 @@ def installed_families() -> set[str]:
     return {key(name) for line in result.stdout.splitlines() for name in line.split(",") if name}
 
 
+def fc_match(name: str) -> str:
+    """fontconfig がその字体名に選ぶ字体（規則も効く）。"""
+    if shutil.which("fc-match") is None:
+        return ""
+    result = subprocess.run(
+        ["fc-match", "-f", "%{family[0]}", name], capture_output=True, text=True, check=False
+    )
+    return result.stdout.strip()
+
+
+def fc_has_glyph(family: str, char: str) -> bool:
+    """その字体に字があるか（fontconfig の charset）。"""
+    if shutil.which("fc-list") is None:
+        return True
+    pattern = f"{family.replace(':', ' ')}:charset={ord(char):x}"
+    result = subprocess.run(
+        ["fc-list", pattern, "family"], capture_output=True, text=True, check=False
+    )
+    return bool(result.stdout.strip())
+
+
 @dataclass
 class Fonts:
     rules: dict[str, str]
     installed: set[str]
+    match: Callable[[str], str] = fc_match
+    has_glyph: Callable[[str, str], bool] = fc_has_glyph
+
+    def __post_init__(self) -> None:
+        self.match = functools.cache(self.match)
+        self.has_glyph = functools.cache(self.has_glyph)
 
     def target(self, requested: str) -> tuple[str | None, str]:
         """求める字体の置き換え先と、その種類（規則・そのまま・規則なし）。
@@ -117,6 +162,19 @@ class Fonts:
 
 
 # --- 文書の字ごとの、求める字体 ---------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class DocChar:
+    """文書の 1 字。
+
+    requested は Word の解き方でその字を描く字体名、latin は同じ run の欧文の字体名。
+    """
+
+    char: str
+    requested: str
+    latin: str
+
 
 CharFonts = dict[str, Counter[str]]
 
@@ -212,13 +270,15 @@ class Docx:
             style_id = parent
         return chain
 
-    def char_fonts(self) -> CharFonts:
-        result: CharFonts = defaultdict(Counter)
+    def chars(self) -> list[DocChar]:
+        result: list[DocChar] = []
         for part in self.parts:
             self._walk(part, self.default_paragraph, result)
         return result
 
-    def _walk(self, element: ET.Element, paragraph_style: str | None, result: CharFonts) -> None:
+    def _walk(
+        self, element: ET.Element, paragraph_style: str | None, result: list[DocChar]
+    ) -> None:
         if element.tag == f"{W}p":
             style = element.find(f"{W}pPr/{W}pStyle")
             paragraph_style = style.get(f"{W}val") if style is not None else self.default_paragraph
@@ -227,7 +287,7 @@ class Docx:
         for child in element:
             self._walk(child, paragraph_style, result)
 
-    def _run(self, run: ET.Element, paragraph_style: str | None, result: CharFonts) -> None:
+    def _run(self, run: ET.Element, paragraph_style: str | None, result: list[DocChar]) -> None:
         rpr = run.find(f"{W}rPr")
         run_style = rpr.find(f"{W}rStyle") if rpr is not None else None
         fonts = dict(self.defaults)
@@ -244,11 +304,15 @@ class Docx:
         for char in text:
             if char.isspace():
                 continue
+            # Word: ASCII は ascii、それ以外の欧文は hAnsi、日本語・中国語と hint="eastAsia" の
+            # 記号は eastAsia で描く。LibreOffice の欧文の字体は ascii（無ければ hAnsi）
             if is_east_asian(char) or (hint == "eastAsia" and ord(char) >= 0x80):
                 slot = "eastAsia"
             else:
                 slot = "ascii" if ord(char) < 0x80 else "hAnsi"
-            result[char][fonts.get(slot) or "（指定なし）"] += 1
+            requested = fonts.get(slot) or "（指定なし）"
+            latin = fonts.get("ascii") or fonts.get("hAnsi") or "（指定なし）"
+            result.append(DocChar(char, requested, latin))
 
 
 class Xlsx:
@@ -283,8 +347,8 @@ class Xlsx:
                     self.shared.append([(None, "".join(t.text or "" for t in item.iter(f"{X}t")))])
         self.names = sorted(names)
 
-    def char_fonts(self) -> CharFonts:
-        result: CharFonts = defaultdict(Counter)
+    def chars(self) -> list[DocChar]:
+        result: list[DocChar] = []
         for name in self.names:
             if re.fullmatch(r"xl/worksheets/sheet\d+\.xml", name):
                 self._sheet(ET.fromstring(self.book.read(name)), result)
@@ -292,7 +356,7 @@ class Xlsx:
                 self._drawing(ET.fromstring(self.book.read(name)), result)
         return result
 
-    def _sheet(self, sheet: ET.Element, result: CharFonts) -> None:
+    def _sheet(self, sheet: ET.Element, result: list[DocChar]) -> None:
         for cell in sheet.iter(f"{X}c"):
             style = int(cell.get("s", "0"))
             font_id = self.cell_fonts[style] if style < len(self.cell_fonts) else 0
@@ -306,11 +370,10 @@ class Xlsx:
             else:
                 runs = [(None, value)]
             for font, text in runs:
-                for char in text:
-                    if not char.isspace():
-                        result[char][font or cell_font or "（指定なし）"] += 1
+                name = font or cell_font or "（指定なし）"
+                result.extend(DocChar(char, name, name) for char in text if not char.isspace())
 
-    def _drawing(self, drawing: ET.Element, result: CharFonts) -> None:
+    def _drawing(self, drawing: ET.Element, result: list[DocChar]) -> None:
         for run in drawing.iter(f"{A}r"):
             rpr = run.find(f"{A}rPr")
             text = run.findtext(f"{A}t") or ""
@@ -324,32 +387,34 @@ class Xlsx:
                     typeface = self.theme.resolve(
                         typeface or ("+mn-ea" if tag == "ea" else "+mn-lt")
                     )
-                result[char][typeface or "（指定なし）"] += 1
+                result.append(DocChar(char, typeface or "（指定なし）", typeface or "（指定なし）"))
 
 
-def char_fonts(path: Path) -> CharFonts:
+def doc_chars(path: Path) -> list[DocChar]:
+    """文書の字（空白を除く）を、文書の並びの順に。"""
     with zipfile.ZipFile(path) as book:
-        return (Docx(book) if path.suffix == ".docx" else Xlsx(book)).char_fonts()
+        return (Docx(book) if path.suffix == ".docx" else Xlsx(book)).chars()
 
 
 # --- PDF の字ごとの、埋め込みの字体 -----------------------------------------------------------
 
 
-def pdf_chars(pdf: Path) -> tuple[int, Counter[tuple[str, str]]]:
-    """頁数と、(埋め込みの字体, 字) ごとの数。"""
+PdfChar = tuple[str, str]  # (字, 埋め込みの字体)
+
+
+def pdf_chars(pdf: Path) -> tuple[int, list[PdfChar]]:
+    """頁数と、PDF の字（空白を除く）と字体を、PDF の並びの順に。"""
     from pypdf import PdfReader
 
     reader = PdfReader(str(pdf))
-    found: Counter[tuple[str, str]] = Counter()
+    found: list[PdfChar] = []
     for page in reader.pages:
 
         def visit(text: str, cm: object, tm: object, font: object, size: object) -> None:
             if not isinstance(font, dict) or "/BaseFont" not in font:
                 return
             family = embedded_family(str(font["/BaseFont"]))
-            for char in text:
-                if not char.isspace():
-                    found[(family, char)] += 1
+            found.extend((char, family) for char in text if not char.isspace())
 
         page.extract_text(visitor_text=visit)
     return len(reader.pages), found
@@ -358,31 +423,63 @@ def pdf_chars(pdf: Path) -> tuple[int, Counter[tuple[str, str]]]:
 # --- 突き合わせ --------------------------------------------------------------------------------
 
 
+def align(doc: list[DocChar], pdf: list[PdfChar]) -> list[DocChar | None]:
+    """PDF の字ごとに、位置で当たる文書の字（当たらなければ None）。"""
+    matcher = difflib.SequenceMatcher(
+        None, "".join(d.char for d in doc), "".join(c for c, _ in pdf), autojunk=False
+    )
+    found: list[DocChar | None] = [None] * len(pdf)
+    for block in matcher.get_matching_blocks():
+        for offset in range(block.size):
+            found[block.b + offset] = doc[block.a + offset]
+    return found
+
+
 @dataclass(frozen=True)
 class Fallback:
     requested: str
     target: str
     chosen: str
     reason: str
+    how: str  # 当てはめ: 位置（run に当たった）か字（字で推定）
 
 
-def fallbacks(
-    requested_by_char: CharFonts, embedded: Counter[tuple[str, str]], fonts: Fonts
-) -> dict[Fallback, Counter[str]]:
+def _is(family: str, name: str | None) -> bool:
+    return bool(name) and key(family) == key(name or "")
+
+
+def fallbacks(doc: list[DocChar], pdf: list[PdfChar], fonts: Fonts) -> dict[Fallback, Counter[str]]:
+    by_char: dict[str, Counter[DocChar]] = defaultdict(Counter)
+    for each in doc:
+        by_char[each.char][each] += 1
     result: dict[Fallback, Counter[str]] = defaultdict(Counter)
-    for (family, char), count in embedded.items():
-        candidates = requested_by_char.get(char)
-        if not candidates:
-            result[Fallback("（文書の文字に無い）", "", family, "文書の文字に無い")][char] += count
+    for (char, family), hit in zip(pdf, align(doc, pdf), strict=True):
+        how = "位置"
+        if hit is None:
+            how = "字"
+            candidates = by_char.get(char)
+            if not candidates:
+                missing = Fallback("（文書の文字に無い）", "", family, "文書の文字に無い", how)
+                result[missing][char] += 1
+                continue
+            if any(_is(family, fonts.target(d.requested)[0]) for d in candidates):
+                continue
+            hit = candidates.most_common(1)[0][0]
+        item = hit
+        target, kind = fonts.target(item.requested)
+        if _is(family, target):
             continue
-        targets = {name: fonts.target(name) for name in candidates}
-        if any(target and key(target) == key(family) for target, _ in targets.values()):
-            continue
-        requested = candidates.most_common(1)[0][0]
-        target, kind = targets[requested]
-        reason = "規則が無い" if target is None else "置き換え先で描かれない"
+        latin_target = fonts.target(item.latin)[0] or fonts.match(item.latin)
+        if item.latin != item.requested and _is(family, latin_target):
+            reason = "欧文の字体で描かれた"
+        elif target is None:
+            reason = "規則が無い"
+        elif not fonts.has_glyph(target, char):
+            reason = "置き換え先に字が無い"
+        else:
+            reason = "置き換え先で描かれない"
         label = f"{target}（{kind}）" if target else "—"
-        result[Fallback(requested, label, family, reason)][char] += count
+        result[Fallback(item.requested, label, family, reason, how)][char] += 1
     return result
 
 
@@ -397,6 +494,7 @@ class Row:
     pages: int | str
     families: list[str]
     fallbacks: dict[Fallback, Counter[str]]
+    aligned: str = ""  # 位置で当たった字の割合
 
 
 def sources(selected: Iterable[str]) -> Iterator[tuple[str, str, Path]]:
@@ -428,10 +526,12 @@ def collect(selected: Iterable[str], fonts: Fonts) -> Iterator[Row]:
             continue
         pages, embedded = pdf_chars(pdf)
         shutil.rmtree(pdf.parent, ignore_errors=True)
-        families = sorted({family for family, _ in embedded})
-        yield Row(
-            form, version, path.name, pages, families, fallbacks(char_fonts(path), embedded, fonts)
-        )
+        doc = doc_chars(path)
+        families = sorted({family for _, family in embedded})
+        hit = sum(item is not None for item in align(doc, embedded))
+        aligned = f"{hit / len(embedded):.0%}" if embedded else "—"
+        found = fallbacks(doc, embedded, fonts)
+        yield Row(form, version, path.name, pages, families, found, aligned)
 
 
 def environment() -> list[tuple[str, str]]:
@@ -441,6 +541,7 @@ def environment() -> list[tuple[str, str]]:
         ("LibreOffice", form_convert.converter_version() or "（無い）"),
         ("字体の規則 SHA-256", hashlib.sha256(RULES.read_bytes()).hexdigest()),
         ("RUNNER", os.environ.get("RUNNER", "docker")),
+        ("入っている字体（fc-list : family）", ", ".join(family_names())),
     ]
 
 
@@ -473,8 +574,11 @@ def main(argv: list[str]) -> int:
     print(
         table(
             "頁数と字体",
-            ["様式", "版", "ファイル", "頁数", "埋め込みの字体"],
-            [[r.form, r.version, r.source, str(r.pages), ", ".join(r.families)] for r in rows],
+            ["様式", "版", "ファイル", "頁数", "埋め込みの字体", "位置で当たった字"],
+            [
+                [r.form, r.version, r.source, str(r.pages), ", ".join(r.families), r.aligned]
+                for r in rows
+            ],
             options.markdown,
         )
     )
@@ -489,6 +593,7 @@ def main(argv: list[str]) -> int:
             str(sum(chars.values())),
             "".join(char for char, _ in chars.most_common(12)),
             fb.reason,
+            fb.how,
         ]
         for r in rows
         for fb, chars in sorted(r.fallbacks.items(), key=lambda item: -sum(item[1].values()))
@@ -503,6 +608,7 @@ def main(argv: list[str]) -> int:
         "字の数",
         "字の例",
         "理由",
+        "当てはめ",
     ]
     print(table("代わりの字体", header, fallback_rows, options.markdown))
     return 0
