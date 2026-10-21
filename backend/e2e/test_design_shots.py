@@ -136,3 +136,12 @@ def test_capture_screens_like_the_mocks(
         page.wait_for_timeout(300)
         page.screenshot(path=SHOTS / f"10-host-detail-scrolled-{width}.png", scale="css")
         page.evaluate("window.scrollTo(0, 0)")
+        # ほかの一覧（390px では 1 件ずつのカード。U3 の直し・U8-D1）
+        for name, path in (
+            ("11-hosts-list", "/hosts/"),
+            ("12-bulk-applications-list", "/forms/bulk/"),
+            ("13-bulk-notifications-list", "/forms/efile/"),
+            ("14-consultations-list", "/consultations/"),
+        ):
+            page.goto(f"{base}{path}")
+            shoot(page, name, width)
