@@ -1,11 +1,13 @@
 #!/bin/bash
-# クラウドの環境の設定画面の setup script（docs/cloud-session.md の 3）。OS の道具だけを入れる。
+# クラウドの環境の設定画面の setup script（docs/cloud-session.md の 4）。OS の道具と uv の cache を入れる。
 # 設定画面の「Setup script」には、このファイルの全文をそのまま貼る（このファイルが正本。変えたら
 # 貼り直す。貼り直すと環境の cache が作り直される）。版はテストで Dockerfile・pyproject と照らす
 # （tests/test_cloud_tools.py）。リポジトリが無くても動くように、ほかのファイルを読まない。
+# 例外は uv の cache を温める段だけで、backend/uv.lock・pyproject.toml を読む（cache は古くても、
+# フックの uv sync が差分を取り直すので害が無い。docs/cloud-session.md の 4）。
 # - root で動く（sudo は要らない）。失敗しても続け、必ず exit 0 で終わる（失敗するとセッションが
 #   始まらない）。どの段が失敗したかは LOG（git の外）に書き、SessionStart フックが知らせる。
-# - この VM で測った時間: apt 約 15 秒・uv 約 3 秒・Chromium 約 40 秒（合わせて約 1 分）。
+# - この VM で測った時間: apt 約 15 秒・uv 約 3 秒・Chromium 約 40 秒・uv の cache 約 15 秒。
 UV_VERSION=0.13.1          # backend/Dockerfile・Dockerfile.e2e の ghcr.io/astral-sh/uv と同じ
 PLAYWRIGHT_VERSION=1.63.0  # backend/pyproject.toml の e2e グループの playwright と同じ
 PYTHON_VERSION=3.12        # backend/.python-version と同じ（web のイメージの python:3.12）
@@ -38,5 +40,26 @@ step uv uv tool install --force "uv==$UV_VERSION"
 step chromium env PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers \
   uvx --python "$PYTHON_VERSION" --from "playwright==$PLAYWRIGHT_VERSION" \
   playwright install --with-deps chromium
+# uv の cache（フックの uv sync が取る約 600MB を先に取り、環境の cache に入れる）。lock と pyproject
+# だけを一時のフォルダに写して流し、venv は捨てる。失敗しても、フックの uv sync が全部を取る
+warm_uv_cache() {
+  local dir src="" tmp code
+  for dir in "${CLAUDE_PROJECT_DIR:-}" "$PWD" /home/user/*; do
+    if [ -f "$dir/backend/uv.lock" ] && [ -f "$dir/backend/pyproject.toml" ]; then
+      src=$dir/backend
+      break
+    fi
+  done
+  [ -n "$src" ] || { echo "backend/uv.lock が見つからない（リポジトリがまだ無い）"; return 1; }
+  echo "uv.lock: $src/uv.lock"
+  tmp=$(mktemp -d) || return 1
+  cp "$src/uv.lock" "$src/pyproject.toml" "$tmp/" \
+    && env -u UV_NATIVE_TLS UV_SYSTEM_CERTS=1 uv sync --project "$tmp" --frozen --group e2e \
+      --no-install-project --python "$PYTHON_VERSION"
+  code=$?
+  rm -rf "$tmp"
+  return "$code"
+}
+step uv-cache warm_uv_cache
 echo "done ($SECONDS s)" >> "$LOG"
 exit 0
