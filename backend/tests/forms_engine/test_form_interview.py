@@ -15,6 +15,7 @@ import shutil
 import subprocess
 import sys
 import zipfile
+from collections.abc import Callable
 from dataclasses import replace
 from pathlib import Path
 from typing import Any
@@ -306,7 +307,10 @@ def test_consultation_records_are_split_by_nine(worker: Any) -> None:
     assert data["c.organization_name"] == "（ダミー）サンプル登録支援機関"
 
 
-def test_consultation_record_screen_generates_documents(worker: Any) -> None:
+def test_consultation_record_screen_generates_documents(
+    worker: Any, today_is: Callable[[datetime.date], None]
+) -> None:
+    today_is(TODAY)  # 画面の既定の期間（今日の年度 2026-04-01〜2027-03-31）に 6 月の相談が入る日
     host = worker.employment_contracts.get().host_organization
     for day in range(1, 11):
         consultation(worker, datetime.date(2026, 6, day))

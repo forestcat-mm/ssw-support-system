@@ -1,5 +1,8 @@
 """契約・事業所の入力の部品（修正 1 回目 B1〜B4）。"""
 
+import datetime
+from collections.abc import Callable
+
 import pytest
 
 from apps.contracts.forms import VersionForm
@@ -15,7 +18,11 @@ from tests.hosts.factories import category, field, make_host, make_site
 pytestmark = pytest.mark.django_db
 
 
-def test_site_categories_are_filtered_by_field() -> None:
+def test_site_categories_are_filtered_by_field(
+    today_is: Callable[[datetime.date], None],
+) -> None:
+    # 「飲食料品製造業全般」は 2027-03-31 まで。選択肢は今日に適用中の業務区分
+    today_is(datetime.date(2026, 10, 16))
     form = HostSiteForm()
     widget = form.fields["categories"].widget
     assert isinstance(widget, FilteredCheckboxSelectMultiple) and widget.source == "id_field"
