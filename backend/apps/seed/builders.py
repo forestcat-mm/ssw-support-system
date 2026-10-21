@@ -40,6 +40,7 @@ from apps.core.models import (
     Office,
     OfficeManagerPeriod,
     Organization,
+    OrganizationOfficer,
     Role,
     Staff,
     SupportLanguage,
@@ -47,7 +48,7 @@ from apps.core.models import (
     UserRole,
 )
 from apps.filings.models import Filing, FilingStatus
-from apps.forms_engine.models import BulkApplicationEntry, BulkFilingRow
+from apps.forms_engine.models import BulkApplication, BulkApplicationEntry, BulkFilingRow
 from apps.hosts.models import (
     CareerPlan,
     CareerPlanLevel,
@@ -78,6 +79,7 @@ from apps.seed.models import SeedObject, SeedScope
 from apps.workers.models import (
     ApplicationType,
     ForeignWorker,
+    InternshipCompletion,
     PassportRecord,
     ResidenceRecord,
     Sex,
@@ -87,7 +89,9 @@ from apps.workers.models import (
     WorkerContact,
     WorkerPhoto,
     WorkerQualification,
+    WorkerRelative,
     WorkerStatus,
+    WorkHistory,
 )
 from services import (
     career_plans,
@@ -1164,6 +1168,8 @@ def run(base: date) -> SeedContext:
 # 消す順番（依存の逆順）。台帳に無い行（届出タスク）は対象から辿って消す
 DELETE_ORDER: tuple[type[models.Model], ...] = (
     Attachment,
+    BulkApplication,  # seed_scenario --bulk（取次者の担当者を参照する）
+    OrganizationOfficer,  # seed_scenario --ledger
     WorkerQualification,  # 段階4 T55
     HostOfficer,
     HostApplicantContact,
@@ -1192,6 +1198,35 @@ DELETE_ORDER: tuple[type[models.Model], ...] = (
     Office,
     Organization,
 )
+
+
+# 外国人の履歴行（外国人を PROTECT で参照する）。台帳の外国人なら、画面で足した行も消す
+WORKER_HISTORY: tuple[type[models.Model], ...] = (
+    WorkerRelative,
+    WorkerQualification,
+    InternshipCompletion,
+    WorkHistory,
+    ResidenceRecord,
+    PassportRecord,
+    WorkerAddress,
+    WorkerContact,
+)
+
+
+def delete_worker_history(worker_ids: list[int]) -> int:
+    """外国人の履歴行と、行に付けた証明書の添付（ファイルも）を消す。開発用。"""
+    deleted = 0
+    for model in WORKER_HISTORY:
+        rows = model._base_manager.filter(worker_id__in=worker_ids)
+        files = Attachment._base_manager.filter(
+            content_type=ContentType.objects.get_for_model(model),
+            object_id__in=rows.values("pk"),
+        )
+        for attachment in files:
+            attachment.file.delete(save=False)
+        deleted += files.delete()[0]
+        deleted += rows.delete()[0]
+    return deleted
 
 
 @transaction.atomic
@@ -1275,6 +1310,7 @@ def delete_rows(by_model: dict[type[models.Model], list[int]]) -> int:
         photo.original.delete(save=False)
         photo.cropped.delete(save=False)
         deleted += photo.delete()[0]
+    deleted += delete_worker_history(by_model.get(ForeignWorker, []))
     for model in DELETE_ORDER:
         ids = by_model.get(model, [])
         if ids:

@@ -401,3 +401,208 @@ def test_scenario_has_no_empty_field_warnings_on_1_17_and_1_6() -> None:
     assert (housing.occupants, housing.monthly_rent, housing.property_type) == (1, 25000, "leased")
     checks = {check.place: check.municipality for check in plan.municipality_checks.all()}
     assert checks == {"site": "船橋市", "residence": "市川市"}
+
+
+# --- 段階4の台帳の項目（--ledger）と一括申請（--bulk） -----------------------------------------
+
+
+def test_default_does_not_fill_the_phase4_items() -> None:
+    """変数なし（既定）は段階3の本線のまま。段階4の項目と一括申請は作らない。"""
+    from apps.forms_engine.models import BulkApplication
+
+    output = seed_scenario("--until", "5")
+    assert "LEDGER=1" in output and "段階4の台帳の項目: なし" in output
+    host = HostOrganization.objects.get(name=scenario.HOST_NAME)
+    assert not host.financial_years.exists() and not host.declarations.exists()
+    assert not host.officers.exists() and not host.applicant_contacts.exists()
+    assert host.capital is None and host.industry_1 == ""
+    worker = ForeignWorker.objects.get(name_romaji=scenario.WORKER_ROMAJI)
+    assert worker.birthplace == "" and worker.has_work_history is None
+    assert not worker.qualifications.exists() and not worker.photos.exists()
+    assert not BulkApplication.objects.exists()
+
+
+def test_ledger_fills_the_items_of_sections_1_to_3() -> None:
+    from apps.core.models import Organization, OrganizationOfficer, Staff
+    from apps.seed.context import DUMMY_USERNAME
+    from apps.workers.models import QualificationArea, WorkerQualification
+
+    seeded_number = Organization.objects.get().corporate_number
+    output = seed_scenario("--until", "3", "--ledger")
+    assert "段階4の台帳の項目: あり" in output
+    assert "職歴の仕事の内容" in output and "受験地" in output
+    assert "外国人の出生地" not in output  # 欄があるので入れた
+    # 節 1 自機関・担当者
+    organization = Organization.objects.get()
+    assert organization.corporate_number == seeded_number  # seed の値は変えない
+    assert organization.employment_insurance_number == "13016543210"
+    # seed のダミーの住所（ツールの表で分けられない）はシナリオの値にする（D1）
+    assert (organization.postal_code, organization.address) == scenario.ORGANIZATION_ADDRESS
+    staff = Staff.objects.get(user__username=DUMMY_USERNAME)
+    assert staff.office is not None and staff.office.address == scenario.ORGANIZATION_ADDRESS[1]
+    assert (staff.is_online_application_user, staff.online_application_email) == (
+        True,
+        "sato.hanako@example.com",
+    )
+    officer = OrganizationOfficer.objects.get(organization=organization)
+    assert (officer.name, officer.position) == ("小林 直人", "代表取締役")
+    # 節 2 受入れ機関・事業所
+    host = HostOrganization.objects.get(name=scenario.HOST_NAME)
+    assert (host.industry_1, host.capital) == ("O05", 30_000_000)
+    year = host.financial_years.get()
+    assert (year.fiscal_year_end, year.sales, year.ordinary_profit, year.net_profit) == (
+        date(2026, 3, 31),
+        1_200_000_000,
+        36_000_000,
+        None,
+    )
+    declaration = host.declarations.get()
+    answers = {key: value["answer"] for key, value in declaration.answers.items()}
+    assert {key for key, answer in answers.items() if answer == "yes"} == {
+        "23",
+        "26",
+        "29",
+        "30",
+        "31",
+        "32",
+    }
+    assert "27" not in answers and "28" not in answers
+    assert declaration.answers["29"]["detail"] == "労災保険・雇用保険に加入"
+    assert (declaration.declared_on, declaration.missing_ssw, declaration.missing_interns) == (
+        date(2026, 7, 10),
+        0,
+        None,
+    )
+    officers = {o.name: o.not_involved_in_acceptance for o in host.officers.all()}
+    assert officers == {"高橋 誠": False, "中村 由美": True}
+    contact = host.applicant_contacts.get()
+    assert (contact.name, contact.relationship, contact.phone_number) == (
+        "田中 一郎",
+        "所属機関の職員",
+        "047-400-1236",
+    )
+    site = host.sites.get()
+    assert (site.full_time_employees, site.employment_insurance_number) == (120, "12011234567")
+    assert site.labour_insurance_number == "12101123456000"
+    assert site.health_pension_insured and site.labour_insurance_covered
+    # 節 3 外国人
+    worker = ForeignWorker.objects.get(name_romaji=scenario.WORKER_ROMAJI)
+    assert (worker.birthplace, worker.has_relatives_in_japan, worker.has_work_history) == (
+        "中国河南省洛陽市",
+        False,
+        True,
+    )
+    history = worker.work_history.get()
+    assert (history.joined_on, history.left_on, history.employer) == (
+        date(2019, 7, 1),
+        date(2025, 12, 1),
+        "鄭州サンプル食品有限公司",
+    )
+    rows = {row.area: row for row in worker.qualifications.all()}
+    assert (rows[QualificationArea.SKILL].exam, rows[QualificationArea.JAPANESE].exam) == (
+        "017",
+        "002",
+    )
+    assert rows[QualificationArea.SKILL].passed_on == date(2026, 3, 15)
+    assert {row.exam_country for row in rows.values()} == {"039"}
+    assert not worker.internship_completions.exists()
+    certificates = Attachment.objects.filter(
+        content_type__model="workerqualification",
+        object_id__in=[row.pk for row in rows.values()],
+    )
+    assert certificates.count() == 2
+    assert worker.photos.get().taken_on == date(2026, 6, 20)
+    assert WorkerQualification.objects.filter(worker=worker).count() == 2
+
+
+def test_ledger_keeps_a_real_address_of_the_organization() -> None:
+    """自機関の所在地がツールの表で分けられる住所なら、変えない。"""
+    from apps.core.models import Organization
+
+    organization = Organization.objects.get()
+    organization.address = "千葉県船橋市本町1-2-3"
+    organization.save()
+    seed_scenario("--until", "1", "--ledger")
+    assert Organization.objects.get().address == "千葉県船橋市本町1-2-3"
+
+
+def test_bulk_creates_the_application_without_problems() -> None:
+    """--bulk: 認定・2026-07-10・取次者 佐藤 花子の一括申請と王さんの行。検査の不足が 0。"""
+    from services import bulk_application_data, bulk_applications
+
+    form_templates.load_all()
+    output = seed_scenario("--until", "5", "--bulk")
+    assert "一括申請: あり" in output and "そう菜製造業" in output
+    worker = ForeignWorker.objects.get(name_romaji=scenario.WORKER_ROMAJI)
+    assert worker.birthplace == "中国河南省洛陽市"  # --ledger を含む
+    entry = worker.bulk_entries.get()
+    application = entry.application
+    assert (application.procedure, application.basis_on) == ("coe", date(2026, 7, 10))
+    intermediary, agent = application.intermediary, entry.agent
+    assert intermediary is not None and intermediary.user is not None and agent is not None
+    assert (intermediary.user.username, agent.name) == ("dummy_tanto", "田中 一郎")
+    assert entry.inputs["main_occupation"] == "L35"
+    assert entry.inputs["contact_phone"] == "080-0000-5678"
+    assert bulk_application_data.sensitive_of(entry) == {"crime": "no", "crime_detail": ""}
+    assert not worker.addresses.exists()  # 連絡先は行の入力（住所の行は 7-3 で足す）
+    assert not application.files.exists()  # Excel は作らない
+    problems = bulk_applications.check(application)
+    assert [(p.label, p.message) for p in problems] == []
+
+
+def test_bulk_needs_section_5() -> None:
+    with pytest.raises(CommandError, match="--until 5"):
+        seed_scenario("--until", "4", "--bulk")
+    assert not SeedObject.scenario_objects.exists()
+
+
+def test_reset_removes_the_phase4_rows_and_rows_added_on_the_screens() -> None:
+    """--reset で、足した行（自機関の役員・受入れ機関の段階4の行・職歴・試験と添付・写真・
+    一括申請）と、画面で外国人に足した履歴行（住所など）を消す。seed_dummy の行は残る。"""
+    from apps.core.models import OrganizationOfficer
+    from apps.forms_engine.models import BulkApplication
+    from apps.workers.models import WorkerAddress, WorkerPhoto, WorkerQualification, WorkHistory
+    from services import workers
+
+    seed_scenario("--until", "5", "--bulk")
+    dummy_rows = SeedObject.objects.count()
+    worker = ForeignWorker.objects.get(name_romaji=scenario.WORKER_ROMAJI)
+    workers.add_record(  # 画面で足した住所の行（台帳の外）
+        worker,
+        WorkerAddress(
+            postal_code="272-0023",
+            address="千葉県市川市南八幡五丁目8番8号 さくら台寮203号室",
+            effective_from=date(2026, 7, 10),
+        ),
+        by=None,
+    )
+    seed_scenario("--reset", "--until", "3")
+    assert not ForeignWorker.objects.filter(pk=worker.pk).exists()
+    assert not WorkerAddress.objects.filter(worker_id=worker.pk).exists()
+    for model in (WorkHistory, WorkerQualification, WorkerPhoto):
+        assert not model.objects.filter(worker_id=worker.pk).exists(), model
+    assert not BulkApplication.objects.exists()
+    assert not OrganizationOfficer.objects.exists()
+    assert not Attachment.objects.filter(content_type__model="workerqualification").exists()
+    assert SeedObject.objects.count() == dummy_rows
+    # 作り直した本線は既定（--ledger なし）
+    assert ForeignWorker.objects.get(name_romaji=scenario.WORKER_ROMAJI).birthplace == ""
+
+
+def test_replace_counts_and_removes_the_phase4_rows() -> None:
+    seed_scenario("--until", "5", "--bulk")
+    SeedObject.scenario_objects.all().delete()  # 台帳から外す＝画面で作った記録と同じ
+    output = seed_scenario("--replace", "--yes", "--until", "3", "--ledger")
+    for label in (
+        "hosts.HostFinancialYear: 1",
+        "hosts.HostDeclaration: 1",
+        "hosts.HostOfficer: 2",
+        "hosts.HostApplicantContact: 1",
+        "workers.WorkHistory: 1",
+        "workers.WorkerQualification: 2",
+        "workers.WorkerPhoto: 1",
+        "forms_engine.BulkApplicationEntry: 1",
+    ):
+        assert f"- {label}" in output, label
+    assert HostOrganization.objects.filter(name=scenario.HOST_NAME).count() == 1
+    assert ForeignWorker.objects.filter(name_romaji=scenario.WORKER_ROMAJI).count() == 1

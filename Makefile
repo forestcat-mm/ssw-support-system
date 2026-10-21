@@ -144,8 +144,8 @@ seed:       ## ダミーデータを作る（外国人31人・受入れ機関4�
 seed-reset: ## ダミーデータだけを消して作り直す（DATE=YYYY-MM-DD で基準日を指定できる）
 	$(MANAGE) seed_dummy --reset $(if $(DATE),--date $(DATE),)
 
-seed-scenario: ## 手動のテストシナリオの本線（王 麗娜さん）の記録。UNTIL=N で節 1〜N、DOCS=1 で生成物も、RESET=1 で作り直す、REPLACE=1 で画面で作った同じ記録を消してから作る（make seed の後に）
-	$(MANAGE) seed_scenario $(if $(UNTIL),--until $(UNTIL),) $(if $(DOCS),--with-docs,) $(if $(RESET),--reset,) $(if $(REPLACE),--replace,)
+seed-scenario: ## 手動のテストシナリオの本線（王 麗娜さん）の記録。UNTIL=N で節 1〜N、DOCS=1 で生成物も、RESET=1 で作り直す、REPLACE=1 で画面で作った同じ記録を消してから作る、LEDGER=1 で段階4の台帳の項目も、BULK=1 で一括申請も（LEDGER を含む。UNTIL=5 以上）（make seed の後に）
+	$(MANAGE) seed_scenario $(if $(UNTIL),--until $(UNTIL),) $(if $(DOCS),--with-docs,) $(if $(RESET),--reset,) $(if $(REPLACE),--replace,) $(if $(LEDGER),--ledger,) $(if $(BULK),--bulk,)
 
 seed-docs:  ## ダミーの生成物の場面（署名待ち・署名済み・回収のタスク・警告つき。seed の後に。T39）
 	$(MANAGE) seed_documents
