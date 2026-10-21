@@ -55,11 +55,15 @@ def test_open_list_from_navigation_and_search_by_card_number(
     expect(page.locator('[data-level-count="within_7"]')).to_have_text("7日以内 1")
 
     # 番号は表記ゆれ（小文字・空白）を吸収して完全一致で探す（検索の欄は Enter で送る）
-    page.locator("#worker-filter").get_by_label("検索").fill("ab1234 5678cd")
-    page.locator("#worker-filter").get_by_label("検索").press("Enter")
+    # 検索の欄は上の帯の 1 つだけ（一覧の中には出さない。U3 の直し）。今の言葉を入れたまま出る
+    expect(page.locator("#worker-filter").get_by_label("検索")).to_have_count(0)
+    search = page.get_by_label("外国人台帳から探す")
+    search.fill("ab1234 5678cd")
+    search.press("Enter")
     expect(rows).to_have_count(1)
     expect(rows.first).to_contain_text("王芳")
     expect(page.get_by_role("link", name="条件を消す")).to_be_visible()
+    expect(search).to_have_value("ab1234 5678cd")
 
 
 @pytest.mark.usefixtures("mixed_workers")
@@ -104,8 +108,14 @@ def test_dummy_30_workers_fit_one_line_per_row(
     rows = page.locator("#worker-list tbody tr")
     expect(rows).to_have_count(31)
     heights = rows.evaluate_all(ROW_HEIGHTS)
-    assert max(heights) - min(heights) < 0.5, heights
-    assert 40 <= heights[0] <= 48, heights[0]  # 行の上下 10px（仕様 3。ADR-0046）で 1 行
+    if width >= 1366:
+        assert max(heights) - min(heights) < 0.5, heights
+        assert 40 <= heights[0] <= 48, heights[0]  # 行の上下 10px（仕様 3。ADR-0046）で 1 行
+    else:
+        # カードの高さは中身（入国前の予定など）で変わってよい
+        # 390px は 1 件ずつのカード（氏名・状態／在留期限／受入れ機関／担当者。U3 の直し）
+        assert rows.first.evaluate("row => getComputedStyle(row).display") == "grid"
+        expect(page.locator("#worker-list thead")).to_be_hidden()
     # 省略しても title で全文が読める
     host = page.locator("#worker-list .truncate-line--wide").first
     assert "株式会社" in (host.get_attribute("title") or "")

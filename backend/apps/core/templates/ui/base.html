@@ -50,11 +50,12 @@
     {% block topbar %}
     <header class="topbar">
       {% if global_search_url %}
-      <form class="topbar__search" method="get" action="{{ global_search_url }}" role="search">
+      <form class="topbar__search" method="get" action="{{ global_search_url }}" role="search" id="global-search">
+        {% for name, value in global_search_keep %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
         <label class="search-field">
           <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
           <span class="visually-hidden">{% translate "Search foreign workers" %}</span>
-          <input class="search-field__input" type="search" name="q" maxlength="100" placeholder="{% translate 'Search by name, residence card or passport number' %}">
+          <input class="search-field__input" type="search" name="q" maxlength="100" value="{{ global_search_value }}" placeholder="{% translate 'Search by name, residence card or passport number' %}">
         </label>
       </form>
       {% endif %}

@@ -74,6 +74,19 @@ def ui(request: HttpRequest) -> dict[str, Any]:
         "global_search_url": (
             reverse("workers:list") if authorization.has_action(user, Action.WORKERS_VIEW) else ""
         ),
+        # 外国人台帳では、上の帯の検索に今の検索の言葉を入れたまま出し、ほかの絞り込みの条件も
+        # 残して送る（一覧の中の検索の欄は出さない。U3 の直し）
+        "global_search_value": request.GET.get("q", "") if current == "workers:list" else "",
+        "global_search_keep": (
+            [
+                (key, value)
+                for key, values in request.GET.lists()
+                if key not in ("q", "page")
+                for value in values
+            ]
+            if current == "workers:list"
+            else []
+        ),
         "organization_name": organization_display_name(),
         "session_timing": sessions.timing(request.session),  # 自動ログアウトの知らせ（J8）
         "time_options": TIME_OPTIONS,  # 時刻の欄の 5 分刻みの選択（datalist。修正 1 回目 B16）

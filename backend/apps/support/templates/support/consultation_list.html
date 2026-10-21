@@ -7,19 +7,19 @@
 <p class="caption" data-count="{{ page.paginator.count }}">{% blocktranslate count counter=page.paginator.count %}{{ counter }} consultation{% plural %}{{ counter }} consultations{% endblocktranslate %}</p>
 {% if page.object_list %}
 <div class="table-wrap"><div class="table-scroll">
-  <table class="table table--list" id="consultations">
+  <table class="table table--list table--cards" id="consultations">
     <thead><tr>
       <th>{% translate "received on" %}</th><th>{% translate "foreign worker" %}</th><th>{% translate "main category" %}</th>
       <th>{% translate "consultation status" %}</th><th>{% translate "staff in charge" %}</th><th>{% translate "details" %}</th>
     </tr></thead>
     <tbody>{% for item in page.object_list %}
       <tr data-consultation="{{ item.pk }}">
-        <td class="mono"><a href="{% url 'workers:support_consultation' item.worker_id item.pk %}">{{ item.record.occurred_on|date:"Y-m-d" }}</a></td>
-        <td>{{ item.worker }}</td>
-        <td>{{ item.get_category_display }}</td>
-        <td><span class="status">{{ item.get_status_display }}</span>{% if item.reported %} <span class="caption">{% translate "reported" %}</span>{% endif %}{% if item.hello_work %} <span class="caption">{% translate "Hello Work" %}</span>{% endif %}</td>
-        <td>{{ item.record.staff.name }}</td>
-        <td><span class="truncate-line truncate-line--full" title="{{ item.record.body }}"><span class="truncate" lang="{{ item.record.body_language }}">{{ item.record.body }}</span></span></td>
+        <td class="mono card-head"><a href="{% url 'workers:support_consultation' item.worker_id item.pk %}">{{ item.record.occurred_on|date:"Y-m-d" }}</a></td>
+        <td class="card-title">{{ item.worker }}</td>
+        <td class="card-meta" data-label="{% translate 'main category' %}">{{ item.get_category_display }}</td>
+        <td class="card-action"><span class="status">{{ item.get_status_display }}</span>{% if item.reported %} <span class="caption">{% translate "reported" %}</span>{% endif %}{% if item.hello_work %} <span class="caption">{% translate "Hello Work" %}</span>{% endif %}</td>
+        <td class="card-meta" data-label="{% translate 'staff in charge' %}">{{ item.record.staff.name }}</td>
+        <td class="card-hide"><span class="truncate-line truncate-line--full" title="{{ item.record.body }}"><span class="truncate" lang="{{ item.record.body_language }}">{{ item.record.body }}</span></span></td>
       </tr>{% endfor %}</tbody>
   </table>
 </div></div>

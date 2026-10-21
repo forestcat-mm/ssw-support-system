@@ -98,7 +98,8 @@ class WorkerListView(ActionRequiredMixin, TemplateView):
             form=form,
             rows=result.rows,
             level_tabs=list_tabs.level_tabs(base, result.total, result.level_counts, query.level),
-            keep=[("level", query.level.value if query.level else "")],
+            # 一覧の中に検索の欄は出さない（上の帯の検索に入れたまま）。絞り込みで送るときも残す
+            keep=[("level", query.level.value if query.level else ""), ("q", query.text)],
             filtered=any(value for key, value in self.request.GET.items() if key != "order"),
             can_manage=authorization.has_action(user, Action.WORKERS_MANAGE),
         )

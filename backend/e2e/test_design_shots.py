@@ -101,6 +101,8 @@ def test_capture_screens_like_the_mocks(
             "link", name="3 旅券"
         ).click()
         page.locator("#person-bar").wait_for(state="visible")
+        page.locator('#person-bar [aria-current="location"]').wait_for()
+        page.wait_for_timeout(300)
         SHOTS.mkdir(parents=True, exist_ok=True)
         page.screenshot(path=SHOTS / f"04-worker-overview-scrolled-{width}.png", scale="css")
         page.evaluate("window.scrollTo(0, 0)")

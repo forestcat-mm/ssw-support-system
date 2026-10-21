@@ -1051,15 +1051,40 @@ def _support_contract_notes(filing: Filing) -> list[str]:
             }
         ]
     if kind is FilingKind.SUPPORT_CONTRACT_CHANGE:
-        changes = []
-        for name, (before, after) in (details.get("changes") or {}).items():
-            label = str(getattr(SupportContract._meta.get_field(name), "verbose_name", name))
-            changes.append(f"{label}: {before or '—'} → {after or '—'}")
+        changes = [
+            change_text(name, before, after)
+            for name, (before, after) in (details.get("changes") or {}).items()
+        ]
+        day = details.get("changed_on") or filing.basis_on.isoformat()  # 変更の日（無ければ起算日）
         return [
             _("Change of the support contract on %(day)s: %(changes)s")
-            % {"day": details.get("changed_on", ""), "changes": "、".join(changes)}
+            % {"day": day, "changes": "、".join(changes)}
         ]
     return []
+
+
+# 変更の補足で、金額の欄は短い名前と「30,000 円」の形で出す（U3 の直し）
+YEN_CHANGE_LABELS = {"monthly_fee": gettext_lazy("entrustment fee")}
+
+
+def change_text(name: str, before: Any, after: Any) -> str:
+    """支援委託契約の 1 つの欄の変更の文（「委託料 30,000 円 → 32,000 円」）。"""
+    if name in YEN_CHANGE_LABELS:
+        return f"{YEN_CHANGE_LABELS[name]} {_yen(before)} → {_yen(after)}"
+    model_field = SupportContract._meta.get_field(name)
+    label = str(getattr(model_field, "verbose_name", name))
+    choices = dict(getattr(model_field, "choices", None) or ())
+    shown = [
+        str(choices.get(value, value)) if value not in (None, "") else "—"
+        for value in (before, after)
+    ]
+    return f"{label} {shown[0]} → {shown[1]}"
+
+
+def _yen(value: Any) -> str:
+    if value in (None, ""):
+        return "—"
+    return _("%(amount)s yen") % {"amount": f"{int(value):,}"}
 
 
 # --- 状態の遷移・起算日の訂正 --------------------------------------------------------------

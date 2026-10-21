@@ -6,15 +6,15 @@
 <p class="caption">{% translate "Excel files for the bulk registration tools of the online residence application (certificate of eligibility, extension, change). Open the file in Excel on Windows, enable macros, press “Select” and then “Output” on the menu, and upload the CSV." %}</p>
 {% if applications %}
 <div class="table-wrap">
-  <table class="table table--list" id="bulk-list">
+  <table class="table table--list table--cards" id="bulk-list">
     <thead><tr><th>{% translate "procedure" %}</th><th>{% translate "basis date" context "generated document" %}</th><th>{% translate "title" %}</th><th>{% translate "foreign workers" %}</th><th>{% translate "files" %}</th></tr></thead>
     <tbody>{% for application in applications %}
       <tr data-bulk="{{ application.pk }}">
-        <td><a class="cell-name" href="{% url 'forms:bulk' application.pk %}">{{ application.get_procedure_display }}</a></td>
-        <td class="mono">{{ application.basis_on|date:"Y-m-d" }}</td>
-        <td>{{ application.title|default:"—" }}</td>
-        <td class="num">{{ application.entries.all|length }}</td>
-        <td class="num">{{ application.files.all|length }}</td>
+        <td class="card-head"><a class="cell-name" href="{% url 'forms:bulk' application.pk %}">{{ application.get_procedure_display }}</a></td>
+        <td class="mono card-meta" data-label="{% translate 'basis date' context 'generated document' %}">{{ application.basis_on|date:"Y-m-d" }}</td>
+        <td class="card-meta" data-label="{% translate 'title' %}">{{ application.title|default:"—" }}</td>
+        <td class="num card-meta" data-label="{% translate 'foreign workers' %}">{{ application.entries.all|length }}</td>
+        <td class="num card-meta" data-label="{% translate 'files' %}">{{ application.files.all|length }}</td>
       </tr>{% endfor %}</tbody>
   </table>
 </div>

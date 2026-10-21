@@ -1,6 +1,6 @@
 {% load i18n ui %}{# 外国人の表（外国人一覧と受入れ機関の詳細で共通）。rows は services.worker_list.WorkerRow #}
 <div class="table-wrap">
-  <table class="table table--list" id="{{ table_id }}">
+  <table class="table table--list table--cards" id="{{ table_id }}">
     <thead><tr>
       <th>{% translate "full name" %}</th>
       <th>{% translate "nationality or region" %}</th>
@@ -13,13 +13,13 @@
     <tbody>
       {% for row in rows %}
         <tr data-worker="{{ row.worker.pk }}">
-          <td><span class="person-name"><a class="cell-name" href="{% url 'workers:detail' row.worker.pk %}"{% if row.display_name_lang %} lang="{{ row.display_name_lang }}"{% endif %}>{{ row.display_name }}</a>{% if row.romaji %} <span class="caption">{{ row.romaji }}</span>{% endif %}</span></td>
-          <td>{{ row.worker.nationality.name }}</td>
-          <td>{% if row.host_organization_name %}{% translate "(scheduled)" as scheduled_label %}<span class="truncate-line truncate-line--wide" title="{{ row.host_organization_name }}{% if row.contract_scheduled %} {{ scheduled_label }}{% endif %}"><span class="truncate">{{ row.host_organization_name }}</span>{% if row.contract_scheduled %}<span class="caption">{{ scheduled_label }}</span>{% endif %}</span>{% else %}<span class="muted">—</span>{% endif %}</td>
-          <td>{% if row.skill_field %}{% field_tag row.skill_field %}{% else %}<span class="muted">—</span>{% endif %}</td>
-          <td>{% due_date row.deadline %}</td>
-          <td>{% if row.worker.assigned_staff %}<span class="truncate-line" title="{{ row.worker.assigned_staff.name }}"><span class="truncate">{{ row.worker.assigned_staff.name }}</span></span>{% else %}<span class="muted">{% translate "not assigned" %}</span>{% endif %}</td>
-          <td>{% if row.worker.deactivated_at %}{% translate "deactivated" as deactivated_label %}{% worker_status row.worker.status deactivated_label True %}{% else %}{% worker_status row.worker.status row.worker.get_status_display %}{% endif %}</td>
+          <td class="card-head"><span class="person-name"><a class="cell-name" href="{% url 'workers:detail' row.worker.pk %}"{% if row.display_name_lang %} lang="{{ row.display_name_lang }}"{% endif %}>{{ row.display_name }}</a>{% if row.romaji %} <span class="caption">{{ row.romaji }}</span>{% endif %}</span></td>
+          <td class="card-hide">{{ row.worker.nationality.name }}</td>
+          <td class="card-meta" data-label="{% translate 'host organization' %}">{% if row.host_organization_name %}{% translate "(scheduled)" as scheduled_label %}<span class="truncate-line truncate-line--wide" title="{{ row.host_organization_name }}{% if row.contract_scheduled %} {{ scheduled_label }}{% endif %}"><span class="truncate">{{ row.host_organization_name }}</span>{% if row.contract_scheduled %}<span class="caption">{{ scheduled_label }}</span>{% endif %}</span>{% else %}<span class="muted">—</span>{% endif %}</td>
+          <td class="card-hide">{% if row.skill_field %}{% field_tag row.skill_field %}{% else %}<span class="muted">—</span>{% endif %}</td>
+          <td class="card-meta card-early" data-label="{% translate 'period of stay expires on' %}">{% due_date row.deadline %}</td>
+          <td class="card-meta" data-label="{% translate 'assigned staff' %}">{% if row.worker.assigned_staff %}<span class="truncate-line" title="{{ row.worker.assigned_staff.name }}"><span class="truncate">{{ row.worker.assigned_staff.name }}</span></span>{% else %}<span class="muted">{% translate "not assigned" %}</span>{% endif %}</td>
+          <td class="card-action">{% if row.worker.deactivated_at %}{% translate "deactivated" as deactivated_label %}{% worker_status row.worker.status deactivated_label True %}{% else %}{% worker_status row.worker.status row.worker.get_status_display %}{% endif %}</td>
         </tr>
       {% endfor %}
     </tbody>

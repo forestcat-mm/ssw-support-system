@@ -8,7 +8,7 @@
 {% translate "Filter by period of stay" as tabs_label %}
 {% include "ui/components/list_tabs.html" with tabs=level_tabs label=tabs_label tabs_id="worker-level-tabs" %}
 {% url 'workers:list' as clear_url %}
-{% include "ui/components/filter_bar.html" with form=form skip="level" keep=keep filtered=filtered clear_url=clear_url filter_id="worker-filter" %}
+{% include "ui/components/filter_bar.html" with form=form skip="level q" keep=keep filtered=filtered clear_url=clear_url filter_id="worker-filter" %}
 
 <p class="caption" data-count="{{ rows|length }}">{% blocktranslate count counter=rows|length %}{{ counter }} person{% plural %}{{ counter }} people{% endblocktranslate %}</p>
 

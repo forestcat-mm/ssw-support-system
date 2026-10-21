@@ -1,6 +1,6 @@
-{% load i18n ui %}{# 届出タスクの表（ダッシュボードと外国人詳細の届出タブで共通）。rows は services.dashboard.FilingRow。show_target で対象・担当者の列を出す。見本 01: 期限の状態（点＋文字）・期限・種別・…・行の右端に操作 1 つ #}
+{% load i18n ui %}{# 届出タスクの表（ダッシュボードと外国人詳細の届出タブで共通）。rows は services.dashboard.FilingRow。show_target で対象・担当者の列を出す。見本 01: 期限の状態（点＋文字）・期限・種別・…・行の右端に操作 1 つ。幅の狭い画面では 1 件ずつのカード（期限の状態・種別・対象・期限・届出主体。card-* のクラス） #}
 <div class="table-wrap">
-  <table class="table table--list" id="{{ table_id|default:'filings' }}">
+  <table class="table table--list table--cards" id="{{ table_id|default:'filings' }}">
     <thead><tr>
       <th>{% translate "deadline status" %}</th><th>{% translate "due date" %}</th>
       <th>{% translate "kind" %}</th>
@@ -12,14 +12,14 @@
     <tbody>
       {% for row in rows %}
         <tr data-filing="{{ row.filing.pk }}" data-status="{{ row.filing.status }}">
-          <td>{% if row.deadline and row.is_open %}{% level_badge row.deadline not_yet_label=True %}{% else %}<span class="muted">—</span>{% endif %}</td>
-          <td>{% if row.deadline %}<span class="mono">{{ row.deadline.unadjusted_due_on|date:"Y-m-d" }}</span>{% if row.deadline.adjusted %} <span class="caption">{% blocktranslate with day=row.deadline.due_on|date:"Y-m-d" %}legal: {{ day }}{% endblocktranslate %}</span>{% endif %}{% else %}<span class="muted">—</span>{% endif %}</td>
-          <td><span class="truncate-line truncate-line--wide" title="{{ row.filing.get_kind_display }}"><a class="truncate cell-name" href="{% url 'filings:detail' row.filing.pk %}">{{ row.filing.get_kind_display }}</a></span>{% for note in row.notes %}<div class="caption" data-note>{{ note }}</div>{% endfor %}</td>
-          {% if show_target %}<td><span class="truncate-line truncate-line--wide" title="{{ row.target_label }}">{% if row.target_url_name %}<a class="truncate" href="{% url row.target_url_name row.target_pk %}">{{ row.target_label }}</a>{% else %}<span class="truncate">{{ row.target_label }}</span>{% endif %}</span></td>{% endif %}
-          <td>{{ row.filer_label }}</td>
-          <td><span class="status">{{ row.filing.get_status_display }}</span></td>
-          {% if show_target %}<td>{% if row.filing.assignee %}<span class="truncate-line" title="{{ row.filing.assignee.name }}"><span class="truncate">{{ row.filing.assignee.name }}</span></span>{% else %}<span class="muted">{% translate "not assigned" %}</span>{% endif %}</td>{% else %}<td class="mono">{{ row.filing.submitted_on|date:"Y-m-d"|default:"—" }}</td>{% endif %}
-          <td class="cell-action">{% if row.record_url and perms.support.add_supportrecord %}<a class="button button--ghost button--small" href="{{ row.record_url }}" data-record-interview>{% translate "Record" %}</a>{% endif %}</td>
+          <td class="card-head">{% if row.deadline and row.is_open %}{% level_badge row.deadline not_yet_label=True %}{% else %}<span class="muted">—</span>{% endif %}</td>
+          <td class="card-meta card-o3" data-label="{% translate 'due date' %}">{% if row.deadline %}<span class="mono">{{ row.deadline.unadjusted_due_on|date:"Y-m-d" }}</span>{% if row.deadline.adjusted %} <span class="caption">{% blocktranslate with day=row.deadline.due_on|date:"Y-m-d" %}legal: {{ day }}{% endblocktranslate %}</span>{% endif %}{% else %}<span class="muted">—</span>{% endif %}</td>
+          <td class="card-title card-o1 cell-kind"><a class="cell-name clamp-2" href="{% url 'filings:detail' row.filing.pk %}">{{ row.filing.get_kind_display }}</a>{% for note in row.notes %}<div class="caption" data-note>{{ note }}</div>{% endfor %}</td>
+          {% if show_target %}<td class="card-meta card-o2" data-label="{% translate 'target' %}"><span class="truncate-line truncate-line--wide" title="{{ row.target_label }}">{% if row.target_url_name %}<a class="truncate" href="{% url row.target_url_name row.target_pk %}">{{ row.target_label }}</a>{% else %}<span class="truncate">{{ row.target_label }}</span>{% endif %}</span></td>{% endif %}
+          <td class="card-meta card-o4" data-label="{% translate 'filer' %}">{{ row.filer_label }}</td>
+          <td class="card-hide"><span class="status">{{ row.filing.get_status_display }}</span></td>
+          {% if show_target %}<td class="card-hide">{% if row.filing.assignee %}<span class="truncate-line" title="{{ row.filing.assignee.name }}"><span class="truncate">{{ row.filing.assignee.name }}</span></span>{% else %}<span class="muted">{% translate "not assigned" %}</span>{% endif %}</td>{% else %}<td class="mono card-hide">{{ row.filing.submitted_on|date:"Y-m-d"|default:"—" }}</td>{% endif %}
+          <td class="cell-action card-action">{% if row.record_url and perms.support.add_supportrecord %}<a class="button button--ghost button--small" href="{{ row.record_url }}" data-record-interview>{% translate "Record" %}</a>{% endif %}</td>
         </tr>
       {% endfor %}
     </tbody>

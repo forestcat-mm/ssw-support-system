@@ -1817,3 +1817,169 @@ input[list="time-options"] {
   font-size: inherit;
   color: inherit;
 }
+
+/* 種別などの長い名前: 切らずに 2 行まで折り返す（U3 の直し） */
+.table td.cell-kind {
+  white-space: normal;
+  min-width: 12em;
+  max-width: 22em;
+}
+
+.clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 幅の狭い画面の一覧: 1 件ずつの縦の並び（カード）。1 行目に頭（状態など）と右に操作、次に名前、その下に
+   項目名つきの値（card-meta）。card-hide の列は出さない（U3 の直し・仕様 7） */
+@media (max-width: 719px) {
+  .table-wrap:has(> .table--cards),
+  .table-wrap:has(> .table-scroll > .table--cards) {
+    background: transparent;
+    border: 0;
+    overflow: visible;
+  }
+
+  .table--cards,
+  .table--cards tbody {
+    display: block;
+  }
+
+  .table--cards thead {
+    display: none;
+  }
+
+  .table--cards tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2px var(--space-12);
+    margin-bottom: var(--space-8);
+    padding: var(--space-12) var(--space-16);
+    background: var(--color-surface);
+    border: 1px solid var(--color-line-structure);
+    border-radius: var(--radius-card);
+  }
+
+  .table--cards tbody tr:hover {
+    background: var(--color-surface);
+  }
+
+  .table.table--cards td {
+    display: block;
+    height: auto;
+    padding: 0;
+    border: 0;
+    white-space: normal;
+    max-width: none;
+    min-width: 0;
+  }
+
+  .table--cards td.card-head {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .table--cards td.card-action {
+    grid-column: 2;
+    grid-row: 1;
+    text-align: right;
+  }
+
+  .table--cards td.card-title {
+    grid-column: 1 / -1;
+    font-weight: 500;
+  }
+
+  .table--cards td.card-meta {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    font-size: var(--text-small);
+    color: var(--color-ink-2);
+  }
+
+  .table--cards td.card-meta::before {
+    content: attr(data-label);
+    flex: none;
+    min-width: 6em;
+    margin-right: var(--space-8);
+    font-size: var(--text-caption);
+    color: var(--color-graphite);
+  }
+
+  .table--cards td.card-hide {
+    display: none;
+  }
+
+  .table--cards .truncate-line {
+    max-width: none;
+  }
+}
+
+@media (max-width: 719px) {
+  .table--cards td.card-early {
+    order: -1;
+  }
+}
+
+/* 目次の「目次」の文字は折り返さない（U3 の直し） */
+.toc__title {
+  flex: none;
+  white-space: nowrap;
+}
+
+/* 幅の狭い画面: タブと目次は 1 行の横に送れる並び（今いるタブ・セクションまで forms.js が送る。U3 の直し） */
+@media (max-width: 719px) {
+  .tabs,
+  .toc {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .tabs__link,
+  .toc__link {
+    flex: none;
+    white-space: nowrap;
+  }
+
+  /* 細い帯は「戻る・写真・名前・在留期限」の 1 行と目次の 1 行（タブは入れない） */
+  .person-bar__row {
+    flex-wrap: nowrap;
+    min-height: 48px;
+    gap: var(--space-8);
+  }
+
+  .person-bar .person-head__romaji,
+  .person-bar .status,
+  .person-bar__fact,
+  .person-bar__edit,
+  .person-bar .person-tabs,
+  .person-bar .expiry-pill__label {
+    display: none;
+  }
+
+  .person-bar__name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--text-panel);
+  }
+
+  .person-bar .expiry-pill {
+    flex: none;
+    margin-left: auto;
+  }
+}
+
+/* カードの中の並びの順（表の列の順と変えたいとき） */
+@media (max-width: 719px) {
+  .table--cards td.card-o1 { order: 1; }
+  .table--cards td.card-o2 { order: 2; }
+  .table--cards td.card-o3 { order: 3; }
+  .table--cards td.card-o4 { order: 4; }
+}

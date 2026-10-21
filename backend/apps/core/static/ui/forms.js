@@ -789,6 +789,15 @@ initializers.push((root) => root.querySelectorAll("form[data-auto-submit]").forE
   });
 }));
 
+// 横に送れる 1 行の並び（狭い画面のタブ・目次）で、その項目が見える位置まで横に送る（縦には動かさない）
+const scrollIntoRow = (item) => {
+  const row = item.parentElement;
+  if (!row || row.scrollWidth <= row.clientWidth) return;
+  row.scrollLeft = item.offsetLeft - row.offsetLeft - (row.clientWidth - item.offsetWidth) / 2;
+};
+// 開いたとき、今いるタブ（aria-current="page"）まで送る（U3 の直し）
+document.querySelectorAll(".tabs [aria-current='page']").forEach((item) => scrollIntoRow(item));
+
 // 外国人の詳細の細い帯と目次（仕様 5.2・7。U3）: ふだんの帯（#person-head）が画面の外に出たら細い帯
 // （#person-bar）を上に留め、目次の今いるセクションに aria-current="location" を付け替える。スクロールのたびの
 // 処理はせず IntersectionObserver で決める。目次で移るときは、帯の高さの分ずらして止める（--sticky-offset）。
@@ -820,8 +829,10 @@ const initPersonBar = () => {
   const mark = () => {
     const current = targets.find((target) => visible.has(target.id)) ?? null;
     links.forEach((link) => {
-      if (current && link.dataset.tocTarget === current.id) link.setAttribute("aria-current", "location");
-      else link.removeAttribute("aria-current");
+      if (current && link.dataset.tocTarget === current.id) {
+        link.setAttribute("aria-current", "location");
+        scrollIntoRow(link);
+      } else link.removeAttribute("aria-current");
     });
   };
   const observer = new IntersectionObserver((entries) => {

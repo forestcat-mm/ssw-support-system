@@ -5,7 +5,7 @@
 {% block content %}
 {% if rows %}
 <div class="table-wrap">
-  <table class="table table--list" id="host-list">
+  <table class="table table--list table--cards" id="host-list">
     <thead><tr>
       <th>{% translate "name" %}</th>
       <th>{% translate "specified skill field" %}</th>
@@ -18,13 +18,13 @@
     <tbody>
       {% for row in rows %}
         <tr data-host="{{ row.host.pk }}">
-          <td><span class="truncate-line truncate-line--full" title="{{ row.host.name }}"><a class="truncate cell-name" href="{% url 'hosts:detail' row.host.pk %}">{{ row.host.name }}</a></span></td>
-          <td><span class="cluster">{% for skill_field in row.fields %}{% field_tag skill_field %}{% empty %}<span class="muted">—</span>{% endfor %}</span></td>
-          <td class="num">{{ row.site_count }}</td>
-          <td class="num">{{ row.worker_count }}</td>
-          <td>{% due_date row.membership_deadline %}</td>
-          <td class="num">{% if row.sites_without_cooperation %}<span class="badge badge--within-7" data-not-submitted="{{ row.sites_without_cooperation }}">{{ row.sites_without_cooperation }}</span>{% else %}<span class="muted">0</span>{% endif %}</td>
-          <td>{% if row.support_contract and not row.support_contract.ends_on %}<span class="muted">{% translate "no end date" %}</span>{% else %}{% due_date row.support_contract_deadline %}{% endif %}</td>
+          <td class="card-head"><span class="truncate-line truncate-line--full" title="{{ row.host.name }}"><a class="truncate cell-name" href="{% url 'hosts:detail' row.host.pk %}">{{ row.host.name }}</a></span></td>
+          <td class="card-meta" data-label="{% translate 'specified skill field' %}"><span class="cluster">{% for skill_field in row.fields %}{% field_tag skill_field %}{% empty %}<span class="muted">—</span>{% endfor %}</span></td>
+          <td class="num card-meta" data-label="{% translate 'sites' %}">{{ row.site_count }}</td>
+          <td class="num card-meta" data-label="{% translate 'foreign workers' %}">{{ row.worker_count }}</td>
+          <td class="card-meta" data-label="{% translate 'membership valid until' %}">{% due_date row.membership_deadline %}</td>
+          <td class="num card-meta" data-label="{% translate 'sites without a cooperation confirmation' %}">{% if row.sites_without_cooperation %}<span class="badge badge--within-7" data-not-submitted="{{ row.sites_without_cooperation }}">{{ row.sites_without_cooperation }}</span>{% else %}<span class="muted">0</span>{% endif %}</td>
+          <td class="card-meta" data-label="{% translate 'support contract ends on' %}">{% if row.support_contract and not row.support_contract.ends_on %}<span class="muted">{% translate "no end date" %}</span>{% else %}{% due_date row.support_contract_deadline %}{% endif %}</td>
         </tr>
       {% endfor %}
     </tbody>

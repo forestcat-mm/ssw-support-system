@@ -207,7 +207,8 @@ def test_amendment_raises_3_3_1_and_a_correction_does_not(
     assert task.kind == FilingKind.SUPPORT_CONTRACT_CHANGE
     assert task.basis_on == date(2026, 10, 1)
     assert task.trigger_details["changes"] == {"monthly_fee": [32000, 36000]}
-    assert "36000" in filings.task_notes(task, TODAY)[0]
+    # 補足は「委託料 32,000 円 → 36,000 円」の形（U3 の直し）
+    assert "委託料 32,000 円 → 36,000 円" in filings.task_notes(task, TODAY)[0]
 
 
 # --- 終了 ------------------------------------------------------------------------
