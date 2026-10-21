@@ -56,6 +56,8 @@ def test_check_inputs_and_generate(
     rows.first.get_by_role("link", name="入力").click()
     expect(page.get_by_role("heading", level=1)).to_contain_text("申請ごとの入力")
     expect(page.get_by_label("職業")).to_have_value("会社員")
+    # 日本における連絡先は認定だけ（更新は台帳の住所・電話。ADR-0039 決定 17）
+    expect(page.get_by_label("日本における連絡先（郵便番号）")).to_have_count(0)
     expect(page.locator("#bulk-sensitive")).to_contain_text("犯罪を理由とする処分")
     assert page.evaluate("document.documentElement.scrollWidth") <= width
     page.get_by_role("button", name="保存する").click()
