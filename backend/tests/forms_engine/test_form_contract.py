@@ -45,7 +45,7 @@ from services import (
 )
 from tests.contracts.factories import add_version, make_contract, site_with_categories
 from tests.core.factories import make_user, verified_client
-from tests.forms_engine import pdfcheck
+from tests.forms_engine import doc_conversion, pdfcheck
 from tests.workers.factories import add_residence, make_worker
 
 pytestmark = pytest.mark.django_db
@@ -280,10 +280,8 @@ def test_converted_1_4_has_the_same_tables_as_the_doc(tmp_path: Path) -> None:
 
 
 def test_converting_1_4_again_gives_the_same_xml(tmp_path: Path) -> None:
-    """(c) もう一度変換しても word/*.xml が同じ（LibreOffice の版が変わったら知らせる）。"""
-    sys.path.insert(0, str(TOOLS))
-    import convert_doc  # type: ignore[import-not-found]
-
+    """(c) もう一度変換しても word/*.xml が同じ（LibreOffice の版が違えば、理由つきで飛ばす）。"""
+    convert_doc = doc_conversion.convert_doc_or_skip(folder("1-4"))
     out = tmp_path / "again.docx"
     convert_doc.convert(folder("1-4") / "original.doc", out)
     with (

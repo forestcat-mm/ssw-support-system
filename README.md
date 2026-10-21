@@ -97,6 +97,7 @@ make gate3          # 段階3の受け入れ確認（seed → seed_documents →
 make gate4          # 段階4の受け入れ確認（seed → 一括申請 3 種・一括届出 7 種の xlsm を画面で作り、写した入力チェックと構造を確かめる）
 make checks         # push の前に: lint・test・e2e・gate2・gate3（GATE4=1 で gate4 も）を順に流し、終了コードと === DONE を .checks/logs/<日時>_<CHECKS_NAME>_checks.log に書く
 make design-shots   # 見本画面（/ui/）のスクリーンショットを docs/design/ に保存する
+make blank-pages    # 公式の様式を空のまま PDF にし、頁数・埋め込みの字体・代わりの字体を出す（FORMS="1-23 1-5"・MD=1。手元とクラウドの見比べ）
 make messages       # UI 文言を .po に抽出し .mo にコンパイルする（両方をコミットする）
 ```
 
@@ -106,7 +107,9 @@ make messages       # UI 文言を .po に抽出し .mo にコンパイルする
 - ログの名前をまるごと決めたいときは `CHECKS_LOG=.checks/logs/<名前>.log` を渡す（このときは `CHECKS_NAME` を使わない）。
 - いちばん新しいログは `.checks/logs/latest.log`（出力は `latest.full.log`）でも開ける（実行の始めにリンクを付け替える）。
 - `.checks/` の並べ方は `.checks/README.md`（目次）と CLAUDE.md の「.checks/ の置き方」。
-- 1 件の上限は `CHECK_LIMIT`（秒。既定 900）。超えたら止めて、終了コード 124 にする。
+- 1 件の上限は `CHECK_LIMIT`（秒。既定 900。`RUNNER=host` は 1800）。超えたら止めて、終了コード 124 にする。
+- ログの先頭に、どこで動かしたか（`=== RUNNER=docker` か `host`）を書き、検査ごとに飛ばしたテストの件数と理由（`SKIPPED [n] …`。単体テストは `-rs` で出す）を写す。
+- クラウドのセッション（Docker なし）では `RUNNER=host` で、同じ `make` が VM の上で動く（SessionStart フックが立てる。`docs/cloud-session.md`）。
 - 別のシェルから待つときは、`=== DONE` の行と上限の時間（例: 30 分）の両方で待つ。
 - 前の実行が終わる前に次を始めない（DB と e2e のコンテナを取り合う）。
 
@@ -197,6 +200,6 @@ backend/
 templates/forms/ 入管の様式（版ごとのフォルダに original・template・manifest）
 mappings/       様式ごとのマッピング定義（<適用開始日>.json）と生成前の検査の規則（<適用開始日>.rules.json。ADR-0019）
 application_sets/ 申請の書類の一覧の定義（<coe|chg|ext>/<適用開始日>.json）と元の入管の Excel（sources/。ADR-0026）
-tools/          開発用の道具（make checks の run_checks.sh、forms/ のマッピング・template.docx を作るスクリプト）
+tools/          開発用の道具（make checks の run_checks.sh、forms/ のマッピング・template.docx を作るスクリプト、cloud/ のクラウドの setup script・SessionStart フック・host_run.sh）
 docs/           仕様書・タスク・ADR・運用手順・デザイン
 ```

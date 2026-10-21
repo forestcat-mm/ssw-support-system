@@ -40,7 +40,7 @@ from services import (
 from services.attachments import create_attachment
 from tests.contracts.factories import make_contract
 from tests.core.factories import make_organization, make_user, verified_client
-from tests.forms_engine import pdfcheck
+from tests.forms_engine import doc_conversion, pdfcheck
 from tests.forms_engine.test_form_contract import body_texts
 from tests.hosts.factories import category, make_host, make_site
 from tests.workers.factories import add_residence, make_worker
@@ -170,9 +170,7 @@ def test_converted_1_25_has_the_same_tables_as_the_doc(tmp_path: Path) -> None:
 
 
 def test_converting_1_25_again_gives_the_same_xml(tmp_path: Path) -> None:
-    sys.path.insert(0, str(TOOLS))
-    import convert_doc  # type: ignore[import-not-found]
-
+    convert_doc = doc_conversion.convert_doc_or_skip(folder("1-25"))
     out = tmp_path / "again.docx"
     convert_doc.convert(folder("1-25") / "original.doc", out)
     with zipfile.ZipFile(out) as again, zipfile.ZipFile(folder("1-25") / "converted.docx") as reg:

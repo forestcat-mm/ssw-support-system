@@ -70,7 +70,7 @@
 │   └── e2e/                   # Playwright の通しのテスト（make e2e・make gate2）
 ├── templates/forms/           # 入管配布の Word/Excel テンプレート（版ごとにフォルダ。段階3で作る）
 ├── mappings/                  # 様式ごとのマッピング定義 JSON と生成前の検査の規則 *.rules.json（ADR-0019）
-├── tools/                     # 開発用の道具（run_checks.sh〔make checks〕、forms/ の template.docx・訳文の版の作成）
+├── tools/                     # 開発用の道具（run_checks.sh〔make checks〕、forms/ の template.docx・訳文の版の作成、cloud/ のクラウドの setup script とフック）
 ├── scripts/                   # 手元用の補助スクリプト（init_env.py など。標準ライブラリのみ）
 ├── docker-compose.yml
 ├── docker-compose.prod.yml    # 本番準備で作る（docs/tasks-phase1.md）
@@ -167,8 +167,10 @@
 - 計画・報告・決めた点は PR の説明文に書く（日本語）。残す決定は ADR（`docs/decisions/`）か `docs/`（細かい決定は `docs/decisions/log/`、画面のデザインは `docs/design/`、一次資料の一覧は `docs/sources.md`）に書く。`.checks/` はセッションの中だけの作業場所として使う（git の外。セッションが終わると消える）。
 - 作業はブランチで行い、ブロック（または 1 つの依頼）ごとに PR を作る。PR を作るための作業ブランチへの push は、「push は指示があるまでしない」の例外としてよい。main への push と merge はしない（merge は人が行う）。
 - 開発用の秘密の値（`SECRET_KEY`・暗号化の鍵・DB のパスワードなど）はダミー。実データ・本物の鍵は使わない（制約 10）。
-- 検査のうち、クラウドで流せないもの（Docker が要るもの: e2e・gate2・gate3・gate4・design-shots・PDF の変換を使うテストなど）は、PR の説明文に「手元で流すこと」として、コマンドと期待する結果を書く。流せたものは件数と終了コードを書く。
-- クラウドの環境の設定（環境変数・ネットワークの許可・セットアップ）は `docs/cloud-session.md`。
+- クラウドでは Docker を使わない。`make` は `RUNNER=host`（SessionStart フック `tools/cloud/session_start.sh` が立てる）で VM の上で動き、「検査の段」の lint・test・e2e・gate2〜4・`make checks` は手元と同じに流す。フックの知らせの先頭に「足りないもの・失敗」が出たら、検査の前に直すか報告する。
+- 手元でしか流せない検査（`docs/cloud-session.md` の 6 の表: `.doc` を変換し直すテスト〔LibreOffice の版が違うので飛ばす〕・`converted.docx` の作り直し・帳票の PDF の見比べ・design-shots・Docker のイメージと compose）は、PR の説明文に「手元で流すこと」として、コマンドと期待する結果を書く。流せたものは件数と終了コード、飛ばしたテストの件数と理由を書く。
+- 環境の設定画面の setup script は `tools/cloud/setup.sh` の写し（正本はリポジトリ）。setup.sh を変えた PR は、説明文に「マージの後に設定画面に全文を貼り直す」と書き、全文を載せる。
+- クラウドの環境の設定（VM・環境変数・接続先・setup script・フック・検査）は `docs/cloud-session.md`。
 - 一次資料は `docs/sources.md` の URL から取り直し、SHA-256 で同じ版かを確かめる。
 
 ## 業務画面とデータの作法
@@ -208,4 +210,6 @@ make messages  # UI 文言の抽出とコンパイル（.po と .mo の両方を
 make filings   # 日次の届出タスクの起票を手で実行（DATE=YYYY-MM-DD で基準日を指定）
 make forms     # 様式マスタ（templates/forms・mappings）を読み込む
 make checks    # push の前に: lint・test・e2e・gate2（既定は 1 つの基準日。GATE2_DATES で 3 つ）・gate3。終了コードと === DONE を .checks/logs/<日時>_<CHECKS_NAME>_checks.log（latest.log）に書く
+make blank-pages  # 空の様式の頁数・埋め込みの字体・代わりの字体（FORMS= で絞る、MD=1 で Markdown。手元とクラウドの見比べ）
+# クラウドでは RUNNER=host（フックが立てる）で、上のどれも VM の上で動く（design-shots・up・build などは止まる。docs/cloud-session.md）
 ```
