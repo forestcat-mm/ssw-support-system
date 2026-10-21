@@ -1,5 +1,17 @@
 # 業務画面のデザイン
 
+**今のデザインは 2026-10 の見直し**（仕様 `design-2026-10/design-spec.md`、見本 `design-2026-10/mock/`、決定 ADR-0046）。白い面と細い枠、強調の色は藍（#2E3A9E）の 1 色、状態は「色の点＋文字」、字体は同梱の Noto Sans JP。
+
+- トークン: `backend/apps/core/static/ui/tokens.css`、字体: `backend/apps/core/static/ui/fonts.css`・`fonts/`
+- 見本画面: 管理者でログインして http://localhost:8000/ui/
+- スクリーンショット: [desktop.png](desktop.png)（1366px 幅）、[mobile.png](mobile.png)（390px 幅）。`make design-shots` で撮り直せる
+
+以下は前の決定（2026-10-16。D: Officevibe の読み替え）の記録。2026-10 の見直しで置き換わった。
+
+---
+
+## 前の決定（2026-10-16）
+
 業務画面のデザイントークンは、**D: Officevibe**（https://styles.refero.design/style/ced1c98f-d489-48f7-a01f-1fa59a07b706）を業務画面向けに読み替えたものを使う。2026-10-16 に、5 つのセット（A: Aboard、B: ElevenLabs、C: Workable、D: Officevibe、E: Glide）を見本画面で見比べて決めた。
 
 - トークン: `backend/apps/core/static/ui/tokens.css`
