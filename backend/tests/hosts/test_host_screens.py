@@ -1,5 +1,6 @@
 """受入れ機関の一覧・詳細（T13e）: 期限・所属人数・画面の権限・閲覧の監査。"""
 
+from collections.abc import Callable
 from datetime import date, timedelta
 
 import pytest
@@ -100,7 +101,10 @@ def test_support_contract_for_prefers_active_then_upcoming_then_last() -> None:
     assert host_detail.support_contract_for([old, upcoming, active], TODAY) == active
 
 
-def test_host_list_page_is_audited(support_staff_client: Client, host: HostOrganization) -> None:
+def test_host_list_page_is_audited(
+    support_staff_client: Client, host: HostOrganization, today_is: Callable[[date], None]
+) -> None:
+    today_is(TODAY)  # 加入の期限（TODAY＋5 日）が「7 日以内」になる日
     page = support_staff_client.get("/hosts/")
     assert page.status_code == 200
     html = page.content.decode()
@@ -163,12 +167,14 @@ def test_host_screens_need_hosts_view(host: HostOrganization) -> None:
     assert client.get(f"/hosts/{host.pk}/").status_code == 403
 
 
-def test_category_out_of_effect_is_marked(support_staff_client: Client) -> None:
+def test_category_out_of_effect_is_marked(
+    support_staff_client: Client, today_is: Callable[[date], None]
+) -> None:
+    today_is(TODAY)  # 2027-04-01 から適用の業務区分（飲食料品製造業の 2 区分）が、まだ適用前の日
     host = make_host()
     site = make_site(host, field_code="food_manufacturing")
     future = field("food_manufacturing").categories.filter(valid_from__gt=timezone.localdate())
-    if not future.exists():
-        pytest.skip("適用開始前の業務区分がない")
+    assert future.exists()
     site.categories.set(list(future[:1]))
     html = support_staff_client.get(f"/hosts/{host.pk}/").content.decode()
     assert "適用期間外" in html

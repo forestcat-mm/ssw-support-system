@@ -1,7 +1,10 @@
+import datetime
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
 from django.test import Client
+from django.utils import timezone
 from pytest_django.fixtures import Settings
 
 from apps.core.models import User
@@ -54,6 +57,23 @@ def _media_storage(settings: Settings, tmp_path: Path) -> None:
             "OPTIONS": {"location": str(tmp_path / "media")},
         },
     }
+
+
+@pytest.fixture
+def today_is(monkeypatch: pytest.MonkeyPatch) -> Callable[[datetime.date], None]:
+    """アプリの「今日」を決め打ちの日にする（画面・コマンドが timezone.localdate() で見る今日）。
+
+    gate2・gate3 の GATE_DATE と同じく timezone.now を日数だけずらす（時刻は進む）。決め打ちの
+    日付で作ったデータを、実際の今日を使う画面で見るテストが、日がたって落ちないようにする。
+    監査ログの日時（モデルの既定）は実際の時刻のまま。
+    """
+
+    def fix(day: datetime.date) -> None:
+        offset = day - timezone.localdate()
+        real_now = timezone.now
+        monkeypatch.setattr(timezone, "now", lambda: real_now() + offset)
+
+    return fix
 
 
 @pytest.fixture

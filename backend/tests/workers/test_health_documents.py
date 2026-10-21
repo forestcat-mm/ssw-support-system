@@ -1,6 +1,7 @@
 """要配慮添付（健康診断の書類。T23、ADR-0011）: 印・保持期限・ダウンロードの判定・監査ログ・
 ファイル名を出さないこと・admin・保存先の設定・「基本」タブの画面。"""
 
+from collections.abc import Callable
 from datetime import date
 from typing import Any
 
@@ -248,8 +249,11 @@ def test_basic_tab_shows_file_names_only_to_who_can_download(worker: Any, assign
     assert entry.context["shown"]["health_documents"] == [attachment.pk]
 
 
-def test_upload_and_void_on_screen_do_not_show_the_name(worker: Any) -> None:
+def test_upload_and_void_on_screen_do_not_show_the_name(
+    worker: Any, today_is: Callable[[date], None]
+) -> None:
     """担当でない支援担当者でも登録・取消はできる（workers.manage）。ファイル名は通知文にも出ない。"""
+    today_is(TODAY)  # 保存期限 2027-03-31 が今日より後になる日
     other = make_user("other", roles=("support_staff",))
     client = verified_client(other)
     url = f"/workers/{worker.pk}/health-documents/new/"

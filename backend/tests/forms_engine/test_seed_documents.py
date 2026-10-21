@@ -6,6 +6,8 @@
   2 回目は何もしない。
 """
 
+import datetime
+from collections.abc import Callable
 from io import StringIO
 from pathlib import Path
 from typing import Any
@@ -42,8 +44,9 @@ def test_uncertified_host_blocks_the_pledge(seeded: list[ForeignWorker]) -> None
 
 
 def test_seed_documents_make_the_signature_scenes(
-    seeded: list[ForeignWorker], settings: Any
+    seeded: list[ForeignWorker], settings: Any, today_is: Callable[[datetime.date], None]
 ) -> None:
+    today_is(BASE)  # seed_documents は今日で作る。seed_dummy と同じ基準日にする
     out = StringIO()
     call_command("seed_documents", stdout=out)
     documents = {
