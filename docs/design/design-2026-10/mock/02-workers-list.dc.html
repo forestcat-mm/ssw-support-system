@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>外国人台帳 案B</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2E3A9E;text-decoration:none}a:hover{color:#1E2875;text-decoration:underline}
+</style>
+</helmet>
+<div style="font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif; font-size: 14px; color: #1A1D24; background: #F7F8FA; min-height: 1000px; display: flex; flex-wrap: wrap">
+  <nav aria-label="メインメニュー" style="flex: 1 1 220px; max-width: 220px; min-width: 200px; background: #FFFFFF; border-right: 1px solid #E6E8EE; display: flex; flex-direction: column; gap: 2px; padding: 18px 12px; box-sizing: border-box">
+    <div style="padding: 4px 10px 18px; font-size: 13px; font-weight: 700">サンプル登録支援機関</div>
+    <sc-for list="{{nav}}" as="item" hint-placeholder-count="5">
+      <sc-if value="{{item.active}}" hint-placeholder-val="{{false}}">
+        <a href="#" style="display: block; padding: 8px 12px; border-radius: 6px; background: #EEF0FB; color: #2E3A9E; font-weight: 500">{{item.label}}</a>
+      </sc-if>
+      <sc-if value="{{item.inactive}}" hint-placeholder-val="{{true}}">
+        <a href="#" style="display: block; padding: 8px 12px; border-radius: 6px; color: #3F4553">{{item.label}}</a>
+      </sc-if>
+    </sc-for>
+    <div style="margin-top: auto; padding: 12px; font-size: 13px; color: #5A6070; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid #EEF0F3">
+      <a href="#" style="color: #3F4553">設定</a>
+      <div>momoe ・ <a href="#" style="color: #3F4553">ログアウト</a></div>
+    </div>
+  </nav>
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <header style="background: #FFFFFF; border-bottom: 1px solid #E6E8EE; padding: 12px 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+      <label style="flex: 1 1 320px; max-width: 420px; display: flex; align-items: center; gap: 8px; border: 1px solid #DADDE5; border-radius: 6px; padding: 7px 10px; color: #5A6070">
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+        <span style="position: absolute; width: 1px; height: 1px; overflow: hidden">検索</span>
+        <input type="search" placeholder="氏名・在留カード番号・受入れ機関で探す" style="font: inherit; font-size: 13px; border: 0; outline: none; flex: 1; min-width: 0">
+      </label>
+    </header>
+    <main style="padding: 24px 32px 40px; display: flex; flex-direction: column; gap: 16px">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+        <h1 style="margin: 0; font-size: 20px; font-weight: 700">外国人台帳</h1>
+        <button type="button" style="font: inherit; font-weight: 500; background: #2E3A9E; color: #FFFFFF; border: 0; border-radius: 6px; padding: 9px 14px; min-height: 38px; cursor: pointer">＋ 登録する</button>
+      </div>
+      <div role="tablist" aria-label="在留期限で絞る" style="display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid #E6E8EE">
+        <sc-for list="{{tabs}}" as="t" hint-placeholder-count="4">
+          <button type="button" role="tab" aria-selected="{{t.selected}}" style="font: inherit; font-size: 13px; background: transparent; border: 0; border-bottom: 2px solid {{t.line}}; color: {{t.color}}; padding: 8px 12px; cursor: pointer; font-weight: {{t.weight}}">{{t.label}} <span style="margin-left: 4px; background: #EEF0F3; color: #3F4553; border-radius: 999px; padding: 1px 8px; font-size: 12px">{{t.count}}</span></button>
+        </sc-for>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+        <select aria-label="受入れ機関" style="font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid #DADDE5; border-radius: 6px; background: #FFFFFF"><option>受入れ機関: すべて</option></select>
+        <select aria-label="担当者" style="font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid #DADDE5; border-radius: 6px; background: #FFFFFF"><option>担当者: すべて</option></select>
+        <select aria-label="分野" style="font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid #DADDE5; border-radius: 6px; background: #FFFFFF"><option>分野: すべて</option></select>
+        <select aria-label="状態" style="font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid #DADDE5; border-radius: 6px; background: #FFFFFF"><option>状態: 入国前・在留中</option></select>
+        <select aria-label="並び順" style="font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid #DADDE5; border-radius: 6px; background: #FFFFFF"><option>並び順: 在留期限の近い順</option></select>
+        <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #3F4553"><input type="checkbox">無効化済みも含む</label>
+        <div style="margin-left: auto; font-size: 13px; color: #5A6070">30 人</div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #E6E8EE; border-radius: 8px; overflow-x: auto">
+        <table style="width: 100%; border-collapse: collapse; min-width: 860px">
+          <thead>
+            <tr style="text-align: left; color: #5A6070; font-size: 12px; background: #FAFBFC">
+              <th style="font-weight: 500; padding: 9px 16px; border-bottom: 1px solid #E6E8EE">氏名</th>
+              <th style="font-weight: 500; padding: 9px 16px; border-bottom: 1px solid #E6E8EE">在留期限</th>
+              <th style="font-weight: 500; padding: 9px 16px; border-bottom: 1px solid #E6E8EE">受入れ機関</th>
+              <th style="font-weight: 500; padding: 9px 16px; border-bottom: 1px solid #E6E8EE">分野</th>
+              <th style="font-weight: 500; padding: 9px 16px; border-bottom: 1px solid #E6E8EE">担当者</th>
+              <th style="font-weight: 500; padding: 9px 16px; border-bottom: 1px solid #E6E8EE">状態</th>
+            </tr>
+          </thead>
+          <tbody>
+            <sc-for list="{{rows}}" as="r" hint-placeholder-count="10">
+              <tr>
+                <td style="padding: 10px 16px; border-bottom: 1px solid #F0F1F4"><a href="#" style="color: #1A1D24; font-weight: 500">{{r.name}}</a><div style="font-size: 12px; color: #5A6070; margin-top: 1px">{{r.roman}}・{{r.nation}}</div></td>
+                <td style="padding: 10px 16px; border-bottom: 1px solid #F0F1F4; white-space: nowrap"><div style="font-variant-numeric: tabular-nums; color: #3F4553">{{r.expires}}</div><div style="font-size: 12px; font-weight: 500; color: {{r.leftColor}}; margin-top: 1px"><span aria-hidden="true" style="display: inline-block; width: 6px; height: 6px; border-radius: 3px; background: {{r.dot}}; margin-right: 5px"></span>{{r.left}}</div></td>
+                <td style="padding: 10px 16px; border-bottom: 1px solid #F0F1F4; color: #3F4553; max-width: 220px">{{r.host}}</td>
+                <td style="padding: 10px 16px; border-bottom: 1px solid #F0F1F4; color: #3F4553">{{r.field}}</td>
+                <td style="padding: 10px 16px; border-bottom: 1px solid #F0F1F4; color: #3F4553; white-space: nowrap">{{r.staff}}</td>
+                <td style="padding: 10px 16px; border-bottom: 1px solid #F0F1F4"><span style="font-size: 12px; color: #3F4553; border: 1px solid #DADDE5; border-radius: 999px; padding: 2px 10px; white-space: nowrap">{{r.status}}</span></td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const labels = ['ダッシュボード', '外国人台帳', '受入れ機関台帳', '相談', '帳票'];
+    const nav = labels.map((l, i) => ({ label: l, active: i === 1, inactive: i !== 1 }));
+    const tabDefs = [['すべて', '30'], ['期限超過', '1'], ['7日以内', '1'], ['14日以内', '1']];
+    const tabs = tabDefs.map((t, i) => ({ label: t[0], count: t[1], selected: i === 0 ? 'true' : 'false', line: i === 0 ? '#2E3A9E' : 'transparent', color: i === 0 ? '#1A1D24' : '#5A6070', weight: i === 0 ? '700' : '400' }));
+    const over = { leftColor: '#B4321C', dot: '#B4321C' };
+    const soon = { leftColor: '#8A5A00', dot: '#C58B00' };
+    const near = { leftColor: '#22543D', dot: '#2F855A' };
+    const calm = { leftColor: '#5A6070', dot: '#B9BECA' };
+    const rows = [
+      Object.assign({ name: '呉雪麗', roman: 'WU XUELI', nation: '中国', expires: '2026-10-15', left: '5日超過', host: 'サンプル精機工業株式会社', field: '工業製品製造業', staff: '佐藤 花子', status: '在留中' }, over),
+      Object.assign({ name: '呉偉', roman: 'WU WEI', nation: '中国', expires: '2026-10-25', left: 'あと5日', host: 'サンプル精機工業株式会社', field: '工業製品製造業', staff: '鈴木 次郎', status: '在留中' }, soon),
+      Object.assign({ name: '呉艶欣', roman: 'WU YANXIN', nation: '中国', expires: '2026-11-01', left: 'あと12日', host: 'サンプル食品株式会社', field: '飲食料品製造業', staff: '佐藤 花子', status: '在留中' }, near),
+      Object.assign({ name: '黄鵬勇', roman: 'HUANG PENGYONG', nation: '中国', expires: '2026-12-14', left: 'あと55日', host: 'サンプル精機工業株式会社', field: '工業製品製造業', staff: '佐藤 花子', status: '在留中' }, calm),
+      Object.assign({ name: '楊艶', roman: 'YANG YAN', nation: '中国', expires: '—', left: '入国前', host: 'サンプル精機工業株式会社（予定）', field: '工業製品製造業', staff: '佐藤 花子', status: '入国前' }, calm),
+      Object.assign({ name: 'Nguyễn Văn An', roman: 'NGUYEN VAN AN', nation: 'ベトナム', expires: '—', left: '入国前', host: 'サンプル精機工業株式会社（予定）', field: '工業製品製造業', staff: '佐藤 花子', status: '入国前' }, calm),
+      Object.assign({ name: '呉静敏', roman: 'WU JINGMIN', nation: '中国', expires: '2027-01-28', left: 'あと100日', host: 'サンプル精機工業株式会社', field: '工業製品製造業', staff: '佐藤 花子', status: '在留中' }, calm),
+      Object.assign({ name: '張浩軍', roman: 'ZHANG HAOJUN', nation: '中国', expires: '2027-02-17', left: 'あと120日', host: 'サンプル精機工業株式会社', field: '工業製品製造業', staff: '鈴木 次郎', status: '在留中' }, calm),
+      Object.assign({ name: '周雪傑', roman: 'ZHOU XUEJIE', nation: '中国', expires: '2027-03-09', left: 'あと140日', host: 'サンプル水産加工株式会社', field: '飲食料品製造業', staff: '佐藤 花子', status: '在留中' }, calm),
+      Object.assign({ name: '王麗娜', roman: 'WANG LINA', nation: '中国', expires: '2027-09-15', left: 'あと330日', host: 'さくら台フーズ株式会社', field: '飲食料品製造業', staff: '佐藤 花子', status: '在留中' }, calm)
+    ];
+    return { nav, tabs, rows };
+  }
+}
+</script>
+</body>
+</html>

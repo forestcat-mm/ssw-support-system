@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>申請の書類の一覧 案B</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2E3A9E;text-decoration:none}a:hover{color:#1E2875;text-decoration:underline}
+</style>
+</helmet>
+<div style="font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif; font-size: 14px; color: #1A1D24; background: #F7F8FA; min-height: 1100px; display: flex; flex-wrap: wrap">
+  <nav aria-label="メインメニュー" style="flex: 1 1 220px; max-width: 220px; min-width: 200px; background: #FFFFFF; border-right: 1px solid #E6E8EE; display: flex; flex-direction: column; gap: 2px; padding: 18px 12px; box-sizing: border-box">
+    <div style="padding: 4px 10px 18px; font-size: 13px; font-weight: 700">サンプル登録支援機関</div>
+    <sc-for list="{{nav}}" as="item" hint-placeholder-count="5">
+      <sc-if value="{{item.active}}" hint-placeholder-val="{{false}}">
+        <a href="#" style="display: block; padding: 8px 12px; border-radius: 6px; background: #EEF0FB; color: #2E3A9E; font-weight: 500">{{item.label}}</a>
+      </sc-if>
+      <sc-if value="{{item.inactive}}" hint-placeholder-val="{{true}}">
+        <a href="#" style="display: block; padding: 8px 12px; border-radius: 6px; color: #3F4553">{{item.label}}</a>
+      </sc-if>
+    </sc-for>
+    <div style="margin-top: auto; padding: 12px; font-size: 13px; color: #5A6070; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid #EEF0F3">
+      <a href="#" style="color: #3F4553">設定</a>
+      <div>momoe ・ <a href="#" style="color: #3F4553">ログアウト</a></div>
+    </div>
+  </nav>
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <header style="background: #FFFFFF; border-bottom: 1px solid #E6E8EE; padding: 12px 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+      <label style="flex: 1 1 320px; max-width: 420px; display: flex; align-items: center; gap: 8px; border: 1px solid #DADDE5; border-radius: 6px; padding: 7px 10px; color: #5A6070">
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+        <span style="position: absolute; width: 1px; height: 1px; overflow: hidden">検索</span>
+        <input type="search" placeholder="氏名・在留カード番号・受入れ機関で探す" style="font: inherit; font-size: 13px; border: 0; outline: none; flex: 1; min-width: 0">
+      </label>
+    </header>
+    <main style="padding: 20px 32px 40px; display: flex; flex-direction: column; gap: 16px">
+      <a href="#" style="font-size: 13px">← 王麗娜（帳票）</a>
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px">
+        <div>
+          <h1 style="margin: 0; font-size: 20px; font-weight: 700">申請の書類の一覧</h1>
+          <div style="margin-top: 4px; font-size: 13px; color: #5A6070">在留資格認定証明書交付申請・基準日 2026-07-10・さくら台フーズ株式会社</div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <button type="button" style="font: inherit; font-size: 13px; font-weight: 500; background: #FFFFFF; color: #1A1D24; border: 1px solid #DADDE5; border-radius: 6px; padding: 8px 14px; cursor: pointer">不足を一括で生成</button>
+          <button type="button" style="font: inherit; font-size: 13px; font-weight: 500; background: #2E3A9E; color: #FFFFFF; border: 0; border-radius: 6px; padding: 9px 14px; cursor: pointer">提出用の PDF を作る</button>
+        </div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 12px">
+        <sc-for list="{{summary}}" as="s" hint-placeholder-count="4">
+          <div style="background: #FFFFFF; border: 1px solid #E6E8EE; border-radius: 8px; padding: 10px 16px; display: flex; align-items: center; gap: 10px; min-width: 150px">
+            <span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 4px; background: {{s.dot}}"></span>
+            <span style="font-size: 13px; color: #3F4553">{{s.label}}</span>
+            <span style="margin-left: auto; font-size: 18px; font-weight: 700">{{s.count}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #E6E8EE; border-radius: 8px; overflow-x: auto">
+        <table style="width: 100%; border-collapse: collapse; min-width: 860px">
+          <thead>
+            <tr style="text-align: left; color: #5A6070; font-size: 12px; background: #FAFBFC">
+              <th style="font-weight: 500; padding: 9px 16px; border-bottom: 1px solid #E6E8EE; width: 170px">状態</th>
+              <th style="font-weight: 500; padding: 9px 16px; border-bottom: 1px solid #E6E8EE; width: 80px">番号</th>
+              <th style="font-weight: 500; padding: 9px 16px; border-bottom: 1px solid #E6E8EE">書類</th>
+              <th style="font-weight: 500; padding: 9px 16px; border-bottom: 1px solid #E6E8EE; text-align: right; width: 220px">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <sc-for list="{{rows}}" as="r" hint-placeholder-count="10">
+              <sc-if value="{{r.isGroup}}" hint-placeholder-val="{{false}}">
+                <tr><td colspan="4" style="padding: 10px 16px; background: #F3F4F7; font-size: 12px; font-weight: 700; color: #3F4553; border-bottom: 1px solid #E6E8EE">{{r.title}}</td></tr>
+              </sc-if>
+              <sc-if value="{{r.isRow}}" hint-placeholder-val="{{true}}">
+                <tr>
+                  <td style="padding: 10px 16px; border-bottom: 1px solid #F0F1F4; white-space: nowrap; color: {{r.fg}}; font-weight: 500; font-size: 13px"><span aria-hidden="true" style="display: inline-block; width: 8px; height: 8px; border-radius: 4px; background: {{r.fg}}; margin-right: 6px"></span>{{r.state}}</td>
+                  <td style="padding: 10px 16px; border-bottom: 1px solid #F0F1F4; color: #5A6070; font-variant-numeric: tabular-nums; white-space: nowrap">{{r.no}}</td>
+                  <td style="padding: 10px 16px; border-bottom: 1px solid #F0F1F4"><div style="font-weight: 500">{{r.doc}}</div><div style="font-size: 12px; color: #5A6070; margin-top: 2px">{{r.note}}</div></td>
+                  <td style="padding: 10px 16px; border-bottom: 1px solid #F0F1F4; text-align: right; white-space: nowrap">
+                    <sc-if value="{{r.hasAction}}" hint-placeholder-val="{{true}}">
+                      <button type="button" style="font: inherit; font-size: 13px; font-weight: 500; background: #FFFFFF; color: #2E3A9E; border: 1px solid #CDD1EF; border-radius: 6px; padding: 5px 12px; cursor: pointer">{{r.action}}</button>
+                    </sc-if>
+                  </td>
+                </tr>
+              </sc-if>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const labels = ['ダッシュボード', '外国人台帳', '受入れ機関台帳', '相談', '帳票'];
+    const nav = labels.map((l, i) => ({ label: l, active: i === 1, inactive: i !== 1 }));
+    const summary = [
+      { label: '不足', count: '4', dot: '#B4321C' },
+      { label: '要確認', count: '2', dot: '#C58B00' },
+      { label: 'そろっている', count: '6', dot: '#2F855A' },
+      { label: 'システムの外', count: '3', dot: '#B9BECA' }
+    ];
+    const S = {
+      missing: { fg: '#B4321C' }, check: { fg: '#8A5A00' }, ok: { fg: '#22543D' }, out: { fg: '#5A6070' }
+    };
+    const g = (t) => ({ isGroup: true, isRow: false, title: t });
+    const r = (st, label, no, doc, note, action) => Object.assign({ isGroup: false, isRow: true, state: label, no, doc, note, action: action || '', hasAction: !!action }, S[st]);
+    const rows = [
+      g('第1表 申請人に関する書類'),
+      r('out', 'システムの外', '1', '返信用封筒', '窓口申請のときだけ'),
+      r('ok', '生成済み', '3', '提出書類一覧表（認定用）', '統合 PDF の先頭に自動で付く', '開く'),
+      r('out', 'システムの外', '4', '在留資格認定証明書交付申請書', '統合 PDF の画面でファイルを足す', 'ファイルを足す'),
+      r('missing', '未生成', '5（1）', '特定技能外国人の報酬に関する説明書', '参考様式第1-4号', '生成する'),
+      r('ok', '添付済み', '5（2）', '賃金規程の写し', '受入れ機関の書類の保管庫から'),
+      r('missing', '未生成', '6', '特定技能雇用契約書の写し', '参考様式第1-5号・日中併記', '生成する'),
+      r('missing', '未生成', '7（1）', '雇用条件書の写し', '参考様式第1-6号・日中併記＋補足', '生成する'),
+      r('check', '要る（作れない）', '8（1）', '雇用の経緯に係る説明書', '参考様式第1-16号・ファイルを足す', 'ファイルを足す'),
+      r('check', '受診が古い', '9（1）', '健康診断個人票', '受診日 2026-06-25・申請に使える期間の外', '添付し直す'),
+      r('missing', '未添付', '9（2）', '受診者の申告書', '参考様式第1-3号別紙', '添付する'),
+      g('第2表の2 所属機関に関する書類（法人）'),
+      r('ok', '添付済み', '3', '登記事項証明書', '発行 2026-06-15'),
+      r('ok', '生成済み', '1', '特定技能所属機関概要書', '参考様式第1-11-1号', '開く')
+    ];
+    return { nav, summary, rows };
+  }
+}
+</script>
+</body>
+</html>

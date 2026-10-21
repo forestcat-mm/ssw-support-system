@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>雇用契約を登録する</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2E3A9E;text-decoration:none}a:hover{color:#1E2875;text-decoration:underline}
+</style>
+</helmet>
+<div style="font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif; font-size: 14px; color: #1A1D24; background: #F7F8FA; min-height: 1500px; display: flex; flex-wrap: wrap">
+  <nav aria-label="メインメニュー" style="flex: 1 1 220px; max-width: 220px; min-width: 200px; background: #FFFFFF; border-right: 1px solid #E6E8EE; display: flex; flex-direction: column; gap: 2px; padding: 18px 12px; box-sizing: border-box">
+    <div style="padding: 4px 10px 18px; font-size: 13px; font-weight: 700">サンプル登録支援機関</div>
+    <sc-for list="{{nav}}" as="item" hint-placeholder-count="7">
+      <sc-if value="{{item.active}}" hint-placeholder-val="{{false}}">
+        <a href="#" style="display: block; padding: 8px 12px; border-radius: 6px; background: #EEF0FB; color: #2E3A9E; font-weight: 500">{{item.label}}</a>
+      </sc-if>
+      <sc-if value="{{item.inactive}}" hint-placeholder-val="{{true}}">
+        <a href="#" style="display: block; padding: 8px 12px; border-radius: 6px; color: #3F4553">{{item.label}}</a>
+      </sc-if>
+    </sc-for>
+  </nav>
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <header style="position: sticky; top: 0; z-index: 5; background: #FFFFFF; border-bottom: 1px solid #E6E8EE; padding: 0 32px; display: flex; flex-direction: column">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; min-height: 56px; padding-top: 6px">
+        <a href="#" aria-label="外国人台帳へ戻る" style="font-size: 15px; color: #5A6070; padding: 4px 2px">←</a>
+        <div style="display: flex; align-items: center; gap: 10px">
+          <div role="img" aria-label="顔写真" style="width: 30px; height: 38px; border-radius: 4px; background: #E3E6EE; overflow: hidden; display: flex; align-items: flex-end; justify-content: center"><svg aria-hidden="true" width="26" height="32" viewBox="0 0 26 32"><circle cx="13" cy="11" r="6" fill="#B9BECA"></circle><path d="M1 32c1-8 6-12 12-12s11 4 12 12z" fill="#B9BECA"></path></svg></div>
+          <h1 style="margin: 0; font-size: 17px; font-weight: 700">呉雪麗</h1>
+          <span style="color: #5A6070; font-size: 13px">WU XUELI</span>
+          <span style="font-size: 12px; color: #3F4553; border: 1px solid #DADDE5; border-radius: 999px; padding: 1px 9px">在留中</span>
+        </div>
+        <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; background: #FDF3F1; border: 1px solid #F3D2CB; border-radius: 999px; padding: 3px 12px"><span style="color: #5A6070">在留期限</span><span style="font-weight: 700; font-variant-numeric: tabular-nums">2026-10-15</span><span style="font-weight: 700; color: #B4321C">5日超過</span></span>
+        <span style="font-size: 13px; color: #3F4553"><span style="color: #5A6070">受入れ機関</span> <a href="#">サンプル精機工業株式会社</a></span>
+        <span style="font-size: 13px; color: #3F4553"><span style="color: #5A6070">担当</span> 佐藤 花子</span>
+        <div style="margin-left: auto; display: flex; gap: 8px">
+          <button type="button" style="font: inherit; font-size: 13px; font-weight: 500; background: #FFFFFF; color: #1A1D24; border: 1px solid #DADDE5; border-radius: 6px; padding: 6px 12px; cursor: pointer">編集</button>
+          <button type="button" aria-label="ほかの操作" style="font: inherit; background: #FFFFFF; color: #3F4553; border: 1px solid #DADDE5; border-radius: 6px; padding: 4px 10px; cursor: pointer">…</button>
+        </div>
+      </div>
+      <div role="tablist" aria-label="詳細の区分" style="display: flex; flex-wrap: wrap; gap: 4px">
+        <sc-for list="{{tabs}}" as="t" hint-placeholder-count="7">
+          <button type="button" role="tab" aria-selected="{{t.selected}}" style="font: inherit; font-size: 13px; background: transparent; border: 0; border-bottom: 2px solid {{t.line}}; color: {{t.color}}; padding: 8px 14px; cursor: pointer; font-weight: {{t.weight}}">{{t.label}}</button>
+        </sc-for>
+      </div>
+      <nav aria-label="入力の目次" style="display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; border-top: 1px solid #EEF0F3; padding: 4px 0">
+        <span style="font-size: 12px; font-weight: 700; color: #5A6070; margin-right: 6px">目次</span>
+        <sc-for list="{{tocBar}}" as="t" hint-placeholder-count="4">
+          <a href="#{{t.id}}" aria-current="{{t.current}}" style="display: inline-flex; align-items: center; gap: 5px; font-size: 12px; padding: 4px 10px; border-radius: 999px; background: {{t.bg}}; color: {{t.color}}; font-weight: {{t.weight}}">{{t.label}}<sc-if value="{{t.warn}}" hint-placeholder-val="{{false}}"><span aria-label="入力が足りない項目あり" style="width: 6px; height: 6px; border-radius: 3px; background: #B4321C"></span></sc-if></a>
+        </sc-for>
+      </nav>
+    </header>
+    <main style="padding: 20px 32px 0; display: flex; flex-direction: column; gap: 16px; max-width: 1000px; box-sizing: border-box">
+      <div>
+        <a href="#" style="font-size: 13px">← 契約タブ</a>
+        <h2 style="margin: 6px 0 0; font-size: 20px; font-weight: 700">雇用契約を登録する</h2>
+        <div style="margin-top: 4px; font-size: 13px; color: #5A6070"><span style="font-weight: 700; color: #1A1D24">必須</span> の項目を入れると保存できます。入力の途中で欄を離れると、その場で確かめます。</div>
+      </div>
+      <section aria-labelledby="tpl-h" style="background: #FFFFFF; border: 1px solid #E6E8EE; border-radius: 8px; padding: 16px 20px; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px">
+        <div style="flex: 1 1 320px">
+          <label id="tpl-h" for="tpl" style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px">ひな形から入れる</label>
+          <select id="tpl" style="width: 100%; font: inherit; padding: 8px 10px; border: 1px solid #DADDE5; border-radius: 6px; background: #FFFFFF"><option>製造スタッフ（機械金属加工）・サンプル精機工業</option></select>
+        </div>
+        <button type="button" style="font: inherit; font-size: 13px; font-weight: 500; background: #FFFFFF; color: #2E3A9E; border: 1px solid #CDD1EF; border-radius: 6px; padding: 8px 14px; cursor: pointer">値を入れる</button>
+        <div style="flex-basis: 100%; font-size: 12px; color: #5A6070">ひな形の値が入ります。外国人ごとに変える項目（印 ◆）は空のまま、下の 1 にまとめて出します。</div>
+      </section>
+      <form aria-label="雇用契約の入力" style="background: #FFFFFF; border: 1px solid #E6E8EE; border-radius: 8px; padding: 4px 28px 12px">
+        <sc-for list="{{sections}}" as="s" hint-placeholder-count="4">
+          <fieldset id="{{s.id}}" style="border: 0; margin: 0; padding: 22px 0 6px; min-width: 0">
+            <legend style="display: contents"></legend>
+            <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; border-bottom: 2px solid #1A1D24; padding-bottom: 6px; margin-bottom: 4px">
+              <span style="font-size: 13px; font-weight: 700; color: #8A90A0">{{s.no}}</span>
+              <h3 style="margin: 0; font-size: 16px; font-weight: 700">{{s.title}}</h3>
+              <span style="font-size: 12px; color: #5A6070">{{s.meta}}</span>
+            </div>
+            <sc-if value="{{s.marked}}" hint-placeholder-val="{{false}}">
+              <div style="margin: 10px 0 4px; font-size: 13px; color: #2E3A9E; background: #F3F4FD; border-radius: 6px; padding: 8px 12px">◆ 外国人ごとに変える項目です。ひな形からは入りません。</div>
+            </sc-if>
+            <sc-for list="{{s.fields}}" as="f" hint-placeholder-count="4">
+              <div style="display: grid; grid-template-columns: 200px minmax(0, 1fr); column-gap: 20px; align-items: start; padding: 12px 0; border-bottom: 1px solid #EEF0F3">
+                <label for="{{f.id}}" style="padding-top: 8px; font-size: 13px; font-weight: {{f.labelWeight}}; color: #1A1D24">{{f.mark}}{{f.label}}<sc-if value="{{f.required}}" hint-placeholder-val="{{false}}"><span style="margin-left: 6px; font-size: 11px; font-weight: 700; color: #9A3412; background: #FCE8E4; border-radius: 4px; padding: 1px 5px">必須</span></sc-if></label>
+                <div style="display: flex; flex-direction: column; gap: 6px; min-width: 0">
+                  <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+                    <input id="{{f.id}}" type="text" value="{{f.value}}" placeholder="{{f.placeholder}}" style="font: inherit; width: {{f.width}}; max-width: 100%; padding: 8px 10px; border: 1px solid {{f.border}}; border-radius: 6px; background: #FFFFFF; box-sizing: border-box; color: #1A1D24">
+                    <span style="font-size: 13px; color: #5A6070">{{f.suffix}}</span>
+                  </div>
+                  <sc-if value="{{f.hasHelp}}" hint-placeholder-val="{{false}}"><div style="font-size: 12px; color: #5A6070">{{f.help}}</div></sc-if>
+                  <sc-if value="{{f.hasError}}" hint-placeholder-val="{{false}}"><div role="alert" style="font-size: 12px; font-weight: 500; color: {{f.errColor}}"><span aria-hidden="true" style="display: inline-block; width: 7px; height: 7px; border-radius: 4px; background: {{f.errColor}}; margin-right: 6px"></span>{{f.error}}</div></sc-if>
+                </div>
+              </div>
+            </sc-for>
+          </fieldset>
+        </sc-for>
+      </form>
+      <div style="position: sticky; bottom: 0; background: #FFFFFF; border-top: 1px solid #E6E8EE; margin: 0 -32px; padding: 12px 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+        <a href="#f-start" style="font-size: 13px; font-weight: 500; color: #B4321C"><span aria-hidden="true" style="display: inline-block; width: 8px; height: 8px; border-radius: 4px; background: #B4321C; margin-right: 6px"></span>入力が足りない項目 2 件</a>
+        <span style="font-size: 13px; color: #8A5A00">注意 1 件</span>
+        <div style="margin-left: auto; display: flex; gap: 8px">
+          <button type="button" style="font: inherit; font-size: 13px; font-weight: 500; background: #FFFFFF; color: #1A1D24; border: 1px solid #DADDE5; border-radius: 6px; padding: 9px 16px; cursor: pointer">取り消す</button>
+          <button type="submit" style="font: inherit; font-size: 13px; font-weight: 500; background: #2E3A9E; color: #FFFFFF; border: 0; border-radius: 6px; padding: 9px 18px; cursor: pointer">保存する（第1版）</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const labels = ['ダッシュボード', '外国人台帳', '受入れ機関台帳', '一括申請', '一括届出', '相談', '設定'];
+    const nav = labels.map((l, i) => ({ label: l, active: i === 1, inactive: i !== 1 }));
+    const tabNames = ['概要', '契約', '支援', '届出', '帳票', '帳簿', '履歴'];
+    const sel = 1;
+    const tabs = tabNames.map((t, i) => ({ label: t, selected: i === sel ? 'true' : 'false', line: i === sel ? '#2E3A9E' : 'transparent', color: i === sel ? '#1A1D24' : '#5A6070', weight: i === sel ? '700' : '400' }));
+    let n = 0;
+    const F = (label, o) => {
+      n += 1;
+      const req = !!o.required;
+      return {
+        id: n === 1 ? 'f-start' : 'f' + n, label, mark: o.marked ? '◆ ' : '', value: o.value || '', placeholder: o.placeholder || '', suffix: o.suffix || '',
+        width: o.width || '240px', required: req, labelWeight: req ? '700' : '400',
+        help: o.help || '', hasHelp: !!o.help, error: o.error || '', hasError: !!o.error, errColor: o.warn ? '#8A5A00' : '#B4321C',
+        border: o.error ? (o.warn ? '#E0B04B' : '#D9534F') : '#DADDE5'
+      };
+    };
+    const sections = [
+      { no: '1', title: '外国人ごとに変える項目', meta: 'ひな形の印の項目', marked: true, fields: [
+        F('契約期間', { marked: true, required: true, value: '', placeholder: '2026-11-01 〜 2027-10-31', width: '320px', error: '契約期間を入れてください。' }),
+        F('入国予定日', { marked: true, required: true, value: '', placeholder: '2026-11-01', width: '180px', error: '入国予定日を入れてください。' }),
+        F('基本給（月給）', { marked: true, required: true, value: '215,000', suffix: '円', width: '180px' }),
+        F('1 時間あたりの額', { marked: true, required: true, value: '1,313', suffix: '円', width: '180px', help: '月給 ÷ 月の所定労働時間（160 時間）で 1,344 円になります。', error: '計算した額（1,344 円）と違います。書き間違いでなければそのまま保存できます。', warn: true })
+      ] },
+      { no: '2', title: '期間と場所', meta: 'ひな形から', marked: false, fields: [
+        F('締結日', { required: true, value: '2026-10-21', width: '180px', help: '「20261021」のように打っても整います。' }),
+        F('事業所', { required: true, value: '本社工場', width: '320px' }),
+        F('分野・業務区分', { required: true, value: '工業製品製造業・機械金属加工', width: '320px', help: '業務区分は、選んだ事業所の分野のものだけが出ます。' }),
+        F('更新', { required: true, value: '更新する場合があり得る', width: '320px' })
+      ] },
+      { no: '3', title: '労働時間と休日', meta: 'ひな形から', marked: false, fields: [
+        F('始業・終業', { required: true, value: '8:30 〜 17:30', width: '200px', help: '時刻は直接入れても、5 分刻みで選んでもよい。' }),
+        F('所定労働時間', { required: true, value: '1日 8時間0分・月 160時間0分', width: '320px' }),
+        F('休日', { required: true, value: '土・日・祝・年末年始', width: '320px', suffix: '年 125 日' })
+      ] },
+      { no: '4', title: '賃金の支払い', meta: 'ひな形から', marked: false, fields: [
+        F('締切日・支払日', { required: true, value: '末日・翌月 25 日', width: '240px' }),
+        F('手当', { value: '通勤手当 10,000 円', width: '320px' }),
+        F('労使協定に基づく控除', { required: true, value: '有（社宅費・水道光熱費）', width: '320px' })
+      ] }
+    ];
+    sections.forEach((s, i) => { s.id = 'g' + (i + 1); });
+    const tocBar = sections.map((s, i) => { const cur = i === 0; return { label: s.no + ' ' + s.title, id: s.id, warn: s.fields.some((f) => f.hasError && f.errColor === '#B4321C'), current: cur ? 'location' : 'false', bg: cur ? '#EEF0FB' : 'transparent', color: cur ? '#2E3A9E' : '#3F4553', weight: cur ? '700' : '400' }; });
+    return { nav, tabs, sections, tocBar };
+  }
+}
+</script>
+</body>
+</html>

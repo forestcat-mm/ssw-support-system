@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>ダッシュボード 案B</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2E3A9E;text-decoration:none}a:hover{color:#1E2875;text-decoration:underline}
+</style>
+</helmet>
+<div style="font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif; font-size: 14px; color: #1A1D24; background: #F7F8FA; min-height: 1040px; display: flex; flex-wrap: wrap">
+  <nav aria-label="メインメニュー" style="flex: 1 1 220px; max-width: 220px; min-width: 200px; background: #FFFFFF; border-right: 1px solid #E6E8EE; display: flex; flex-direction: column; gap: 2px; padding: 18px 12px; box-sizing: border-box">
+    <div style="padding: 4px 10px 18px; font-size: 13px; font-weight: 700; color: #1A1D24">サンプル登録支援機関</div>
+    <sc-for list="{{nav}}" as="item" hint-placeholder-count="5">
+      <sc-if value="{{item.active}}" hint-placeholder-val="{{false}}">
+        <a href="#" style="display: block; padding: 8px 12px; border-radius: 6px; background: #EEF0FB; color: {{accent}}; font-weight: 500">{{item.label}}</a>
+      </sc-if>
+      <sc-if value="{{item.inactive}}" hint-placeholder-val="{{true}}">
+        <a href="#" style="display: block; padding: 8px 12px; border-radius: 6px; color: #3F4553">{{item.label}}</a>
+      </sc-if>
+    </sc-for>
+    <div style="margin-top: auto; padding: 12px; font-size: 13px; color: #5A6070; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid #EEF0F3">
+      <a href="#" style="color: #3F4553">設定</a>
+      <div>momoe ・ <a href="#" style="color: #3F4553">ログアウト</a></div>
+    </div>
+  </nav>
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <header style="background: #FFFFFF; border-bottom: 1px solid #E6E8EE; padding: 12px 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+      <label style="flex: 1 1 320px; max-width: 420px; display: flex; align-items: center; gap: 8px; border: 1px solid #DADDE5; border-radius: 6px; padding: 7px 10px; color: #5A6070">
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+        <span style="position: absolute; width: 1px; height: 1px; overflow: hidden">検索</span>
+        <input type="search" placeholder="氏名・在留カード番号・受入れ機関で探す" style="font: inherit; font-size: 13px; border: 0; outline: none; flex: 1; min-width: 0; color: #1A1D24">
+      </label>
+      <button type="button" style="margin-left: auto; font: inherit; font-weight: 500; background: {{accent}}; color: #FFFFFF; border: 0; border-radius: 6px; padding: 9px 14px; min-height: 38px; cursor: pointer">＋ 届出を起票</button>
+    </header>
+    <main style="padding: 24px 32px 40px; display: flex; flex-direction: column; gap: 16px">
+      <h1 style="margin: 0; font-size: 20px; font-weight: 700">ダッシュボード</h1>
+      <div role="tablist" aria-label="期限で絞る" style="display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid #E6E8EE">
+        <sc-for list="{{tabs}}" as="t" hint-placeholder-count="5">
+          <button type="button" role="tab" aria-selected="{{t.selected}}" style="font: inherit; font-size: 13px; background: transparent; border: 0; border-bottom: 2px solid {{t.line}}; color: {{t.color}}; padding: 8px 12px; cursor: pointer; font-weight: {{t.weight}}">{{t.label}} <span style="margin-left: 4px; background: {{t.countBg}}; color: {{t.countFg}}; border-radius: 999px; padding: 1px 8px; font-size: 12px">{{t.count}}</span></button>
+        </sc-for>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+        <select aria-label="担当者" style="font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid #DADDE5; border-radius: 6px; background: #FFFFFF"><option>担当者: すべて</option></select>
+        <select aria-label="種別" style="font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid #DADDE5; border-radius: 6px; background: #FFFFFF"><option>種別: すべて</option></select>
+        <select aria-label="届出主体" style="font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid #DADDE5; border-radius: 6px; background: #FFFFFF"><option>届出主体: すべて</option></select>
+        <select aria-label="状態" style="font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid #DADDE5; border-radius: 6px; background: #FFFFFF"><option>状態: 未着手・対応中</option></select>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #E6E8EE; border-radius: 8px; overflow-x: auto">
+        <table style="width: 100%; border-collapse: collapse; min-width: 760px">
+          <thead>
+            <tr style="text-align: left; color: #5A6070; font-size: 12px; background: #FAFBFC">
+              <th style="font-weight: 500; padding: 9px 16px; border-bottom: 1px solid #E6E8EE">状態</th>
+              <th style="font-weight: 500; padding: 9px 16px; border-bottom: 1px solid #E6E8EE">期限</th>
+              <th style="font-weight: 500; padding: 9px 16px; border-bottom: 1px solid #E6E8EE">種別</th>
+              <th style="font-weight: 500; padding: 9px 16px; border-bottom: 1px solid #E6E8EE">対象</th>
+              <th style="font-weight: 500; padding: 9px 16px; border-bottom: 1px solid #E6E8EE">届出主体</th>
+              <th style="font-weight: 500; padding: 9px 16px; border-bottom: 1px solid #E6E8EE"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+              <tr>
+                <td style="padding: 10px 16px; border-bottom: 1px solid #F0F1F4; white-space: nowrap; color: {{r.chipFg}}; font-weight: 500; font-size: 13px"><span aria-hidden="true" style="display: inline-block; width: 8px; height: 8px; border-radius: 4px; background: {{r.chipFg}}; margin-right: 6px"></span>{{r.chip}}</td>
+                <td style="padding: 10px 16px; border-bottom: 1px solid #F0F1F4; color: #3F4553; font-variant-numeric: tabular-nums; white-space: nowrap">{{r.date}}</td>
+                <td style="padding: 10px 16px; border-bottom: 1px solid #F0F1F4"><a href="#" style="color: #1A1D24; font-weight: 500">{{r.kind}}</a></td>
+                <td style="padding: 10px 16px; border-bottom: 1px solid #F0F1F4"><a href="#">{{r.who}}</a></td>
+                <td style="padding: 10px 16px; border-bottom: 1px solid #F0F1F4; color: #5A6070">{{r.owner}}</td>
+                <td style="padding: 10px 16px; border-bottom: 1px solid #F0F1F4; text-align: right"><a href="#" style="font-size: 13px; font-weight: 500">{{r.action}} →</a></td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2E3A9E","options":["#2E3A9E","#1B2A5C","#2563A8"]},"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? '#2E3A9E';
+    const labels = ['ダッシュボード', '外国人台帳', '受入れ機関台帳', '相談', '帳票'];
+    const nav = labels.map((l, i) => ({ label: l, active: i === 0, inactive: i !== 0 }));
+    const tabDefs = [['すべて', '49'], ['期限超過', '4'], ['7日以内', '7'], ['14日以内', '13'], ['受理待ち', '2']];
+    const tabs = tabDefs.map((t, i) => ({
+      label: t[0], count: t[1], selected: i === 0 ? 'true' : 'false',
+      line: i === 0 ? accent : 'transparent', color: i === 0 ? '#1A1D24' : '#5A6070', weight: i === 0 ? '700' : '400',
+      countBg: i === 1 ? '#FCE8E4' : '#EEF0F3', countFg: i === 1 ? '#9A3412' : '#3F4553'
+    }));
+    const over = { chip: '超過 8日', chipFg: '#B4321C' };
+    const over5 = { chip: '超過 5日', chipFg: '#B4321C' };
+    const soon = { chip: 'あと4日', chipFg: '#8A5A00' };
+    const rows = [
+      Object.assign({ date: '2026-10-12', kind: '定期面談（3か月ごと）', who: '呉雪麗', owner: '内部', action: '記録する' }, over),
+      Object.assign({ date: '2026-10-12', kind: '定期面談（3か月ごと）', who: '馬洋艶', owner: '内部', action: '記録する' }, over),
+      Object.assign({ date: '2026-10-12', kind: '定期面談（3か月ごと）', who: '徐偉磊', owner: '内部', action: '記録する' }, over),
+      Object.assign({ date: '2026-10-15', kind: '在留期間更新許可申請', who: '呉雪麗', owner: '受入れ機関', action: '開く' }, over5),
+      Object.assign({ date: '2026-10-24', kind: '定期面談（3か月ごと）', who: '呉偉', owner: '内部', action: '記録する' }, soon),
+      Object.assign({ date: '2026-10-24', kind: '定期面談（3か月ごと）', who: '陳勇', owner: '内部', action: '記録する' }, soon),
+      Object.assign({ date: '2026-10-24', kind: '定期面談（3か月ごと）', who: '朱鵬磊', owner: '内部', action: '記録する' }, soon),
+      Object.assign({ date: '2026-10-24', kind: '定期面談（3か月ごと）', who: '黄静偉', owner: '内部', action: '記録する' }, soon)
+    ];
+    return { accent, nav, tabs, rows };
+  }
+}
+</script>
+</body>
+</html>

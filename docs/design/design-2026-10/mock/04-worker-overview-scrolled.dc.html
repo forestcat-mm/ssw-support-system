@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>外国人の詳細 案5 スクロール時</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2E3A9E;text-decoration:none}a:hover{color:#1E2875;text-decoration:underline}
+</style>
+</helmet>
+<div style="font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif; font-size: 14px; color: #1A1D24; background: #F7F8FA; min-height: 900px; display: flex; flex-wrap: wrap">
+  <nav aria-label="メインメニュー" style="flex: 1 1 220px; max-width: 220px; min-width: 200px; background: #FFFFFF; border-right: 1px solid #E6E8EE; display: flex; flex-direction: column; gap: 2px; padding: 18px 12px; box-sizing: border-box">
+    <div style="padding: 4px 10px 18px; font-size: 13px; font-weight: 700">サンプル登録支援機関</div>
+    <sc-for list="{{nav}}" as="item" hint-placeholder-count="7">
+      <sc-if value="{{item.active}}" hint-placeholder-val="{{false}}">
+        <a href="#" style="display: block; padding: 8px 12px; border-radius: 6px; background: #EEF0FB; color: #2E3A9E; font-weight: 500">{{item.label}}</a>
+      </sc-if>
+      <sc-if value="{{item.inactive}}" hint-placeholder-val="{{true}}">
+        <a href="#" style="display: block; padding: 8px 12px; border-radius: 6px; color: #3F4553">{{item.label}}</a>
+      </sc-if>
+    </sc-for>
+  </nav>
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <header style="position: sticky; top: 0; z-index: 5; background: #FFFFFF; border-bottom: 1px solid #E6E8EE; padding: 0 32px; display: flex; flex-direction: column">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; min-height: 56px; padding-top: 6px">
+        <a href="#" aria-label="外国人台帳へ戻る" style="font-size: 15px; color: #5A6070; padding: 4px 2px">←</a>
+        <div style="display: flex; align-items: center; gap: 10px">
+          <div role="img" aria-label="顔写真" style="width: 30px; height: 38px; border-radius: 4px; background: #E3E6EE; overflow: hidden; display: flex; align-items: flex-end; justify-content: center"><svg aria-hidden="true" width="26" height="32" viewBox="0 0 26 32"><circle cx="13" cy="11" r="6" fill="#B9BECA"></circle><path d="M1 32c1-8 6-12 12-12s11 4 12 12z" fill="#B9BECA"></path></svg></div>
+          <h1 style="margin: 0; font-size: 17px; font-weight: 700">呉雪麗</h1>
+          <span style="color: #5A6070; font-size: 13px">WU XUELI</span>
+          <span style="font-size: 12px; color: #3F4553; border: 1px solid #DADDE5; border-radius: 999px; padding: 1px 9px">在留中</span>
+        </div>
+        <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; background: #FDF3F1; border: 1px solid #F3D2CB; border-radius: 999px; padding: 3px 12px"><span style="color: #5A6070">在留期限</span><span style="font-weight: 700; font-variant-numeric: tabular-nums">2026-10-15</span><span style="font-weight: 700; color: #B4321C">5日超過</span></span>
+        <span style="font-size: 13px; color: #3F4553"><span style="color: #5A6070">受入れ機関</span> <a href="#">サンプル精機工業株式会社</a></span>
+        <span style="font-size: 13px; color: #3F4553"><span style="color: #5A6070">担当</span> 佐藤 花子</span>
+        <div style="margin-left: auto; display: flex; gap: 8px">
+          <button type="button" style="font: inherit; font-size: 13px; font-weight: 500; background: #FFFFFF; color: #1A1D24; border: 1px solid #DADDE5; border-radius: 6px; padding: 6px 12px; cursor: pointer">編集</button>
+          <button type="button" aria-label="ほかの操作" style="font: inherit; background: #FFFFFF; color: #3F4553; border: 1px solid #DADDE5; border-radius: 6px; padding: 4px 10px; cursor: pointer">…</button>
+        </div>
+      </div>
+      <div role="tablist" aria-label="詳細の区分" style="display: flex; flex-wrap: wrap; gap: 4px">
+        <sc-for list="{{tabs}}" as="t" hint-placeholder-count="7">
+          <button type="button" role="tab" aria-selected="{{t.selected}}" style="font: inherit; font-size: 13px; background: transparent; border: 0; border-bottom: 2px solid {{t.line}}; color: {{t.color}}; padding: 8px 14px; cursor: pointer; font-weight: {{t.weight}}">{{t.label}}</button>
+        </sc-for>
+      </div>
+      <nav aria-label="このページの目次" style="display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; border-top: 1px solid #EEF0F3; padding: 4px 0">
+        <span style="font-size: 12px; font-weight: 700; color: #5A6070; margin-right: 6px">目次</span>
+        <sc-for list="{{tocBar}}" as="t" hint-placeholder-count="7">
+          <a href="#{{t.id}}" aria-current="{{t.current}}" style="display: inline-flex; align-items: center; gap: 5px; font-size: 12px; padding: 4px 10px; border-radius: 999px; background: {{t.bg}}; color: {{t.color}}; font-weight: {{t.weight}}">{{t.label}}<sc-if value="{{t.warn}}" hint-placeholder-val="{{false}}"><span aria-label="注意あり" style="width: 6px; height: 6px; border-radius: 3px; background: #B4321C"></span></sc-if></a>
+        </sc-for>
+      </nav>
+    </header>
+    <main style="padding: 20px 32px 48px; display: flex; flex-direction: column; gap: 18px; max-width: 1180px; box-sizing: border-box">
+      <article style="background: #FFFFFF; border: 1px solid #E6E8EE; border-radius: 8px; padding: 4px 28px 20px">
+        <sc-for list="{{sections}}" as="s" hint-placeholder-count="6">
+          <section id="{{s.id}}" style="padding: 22px 0 6px">
+            <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; border-bottom: 2px solid #1A1D24; padding-bottom: 6px">
+              <span style="font-size: 13px; font-weight: 700; color: #8A90A0">{{s.no}}</span>
+              <h2 style="margin: 0; font-size: 16px; font-weight: 700">{{s.title}}</h2>
+              <span style="font-size: 12px; color: #5A6070">{{s.meta}}</span>
+              <button type="button" style="margin-left: auto; font: inherit; font-size: 13px; font-weight: 500; background: transparent; border: 0; color: #2E3A9E; cursor: pointer; padding: 2px 4px">{{s.action}}</button>
+            </div>
+            <sc-if value="{{s.hasNotice}}" hint-placeholder-val="{{false}}">
+              <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px; font-size: 13px; color: #B4321C"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 4px; background: #B4321C"></span>{{s.notice}}</div>
+            </sc-if>
+            <dl style="margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px">
+              <sc-for list="{{s.items}}" as="it" hint-placeholder-count="6">
+                <div style="display: grid; grid-template-columns: 150px minmax(0, 1fr); column-gap: 12px; padding: 9px 0; border-bottom: 1px solid #EEF0F3">
+                  <dt style="color: #5A6070; font-size: 13px">{{it.k}}</dt>
+                  <dd style="margin: 0; font-variant-numeric: tabular-nums; color: {{it.color}}; font-weight: {{it.weight}}">{{it.v}}</dd>
+                </div>
+              </sc-for>
+            </dl>
+          </section>
+        </sc-for>
+      </article>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const labels = ['ダッシュボード', '外国人台帳', '受入れ機関台帳', '一括申請', '一括届出', '相談', '設定'];
+    const nav = labels.map((l, i) => ({ label: l, active: i === 1, inactive: i !== 1 }));
+    const tabNames = ['概要', '契約', '支援', '届出', '帳票', '帳簿', '履歴'];
+    const tabs = tabNames.map((t, i) => ({ label: t, selected: i === 0 ? 'true' : 'false', line: i === 0 ? '#2E3A9E' : 'transparent', color: i === 0 ? '#1A1D24' : '#5A6070', weight: i === 0 ? '700' : '400' }));
+    const red = '#B4321C', amber = '#8A5A00';
+    const todos = [
+      { when: '5日超過', fg: red, title: '在留期間更新許可申請', note: '受入れ機関が申請・期限 2026-10-15', section: 's2', sectionLabel: '2 在留情報', action: '開く' },
+      { when: '8日超過', fg: red, title: '定期面談（3か月ごと）', note: '本人と監督者・期限 2026-10-12', section: 's6', sectionLabel: '6 支援', action: '記録する' },
+      { when: '不足 4', fg: amber, title: '申請の書類（在留期間更新）', note: '雇用条件書・報酬の説明書ほか', section: 's5', sectionLabel: '5 雇用契約', action: '一覧へ' }
+    ];
+    const plain = (k, v) => ({ k, v, color: '#1A1D24', weight: '400' });
+    const warn = (k, v) => ({ k, v, color: red, weight: '700' });
+    const sections = [
+      { id: 's1', no: '1', title: '本人の情報', meta: '', action: '編集', hasNotice: false, items: [
+        plain('氏名（ローマ字）', 'WU XUELI'), plain('氏名（漢字）', '呉雪麗'), plain('氏名（母国語）', '吴雪丽'), plain('氏名（カナ）', '—'),
+        plain('生年月日', '1994-03-04'), plain('性別', '女'), plain('国籍・地域', '中国'), plain('出生地', '—'),
+        plain('支援言語', '中国語（簡体字）'), plain('担当者', '佐藤 花子（2025-10-15 から）'), plain('帳簿の保存の満了（目安）', '2029-09-03') ] },
+      { id: 's2', no: '2', title: '在留情報', meta: '最新・3 件の履歴', action: '＋ 追加', hasNotice: true, notice: '在留期限を 5日過ぎています。更新の申請のタスクを確かめてください。', items: [
+        plain('在留カード番号', 'DN65089307HR'), plain('在留資格', '特定技能1号'), warn('在留期限', '2026-10-15（5日超過）'), plain('許可日', '2025-10-15'),
+        plain('申請種別', '在留資格変更'), plain('在留期間', '—') ] },
+      { id: 's3', no: '3', title: '旅券', meta: '最新', action: '＋ 追加', hasNotice: false, items: [
+        plain('旅券番号', 'C42124517'), plain('有効期限', '2032-05-09'), plain('発行日', '2022-05-10') ] },
+      { id: 's4', no: '4', title: '住所・連絡先', meta: '最新', action: '＋ 追加', hasNotice: false, items: [
+        plain('住所', '〒000-0003 愛知県サンプル市ダミー町1-1 サンプル寮 101号'), plain('電話', '090-0000-0000'), plain('メール', 'sample@example.com'), plain('適用開始日', '2025-10-20') ] },
+      { id: 's5', no: '5', title: '雇用契約', meta: '第2版・2025-10-15 から', action: '契約タブで開く', hasNotice: false, items: [
+        plain('受入れ機関', 'サンプル精機工業株式会社'), plain('事業所', '本社工場'), plain('期間', '2025-10-15〜2026-10-14'), plain('分野・業務区分', '工業製品製造業・機械金属加工'),
+        plain('基本給', '月給 215,000 円'), plain('支援委託契約', '2026-06-30 まで') ] },
+      { id: 's6', no: '6', title: '支援', meta: '支援計画 第1版', action: '支援タブで開く', hasNotice: true, notice: '定期面談の期限を 8日過ぎています。', items: [
+        warn('次の定期面談', '2026-10-12 まで（8日超過）'), plain('前の定期面談', '2026-07-10'), plain('相談（対応中）', '1 件'), plain('キャリアアッププラン', '交付済み（2025-10-15）') ] }
+    ];
+    const toc = [
+      { label: '今やること', id: 'todo', warn: true }, { label: '1 本人の情報', id: 's1', warn: false }, { label: '2 在留情報', id: 's2', warn: true },
+      { label: '3 旅券', id: 's3', warn: false }, { label: '4 住所・連絡先', id: 's4', warn: false }, { label: '5 雇用契約', id: 's5', warn: false }, { label: '6 支援', id: 's6', warn: true }
+    ];
+    const tocBar = toc.map((t) => { const cur = t.id === 's3'; return { label: t.label, id: t.id, warn: t.warn, current: cur ? 'location' : 'false', bg: cur ? '#EEF0FB' : 'transparent', color: cur ? '#2E3A9E' : '#3F4553', weight: cur ? '700' : '400' }; });
+    return { nav, tabs, todos, sections: sections.slice(1, 4), toc, tocBar };
+  }
+}
+</script>
+</body>
+</html>

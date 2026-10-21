@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>外国人の詳細 契約タブ</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2E3A9E;text-decoration:none}a:hover{color:#1E2875;text-decoration:underline}
+</style>
+</helmet>
+<div style="font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif; font-size: 14px; color: #1A1D24; background: #F7F8FA; min-height: 1400px; display: flex; flex-wrap: wrap">
+  <nav aria-label="メインメニュー" style="flex: 1 1 220px; max-width: 220px; min-width: 200px; background: #FFFFFF; border-right: 1px solid #E6E8EE; display: flex; flex-direction: column; gap: 2px; padding: 18px 12px; box-sizing: border-box">
+    <div style="padding: 4px 10px 18px; font-size: 13px; font-weight: 700">サンプル登録支援機関</div>
+    <sc-for list="{{nav}}" as="item" hint-placeholder-count="7">
+      <sc-if value="{{item.active}}" hint-placeholder-val="{{false}}">
+        <a href="#" style="display: block; padding: 8px 12px; border-radius: 6px; background: #EEF0FB; color: #2E3A9E; font-weight: 500">{{item.label}}</a>
+      </sc-if>
+      <sc-if value="{{item.inactive}}" hint-placeholder-val="{{true}}">
+        <a href="#" style="display: block; padding: 8px 12px; border-radius: 6px; color: #3F4553">{{item.label}}</a>
+      </sc-if>
+    </sc-for>
+  </nav>
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <header style="background: #FFFFFF; border-bottom: 1px solid #E6E8EE; padding: 16px 32px 0; display: flex; flex-direction: column; gap: 14px">
+      <a href="#" style="font-size: 13px">← 外国人台帳</a>
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px">
+        <div style="display: flex; align-items: center; gap: 16px">
+          <div role="img" aria-label="顔写真（呉雪麗）" style="width: 72px; height: 90px; border-radius: 6px; background: #E3E6EE; border: 1px solid #DADDE5; overflow: hidden; display: flex; align-items: flex-end; justify-content: center"><svg aria-hidden="true" width="64" height="78" viewBox="0 0 26 32"><circle cx="13" cy="11" r="6" fill="#B9BECA"></circle><path d="M1 32c1-8 6-12 12-12s11 4 12 12z" fill="#B9BECA"></path></svg></div>
+          <div>
+            <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px">
+              <h1 style="margin: 0; font-size: 22px; font-weight: 700">呉雪麗</h1>
+              <span style="color: #5A6070; font-size: 13px">WU XUELI</span>
+            </div>
+            <div style="display: flex; gap: 6px; margin-top: 6px">
+              <span style="font-size: 12px; color: #3F4553; border: 1px solid #DADDE5; border-radius: 999px; padding: 1px 9px">在留中</span>
+              <span style="font-size: 12px; color: #3F4553; border: 1px solid #DADDE5; border-radius: 999px; padding: 1px 9px">特定技能1号</span>
+            </div>
+            <div style="margin-top: 6px; font-size: 12px; color: #5A6070">写真 2025-09-20 撮影・<a href="#">写真を変える</a></div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; border: 1px solid #F3D2CB; background: #FDF3F1; border-radius: 8px; padding: 8px 14px">
+          <div style="font-size: 12px; color: #5A6070">在留期限</div>
+          <div style="font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums">2026-10-15</div>
+          <div style="font-size: 13px; font-weight: 700; color: #B4321C">5日超過</div>
+        </div>
+        <dl style="margin: 0; display: flex; flex-wrap: wrap; gap: 6px 24px; font-size: 13px">
+          <div><dt style="color: #5A6070; font-size: 12px">受入れ機関</dt><dd style="margin: 0"><a href="#">サンプル精機工業株式会社</a></dd></div>
+          <div><dt style="color: #5A6070; font-size: 12px">分野</dt><dd style="margin: 0">工業製品製造業</dd></div>
+          <div><dt style="color: #5A6070; font-size: 12px">担当</dt><dd style="margin: 0">佐藤 花子 <a href="#" style="font-size: 12px">変更</a></dd></div>
+          <div><dt style="color: #5A6070; font-size: 12px">支援言語</dt><dd style="margin: 0">中国語（簡体字）</dd></div>
+        </dl>
+        <div style="margin-left: auto; display: flex; gap: 8px">
+          <button type="button" style="font: inherit; font-size: 13px; font-weight: 500; background: #FFFFFF; color: #1A1D24; border: 1px solid #DADDE5; border-radius: 6px; padding: 8px 14px; cursor: pointer">編集</button>
+          <button type="button" aria-label="ほかの操作" style="font: inherit; background: #FFFFFF; color: #3F4553; border: 1px solid #DADDE5; border-radius: 6px; padding: 6px 12px; cursor: pointer">…</button>
+        </div>
+      </div>
+      <div role="tablist" aria-label="詳細の区分" style="display: flex; flex-wrap: wrap; gap: 4px">
+        <sc-for list="{{tabs}}" as="t" hint-placeholder-count="7">
+          <button type="button" role="tab" aria-selected="{{t.selected}}" style="font: inherit; font-size: 13px; background: transparent; border: 0; border-bottom: 2px solid {{t.line}}; color: {{t.color}}; padding: 8px 14px; cursor: pointer; font-weight: {{t.weight}}">{{t.label}}</button>
+        </sc-for>
+      </div>
+    </header>
+    <main style="padding: 20px 32px 48px; display: flex; flex-direction: column; gap: 18px; max-width: 1180px; box-sizing: border-box">
+      <nav aria-label="このページの目次" style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px">
+        <span style="font-size: 12px; font-weight: 700; color: #5A6070; margin-right: 4px">目次</span>
+        <a href="#c1" style="font-size: 13px; color: #3F4553; background: #FFFFFF; border: 1px solid #E6E8EE; border-radius: 999px; padding: 4px 12px">1 雇用契約</a>
+        <a href="#c2" style="font-size: 13px; color: #3F4553; background: #FFFFFF; border: 1px solid #E6E8EE; border-radius: 999px; padding: 4px 12px">2 版の履歴</a>
+        <a href="#c3" style="font-size: 13px; color: #3F4553; background: #FFFFFF; border: 1px solid #E6E8EE; border-radius: 999px; padding: 4px 12px">3 契約の書類</a>
+        <a href="#c4" style="font-size: 13px; color: #3F4553; background: #FFFFFF; border: 1px solid #E6E8EE; border-radius: 999px; padding: 4px 12px">4 支援委託契約</a>
+      </nav>
+      <article style="background: #FFFFFF; border: 1px solid #E6E8EE; border-radius: 8px; padding: 4px 28px 24px">
+        <section id="c1" style="padding: 22px 0 6px">
+          <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; border-bottom: 2px solid #1A1D24; padding-bottom: 6px">
+            <span style="font-size: 13px; font-weight: 700; color: #8A90A0">1</span>
+            <h2 style="margin: 0; font-size: 16px; font-weight: 700">雇用契約</h2>
+            <span style="font-size: 12px; color: #5A6070">いまの版 第2版・2025-10-15 から</span>
+            <div style="margin-left: auto; display: flex; gap: 8px">
+              <button type="button" style="font: inherit; font-size: 13px; font-weight: 500; background: #2E3A9E; color: #FFFFFF; border: 0; border-radius: 6px; padding: 6px 12px; cursor: pointer">新しい版を追加</button>
+              <button type="button" aria-label="雇用契約のほかの操作（終了を登録など）" style="font: inherit; background: #FFFFFF; color: #3F4553; border: 1px solid #DADDE5; border-radius: 6px; padding: 4px 10px; cursor: pointer">…</button>
+            </div>
+          </div>
+          <sc-for list="{{groups}}" as="g" hint-placeholder-count="4">
+            <h3 style="margin: 16px 0 0; font-size: 13px; font-weight: 700; color: #3F4553">{{g.title}}</h3>
+            <dl style="margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px">
+              <sc-for list="{{g.items}}" as="it" hint-placeholder-count="4">
+                <div style="display: grid; grid-template-columns: 150px minmax(0, 1fr); column-gap: 12px; padding: 9px 0; border-bottom: 1px solid #EEF0F3">
+                  <dt style="color: #5A6070; font-size: 13px">{{it.k}}</dt>
+                  <dd style="margin: 0; font-variant-numeric: tabular-nums">{{it.v}}</dd>
+                </div>
+              </sc-for>
+            </dl>
+          </sc-for>
+        </section>
+        <section id="c2" style="padding: 26px 0 6px">
+          <div style="display: flex; align-items: baseline; gap: 10px; border-bottom: 2px solid #1A1D24; padding-bottom: 6px">
+            <span style="font-size: 13px; font-weight: 700; color: #8A90A0">2</span>
+            <h2 style="margin: 0; font-size: 16px; font-weight: 700">版の履歴</h2>
+            <span style="font-size: 12px; color: #5A6070">変更のたびに版が増える。前の版は消えない</span>
+          </div>
+          <div style="overflow-x: auto">
+            <table style="width: 100%; border-collapse: collapse; min-width: 640px">
+              <thead><tr style="text-align: left; color: #5A6070; font-size: 12px">
+                <th style="font-weight: 500; padding: 9px 0; border-bottom: 1px solid #E6E8EE">版</th>
+                <th style="font-weight: 500; padding: 9px 12px; border-bottom: 1px solid #E6E8EE">適用の開始</th>
+                <th style="font-weight: 500; padding: 9px 12px; border-bottom: 1px solid #E6E8EE">変わったこと</th>
+                <th style="font-weight: 500; padding: 9px 12px; border-bottom: 1px solid #E6E8EE">届出</th>
+                <th style="font-weight: 500; padding: 9px 0; border-bottom: 1px solid #E6E8EE"></th>
+              </tr></thead>
+              <tbody>
+                <sc-for list="{{versions}}" as="v" hint-placeholder-count="2">
+                  <tr>
+                    <td style="padding: 10px 0; border-bottom: 1px solid #F0F1F4; font-weight: 700; white-space: nowrap">{{v.no}} <span style="font-size: 12px; font-weight: 400; color: #5A6070">{{v.tag}}</span></td>
+                    <td style="padding: 10px 12px; border-bottom: 1px solid #F0F1F4; font-variant-numeric: tabular-nums; white-space: nowrap">{{v.from}}</td>
+                    <td style="padding: 10px 12px; border-bottom: 1px solid #F0F1F4">{{v.diff}}</td>
+                    <td style="padding: 10px 12px; border-bottom: 1px solid #F0F1F4; font-size: 13px; color: {{v.filingColor}}">{{v.filing}}</td>
+                    <td style="padding: 10px 0; border-bottom: 1px solid #F0F1F4; text-align: right"><a href="#" style="font-size: 13px; font-weight: 500">差分を見る</a></td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section id="c3" style="padding: 26px 0 6px">
+          <div style="display: flex; align-items: baseline; gap: 10px; border-bottom: 2px solid #1A1D24; padding-bottom: 6px">
+            <span style="font-size: 13px; font-weight: 700; color: #8A90A0">3</span>
+            <h2 style="margin: 0; font-size: 16px; font-weight: 700">契約の書類</h2>
+            <span style="font-size: 12px; color: #5A6070">いまの版から作る</span>
+          </div>
+          <sc-for list="{{docs}}" as="d" hint-placeholder-count="4">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid #EEF0F3">
+              <span style="min-width: 96px; font-size: 13px; font-weight: 500; color: {{d.fg}}"><span aria-hidden="true" style="display: inline-block; width: 8px; height: 8px; border-radius: 4px; background: {{d.fg}}; margin-right: 6px"></span>{{d.state}}</span>
+              <div style="flex: 1; min-width: 220px"><div style="font-weight: 500">{{d.name}}</div><div style="font-size: 12px; color: #5A6070; margin-top: 2px">{{d.note}}</div></div>
+              <button type="button" style="font: inherit; font-size: 13px; font-weight: 500; background: #FFFFFF; color: #2E3A9E; border: 1px solid #CDD1EF; border-radius: 6px; padding: 5px 12px; cursor: pointer">{{d.action}}</button>
+            </div>
+          </sc-for>
+        </section>
+        <section id="c4" style="padding: 26px 0 6px">
+          <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; border-bottom: 2px solid #1A1D24; padding-bottom: 6px">
+            <span style="font-size: 13px; font-weight: 700; color: #8A90A0">4</span>
+            <h2 style="margin: 0; font-size: 16px; font-weight: 700">支援委託契約</h2>
+            <span style="font-size: 12px; color: #5A6070">受入れ機関との契約・この人に効いているもの</span>
+            <a href="#" style="margin-left: auto; font-size: 13px; font-weight: 500">受入れ機関の画面で開く</a>
+          </div>
+          <dl style="margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px">
+            <sc-for list="{{entrust}}" as="it" hint-placeholder-count="4">
+              <div style="display: grid; grid-template-columns: 150px minmax(0, 1fr); column-gap: 12px; padding: 9px 0; border-bottom: 1px solid #EEF0F3">
+                <dt style="color: #5A6070; font-size: 13px">{{it.k}}</dt>
+                <dd style="margin: 0; font-variant-numeric: tabular-nums">{{it.v}}</dd>
+              </div>
+            </sc-for>
+          </dl>
+        </section>
+      </article>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1400}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const labels = ['ダッシュボード', '外国人台帳', '受入れ機関台帳', '一括申請', '一括届出', '相談', '設定'];
+    const nav = labels.map((l, i) => ({ label: l, active: i === 1, inactive: i !== 1 }));
+    const tabNames = ['概要', '契約', '支援', '届出', '帳票', '帳簿', '履歴'];
+    const sel = 1;
+    const tabs = tabNames.map((t, i) => ({ label: t, selected: i === sel ? 'true' : 'false', line: i === sel ? '#2E3A9E' : 'transparent', color: i === sel ? '#1A1D24' : '#5A6070', weight: i === sel ? '700' : '400' }));
+    const p = (k, v) => ({ k, v });
+    const groups = [
+      { title: '期間と場所', items: [p('締結日', '2025-09-28'), p('期間', '2025-10-15〜2026-10-14'), p('更新', '更新する場合があり得る'), p('更新上限', '無'), p('事業所', '本社工場'), p('分野・業務区分', '工業製品製造業・機械金属加工')] },
+      { title: '労働時間と休日', items: [p('始業・終業', '8:30〜17:30（休憩 60 分）'), p('所定労働時間', '1日 8時間・月 160時間'), p('休日', '土・日・祝・年末年始（年 125 日）'), p('年次有給休暇', '6か月で 10 日')] },
+      { title: '賃金', items: [p('基本給', '月給 215,000 円'), p('1 時間あたり', '1,344 円'), p('手当', '通勤 10,000 円'), p('締切日・支払日', '末日・翌月 25 日'), p('控除', '社宅費 25,000 円ほか（労使協定 有）'), p('昇給・賞与', '年 1 回（4月）・年 2 回')] },
+      { title: '窓口', items: [p('相談・待遇の相違', '総務部 田中 一郎（0000-00-0000）')] }
+    ];
+    const versions = [
+      { no: '第2版', tag: 'いまの版', from: '2025-10-15', diff: '基本給 210,000 → 215,000 円（試用期間の満了に伴う昇給）', filing: '雇用契約変更届出・提出済み（2025-10-20）', filingColor: '#22543D' },
+      { no: '第1版', tag: '', from: '2025-04-15', diff: '—（最初の版）', filing: '—', filingColor: '#5A6070' }
+    ];
+    const ok = '#22543D', warn = '#8A5A00', miss = '#B4321C';
+    const docs = [
+      { state: '署名済み', fg: ok, name: '特定技能雇用契約書（第1-5号・日中併記）', note: '第2版から作成・署名日 2025-09-30', action: '開く' },
+      { state: '署名待ち', fg: warn, name: '雇用条件書（第1-6号・日中併記＋補足）', note: '第2版から作成・回収の期限 2025-10-30', action: '署名済みを添付' },
+      { state: '未生成', fg: miss, name: '報酬に関する説明書（第1-4号）', note: '在留期間更新の申請に要る', action: '生成する' },
+      { state: '交付済み', fg: ok, name: 'キャリアアッププラン', note: '交付日 2025-10-15', action: '開く' }
+    ];
+    const entrust = [p('受入れ機関', 'サンプル精機工業株式会社'), p('期間', '2025-07-01〜2026-06-30（自動更新）'), p('委託料', '1名あたり月額 32,000 円'), p('委託の範囲', '支援計画の全部')];
+    return { nav, tabs, groups, versions, docs, entrust };
+  }
+}
+</script>
+</body>
+</html>
