@@ -30,9 +30,11 @@ def test_ui_components_fit_phone_width(page: Page, sign_in: SignIn, administrato
     sign_in(administrator)
     page.goto(page.url.rstrip("/") + "/ui/")
     expect(page.get_by_role("heading", level=1)).to_have_text("部品の見本")
-    # 採用したデザイン（D: Officevibe）の主要ボタンは濃紺
+    # 主ボタンは accent（#2E3A9E。2026-10 の見直し、ADR-0046）。字体は同梱の Noto Sans JP
     expect(page.locator("#sample-list .button--primary")).to_have_css(
-        "background-color", "rgb(12, 23, 84)"
+        "background-color", "rgb(46, 58, 158)"
     )
+    loaded = "document.fonts.load('14px \"Noto Sans JP\"', '字').then((faces) => faces.length)"
+    assert page.evaluate(loaded) > 0  # 同梱の woff2 が読める
     expect(page.locator('[data-token="--color-canvas"]')).not_to_be_empty()
     assert page.evaluate("document.documentElement.scrollWidth") <= 390

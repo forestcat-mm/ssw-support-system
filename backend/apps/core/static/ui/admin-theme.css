@@ -7,8 +7,8 @@ html[data-theme="light"],
 html[data-theme="dark"],
 html[data-theme="auto"] {
   color-scheme: light;
-  --primary: var(--palette-navy);
-  --secondary: var(--palette-navy);
+  --primary: var(--palette-accent);
+  --secondary: var(--palette-accent);
   --accent: #ffffff;
   --primary-fg: #ffffff;
 
@@ -20,7 +20,7 @@ html[data-theme="auto"] {
 
   --header-color: rgba(255, 255, 255, 0.85);
   --header-branding-color: #ffffff;
-  --header-bg: var(--palette-navy);
+  --header-bg: var(--palette-accent);
   --header-link-color: #ffffff;
 
   --breadcrumbs-fg: var(--color-graphite);
@@ -28,8 +28,8 @@ html[data-theme="auto"] {
   --breadcrumbs-bg: var(--color-canvas);
 
   --link-fg: var(--color-link);
-  --link-hover-color: var(--palette-navy);
-  --link-selected-fg: var(--palette-navy);
+  --link-hover-color: var(--palette-accent);
+  --link-selected-fg: var(--palette-accent);
 
   --hairline-color: var(--color-line);
   --border-color: var(--color-line-strong);
@@ -40,8 +40,8 @@ html[data-theme="auto"] {
   --message-error-bg: var(--notice-error-bg);
 
   --darkened-bg: var(--color-canvas);
-  --selected-bg: var(--palette-lavender);
-  --selected-row: var(--palette-lavender);
+  --selected-bg: var(--palette-accent-soft);
+  --selected-row: var(--palette-accent-soft);
 
   --button-fg: #ffffff;
   --button-bg: var(--button-primary-bg);
@@ -113,7 +113,7 @@ body {
 .module h2,
 .module caption,
 .inline-group h2 {
-  background: var(--palette-navy);
+  background: var(--palette-accent);
 }
 
 input[type="text"],
@@ -139,5 +139,5 @@ a.button {
 }
 
 #nav-sidebar .current-model {
-  background: var(--palette-lavender);
+  background: var(--palette-accent-soft);
 }

@@ -54,8 +54,8 @@ h2,
 }
 
 h3 {
-  font-size: var(--text-body);
-  font-weight: 600;
+  font-size: var(--text-panel);
+  font-weight: 700;
 }
 
 a {
@@ -64,6 +64,7 @@ a {
 }
 
 a:hover {
+  color: var(--color-link-hover);
   text-decoration: underline;
 }
 
@@ -76,7 +77,6 @@ a:hover {
 code {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-  font-size: 0.95em;
 }
 
 .num {

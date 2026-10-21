@@ -27,12 +27,12 @@
   <section class="card">
     <div class="card__header"><h2 class="card__title">{% translate "Typography" %}</h2></div>
     <div class="stack">
-      <p class="text-heading">{% translate "Page heading 24px" %}</p>
-      <p class="text-subheading">{% translate "Section heading 18px" %}</p>
-      <p>{% translate "Body text 15px / line height 1.6. Japanese and Chinese text keep normal letter spacing." %}</p>
+      <p class="text-heading">{% translate "Page heading 20px" %}</p>
+      <p class="text-subheading">{% translate "Section heading 16px" %}</p>
+      <p>{% translate "Body text 14px / line height 1.6 (Noto Sans JP, bundled). Japanese and Chinese text keep normal letter spacing." %}</p>
       <p class="caption">{% translate "Caption 12px (secondary text)" %}</p>
       <p>{% translate "Chinese (Simplified) is shown with a Chinese font:" %} <span lang="zh-Hans">王芳 · 张伟 · 刘静</span> / {% translate "Japanese font:" %} 王芳・張偉・劉静</p>
-      <p>{% translate "Numbers use a monospaced font:" %} <span class="mono">AB12345678CD</span> · <span class="mono">7999900000010</span> · <span class="mono">2026-10-16</span> · <span class="mono">¥220,000</span></p>
+      <p>{% translate "Dates, amounts and numbers use tabular figures:" %} <span class="mono">AB12345678CD</span> · <span class="mono">7999900000010</span> · <span class="mono">2026-10-16</span> · <span class="mono">¥220,000</span></p>
     </div>
   </section>
 
@@ -40,13 +40,13 @@
     <div class="card__header"><h2 class="card__title">{% translate "Buttons" %}</h2></div>
     <div class="cluster">
       <button class="button button--primary" type="button">{% translate "Save" %}</button>
-      <button class="button button--ghost" type="button">{% translate "Save and add another" %}</button>
-      <button class="button button--neutral" type="button">{% translate "Cancel" %}</button>
+      <button class="button button--neutral" type="button">{% translate "Edit" %}</button>
+      <button class="button button--ghost button--small" type="button">{% translate "Generate" %}</button>
+      <button class="button button--light" type="button">{% translate "+ Add" %}</button>
       <button class="button button--danger" type="button">{% translate "Deactivate" %}</button>
-      <button class="button button--neutral button--small" type="button">{% translate "Void" %}</button>
       <button class="button button--primary" type="button" disabled>{% translate "Disabled" %}</button>
     </div>
-    <p class="caption">{% translate "Primary: one or two per screen. Secondary: only next to a primary button. Neutral: other actions. Irreversible: always behind a confirmation page." %}</p>
+    <p class="caption">{% translate "Primary: one per screen. Secondary (white with a border): other actions such as Edit and Cancel. Row action: the single action at the end of a row. Light: actions in a section heading. Dangerous actions go into the … menu and always ask for confirmation." %}</p>
   </section>
 
   <section class="card">
@@ -63,6 +63,35 @@
     </div>
     <p class="caption">{% translate "Colors follow the due date before holiday adjustment. Text is always shown so that color is not the only signal." %}</p>
   </section>
+
+  <section class="card" id="sample-status">
+    <div class="card__header"><h2 class="card__title">{% translate "Status" %}</h2><span class="count count--danger">3</span><span class="count">12</span></div>
+    <div class="cluster">
+      <span class="status-dot status-dot--danger">{% translate "not generated" %}</span>
+      <span class="status-dot status-dot--caution">{% translate "waiting for signature" %}</span>
+      <span class="status-dot status-dot--ok">{% translate "signed" %}</span>
+      <span class="status-dot">{% translate "outside the system" %}</span>
+    </div>
+    <p class="caption">{% translate "Status is shown with a colored dot and text. Rows and large areas are not filled with color." %}</p>
+  </section>
+
+  <article class="doc" id="sample-sections">
+    <section class="doc-section" id="sample-section-1" aria-labelledby="sample-section-1-title">
+      <div class="section-head">
+        <span class="section-head__no">1</span>
+        <h2 class="section-head__title" id="sample-section-1-title">{% translate "Residence" %}</h2>
+        <span class="section-head__meta">{% translate "latest" %}</span>
+        <div class="section-head__actions"><button class="button button--light" type="button">{% translate "+ Add" %}</button></div>
+      </div>
+      <p class="section-notice">{% translate "The period of stay has expired. Check the task of the extension application." %}</p>
+      <dl class="pairs">
+        <div class="pairs__item"><dt>{% translate "residence card number" %}</dt><dd>AB12345678CD</dd></div>
+        <div class="pairs__item"><dt>{% translate "status of residence" %}</dt><dd>{% translate "Specified Skilled Worker (i)" %}</dd></div>
+        <div class="pairs__item"><dt>{% translate "period of stay expires on" %}</dt><dd class="is-alert">2026-10-15</dd></div>
+        <div class="pairs__item"><dt>{% translate "permitted on" %}</dt><dd>2025-10-15</dd></div>
+      </dl>
+    </section>
+  </article>
 
   <section class="card">
     <div class="card__header"><h2 class="card__title">{% translate "Tags and status" %}</h2></div>

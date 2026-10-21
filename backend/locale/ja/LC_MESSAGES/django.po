@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 01:56+0900\n"
+"POT-Creation-Date: 2026-10-21 10:50+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -2455,16 +2455,16 @@ msgstr "色"
 msgid "Typography"
 msgstr "文字"
 
-msgid "Page heading 24px"
-msgstr "ページの見出し 24px"
+msgid "Page heading 20px"
+msgstr "画面の見出し 20px"
 
-msgid "Section heading 18px"
-msgstr "区切りの見出し 18px"
+msgid "Section heading 16px"
+msgstr "セクションの見出し 16px"
 
 msgid ""
-"Body text 15px / line height 1.6. Japanese and Chinese text keep normal "
-"letter spacing."
-msgstr "本文 15px／行間 1.6。日本語・中国語の本文は字間を詰めません。"
+"Body text 14px / line height 1.6 (Noto Sans JP, bundled). Japanese and "
+"Chinese text keep normal letter spacing."
+msgstr "本文 14px／行間 1.6（Noto Sans JP、同梱）。日本語・中国語の本文は字間を詰めません。"
 
 msgid "Caption 12px (secondary text)"
 msgstr "補足 12px（補足の文字）"
@@ -2475,23 +2475,26 @@ msgstr "中国語（簡体字）は中国語のフォントで表示します:"
 msgid "Japanese font:"
 msgstr "日本語のフォント:"
 
-msgid "Numbers use a monospaced font:"
-msgstr "番号類は等幅のフォントで表示します:"
+msgid "Dates, amounts and numbers use tabular figures:"
+msgstr "日付・金額・番号は等幅の数字で表示します:"
 
 msgid "Buttons"
 msgstr "ボタン"
 
-msgid "Save and add another"
-msgstr "保存して続けて登録"
+msgid "+ Add"
+msgstr "＋ 追加"
 
 msgid "Disabled"
 msgstr "使えない状態"
 
 msgid ""
-"Primary: one or two per screen. Secondary: only next to a primary button. "
-"Neutral: other actions. Irreversible: always behind a confirmation page."
+"Primary: one per screen. Secondary (white with a border): other actions such"
+" as Edit and Cancel. Row action: the single action at the end of a row. "
+"Light: actions in a section heading. Dangerous actions go into the … menu "
+"and always ask for confirmation."
 msgstr ""
-"主要: 1 画面に 1〜2 個。二次: 主要ボタンと並べるときだけ。中立: そのほかの操作。取り返しのつかない操作: 必ず確認の画面をはさむ。"
+"主ボタン: 1 画面に 1 つ。副ボタン（白地に枠）: 編集・キャンセルなどほかの操作。行の中の操作: 行の右端の 1 つ。軽い操作: "
+"セクションの見出しの操作。危ない操作は「…」のメニューに入れ、必ず確かめの画面をはさみます。"
 
 msgid "Deadline levels"
 msgstr "警告レベル"
@@ -2511,6 +2514,48 @@ msgid ""
 "so that color is not the only signal."
 msgstr "色は閉庁日の繰り延べ前の期限を基準にします。色だけに頼らないよう、必ず文字を併記します。"
 
+msgid "not generated"
+msgstr "未生成"
+
+msgid "waiting for signature"
+msgstr "署名待ち"
+
+msgid "signed"
+msgstr "署名済み"
+
+msgid "outside the system"
+msgstr "システムの外"
+
+msgid ""
+"Status is shown with a colored dot and text. Rows and large areas are not "
+"filled with color."
+msgstr "状態は色の点と文字で示します。行や大きな面は塗りません。"
+
+msgid "Residence"
+msgstr "在留情報"
+
+msgid "latest"
+msgstr "最新"
+
+msgid ""
+"The period of stay has expired. Check the task of the extension application."
+msgstr "在留期限を過ぎています。更新の申請のタスクを確かめてください。"
+
+msgid "residence card number"
+msgstr "在留カード番号"
+
+msgid "status of residence"
+msgstr "在留資格"
+
+msgid "Specified Skilled Worker (i)"
+msgstr "特定技能1号"
+
+msgid "period of stay expires on"
+msgstr "在留期限"
+
+msgid "permitted on"
+msgstr "許可日"
+
 msgid "Tags and status"
 msgstr "タグと状態"
 
@@ -2523,14 +2568,8 @@ msgstr "すべての受入れ機関"
 msgid "nationality or region"
 msgstr "国籍・地域"
 
-msgid "residence card number"
-msgstr "在留カード番号"
-
 msgid "monthly wage"
 msgstr "月給"
-
-msgid "period of stay expires on"
-msgstr "在留期限"
 
 msgid "assigned staff"
 msgstr "担当者"
@@ -2725,6 +2764,9 @@ msgstr "入力欄の枠"
 msgid "focus and active state"
 msgstr "フォーカス・アクティブ"
 
+msgid "selected background"
+msgstr "選択中の背景"
+
 msgid "primary button"
 msgstr "主要ボタン"
 
@@ -2740,26 +2782,20 @@ msgstr "7日以内"
 msgid "within 14 days"
 msgstr "14日以内"
 
-msgid "open (outline)"
-msgstr "対応期間中（枠線）"
-
-msgid "industrial products field"
-msgstr "工業製品製造業分野"
-
-msgid "food manufacturing field"
-msgstr "飲食料品製造業分野"
-
-msgid "fill"
-msgstr "塗り"
-
-msgid "fill, bold, with a dot"
-msgstr "塗り・太字・左に印"
-
 msgid "open"
 msgstr "対応期間中"
 
-msgid "outline only"
-msgstr "枠線のみ"
+msgid "red dot and text"
+msgstr "赤の点＋文字"
+
+msgid "amber dot and bold text"
+msgstr "黄の点＋太字"
+
+msgid "green dot and text"
+msgstr "緑の点＋文字"
+
+msgid "grey dot and text"
+msgstr "灰色の点＋文字"
 
 msgid "not yet open"
 msgstr "受付前"
@@ -3990,9 +4026,6 @@ msgstr "生成済み"
 msgid "generating"
 msgstr "生成中"
 
-msgid "not generated"
-msgstr "未生成"
-
 msgctxt "application set"
 msgid "attached"
 msgstr "添付済み"
@@ -4030,9 +4063,6 @@ msgstr "受入れ機関の書類から"
 
 msgid "awaiting signature"
 msgstr "署名待ち"
-
-msgid "signed"
-msgstr "署名済み"
 
 msgid "Open"
 msgstr "開く"
@@ -7211,9 +7241,6 @@ msgstr "氏名（部分一致）、または在留カード番号・旅券番号
 msgid "Profile"
 msgstr "基本情報"
 
-msgid "status of residence"
-msgstr "在留資格"
-
 msgid "Cancel deactivation"
 msgstr "無効化を外す"
 
@@ -7379,9 +7406,6 @@ msgid ""
 " stay."
 msgstr "このシステムに登録する前の、特定技能1号での在留の月数（前の受入れ機関での期間など）。通算在留期間に使います。"
 
-msgid "Specified Skilled Worker (i)"
-msgstr "特定技能1号"
-
 msgid "Specified Skilled Worker (ii)"
 msgstr "特定技能2号"
 
@@ -7414,9 +7438,6 @@ msgstr "記載事項変更（新カード交付）"
 
 msgid "Leave blank before entry (no residence card yet)."
 msgstr "入国前（在留カード未交付）は空欄にします。"
-
-msgid "permitted on"
-msgstr "許可日"
 
 msgid "For card reissue and change of particulars, enter the issue date."
 msgstr "在留カード再交付・記載事項変更は交付日を入力します。"

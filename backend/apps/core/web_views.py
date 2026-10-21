@@ -29,14 +29,13 @@ SWATCHES = [
     ("--color-line", gettext_lazy("light lines")),
     ("--input-border", gettext_lazy("input borders")),
     ("--color-accent", gettext_lazy("focus and active state")),
+    ("--color-accent-soft", gettext_lazy("selected background")),
     ("--button-primary-bg", gettext_lazy("primary button")),
     ("--nav-bg", gettext_lazy("navigation background")),
-    ("--level-overdue-bg", gettext_lazy("overdue")),
-    ("--level-within-7-bg", gettext_lazy("within 7 days")),
-    ("--level-within-14-bg", gettext_lazy("within 14 days")),
-    ("--level-open-border", gettext_lazy("open (outline)")),
-    ("--field-industrial-bg", gettext_lazy("industrial products field")),
-    ("--field-food-bg", gettext_lazy("food manufacturing field")),
+    ("--level-overdue-dot", gettext_lazy("overdue")),
+    ("--level-within-7-mark", gettext_lazy("within 7 days")),
+    ("--level-within-14-dot", gettext_lazy("within 14 days")),
+    ("--level-open-dot", gettext_lazy("open")),
 ]
 
 # 一覧の見本 30 行（架空の氏名。簡体字・ローマ字・日本語が同じ行に並ぶ）
@@ -154,18 +153,26 @@ class UiShowcaseView(ActionRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         today = timezone.localdate()
         context["deadlines"] = [
-            (_("overdue"), deadlines.residence_expiry(today - timedelta(days=5)), _("fill")),
+            (
+                _("overdue"),
+                deadlines.residence_expiry(today - timedelta(days=5)),
+                _("red dot and text"),
+            ),
             (
                 _("within 7 days"),
                 deadlines.residence_expiry(today + timedelta(days=3)),
-                _("fill, bold, with a dot"),
+                _("amber dot and bold text"),
             ),
             (
                 _("within 14 days"),
                 deadlines.residence_expiry(today + timedelta(days=12)),
-                _("fill"),
+                _("green dot and text"),
             ),
-            (_("open"), deadlines.residence_expiry(today + timedelta(days=60)), _("outline only")),
+            (
+                _("open"),
+                deadlines.residence_expiry(today + timedelta(days=60)),
+                _("grey dot and text"),
+            ),
             (
                 _("not yet open"),
                 deadlines.residence_expiry(today + timedelta(days=200)),

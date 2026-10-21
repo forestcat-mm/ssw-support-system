@@ -1,142 +1,183 @@
 /*
- * デザイントークン（業務画面）。D: Officevibe を採用（選定の経緯は docs/design/README.md）。
- * 元: https://styles.refero.design/style/ced1c98f-d489-48f7-a01f-1fa59a07b706
- * 罫線はすべてクリーム。濃紺は左のナビの背景と主要ボタンの塗り、コバルトはフォーカス・アクティブ・リンクだけ
- * （塗りボタンには使わない）。ボタンはピル型で影なし、カード・入力欄は角丸 12px。
- * 状態色は原則の例外として彩度低めの赤・琥珀・緑（色相は赤 4°・琥珀 38°・緑 145°）。対応期間中は濃紺の枠線のみ。
- * セリフ体のイタリック見出しは使わない。
+ * デザイントークン（業務画面）。2026-10 の見直し（docs/design/design-2026-10/design-spec.md、ADR-0046）。
+ * 白い面と細い枠で区切り、影は浮く部品（メニュー・カレンダー・モーダル）だけ。強調の色は accent（藍）だけで、
+ * 主ボタン・選択中・リンク・フォーカスに使う。状態は「色の点＋文字」で示し、行や大きな面を塗らない。
+ * 文字は同梱の Noto Sans JP（fonts.css）。前の決定（Officevibe の読み替え）は docs/design/README.md。
  *
  * base.css・components.css はここで定義する役割の変数（--button-primary-bg など）だけを参照する。
  */
 :root {
-  /* --- 元の色（このセットの名前付きの色。下の役割から参照する） --- */
-  --palette-canvas: #f9f8f6;
+  /* --- 元の色（下の役割から参照する） --- */
+  --palette-bg: #f7f8fa;
   --palette-white: #ffffff;
-  --palette-ink: #171417;
-  --palette-ink-2: #222222;
-  --palette-grey: #6b6b6b; /* 補足の文字。白地 5.3:1・キャンバス 5.0:1（12px でも AA） */
-  --palette-fog: #b8b8b8;
-  --palette-cream: #f0e9e1;
-  --palette-control: #cccccc;
-  --palette-navy: #0c1754;
-  --palette-navy-hover: #17246e;
-  --palette-cobalt: #2545ff;
-  --palette-lavender: #eaebf8;
-  --palette-red-tint: #f7e0de;
-  --palette-red-ink: #862d27;
-  --palette-amber-tint: #f8e5c3;
-  --palette-amber-ink: #745011;
-  --palette-green-tint: #d6ebdf;
-  --palette-green-ink: #255639;
+  --palette-head: #fafbfc; /* 表の見出しの行 */
+  --palette-group: #f3f4f7; /* 表の区切りの行・ナビのホバー */
+  --palette-border: #e6e8ee;
+  --palette-border-soft: #eef0f3;
+  --palette-row-line: #f0f1f4;
+  --palette-control: #dadde5;
+  --palette-text: #1a1d24;
+  --palette-text-2: #3f4553;
+  --palette-text-sub: #5a6070; /* 白地 6.3:1・bg 6.0:1（12px でも AA） */
+  --palette-text-muted: #8a90a0; /* セクションの番号だけ（13px 以上の太字） */
+  --palette-accent: #2e3a9e;
+  --palette-accent-hover: #1e2875;
+  --palette-accent-soft: #eef0fb;
+  --palette-accent-border: #cdd1ef;
+  --palette-danger: #b4321c;
+  --palette-danger-soft: #fdf3f1;
+  --palette-danger-border: #f3d2cb;
+  --palette-danger-count: #fce8e4;
+  --palette-danger-count-text: #9a3412;
+  --palette-caution: #8a5a00;
+  --palette-caution-dot: #c58b00;
+  --palette-caution-soft: #fff3d6;
+  --palette-caution-border: #e0b04b;
+  --palette-ok: #22543d;
+  --palette-ok-dot: #2f855a;
+  --palette-ok-soft: #e6f4ea;
+  --palette-neutral-dot: #b9beca;
+  --palette-photo: #e3e6ee;
 
   /* --- 面 --- */
-  --color-canvas: var(--palette-canvas);
+  --color-canvas: var(--palette-bg);
   --color-surface: var(--palette-white);
-  --color-band: var(--palette-canvas);
+  --color-band: var(--palette-head);
+  --color-group: var(--palette-group);
   --color-field: var(--palette-white);
+  --color-photo: var(--palette-photo);
 
   /* --- 文字 --- */
-  --color-ink: var(--palette-ink);
-  --color-text-body: var(--palette-ink);
-  --color-ink-2: var(--palette-ink-2);
-  --color-graphite: var(--palette-grey);
-  --color-ash: var(--palette-fog);
+  --color-ink: var(--palette-text);
+  --color-text-body: var(--palette-text);
+  --color-ink-2: var(--palette-text-2);
+  --color-graphite: var(--palette-text-sub);
+  --color-ash: var(--palette-text-muted);
 
   /* --- 罫線 --- */
-  --color-line: var(--palette-cream);
-  --color-line-structure: var(--palette-cream);
+  --color-line: var(--palette-border-soft);
+  --color-line-row: var(--palette-row-line);
+  --color-line-structure: var(--palette-border);
   --color-line-strong: var(--palette-control);
+  --color-section-rule: var(--palette-text); /* セクションの見出しの下の 2px の線 */
 
-  /* --- 強調（フォーカス・アクティブ・リンク） --- */
-  --color-accent: var(--palette-cobalt);
-  --color-link: var(--palette-cobalt);
+  /* --- 強調（主ボタン・選択中・リンク・フォーカス） --- */
+  --color-accent: var(--palette-accent);
+  --color-accent-soft: var(--palette-accent-soft);
+  --color-link: var(--palette-accent);
+  --color-link-hover: var(--palette-accent-hover);
   --link-decoration: none;
   --focus-width: 2px;
   --focus-offset: -1px;
 
-  /* --- 上のバー・ナビ --- */
+  /* --- 上の帯・サイドバー --- */
   --topbar-bg: var(--palette-white);
-  --nav-bg: var(--palette-navy);
-  --nav-fg: rgba(255, 255, 255, 0.72);
-  --nav-hover-bg: rgba(255, 255, 255, 0.08);
-  --nav-hover-fg: #ffffff;
-  --nav-active-bg: var(--palette-white);
-  --nav-active-fg: var(--palette-cobalt);
+  --nav-bg: var(--palette-white);
+  --nav-fg: var(--palette-text-2);
+  --nav-hover-bg: var(--palette-group);
+  --nav-hover-fg: var(--palette-text);
+  --nav-active-bg: var(--palette-accent-soft);
+  --nav-active-fg: var(--palette-accent);
   --nav-active-indicator: none;
-  --nav-mobile-fg: #ffffff;
+  --nav-mobile-fg: var(--palette-text);
 
   /* --- ボタン --- */
-  --button-radius: var(--radius-pill);
+  --button-radius: 6px;
   --button-shadow: none;
-  --button-primary-bg: var(--palette-navy);
-  --button-primary-hover-bg: var(--palette-navy-hover);
+  --button-primary-bg: var(--palette-accent); /* 主ボタン（1 画面に 1 つまで） */
+  --button-primary-hover-bg: var(--palette-accent-hover);
   --button-primary-fg: #ffffff;
-  --button-secondary-bg: transparent;
-  --button-secondary-hover-bg: var(--palette-lavender);
-  --button-secondary-border: var(--palette-navy);
-  --button-secondary-fg: var(--palette-navy);
-  --button-neutral-bg: var(--palette-white);
-  --button-neutral-hover-bg: var(--palette-canvas);
+  --button-secondary-bg: var(--palette-white); /* 行の中の操作 */
+  --button-secondary-hover-bg: var(--palette-accent-soft);
+  --button-secondary-border: var(--palette-accent-border);
+  --button-secondary-fg: var(--palette-accent);
+  --button-light-hover-bg: var(--palette-accent-soft); /* 軽い操作（枠なし） */
+  --button-neutral-bg: var(--palette-white); /* 副ボタン */
+  --button-neutral-hover-bg: var(--palette-group);
   --button-neutral-border: var(--palette-control);
-  --button-neutral-fg: var(--palette-ink);
-  --button-danger-bg: var(--palette-red-tint);
-  --button-danger-border: transparent;
-  --button-danger-fg: var(--palette-red-ink);
+  --button-neutral-fg: var(--palette-text);
+  --button-danger-bg: var(--palette-danger-soft);
+  --button-danger-border: var(--palette-danger-border);
+  --button-danger-fg: var(--palette-danger);
 
   /* --- カード・入力欄・表 --- */
   --card-shadow: none;
   --input-border: var(--palette-control);
-  --input-focus-border: var(--palette-cobalt);
-  --input-error-border: var(--palette-red-ink);
-  --input-disabled-bg: var(--palette-canvas);
-  --table-cell-padding-y: 4px;
-  --table-row-height: 36px; /* 文字の種類（漢字・簡体字・ラテン文字）やバッジの有無で行の高さを変えない */
+  --input-focus-border: var(--palette-accent);
+  --input-error-border: var(--palette-danger);
+  --input-caution-border: var(--palette-caution-border);
+  --input-disabled-bg: var(--palette-bg);
+  --table-cell-padding-y: 10px;
+  --table-cell-padding-x: 16px;
+  --table-row-height: 40px; /* 文字の種類（漢字・簡体字・ラテン文字）や札の有無で行の高さを変えない */
 
-  /* --- 警告レベル --- */
-  --level-overdue-bg: var(--palette-red-tint);
-  --level-overdue-fg: var(--palette-red-ink);
-  --level-within-7-bg: var(--palette-amber-tint);
-  --level-within-7-fg: var(--palette-amber-ink);
-  --level-within-7-mark: var(--palette-amber-ink);
-  --level-within-14-bg: var(--palette-green-tint);
-  --level-within-14-fg: var(--palette-green-ink);
-  --level-open-border: var(--palette-navy);
-  --level-open-fg: var(--palette-navy);
-  --level-not-yet-fg: var(--palette-grey);
+  /* --- 期限のレベル（点＋文字。面は在留期限の帯・知らせだけに使う） --- */
+  --level-overdue-bg: var(--palette-danger-soft);
+  --level-overdue-border: var(--palette-danger-border);
+  --level-overdue-fg: var(--palette-danger);
+  --level-overdue-dot: var(--palette-danger);
+  --level-within-7-bg: var(--palette-caution-soft);
+  --level-within-7-border: var(--palette-caution-border);
+  --level-within-7-fg: var(--palette-caution);
+  --level-within-7-mark: var(--palette-caution-dot);
+  --level-within-14-bg: var(--palette-ok-soft);
+  --level-within-14-fg: var(--palette-ok);
+  --level-within-14-dot: var(--palette-ok-dot);
+  --level-open-border: var(--palette-control);
+  --level-open-fg: var(--palette-text-sub);
+  --level-open-dot: var(--palette-neutral-dot);
+  --level-not-yet-fg: var(--palette-text-sub);
+
+  /* --- 件数の札 --- */
+  --count-bg: var(--palette-border-soft);
+  --count-fg: var(--palette-text-2);
+  --count-danger-bg: var(--palette-danger-count);
+  --count-danger-fg: var(--palette-danger-count-text);
 
   /* --- お知らせ・エラー --- */
-  --notice-info-bg: var(--palette-lavender);
-  --notice-error-bg: var(--palette-red-tint);
-  --notice-error-fg: var(--palette-red-ink);
-  --notice-success-bg: var(--palette-green-tint);
+  --notice-info-bg: var(--palette-accent-soft);
+  --notice-info-fg: var(--palette-accent);
+  --notice-error-bg: var(--palette-danger-soft);
+  --notice-error-fg: var(--palette-danger);
+  --notice-error-border: var(--palette-danger-border);
+  --notice-warning-bg: var(--palette-caution-soft);
+  --notice-warning-fg: var(--palette-caution);
+  --notice-success-bg: var(--palette-ok-soft);
+  --notice-success-fg: var(--palette-ok);
 
-  /* --- 分野・外国人の状態 --- */
-  --field-industrial-bg: var(--palette-lavender);
-  --field-industrial-fg: var(--palette-navy);
-  --field-food-bg: var(--palette-green-tint);
-  --field-food-fg: var(--palette-green-ink);
-  --status-pre-entry-bg: var(--palette-lavender);
-  --status-pre-entry-fg: var(--palette-navy);
+  /* --- 分野・外国人の状態（色で分けず、細い枠の札。ADR-0046） --- */
+  --chip-border: var(--palette-control);
+  --chip-fg: var(--palette-text-2);
+  --field-industrial-bg: transparent;
+  --field-industrial-fg: var(--palette-text-2);
+  --field-food-bg: transparent;
+  --field-food-fg: var(--palette-text-2);
+  --status-pre-entry-bg: transparent;
+  --status-pre-entry-fg: var(--palette-text-2);
 
-  /* --- 文字（B〜E 共通: system-ui ベースの日本語・中国語スタック。外部読み込みなし） --- */
-  --font-sans: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN",
-    "Yu Gothic UI", "Yu Gothic", Meiryo, "Noto Sans CJK JP", "Noto Sans JP", sans-serif;
-  --font-sans-zh: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", "Noto Sans CJK SC",
-    "Noto Sans SC", system-ui, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Noto Sans Mono", monospace;
+  /* --- 文字（同梱の Noto Sans JP。母国語の氏名〔簡体字〕は同梱の Noto Sans SC に落とす） --- */
+  --font-sans: "Noto Sans JP", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Yu Gothic",
+    Meiryo, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", "Noto Sans JP",
+    sans-serif;
+  /* 日付・金額・番号は等幅の数字（tabular-nums）で、字体は本文と同じ（仕様 2） */
+  --font-mono: var(--font-sans);
 
   --text-caption: 12px;
+  --text-small: 13px;
   --text-table: 14px;
-  --text-body: 15px;
-  --text-subheading: 18px;
-  --text-heading: 24px;
+  --text-body: 14px;
+  --text-panel: 15px;
+  --text-subheading: 16px;
+  --text-heading: 20px;
+  --text-person: 22px;
   --leading-body: 1.6;
-  --leading-heading: 1.3;
-  --tracking-heading: -0.01em; /* 20px 以上の見出しだけ */
-  --weight-heading: 600;
-  --weight-subheading: 500;
+  --leading-heading: 1.35;
+  --tracking-heading: 0;
+  --weight-heading: 700;
+  --weight-subheading: 700;
 
-  /* --- 余白（基本単位 4px） --- */
+  /* --- 余白（4 の倍数） --- */
   --space-4: 4px;
   --space-8: 8px;
   --space-12: 12px;
@@ -146,19 +187,21 @@
   --space-32: 32px;
   --space-48: 48px;
 
-  /* --- 角丸 --- */
-  --radius-card: 12px;
-  --radius-input: 12px;
-  --radius-pill: 99px;
+  /* --- 角 --- */
+  --radius-card: 8px;
+  --radius-input: 6px;
+  --radius-pill: 999px;
   --radius-badge: var(--radius-pill);
 
-  /* --- 影 --- */
-  --shadow-float: 0 4px 16px rgba(12, 23, 84, 0.08);
-  --popover-border: var(--palette-cream);
+  /* --- 影（浮く部品だけ） --- */
+  --shadow-float: 0 4px 16px rgba(26, 29, 36, 0.1);
+  --popover-border: var(--palette-border);
+  --backdrop: rgba(26, 29, 36, 0.32);
 
   /* --- レイアウト --- */
-  --layout-max: 1200px;
+  --layout-max: 1180px;
   --layout-nav: 220px;
-  --layout-topbar: 56px;
+  --layout-topbar: 60px;
   --control-height: 36px;
+  --sticky-offset: 16px; /* 上に留める帯の高さ（目次で移るときに止める位置。forms.js が帯を出すと書き換える） */
 }

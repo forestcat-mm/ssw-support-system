@@ -1,4 +1,5 @@
-/* 部品（ボタン・バッジ・カード・表・入力欄・タブ・メッセージ）。色・角丸・影は tokens.css の役割の変数だけを使う。 */
+/* 部品（ボタン・札・状態の表示・カード・表・入力欄・タブ・セクション・知らせ）。色・角・影は tokens.css の役割の
+   変数だけを使う。決まりは docs/design/design-2026-10/design-spec.md の 4（部品）。 */
 
 /* --- ボタン ------------------------------------------------------------------------- */
 .button {
@@ -7,12 +8,12 @@
   justify-content: center;
   gap: var(--space-8);
   height: var(--control-height);
-  padding: 0 var(--space-20);
+  padding: 0 14px;
   border-radius: var(--button-radius);
   border: 1px solid transparent;
   box-shadow: var(--button-shadow);
   font: inherit;
-  font-size: var(--text-table);
+  font-size: var(--text-small);
   font-weight: 500;
   line-height: 1;
   cursor: pointer;
@@ -24,7 +25,7 @@
   text-decoration: none;
 }
 
-/* 主要操作（1 画面に 1〜2 個まで） */
+/* 主ボタン（accent の塗り。1 画面に 1 つまで） */
 .button--primary {
   background: var(--button-primary-bg);
   color: var(--button-primary-fg);
@@ -32,9 +33,10 @@
 
 .button--primary:hover {
   background: var(--button-primary-hover-bg);
+  color: var(--button-primary-fg);
 }
 
-/* 二次（主要操作と並べるときだけ） */
+/* 行の中の操作（白地・accent の細い枠・accent の文字） */
 .button--ghost {
   background: var(--button-secondary-bg);
   border-color: var(--button-secondary-border);
@@ -43,9 +45,10 @@
 
 .button--ghost:hover {
   background: var(--button-secondary-hover-bg);
+  color: var(--button-secondary-fg);
 }
 
-/* 中立（戻る・取り消すなど主要でない操作） */
+/* 副ボタン（白地・枠・text の文字。編集・キャンセルなど） */
 .button--neutral {
   background: var(--button-neutral-bg);
   border-color: var(--button-neutral-border);
@@ -54,9 +57,24 @@
 
 .button--neutral:hover {
   background: var(--button-neutral-hover-bg);
+  color: var(--button-neutral-fg);
 }
 
-/* 取り返しのつかない操作（必ず確認の画面をはさむ） */
+/* 軽い操作（枠なし・accent の文字。セクションの見出しの「＋ 追加」「編集」など） */
+.button--light {
+  height: auto;
+  min-height: 28px;
+  padding: 2px var(--space-4);
+  background: transparent;
+  color: var(--color-link);
+}
+
+.button--light:hover {
+  background: var(--button-light-hover-bg);
+  color: var(--color-link-hover);
+}
+
+/* 危ない操作（確認の画面をはさむ。ふつうは「…」のメニューの中に置く） */
 .button--danger {
   background: var(--button-danger-bg);
   border-color: var(--button-danger-border);
@@ -64,9 +82,9 @@
 }
 
 .button--small {
-  height: 28px;
+  height: 30px;
   padding: 0 var(--space-12);
-  font-size: var(--text-caption);
+  font-size: var(--text-small);
 }
 
 .button[disabled] {
@@ -74,117 +92,181 @@
   cursor: not-allowed;
 }
 
-/* --- バッジ・タグ ------------------------------------------------------------------- */
+/* --- 期限の表示（色の点＋文字。色だけで区別しない） ------------------------------------- */
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-4);
-  height: 24px; /* 固定。中身（等幅の日付など）で表の行の高さを変えない */
-  padding: 0 var(--space-12);
-  border-radius: var(--radius-badge);
-  font-size: var(--text-caption);
+  gap: 6px;
+  min-height: 24px; /* 中身（日付など）で表の行の高さを変えない */
+  font-size: var(--text-small);
   font-weight: 500;
-  line-height: 1.6;
+  line-height: 1.4;
   white-space: nowrap;
-  border: 1px solid transparent;
   color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
 }
 
-/* 警告レベル。色だけに頼らず、必ず文字（「超過 5日」「あと3日」）を併記する */
+.badge::before {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
 .badge--overdue {
-  background: var(--level-overdue-bg);
   color: var(--level-overdue-fg);
 }
 
+.badge--overdue::before {
+  background: var(--level-overdue-dot);
+}
+
 .badge--within-7 {
-  background: var(--level-within-7-bg);
   color: var(--level-within-7-fg);
   font-weight: 700;
 }
 
 .badge--within-7::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
   background: var(--level-within-7-mark);
 }
 
 .badge--within-14 {
-  background: var(--level-within-14-bg);
   color: var(--level-within-14-fg);
 }
 
+.badge--within-14::before {
+  background: var(--level-within-14-dot);
+}
+
 .badge--open {
-  border-color: var(--level-open-border);
-  background: transparent;
   color: var(--level-open-fg);
 }
 
-/* 受付前は日付の文字だけ（ほかの日付と同じ等幅の数字） */
+.badge--open::before {
+  background: var(--level-open-dot);
+}
+
+/* 受付前は日付の文字だけ（点なし） */
 .badge--not-yet {
-  padding-left: 0;
-  padding-right: 0;
   color: var(--level-not-yet-fg);
-  font-family: var(--font-mono);
-  font-size: var(--text-table);
-  font-variant-numeric: tabular-nums;
   font-weight: 400;
 }
 
-.tag {
+.badge--not-yet::before {
+  display: none;
+}
+
+a.badge:hover {
+  text-decoration: underline;
+}
+
+/* 状態の表示（点＋文字）: 未生成・署名待ち・済み など */
+.status-dot {
   display: inline-flex;
-  padding: 2px var(--space-12);
-  border-radius: var(--radius-badge);
-  font-size: var(--text-caption);
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-small);
   font-weight: 500;
   white-space: nowrap;
-  background: var(--color-band);
-  border: 1px solid var(--color-line);
+  color: var(--level-open-fg);
+}
+
+.status-dot::before {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--level-open-dot);
+}
+
+.status-dot--danger {
+  color: var(--level-overdue-fg);
+}
+
+.status-dot--danger::before {
+  background: var(--level-overdue-dot);
+}
+
+.status-dot--caution {
+  color: var(--level-within-7-fg);
+}
+
+.status-dot--caution::before {
+  background: var(--level-within-7-mark);
+}
+
+.status-dot--ok {
+  color: var(--level-within-14-fg);
+}
+
+.status-dot--ok::before {
+  background: var(--level-within-14-dot);
+}
+
+/* 件数の札（タブ・パネルの見出しの横） */
+.count {
+  display: inline-block;
+  min-width: 1.5em;
+  padding: 1px var(--space-8);
+  border-radius: var(--radius-pill);
+  background: var(--count-bg);
+  color: var(--count-fg);
+  font-size: var(--text-caption);
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.count--danger {
+  background: var(--count-danger-bg);
+  color: var(--count-danger-fg);
+  font-weight: 700;
+}
+
+/* --- 状態の札（細い枠・999px）: 在留中・特定技能1号・分野 ------------------------------ */
+.chip,
+.tag,
+.status {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 9px;
+  border: 1px solid var(--chip-border);
+  border-radius: var(--radius-badge);
+  background: transparent;
+  color: var(--chip-fg);
+  font-size: var(--text-caption);
+  font-weight: 400;
+  line-height: 1.6;
+  white-space: nowrap;
 }
 
 .tag--industrial {
   background: var(--field-industrial-bg);
   color: var(--field-industrial-fg);
-  border-color: transparent;
 }
 
 .tag--food {
   background: var(--field-food-bg);
   color: var(--field-food-fg);
-  border-color: transparent;
-}
-
-.status {
-  display: inline-flex;
-  padding: 2px var(--space-12);
-  border-radius: var(--radius-badge);
-  font-size: var(--text-caption);
-  border: 1px solid var(--color-line-strong);
-  white-space: nowrap;
 }
 
 .status--pre-entry {
   background: var(--status-pre-entry-bg);
   color: var(--status-pre-entry-fg);
-  border-color: transparent;
 }
 
 .status--left,
 .status--returned {
   color: var(--color-graphite);
-  border-color: var(--color-line);
 }
 
 .status--deactivated {
-  color: var(--color-ash);
+  color: var(--color-graphite);
   text-decoration: line-through;
-  border-color: var(--color-line);
-}
-
-a.badge:hover {
-  text-decoration: none;
-  filter: brightness(0.97);
 }
 
 /* 氏名（漢字または母国語＋ローマ字）。1 行に収め、表記の違いで行の高さを変えない */
@@ -192,28 +274,31 @@ a.badge:hover {
   white-space: nowrap;
 }
 
-/* --- カード ------------------------------------------------------------------------- */
+/* --- カード（パネル） ---------------------------------------------------------------- */
 .card {
   background: var(--color-surface);
   border: 1px solid var(--color-line-structure);
   border-radius: var(--radius-card);
   box-shadow: var(--card-shadow);
-  padding: var(--space-20) var(--space-24);
+  padding: var(--space-16) var(--space-20);
 }
 
 .card--compact {
-  padding: var(--space-16);
+  padding: var(--space-12) var(--space-16);
 }
 
 .card__header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-12);
+  gap: var(--space-8) var(--space-12);
   margin-bottom: var(--space-12);
 }
 
 .card__title {
   flex: 1;
+  font-size: var(--text-panel);
+  font-weight: 700;
 }
 
 .grid-2 {
@@ -238,7 +323,7 @@ a.badge:hover {
   }
 }
 
-/* 項目と値の一覧 */
+/* 項目と値の一覧（項目名を左に。古い形。新しい画面は .pairs） */
 .fields {
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr);
@@ -249,16 +334,188 @@ a.badge:hover {
 
 .fields dt {
   color: var(--color-graphite);
+  font-size: var(--text-small);
 }
 
 .fields dd {
   margin: 0;
   overflow-wrap: anywhere; /* 長いメールアドレスなどでカードからはみ出さない */
+  font-variant-numeric: tabular-nums;
 }
 
 /* 長い項目名がある一覧: 項目名の列を 14em までにして折り返す（狭い画面ではみ出さない） */
 .fields--long-labels {
   grid-template-columns: fit-content(14em) minmax(0, 1fr);
+}
+
+/* 項目の並び（仕様 4）: 項目名（13px）と値を 1 組にし、横に 2 組。組ごとに下に細い線。狭い幅では 1 組 */
+.pairs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--space-32);
+  margin: 0;
+}
+
+.pairs__item {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  column-gap: var(--space-12);
+  padding: 9px 0;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.pairs__item--wide {
+  grid-column: 1 / -1;
+}
+
+.pairs dt {
+  color: var(--color-graphite);
+  font-size: var(--text-small);
+}
+
+.pairs dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+.pairs dd.is-alert {
+  color: var(--level-overdue-fg);
+  font-weight: 700;
+}
+
+@media (max-width: 719px) {
+  .pairs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pairs__item {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  }
+}
+
+/* --- セクション（番号つきの見出し。仕様 4） --------------------------------------------- */
+.doc {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line-structure);
+  border-radius: var(--radius-card);
+  padding: var(--space-4) 28px var(--space-20);
+}
+
+.doc-section {
+  padding: 22px 0 6px;
+  scroll-margin-top: var(--sticky-offset);
+}
+
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-4) 10px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--color-section-rule);
+}
+
+.section-head__no {
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--color-ash);
+  font-variant-numeric: tabular-nums;
+}
+
+.section-head__title {
+  margin: 0;
+  font-size: var(--text-subheading);
+  font-weight: 700;
+}
+
+.section-head__meta {
+  font-size: var(--text-caption);
+  color: var(--color-graphite);
+}
+
+.section-head__actions {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.section-sub {
+  margin: var(--space-16) 0 0;
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--color-ink-2);
+}
+
+/* セクションの知らせ（見出しのすぐ下。色の点＋1 行の文） */
+.section-notice {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-8);
+  margin-top: 10px;
+  font-size: var(--text-small);
+  color: var(--level-overdue-fg);
+}
+
+.section-notice::before {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  transform: translateY(-1px);
+}
+
+.section-notice--caution {
+  color: var(--level-within-7-fg);
+}
+
+.section-notice--caution::before {
+  background: var(--level-within-7-mark);
+}
+
+@media (max-width: 719px) {
+  .doc {
+    padding: var(--space-4) var(--space-16) var(--space-16);
+  }
+}
+
+/* 行の並び（今やること・契約の書類・相談など: 状態・内容・リンク・操作） */
+.item-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8) var(--space-12);
+  padding: 11px 0;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.item-row__state {
+  min-width: 96px;
+}
+
+.item-row__body {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.item-row__title {
+  font-weight: 500;
+}
+
+.item-row__note {
+  margin-top: 2px;
+  font-size: var(--text-caption);
+  color: var(--color-graphite);
 }
 
 /* --- 表 ----------------------------------------------------------------------------- */
@@ -282,9 +539,9 @@ a.badge:hover {
 
 .table th,
 .table td {
-  padding: var(--table-cell-padding-y) var(--space-12);
+  padding: var(--table-cell-padding-y) var(--table-cell-padding-x);
   text-align: left;
-  border-bottom: 1px solid var(--color-line);
+  border-bottom: 1px solid var(--color-line-row);
   vertical-align: middle;
 }
 
@@ -293,10 +550,19 @@ a.badge:hover {
 }
 
 .table th {
+  padding-top: 9px;
+  padding-bottom: 9px;
+  background: var(--color-band);
+  border-bottom-color: var(--color-line-structure);
   font-size: var(--text-caption);
   font-weight: 500;
   color: var(--color-graphite);
   white-space: nowrap;
+}
+
+/* カードやセクションの中の表は、見出しの行を塗らず、左右の余白を詰める */
+.table-scroll .table th {
+  background: transparent;
 }
 
 .table tbody tr:last-child td {
@@ -305,6 +571,27 @@ a.badge:hover {
 
 .table tbody tr:hover {
   background: var(--color-band);
+}
+
+/* 表の中の名前（氏名・書類名）は text の 500。青くしない */
+.table td a.cell-name,
+.cell-name {
+  color: var(--color-ink);
+  font-weight: 500;
+}
+
+.table td a.cell-name:hover {
+  color: var(--color-link-hover);
+}
+
+/* 表の区切りの行（第1表・第2表など） */
+.table tr.table__group td {
+  background: var(--color-group);
+  font-size: var(--text-caption);
+  font-weight: 700;
+  color: var(--color-ink-2);
+  border-bottom-color: var(--color-line-structure);
+  height: auto;
 }
 
 /* 一覧の表: どの行も 1 行に収める（長い文字列は省略記号＋ title で全文） */
@@ -341,7 +628,7 @@ a.badge:hover {
 }
 
 .table .is-voided td {
-  color: var(--color-ash);
+  color: var(--color-graphite);
 }
 
 .table .is-voided td:not(:last-child) {
@@ -352,7 +639,7 @@ a.badge:hover {
 .card.is-voided .fields dd,
 .card.is-voided .record-body,
 .attachment-list .is-voided .attachment-list__name {
-  color: var(--color-ash);
+  color: var(--color-graphite);
   text-decoration: line-through;
 }
 
@@ -388,7 +675,7 @@ a.badge:hover {
 }
 
 .attachment-list .is-voided .caption {
-  color: var(--color-ash);
+  color: var(--color-graphite);
 }
 
 /* 相談の経過（時系列。受付が先頭） */
@@ -402,7 +689,7 @@ a.badge:hover {
 
 .timeline__item {
   padding-left: var(--space-16);
-  border-left: 2px solid var(--color-line);
+  border-left: 2px solid var(--color-line-structure);
 }
 
 .timeline__item[data-kind="reception"] {
@@ -433,8 +720,9 @@ a.badge:hover {
 }
 
 .form-row__label {
-  font-size: var(--text-table);
-  font-weight: 500;
+  font-size: var(--text-small);
+  font-weight: 400;
+  color: var(--color-ink);
 }
 
 .form-row__check {
@@ -444,13 +732,21 @@ a.badge:hover {
   cursor: pointer;
 }
 
+/* 「必須」の札（danger の小さな札） */
 .form-row__required {
-  color: var(--color-graphite);
-  font-weight: 400;
-  font-size: var(--text-caption);
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--count-danger-bg);
+  color: var(--count-danger-fg);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.5;
+  vertical-align: 1px;
 }
 
-/* 必須の欄（「入れる場合は必須」も）のラベルは太字（修正 1 回目 B14。「必須」の印も残す） */
+/* 必須の欄（「入れる場合は必須」も）の項目名は太字（修正 1 回目 B14。「必須」の札も残す） */
 .form-row__label--required {
   font-weight: 700;
 }
@@ -462,10 +758,8 @@ a.badge:hover {
 }
 
 .form-row__note--warning {
-  background: var(--level-within-7-bg);
-  color: var(--level-within-7-fg);
-  border-radius: var(--radius-input);
-  padding: var(--space-4) var(--space-8);
+  color: var(--notice-warning-fg);
+  font-weight: 500;
 }
 
 .form-row__help {
@@ -478,7 +772,7 @@ a.badge:hover {
 .textarea {
   width: 100%;
   min-height: var(--control-height);
-  padding: 0 var(--space-12);
+  padding: 0 10px;
   border: 1px solid var(--input-border);
   border-radius: var(--radius-input);
   background: var(--color-field);
@@ -493,7 +787,7 @@ a.badge:hover {
 }
 
 .textarea {
-  padding: var(--space-8) var(--space-12);
+  padding: var(--space-8) 10px;
   min-height: 88px;
 }
 
@@ -511,7 +805,7 @@ a.badge:hover {
 .select:disabled,
 .textarea:disabled {
   background: var(--input-disabled-bg);
-  color: var(--color-ash);
+  color: var(--color-graphite);
   cursor: not-allowed;
 }
 
@@ -521,12 +815,29 @@ a.badge:hover {
   border-color: var(--input-error-border);
 }
 
+.form-row--caution .input,
+.form-row--caution .select,
+.form-row--caution .textarea {
+  border-color: var(--input-caution-border);
+}
+
+/* 誤り（色の点＋文。保存できない） */
 .form-row__error {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
   font-size: var(--text-caption);
-  background: var(--notice-error-bg);
+  font-weight: 500;
   color: var(--notice-error-fg);
-  border-radius: var(--radius-input);
-  padding: var(--space-4) var(--space-8);
+}
+
+.form-row__error::before {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
 .form-actions {
@@ -567,6 +878,8 @@ a.badge:hover {
 .filter-bar .select {
   width: auto;
   min-width: 160px;
+  min-height: 32px;
+  font-size: var(--text-small);
 }
 
 .filter-bar .filter-bar__search {
@@ -584,20 +897,23 @@ a.badge:hover {
   }
 }
 
-/* --- タブ（詳細画面。段階2以降に「支援記録」「帳票」を足す） -------------------------- */
+/* --- タブ（下線 2px。選択中は accent の線と太字） ---------------------------------------- */
 .tabs {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-4);
-  border-bottom: 1px solid var(--color-line);
+  border-bottom: 1px solid var(--color-line-structure);
   margin-bottom: var(--space-16);
 }
 
 .tabs__link {
-  padding: var(--space-8) var(--space-16);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-8) var(--space-12);
   color: var(--color-graphite);
-  font-size: var(--text-table);
-  font-weight: 500;
+  font-size: var(--text-small);
+  font-weight: 400;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
   text-decoration: none;
@@ -608,12 +924,14 @@ a.badge:hover {
   text-decoration: none;
 }
 
-.tabs__link[aria-current="page"] {
+.tabs__link[aria-current="page"],
+.tabs__link[aria-selected="true"] {
   color: var(--color-ink);
+  font-weight: 700;
   border-bottom-color: var(--color-accent);
 }
 
-/* --- メッセージ・空の状態 --------------------------------------------------------------- */
+/* --- 知らせ・空の状態 ------------------------------------------------------------------ */
 .messages {
   list-style: none;
   margin: 0 0 var(--space-16);
@@ -624,12 +942,17 @@ a.badge:hover {
 
 .message {
   padding: var(--space-8) var(--space-16);
-  border-radius: var(--radius-card);
+  border-radius: var(--radius-input);
   background: var(--notice-info-bg);
+  color: var(--color-ink);
   font-size: var(--text-table);
 }
 
-.message--warning,
+.message--warning {
+  background: var(--notice-warning-bg);
+  color: var(--notice-warning-fg);
+}
+
 .message--error {
   background: var(--notice-error-bg);
   color: var(--notice-error-fg);
@@ -637,6 +960,7 @@ a.badge:hover {
 
 .message--success {
   background: var(--notice-success-bg);
+  color: var(--notice-success-fg);
 }
 
 .empty {
@@ -855,7 +1179,7 @@ input[list="time-options"] {
 }
 
 .modal::backdrop {
-  background: rgba(12, 23, 84, 0.32);
+  background: var(--backdrop);
 }
 
 .modal__header {

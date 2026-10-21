@@ -1,0 +1,47 @@
+/*
+ * 業務画面の字体（同梱。外からは読まない。ADR-0046）。
+ * Noto Sans JP（400・500・700）: JIS X 0208 の字と、かな・英数・記号、画面の文言に出る字のサブセット。
+ * Noto Sans SC（400・700）: GB 2312 の漢字のサブセット。漢字の区画だけに当て、JP に無い字（母国語の氏名の
+ * 簡体字など）を補う。どちらも SIL Open Font License 1.1（fonts/OFL.txt）。作り方は tools/fonts/make_web_fonts.py。
+ */
+@font-face {
+  font-family: "Noto Sans JP";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/NotoSansJP-400.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Noto Sans JP";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("fonts/NotoSansJP-500.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Noto Sans JP";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("fonts/NotoSansJP-700.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Noto Sans SC";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/NotoSansSC-400.woff2") format("woff2");
+  unicode-range: U+3400-4DBF, U+4E00-9FFF;
+}
+
+@font-face {
+  font-family: "Noto Sans SC";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("fonts/NotoSansSC-700.woff2") format("woff2");
+  unicode-range: U+3400-4DBF, U+4E00-9FFF;
+}
