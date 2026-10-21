@@ -58,9 +58,15 @@
 
 環境の設定画面の「Setup script」に、`tools/cloud/setup.sh` の全文をそのまま貼る。setup script はセッションを始める前に root で 1 回流れ、終わった後のファイルが環境の cache になる（約 5 分に収まれば。次のセッションは cache から始まり、setup script は流れない）。
 
-- 中身: OS の道具だけ。apt（PostgreSQL 16・Redis・gettext・GUI なしの LibreOffice・字体・python3.12）、uv 0.13.1（PyPI から）、playwright 1.63.0 の Chromium（`/opt/pw-browsers` に足す。`--with-deps`）。リポジトリのファイルは読まない。
+- 中身: OS の道具と、Python の依存の cache。
+  - apt（PostgreSQL 16・Redis・gettext・字体・python3.12、LibreOffice は VM の GUI つきの `libreoffice-calc`・`libreoffice-writer` を外して GUI なしの `-nogui` に置き換える）
+  - uv 0.13.1（PyPI から）
+  - playwright 1.63.0 の Chromium（`/opt/pw-browsers` に足す。`--with-deps`）
+  - uv の cache（段の名前は `uv-cache`）。`backend/uv.lock`・`pyproject.toml` だけを一時のフォルダに写し、`uv sync --frozen --group e2e --no-install-project` を流して venv は捨てる。`/root/.cache/uv`（約 450〜630MB）が環境の cache に入る。
+- **リポジトリのファイルを読まない決まりの例外**: 読んでよいのは `backend/uv.lock` と `backend/pyproject.toml` だけで、uv の cache を温めるためだけに使う。理由: フックは setup script の後に流れるので、uv の cache は環境の cache に入らない。そのため新しいセッションのたびに、フックの `uv sync` が全部を取り直していた（2026-10-21 は 3 分 13 秒。フック全体で 235 秒）。cache が古くても（lock が変わっても）、フックの `uv sync --frozen` が差分を取り直すので害が無い。リポジトリが見つからない・取得に失敗したときは `uv-cache FAILED` とログに書いて続け、フックの `uv sync` が全部を取る（遅くなるだけ）。リポジトリは `CLAUDE_PROJECT_DIR`・今のフォルダ・`/home/user/*` の順に探す（2026-10-21 は clone の直後に setup script が流れた）。
 - 失敗しても続け、必ず exit 0 で終わる（失敗するとセッションが始まらない）。段ごとの成否と時間を `/var/log/ssw-setup.log`（出力は `/var/log/ssw-setup.log.full`）に書く。SessionStart フックがこのログを読み、失敗した段を知らせる。
-- 時間（2026-10-21 にこの VM で流した）: apt-update 7 秒・apt-install 3〜11 秒・uv 3 秒以内・Chromium 44 秒。合わせて約 1 分で、5 分に収まる（分けなくてよい）。
+- 時間（2026-10-21 に測った。毎回変わる）: apt-update 4〜7 秒・apt-install 2〜13 秒・uv 2〜4 秒・Chromium 15〜44 秒・uv-cache 約 12 秒（cache が空の状態から 448MB）。新しい VM で合わせて約 1 分〜1 分半で、5 分に収まる（分けなくてよい）。
+- **cache から始まったかの確かめ方**: setup script のログの時刻（`stat -c %y /var/log/ssw-setup.log`）が、VM の起動（`uptime -s`）と clone（`stat -c %y .git/HEAD`。ブランチを切り替えると変わるので、セッションの始めに見る）の両方より前なら、環境の cache から始まった新しいセッション。ログが起動より後なら、setup script がこのセッションで流れた（貼り直した後の最初のセッションなど）。clone も起動より前なら、同じセッションの続きで VM が作り直されたもので（venv・DB・`.checks/` も残る）、環境の cache の確かめにはならない。
 - **貼り直しの決まり**: リポジトリの `tools/cloud/setup.sh` が正本。版（uv・playwright・Python）を変えたら setup.sh も変え（`tests/test_cloud_tools.py` が Dockerfile・pyproject・`.python-version` と照らす）、PR の説明文に「設定画面に貼り直す」と書く。マージの後に人が貼り直す。setup script を変えると cache が作り直される（設定画面の setup script が変わったときだけ。リポジトリの setup.sh を変えただけでは変わらない）。
 
 ## 5. SessionStart フック（`.claude/settings.json` → `tools/cloud/session_start.sh`）
@@ -77,7 +83,7 @@
 8. `CLAUDE_ENV_FILE` に `RUNNER=host`・`PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`・`UV_SYSTEM_CERTS=1` と `.env` の読み込みを書く（以後の Bash で使われる）。
 9. 知らせを出す。足りないもの・失敗を先頭に「【クラウドの環境: 足りないもの・失敗が N 件】」として並べ、その後に知らせておくこと（`.env` を写しから戻した・DB を作り直した）と、そろった版・かかった時間。人には systemMessage、Claude には additionalContext で届く。
 
-時間: 準備が済んだ VM で約 8〜25 秒、`.env` も DB も無い VM で約 50 秒（migrate が 45 秒）。
+時間（2026-10-21 に測った。毎回変わる）: 準備が済んだ VM で約 8〜36 秒。`.env` も DB も無い VM では、uv の cache があれば約 50 秒（migrate が 30〜45 秒）、無ければ約 4 分（2026-10-21 は 235 秒。`uv sync` が 3 分 13 秒）。uv の cache は setup script が温める（上の 4）。
 
 ### .env と暗号化の鍵
 
@@ -91,13 +97,13 @@
 
 `Makefile` は `RUNNER`（既定 `docker`。手元の動きは変わらない）で切り替える。`RUNNER=host` では、コマンドを `tools/cloud/host_run.sh`（`.env` を読み、`backend/` の uv の venv で流す）で流す。CLAUDE.md の「検査の段」はクラウドでもそのまま使う。
 
-| make | `RUNNER=host` で流すもの | 2026-10-21 の結果 |
+| make | `RUNNER=host` で流すもの | 結果（2026-10-21 に測った。時間は毎回変わる） |
 |---|---|---|
 | `make lint` | `ruff check`・`ruff format --check`・`mypy`（e2e の依存も入った venv で） | 約 30 秒。e2e の型の誤りを直して通る |
-| `make check-quick T=…`・`make test`・`make test-lf`・`make test-db` | `pytest -n auto --reuse-db -rs` | 全部で約 19 分（4 CPU）。1620 件が通り、`.doc` を変換し直すテスト 2 件は LibreOffice の版が違うので飛ばす（下の 6 の「手元でしか流せない検査」） |
-| `make e2e` | `pytest e2e -n 4`（`TEST_DB_SUFFIX=e2e`。make のコマンド行の `GATE4=1` などのゲートの変数は外す） | 約 5 分 40 秒〜6 分 30 秒。131 件が通り、5 件を飛ばす（ゲートと design-shots） |
-| `make gate2`・`make gate3`・`make gate4` | 同じテストを同じ環境変数で | 各 1 件が通る（約 2 分・2 分・2 分 20 秒） |
-| `make checks` | `tools/run_checks.sh`。ログの先頭に `=== RUNNER=host`、検査ごとに飛ばしたテストの件数と理由（`SKIPPED [n] …`）。1 件の上限 `CHECK_LIMIT` は 1800 秒（既定の 900 秒では単体テストが時間切れになった） | 約 33 分（gate4 を含む。2026-10-21 は 32 分 36 秒） |
+| `make check-quick T=…`・`make test`・`make test-lf`・`make test-db` | `pytest -n auto --reuse-db -rs` | 全部で約 13〜19 分（4 CPU）。全部が通り（2026-10-21 は 1624 件）、`.doc` を変換し直すテスト 2 件は LibreOffice の版が違うので飛ばす（下の 6 の「手元でしか流せない検査」） |
+| `make e2e` | `pytest e2e -n 4`（`TEST_DB_SUFFIX=e2e`。make のコマンド行の `GATE4=1` などのゲートの変数は外す） | 約 4 分 40 秒〜6 分 30 秒。131 件が通り、5 件を飛ばす（ゲートと design-shots） |
+| `make gate2`・`make gate3`・`make gate4` | 同じテストを同じ環境変数で | 各 1 件が通る（各 1 分 30 秒〜2 分 20 秒） |
+| `make checks` | `tools/run_checks.sh`。ログの先頭に `=== RUNNER=host`、検査ごとに飛ばしたテストの件数と理由（`SKIPPED [n] …`）。1 件の上限 `CHECK_LIMIT` は 1800 秒（既定の 900 秒では単体テストが時間切れになった）。gate4 は既定では流さない（`GATE4=1` で足す） | 既定（lint・test・e2e・gate2 の 1 日・gate3）で約 21〜24 分、`GATE4=1` で約 33 分（2026-10-21 は 21 分 31 秒〜23 分 41 秒・32 分 36 秒） |
 | `make messages`・`make seed` など | `$(MANAGE)` を backend の venv で | |
 | `make design-shots` | 流さない（知らせて止める） | 字体と画面の見え方が手元の e2e のイメージと同じかを確かめていない |
 | `make up`・`down`・`build`・`logs` | 流さない（知らせて止める） | PostgreSQL・Redis はフックが起こす。依存は `uv sync` |
