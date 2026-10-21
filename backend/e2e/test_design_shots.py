@@ -17,6 +17,7 @@ from pytest_django.fixtures import Settings
 
 from apps.contracts.models import EmploymentContract
 from apps.core.models import User
+from apps.hosts.models import HostOrganization
 from apps.seed.context import DUMMY_USERNAME
 from apps.seed.models import SeedObject
 from apps.workers.models import ForeignWorker
@@ -120,3 +121,18 @@ def test_capture_screens_like_the_mocks(
         # 08: 申請の書類の一覧（件数の要約・状態の点・操作の列。U7）
         page.goto(f"{base}/workers/{seeded[0].pk}/documents/application/")
         shoot(page, "08-application-documents", width)
+        # 受入れ機関の詳細（U7。ふだんと、目次で支援委託契約へ移った後の画面の高さ）
+        host = HostOrganization.objects.filter(
+            pk__in=SeedObject.objects.filter(content_type__model="hostorganization").values(
+                "object_id"
+            )
+        ).order_by("pk")[0]
+        page.goto(f"{base}/hosts/{host.pk}/")
+        shoot(page, "09-host-detail", width)
+        page.get_by_role("navigation", name="このページの目次").get_by_role(
+            "link", name="5 支援委託契約"
+        ).click()
+        page.locator("#person-bar").wait_for(state="visible")
+        page.wait_for_timeout(300)
+        page.screenshot(path=SHOTS / f"10-host-detail-scrolled-{width}.png", scale="css")
+        page.evaluate("window.scrollTo(0, 0)")

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 16:47+0900\n"
+"POT-Creation-Date: 2026-10-21 16:51+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -5830,74 +5830,67 @@ msgid ""
 msgstr ""
 "過去 1 年に同種の業務に従事した労働者の離職と、前 1 年間の行方不明者です。"
 
+msgid "continuing acceptance"
+msgstr "受入れ継続"
+
+msgid "support contract ends on"
+msgstr "支援委託契約の終了日"
+
+msgid "terminated"
+msgstr "終了"
+
+msgid "no end date"
+msgstr "期限なし"
+
+msgid "sites"
+msgstr "事業所"
+
+#, python-format
+msgid "%(counter)s site"
+msgid_plural "%(counter)s sites"
+msgstr[0] "%(counter)s か所"
+
+msgid "Other actions"
+msgstr "ほかの操作"
+
+msgid "Add a support contract"
+msgstr "支援委託契約を追加"
+
+msgid "Add a document"
+msgstr "書類を追加"
+
+msgid "Back to the host organizations"
+msgstr "受入れ機関台帳へ戻る"
+
+msgid "Contents (on the bar)"
+msgstr "目次（上の帯）"
+
+msgctxt "table of contents"
+msgid "Contents"
+msgstr "目次"
+
+msgid "To do"
+msgstr "今やること"
+
+msgid ""
+"tasks of this host organization without an assignee, nearest deadline first"
+msgstr "この受入れ機関の担当者なしのタスク・期限の近い順"
+
+msgid "deadline"
+msgstr "期限"
+
+msgid "Nothing to do now."
+msgstr "今やることはありません。"
+
+msgid "Contents of this page"
+msgstr "このページの目次"
+
 msgid "Basic information"
 msgstr "基本情報"
 
 #, python-format
 msgid "since %(day)s"
 msgstr "%(day)s から"
-
-msgid "Items for the bulk application"
-msgstr "一括申請の項目"
-
-msgid "industry"
-msgstr "業種"
-
-msgid "Declarations (items (11) to (32))"
-msgstr "申告（(11)〜(32)）"
-
-msgid "New version"
-msgstr "新しい版"
-
-#, python-format
-msgid "Latest version: declared on %(day)s"
-msgstr "最新の版: %(day)s の申告"
-
-#, python-format
-msgid "%(counter)s required item is not answered."
-msgid_plural "%(counter)s required items are not answered."
-msgstr[0] "必須の項目のうち %(counter)s 件が未回答です。"
-
-msgid "not involved in the acceptance"
-msgstr "受入れ業務に関与しない"
-
-msgid "Applicant contacts (agent of the bulk application)"
-msgstr "申請担当者（一括申請の代理人）"
-
-msgid "address of the host organization"
-msgstr "受入れ機関の所在地"
-
-msgid "Support contracts"
-msgstr "支援委託契約"
-
-msgid "period"
-msgstr "期間"
-
-msgid "fee per person per month"
-msgstr "委託料（1 名・月額）"
-
-msgid "Attachments"
-msgstr "添付"
-
-msgid "terminated"
-msgstr "終了"
-
-msgid "planned end date"
-msgstr "予定の終了日"
-
-msgid "no end date"
-msgstr "期限なし"
-
-msgid "Other actions"
-msgstr "ほかの操作"
-
-msgid ""
-"Full entrustment. One row is one period: register the renewed period as the "
-"next contract (it starts the day after the planned end date). Register an "
-"actual termination with “Register the termination”."
-msgstr ""
-"全部委託。1 行が 1 期間です。更新後の期間は、予定の終了日の翌日から始まる次の"
-"契約として登録します。実際に終わったときは「終了を登録」で登録します。"
 
 msgid "Sites and operation categories"
 msgstr "事業所と業務区分"
@@ -5946,17 +5939,48 @@ msgstr "提出先"
 msgid "copy"
 msgstr "控え"
 
-msgid "Career-up plans"
-msgstr "キャリアアッププラン"
+msgid "Support contracts"
+msgstr "支援委託契約"
 
-msgid "No career-up plans are registered."
-msgstr "キャリアアッププランは登録されていません。"
+msgid "period"
+msgstr "期間"
+
+msgid "fee per person per month"
+msgstr "委託料（1 名・月額）"
+
+msgid "Attachments"
+msgstr "添付"
+
+msgid "planned end date"
+msgstr "予定の終了日"
+
+msgid ""
+"Full entrustment. One row is one period: register the renewed period as the "
+"next contract (it starts the day after the planned end date). Register an "
+"actual termination with “Register the termination”."
+msgstr ""
+"全部委託。1 行が 1 期間です。更新後の期間は、予定の終了日の翌日から始まる次の"
+"契約として登録します。実際に終わったときは「終了を登録」で登録します。"
+
+msgid "Employment condition templates"
+msgstr "雇用条件のひな形"
+
+msgid "Add a template"
+msgstr "ひな形を追加"
+
+#, python-format
+msgid "%(counter)s item entered for each worker"
+msgid_plural "%(counter)s items entered for each worker"
+msgstr[0] "外国人ごとに入れる項目 %(counter)s 件"
+
+msgid "not in use"
+msgstr "使わない"
+
+msgid "No employment condition templates are registered."
+msgstr "雇用条件のひな形は登録されていません。"
 
 msgid "Documents of the host organization"
 msgstr "受入れ機関の書類"
-
-msgid "Add a document"
-msgstr "書類を追加"
 
 msgid ""
 "Agreements and annual calendars of the variable working hours system, wage "
@@ -5981,22 +6005,41 @@ msgstr "発行後 3 か月を超える"
 msgid "No documents are kept."
 msgstr "保管している書類はありません。"
 
-msgid "Employment condition templates"
-msgstr "雇用条件のひな形"
+msgid "Items for the bulk application"
+msgstr "一括申請の項目"
 
-msgid "Add a template"
-msgstr "ひな形を追加"
+msgid "industry"
+msgstr "業種"
+
+msgid "Declarations (items (11) to (32))"
+msgstr "申告（(11)〜(32)）"
+
+msgid "New version"
+msgstr "新しい版"
 
 #, python-format
-msgid "%(counter)s item entered for each worker"
-msgid_plural "%(counter)s items entered for each worker"
-msgstr[0] "外国人ごとに入れる項目 %(counter)s 件"
+msgid "Latest version: declared on %(day)s"
+msgstr "最新の版: %(day)s の申告"
 
-msgid "not in use"
-msgstr "使わない"
+#, python-format
+msgid "%(counter)s required item is not answered."
+msgid_plural "%(counter)s required items are not answered."
+msgstr[0] "必須の項目のうち %(counter)s 件が未回答です。"
 
-msgid "No employment condition templates are registered."
-msgstr "雇用条件のひな形は登録されていません。"
+msgid "not involved in the acceptance"
+msgstr "受入れ業務に関与しない"
+
+msgid "Applicant contacts (agent of the bulk application)"
+msgstr "申請担当者（一括申請の代理人）"
+
+msgid "address of the host organization"
+msgstr "受入れ機関の所在地"
+
+msgid "Career-up plans"
+msgstr "キャリアアッププラン"
+
+msgid "No career-up plans are registered."
+msgstr "キャリアアッププランは登録されていません。"
 
 msgid ""
 "Form 3-6 and attachments 1 and 2 for a fiscal year (submitted from April 1 "
@@ -6012,21 +6055,18 @@ msgstr "相談記録書を作る"
 msgid "No consultation records have been generated."
 msgstr "相談記録書はまだ生成していません。"
 
+msgid "Foreign workers of this host organization"
+msgstr "この受入れ機関の外国人"
+
 msgid ""
 "No foreign workers have an employment contract with this host organization."
 msgstr "この受入れ機関と雇用契約のある外国人はいません。"
-
-msgid "sites"
-msgstr "事業所"
 
 msgid "membership valid until"
 msgstr "加入の有効期限"
 
 msgid "sites without a cooperation confirmation"
 msgstr "協力確認書が未提出の事業所"
-
-msgid "support contract ends on"
-msgstr "支援委託契約の終了日"
 
 msgid "No host organizations are registered."
 msgstr "受入れ機関は登録されていません。"
@@ -8044,10 +8084,6 @@ msgstr "タブ"
 msgid "Contents of the input"
 msgstr "入力の目次"
 
-msgctxt "table of contents"
-msgid "Contents"
-msgstr "目次"
-
 msgid ""
 "Before entry: do not add a row before the certificate of eligibility is "
 "issued. After it is issued, choose “Certificate of Eligibility” as the "
@@ -8101,9 +8137,6 @@ msgstr "写真を変える"
 msgid "Back to the foreign workers"
 msgstr "外国人台帳へ戻る"
 
-msgid "Contents (on the bar)"
-msgstr "目次（上の帯）"
-
 msgid "needs attention"
 msgstr "注意あり"
 
@@ -8115,12 +8148,6 @@ msgid ""
 msgstr ""
 "この外国人は %(day)s に %(by)s が無効化しました。理由: %(reason)s。一覧・検"
 "索・日次の起票・ダッシュボードの対象から外れています。"
-
-msgid "Contents of this page"
-msgstr "このページの目次"
-
-msgid "To do"
-msgstr "今やること"
 
 msgid "nearest deadline first"
 msgstr "期限の近い順"
@@ -8136,9 +8163,6 @@ msgstr "5 雇用契約"
 
 msgid "6 Support"
 msgstr "6 支援"
-
-msgid "Nothing to do now."
-msgstr "今やることはありません。"
 
 msgid "Personal information"
 msgstr "本人の情報"

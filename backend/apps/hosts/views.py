@@ -4,6 +4,7 @@ from typing import Any
 
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
 
 from apps.core.models import Action, User
@@ -18,7 +19,25 @@ from services import (
     host_declarations,
     host_detail,
     host_documents,
+    host_overview,
     immigration_codes,
+)
+
+# 受入れ機関の詳細のセクション（U7）: 並び・id・見出し。
+# 権限で出さないものは番号を詰める
+HOST_SECTIONS = (
+    ("host-basic", _("Basic information")),
+    ("sites", _("Sites and operation categories")),
+    ("memberships", _("Memberships")),
+    ("cooperation", _("Cooperation confirmations")),
+    ("support-contracts", _("Support contracts")),
+    ("condition-templates", _("Employment condition templates")),
+    ("host-documents", _("Documents of the host organization")),
+    ("host-application", _("Items for the bulk application")),
+    ("career-plans", _("Career-up plans")),
+    ("periodic-report", _("Periodic notification (form 3-6)")),
+    ("consultation-records", _("Consultation records (form 5-4)")),
+    ("host-workers", _("Foreign workers of this host organization")),
 )
 
 
@@ -125,4 +144,24 @@ class HostDetailView(ActionRequiredMixin, TemplateView):
             from apps.forms_engine.views import consultation_documents
 
             context["consultation_documents"] = consultation_documents(host)
+        # 上の帯・今やること・番号つきのセクションと目次（U7）
+        context["head"] = host_overview.header(detail, today)
+        context["can_see_todos"] = authorization.has_action(user, Action.FILINGS_VIEW)
+        if context["can_see_todos"]:
+            context["todos"] = host_overview.todos(host, today)
+        hidden = set()
+        if not can_see_templates:
+            hidden.add("condition-templates")
+        if not can_generate:
+            hidden.update({"periodic-report", "consultation-records"})
+        if not with_workers:
+            hidden.add("host-workers")
+        shown = [(key, label) for key, label in HOST_SECTIONS if key not in hidden]
+        context["section_no"] = {
+            key.replace("-", "_"): number for number, (key, _label) in enumerate(shown, 1)
+        }
+        context["toc"] = [
+            {"id": key, "label": f"{number} {label}"}
+            for number, (key, label) in enumerate(shown, 1)
+        ]
         return context

@@ -2306,3 +2306,64 @@ input[list="time-options"] {
 .table--list td.application-set__status {
   white-space: normal;
 }
+
+/* 受入れ機関の詳細の上の帯（U7）: 写真の代わりに名前の頭文字の丸だけ */
+.person-photo--host {
+  width: auto;
+  height: auto;
+  border: 0;
+  background: none;
+}
+
+.person-photo--host .person-photo__initial {
+  width: 56px;
+  height: 56px;
+}
+
+.person-photo--small.person-photo--host .person-photo__initial {
+  width: 28px;
+  height: 28px;
+}
+
+/* セクションの中の小見出しと右の操作（受入れ機関の一括申請の項目など） */
+.sub-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8) var(--space-12);
+  margin: var(--space-20) 0 var(--space-8);
+}
+
+.sub-head .section-sub,
+.section-sub.sub-head {
+  margin: 0;
+}
+
+/* 受入れ機関の名前は長いので折り返す（外国人の氏名は今どおり折り返さない） */
+.person-head--host .person-head__who,
+.person-head--host .person-head__name-block,
+.person-head--host .person-head__name {
+  min-width: 0;
+}
+
+.person-head--host .person-name {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.person-bar--host .person-bar__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.person-bar--host .person-bar__name {
+  flex: 1 1 auto;
+}
+
+@media (max-width: 719px) {
+  .person-bar--host .person-bar__row > .tag {
+    display: none;
+  }
+}

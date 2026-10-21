@@ -1,197 +1,302 @@
 {% extends "ui/base.html" %}{% load i18n ui %}
 {% block title %}{{ host.name }}{% endblock %}
-{% block page_header %}
-  <p class="caption"><a href="{% url 'hosts:list' %}">← {% translate "Back to list" %}</a></p>
-  <h1>{{ host.name }}</h1>
+{% block topbar %}
+{# 上の帯（ふだん。U7: 外国人の詳細の形を受入れ機関に）: 戻る・頭文字の丸・名前・法人番号・主な分野・受入れ継続の印・支援委託契約の期限・編集・「…」 #}
+<header class="person-head person-head--host" id="person-head">
+  <a class="person-head__back" href="{% url 'hosts:list' %}">← {% translate "Host organizations" %}</a>
+  <div class="person-head__main">
+    <div class="person-head__who">
+      <div class="person-photo person-photo--host" aria-hidden="true"><span class="person-photo__initial">{{ head.initial }}</span></div>
+      <div class="person-head__name-block">
+        <div class="person-head__name">
+          <h1 class="person-name">{{ host.name }}</h1>
+          {% if host.corporate_number %}<span class="person-head__romaji mono" id="host-head-corporate-number">{% translate "corporate number" %} {{ host.corporate_number }}</span>{% endif %}
+        </div>
+        <div class="cluster person-head__chips">
+          {% if head.main_field %}{% field_tag head.main_field %}{% endif %}
+          {% if host.accepts_ssw_workers %}<span class="chip" id="host-head-continuing">{% translate "continuing acceptance" %}</span>{% endif %}
+        </div>
+      </div>
+    </div>
+    {% with expiry=head.contract %}{% if expiry %}
+    <div class="expiry-box expiry-box--{{ expiry.tone }}" id="support-contract-expiry"{% if expiry.level %} data-level="{{ expiry.level }}"{% endif %}>
+      <span class="expiry-box__label">{% translate "support contract ends on" %}</span>
+      {% if expiry.deadline %}<span class="expiry-box__date">{{ expiry.deadline.unadjusted_due_on|date:"Y-m-d" }}</span><span class="expiry-box__left">{% level_badge expiry.deadline %}</span>
+      {% elif expiry.contract.terminated_on %}<span class="expiry-box__date">{{ expiry.contract.terminated_on|date:"Y-m-d" }}</span><span class="expiry-box__left">{% translate "terminated" %}</span>
+      {% else %}<span class="expiry-box__date">{% translate "no end date" %}</span>{% endif %}
+    </div>
+    {% endif %}{% endwith %}
+    <dl class="person-head__facts">
+      <div><dt>{% translate "representative" %}</dt><dd>{{ host.representative_title }} {{ host.representative_name }}</dd></div>
+      <div><dt>{% translate "sites" %}</dt><dd>{% blocktranslate count counter=detail.sites|length %}{{ counter }} site{% plural %}{{ counter }} sites{% endblocktranslate %}</dd></div>
+      {% if with_workers %}<div><dt>{% translate "foreign workers" %}</dt><dd>{% blocktranslate count counter=detail.workers|length %}{{ counter }} person{% plural %}{{ counter }} people{% endblocktranslate %}</dd></div>{% endif %}
+    </dl>
+    <div class="person-head__actions">
+      {% if can_manage %}<a class="button button--neutral" href="{% url 'hosts:edit' host.pk %}" id="host-edit">{% translate "Edit" %}</a>{% endif %}
+      {% if can_manage or can_generate_consultations %}<details class="menu" id="host-menu"><summary class="button button--neutral" aria-label="{% translate 'Other actions' %}" title="{% translate 'Other actions' %}">…</summary><ul class="popover menu__list">
+        {% if can_manage %}<li><a class="menu__item" href="{% url 'hosts:support_contract_create' host.pk %}">{% translate "Add a support contract" %}</a></li>
+        <li><a class="menu__item" href="{% url 'hosts:site_create' host.pk %}">{% translate "Add a site" %}</a></li>
+        <li><a class="menu__item" href="{% url 'hosts:host_document_create' host.pk %}">{% translate "Add a document" %}</a></li>{% endif %}
+        {% if can_generate_consultations %}<li><a class="menu__item" href="{% url 'hosts:periodic_report' host.pk %}">{% translate "Make the periodic notification" %}</a></li>{% endif %}
+      </ul></details>{% endif %}
+    </div>
+  </div>
+</header>
+{# 細い帯（スクロールしたとき）: 戻る・頭文字・名前・支援委託契約の期限・編集、下に目次（forms.js の initPersonBar） #}
+<div class="person-bar person-bar--host" id="person-bar" hidden>
+  <div class="person-bar__row">
+    <a class="person-bar__back" href="{% url 'hosts:list' %}" aria-label="{% translate 'Back to the host organizations' %}">←</a>
+    <div class="person-photo person-photo--small person-photo--host" aria-hidden="true"><span class="person-photo__initial">{{ head.initial }}</span></div>
+    <span class="person-bar__name">{{ host.name }}</span>
+    {% if head.main_field %}{% field_tag head.main_field %}{% endif %}
+    {% with expiry=head.contract %}{% if expiry and expiry.deadline %}<span class="expiry-pill expiry-pill--{{ expiry.tone }}"><span class="expiry-pill__label">{% translate "support contract ends on" %}</span> <span class="expiry-pill__date">{{ expiry.deadline.unadjusted_due_on|date:"Y-m-d" }}</span> {% level_badge expiry.deadline %}</span>{% endif %}{% endwith %}
+    {% if can_manage %}<a class="button button--neutral button--small person-bar__edit" href="{% url 'hosts:edit' host.pk %}">{% translate "Edit" %}</a>{% endif %}
+  </div>
+  <nav class="toc toc--bar" aria-label="{% translate 'Contents (on the bar)' %}" data-toc>
+    <span class="toc__title">{% translate "Contents" context "table of contents" %}</span>
+    {% for item in toc %}<a class="toc__link" href="#{{ item.id }}" data-toc-target="{{ item.id }}">{{ item.label }}</a>{% endfor %}
+  </nav>
+</div>
 {% endblock %}
+{% block page_header_wrap %}{% endblock %}
 {% block content %}
-<div class="stack">
-  <section class="card" id="host-basic">
-    <div class="card__header"><h2 class="card__title">{% translate "Basic information" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'hosts:edit' host.pk %}">{% translate "Edit" %}</a>{% endif %}</div>
-    <dl class="fields">
-      <dt>{% translate "entity type" %}</dt><dd>{{ host.get_entity_type_display }}</dd>
-      <dt>{% translate "name (kana)" %}</dt><dd>{{ host.name_kana|default:"—" }}</dd>
-      <dt>{% translate "corporate number" %}</dt><dd class="mono">{{ host.corporate_number|default:"—" }}</dd>
-      <dt>{% translate "representative" %}</dt><dd>{{ host.representative_title }} {{ host.representative_name }}</dd>
-      <dt>{% translate "address" %}</dt><dd>〒{{ host.postal_code }} {{ host.address }}</dd>
-      <dt>{% translate "phone number" %}</dt><dd class="mono">{{ host.phone_number|default:"—" }}</dd>
-      <dt>{% translate "already accepts specified skilled workers this fiscal year" %}</dt><dd id="host-accepts-ssw">{% if host.accepts_ssw_workers %}{% translate "yes" %}{% if host.accepts_ssw_workers_since %}（{% blocktranslate with day=host.accepts_ssw_workers_since|date:"Y-m-d" %}since {{ day }}{% endblocktranslate %}）{% endif %}{% else %}{% translate "no" %}{% endif %}</dd>
+{% if can_see_todos %}
+{# 今やること: この受入れ機関が対象の、担当者の無い開いている届出タスク（加入証明の更新・支援委託契約の更新など） #}
+<section class="card todo-panel doc-section--panel" id="todo" aria-labelledby="todo-title">
+  <div class="card__header">
+    <h2 class="card__title" id="todo-title">{% translate "To do" %}</h2>
+    {% if todos %}<span class="count">{{ todos|length }}</span>{% endif %}
+    <span class="caption todo-panel__order">{% translate "tasks of this host organization without an assignee, nearest deadline first" %}</span>
+  </div>
+  {% if todos %}
+  <ul class="item-rows">{% for row in todos %}
+    <li class="item-row" data-todo="{{ row.filing.pk }}">
+      <span class="item-row__state">{% level_badge row.deadline %}</span>
+      <div class="item-row__body"><div class="item-row__title">{{ row.filing.get_kind_display }}</div><div class="item-row__note">{{ row.target_label }} · {% translate "deadline" %} <span class="mono">{{ row.deadline.unadjusted_due_on|date:"Y-m-d" }}</span>{% for note in row.notes %} · {{ note }}{% endfor %}</div></div>
+      <a class="button button--ghost button--small" href="{% url 'filings:detail' row.filing.pk %}">{% translate "Open" %}</a>
+    </li>{% endfor %}
+  </ul>
+  {% else %}<p class="muted">{% translate "Nothing to do now." %}</p>{% endif %}
+</section>
+{% endif %}
+<nav class="toc" aria-label="{% translate 'Contents of this page' %}" data-toc>
+  <span class="toc__title">{% translate "Contents" context "table of contents" %}</span>
+  {% for item in toc %}<a class="toc__link" href="#{{ item.id }}" data-toc-target="{{ item.id }}">{{ item.label }}</a>{% endfor %}
+</nav>
+<article class="doc" style="margin-top: var(--space-16)">
+  <section class="doc-section" id="host-basic" aria-labelledby="host-basic-title">
+    <div class="section-head">
+      <span class="section-head__no">{{ section_no.host_basic }}</span><h2 class="section-head__title" id="host-basic-title">{% translate "Basic information" %}</h2><div class="section-head__actions">{% if can_manage %}<a class="button button--light" href="{% url 'hosts:edit' host.pk %}">{% translate "Edit" %}</a>{% endif %}</div>
+    </div>
+    <dl class="pairs">
+      <div class="pairs__item"><dt>{% translate "entity type" %}</dt><dd>{{ host.get_entity_type_display }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "name (kana)" %}</dt><dd>{{ host.name_kana|default:"—" }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "corporate number" %}</dt><dd class="mono">{{ host.corporate_number|default:"—" }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "representative" %}</dt><dd>{{ host.representative_title }} {{ host.representative_name }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "address" %}</dt><dd>〒{{ host.postal_code }} {{ host.address }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "phone number" %}</dt><dd class="mono">{{ host.phone_number|default:"—" }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "already accepts specified skilled workers this fiscal year" %}</dt><dd id="host-accepts-ssw">{% if host.accepts_ssw_workers %}{% translate "yes" %}{% if host.accepts_ssw_workers_since %}（{% blocktranslate with day=host.accepts_ssw_workers_since|date:"Y-m-d" %}since {{ day }}{% endblocktranslate %}）{% endif %}{% else %}{% translate "no" %}{% endif %}</dd></div>
     </dl>
-  </section>
+    </section>
 
-  <section class="card" id="host-application">
-    <div class="card__header"><h2 class="card__title">{% translate "Items for the bulk application" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'hosts:edit' host.pk %}">{% translate "Edit" %}</a>{% endif %}</div>
-    <dl class="fields">
-      <dt>{% translate "industry" %}</dt><dd id="host-industries">{% for label, other in application.industries %}{{ label }}{% if other %}（{{ other }}）{% endif %}{% if not forloop.last %}、{% endif %}{% empty %}<span class="muted">—</span>{% endfor %}</dd>
-      <dt>{% translate "capital (yen)" %}</dt><dd class="mono">{% if host.capital is not None %}¥{{ host.capital|yen }}{% else %}—{% endif %}</dd>
+  <section class="doc-section" id="sites" aria-labelledby="sites-title">
+    <div class="section-head">
+      <span class="section-head__no">{{ section_no.sites }}</span><h2 class="section-head__title" id="sites-title">{% translate "Sites and operation categories" %}</h2><div class="section-head__actions">{% if can_manage %}<a class="button button--light" href="{% url 'hosts:site_create' host.pk %}">{% translate "Add" %}</a>{% endif %}</div>
+    </div>
+    {% if detail.sites %}
+    <div class="table-scroll"><table class="table table--list table--cards">
+      <thead><tr><th>{% translate "name" %}</th><th>{% translate "specified skill field" %}</th><th>{% translate "industry code" %}</th><th>{% translate "operation categories" %}</th><th>{% translate "address" %}</th>{% if can_manage %}<th>{% translate "Actions" %}</th>{% endif %}</tr></thead>
+      <tbody>{% for site in detail.sites %}
+        <tr{% if not site.is_active %} class="is-voided"{% endif %} data-site="{{ site.pk }}">
+          <td class="card-head">{{ site.name }}{% if not site.is_active %} <span class="caption">{% translate "inactive" %}</span>{% endif %}</td>
+          <td>{% field_tag site.field %}</td>
+          <td class="mono">{{ site.industry_code }}</td>
+          <td>{% for category in site.categories.all %}{% category_label category today %}{% if not forloop.last %}、{% endif %}{% empty %}—{% endfor %}</td>
+          <td><span class="truncate-line truncate-line--wide" title="〒{{ site.postal_code }} {{ site.address }}"><span class="truncate">〒{{ site.postal_code }} {{ site.address }}</span></span>{% if site.phone_number %}<span class="caption mono">{{ site.phone_number }}</span>{% endif %}</td>
+          {% if can_manage %}<td class="card-action"><div class="actions"><a class="button button--neutral button--small" href="{% url 'hosts:site_edit' host.pk site.pk %}">{% translate "Edit" %}</a></div></td>{% endif %}
+        </tr>{% endfor %}</tbody>
+    </table></div>
+    {% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}
+    </section>
+
+  <section class="doc-section" id="memberships" aria-labelledby="memberships-title">
+    <div class="section-head">
+      <span class="section-head__no">{{ section_no.memberships }}</span><h2 class="section-head__title" id="memberships-title">{% translate "Memberships" %}</h2><div class="section-head__actions">{% if can_manage %}<a class="button button--light" href="{% url 'hosts:membership_create' host.pk %}">{% translate "Add" %}</a>{% endif %}</div>
+    </div>
+    {% if detail.memberships %}
+    <div class="table-scroll"><table class="table table--list table--cards">
+      <thead><tr><th>{% translate "membership body" %}</th><th>{% translate "joined on" %}</th><th>{% translate "member number" %}</th><th>{% translate "valid until" %}</th><th>{% translate "certificate" %}</th>{% if can_manage %}<th>{% translate "Actions" %}</th>{% endif %}</tr></thead>
+      <tbody>{% for row in detail.memberships %}
+        <tr data-membership="{{ row.item.pk }}">
+          <td class="card-head"><span class="truncate-line truncate-line--full" title="{{ row.item.field.membership_body_name }}">{% field_tag row.item.field %}<span class="truncate">{{ row.item.field.membership_body_name }}</span></span></td>
+          <td class="mono">{{ row.item.joined_on|date:"Y-m-d" }}</td>
+          <td class="mono">{{ row.item.member_number|default:"—" }}</td>
+          <td>{% if row.deadline %}{% due_date row.deadline %}{% else %}<span class="muted">{% translate "no expiry date" %}</span>{% endif %}</td>
+          <td>{% include "hosts/components/attachment_list.html" with attachments=row.attachments %}</td>
+          {% if can_manage %}<td class="card-action"><div class="actions"><a class="button button--neutral button--small" href="{% url 'hosts:membership_edit' host.pk row.item.pk %}">{% translate "Edit" %}</a><details class="menu"><summary class="button button--neutral button--small" aria-label="{% translate "Other actions" %}" title="{% translate "Other actions" %}">…</summary><ul class="popover menu__list"><li><a class="menu__item" href="{% url 'hosts:membership_certificate' host.pk row.item.pk %}">{% translate "Replace" %}</a></li></ul></details></div></td>{% endif %}
+        </tr>{% endfor %}</tbody>
+    </table></div>
+    {% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}
+    </section>
+
+  <section class="doc-section" id="cooperation" aria-labelledby="cooperation-title">
+    <div class="section-head">
+      <span class="section-head__no">{{ section_no.cooperation }}</span><h2 class="section-head__title" id="cooperation-title">{% translate "Cooperation confirmations" %}</h2><div class="section-head__actions">{% if can_manage and detail.cooperation_status %}<a class="button button--light" href="{% url 'hosts:cooperation_create' host.pk %}">{% translate "Register a submission" %}</a>{% endif %}</div>
+    </div>
+    <p class="caption">{% translate "Submitted for each site to the municipalities of the site and of the worker's residence. No expiry date; submitted again when the written items change." %}</p>
+    {% if detail.cooperation_status %}
+    <div class="table-scroll"><table class="table table--list table--cards" id="cooperation-status">
+      <thead><tr><th>{% translate "host site" %}</th><th>{% translate "submission status (latest for each municipality)" %}</th></tr></thead>
+      <tbody>{% for status in detail.cooperation_status %}
+        <tr data-site="{{ status.site.pk }}">
+          <td class="card-head">{{ status.site.name }}</td>
+          <td>{% for confirmation in status.latest %}<span>{{ confirmation.municipality }} <span class="mono">{{ confirmation.submitted_on|date:"Y-m-d" }}</span></span>{% if not forloop.last %}、{% endif %}{% empty %}<span class="badge badge--within-7" data-status="not-submitted">{% translate "not submitted" %}</span>{% endfor %}</td>
+        </tr>{% endfor %}</tbody>
+    </table></div>
+    {% else %}<p class="muted">{% translate "Register a site first." %}</p>{% endif %}
+    {% if detail.cooperation_confirmations %}
+    <h3 class="section-sub sub-head">{% translate "Submissions" %}</h3>
+    <div class="table-scroll"><table class="table table--list table--cards" id="cooperation-submissions">
+      <thead><tr><th>{% translate "host site" %}</th><th>{% translate "submitted to" %}</th><th>{% translate "submitted on" %}</th><th>{% translate "copy" %}</th>{% if can_manage %}<th>{% translate "Actions" %}</th>{% endif %}</tr></thead>
+      <tbody>{% for row in detail.cooperation_confirmations %}
+        <tr data-confirmation="{{ row.item.pk }}">
+          <td class="card-head">{{ row.item.site.name }}</td>
+          <td>{{ row.item.municipality }}</td>
+          <td class="mono">{{ row.item.submitted_on|date:"Y-m-d" }}</td>
+          <td>{% include "hosts/components/attachment_list.html" with attachments=row.attachments %}</td>
+          {% if can_manage %}<td class="card-action"><div class="actions"><a class="button button--neutral button--small" href="{% url 'hosts:cooperation_edit' host.pk row.item.pk %}">{% translate "Edit" %}</a><details class="menu"><summary class="button button--neutral button--small" aria-label="{% translate "Other actions" %}" title="{% translate "Other actions" %}">…</summary><ul class="popover menu__list"><li><a class="menu__item" href="{% url 'hosts:attachment_add' host.pk 'cooperation' row.item.pk %}">{% translate "Attach" %}</a></li></ul></details></div></td>{% endif %}
+        </tr>{% endfor %}</tbody>
+    </table></div>
+    {% endif %}
+    </section>
+
+  <section class="doc-section" id="support-contracts" aria-labelledby="support-contracts-title">
+    <div class="section-head">
+      <span class="section-head__no">{{ section_no.support_contracts }}</span><h2 class="section-head__title" id="support-contracts-title">{% translate "Support contracts" %}</h2><div class="section-head__actions">{% if can_manage %}<a class="button button--light" href="{% url 'hosts:support_contract_create' host.pk %}">{% translate "Add" %}</a>{% endif %}</div>
+    </div>
+    {% if detail.support_contracts %}
+    <div class="table-scroll"><table class="table table--list table--cards">
+      <thead><tr><th>{% translate "period" %}</th><th>{% translate "concluded on" %}</th><th>{% translate "ends on" %}</th><th>{% translate "fee per person per month" %}</th><th>{% translate "Attachments" %}</th>{% if can_manage %}<th>{% translate "Actions" %}</th>{% endif %}</tr></thead>
+      <tbody>{% for row in detail.support_contracts %}
+        <tr{% if row.item == detail.current_support_contract %} aria-current="true"{% endif %} data-contract="{{ row.item.pk }}">
+          <td class="card-head mono">{{ row.item.starts_on|date:"Y-m-d" }} – {{ row.item.ends_on|date:"Y-m-d"|default:"" }}</td>
+          <td class="mono">{{ row.item.concluded_on|date:"Y-m-d" }}</td>
+          <td>{% if row.item.terminated_on %}<span class="mono">{{ row.item.terminated_on|date:"Y-m-d" }}</span> <span class="status" data-terminated>{% translate "terminated" %}</span><div class="caption">{{ row.item.get_termination_category_display }} / {{ row.item.get_termination_reason_display }}{% if row.item.termination_note %}（{{ row.item.termination_note }}）{% endif %}{% if row.item.ends_on %} · {% translate "planned end date" %} {{ row.item.ends_on|date:"Y-m-d" }}{% endif %}</div>{% elif row.deadline %}{% due_date row.deadline %}{% elif not row.item.ends_on %}<span class="muted">{% translate "no end date" %}</span>{% else %}<span class="mono muted">{{ row.item.ends_on|date:"Y-m-d" }}</span>{% endif %}</td>
+          <td class="mono">{% if row.item.monthly_fee is not None %}¥{{ row.item.monthly_fee|yen }}{% else %}<span class="muted">—</span>{% endif %}</td>
+          <td>{% include "hosts/components/attachment_list.html" with attachments=row.attachments %}</td>
+          {% if can_manage %}<td class="card-action"><div class="actions"><a class="button button--neutral button--small" href="{% url 'hosts:support_contract_edit' host.pk row.item.pk %}">{% translate "Edit" %}</a><details class="menu"><summary class="button button--neutral button--small" aria-label="{% translate "Other actions" %}" title="{% translate "Other actions" %}">…</summary><ul class="popover menu__list"><li><a class="menu__item" href="{% url 'hosts:attachment_add' host.pk 'support-contracts' row.item.pk %}">{% translate "Attach" %}</a></li>{% if not row.item.terminated_on %}<li><a class="menu__item menu__item--danger" href="{% url 'hosts:support_contract_terminate' host.pk row.item.pk %}">{% translate "Register the termination" %}</a></li>{% elif can_reopen %}<li><a class="menu__item menu__item--danger" href="{% url 'hosts:support_contract_reopen' host.pk row.item.pk %}">{% translate "Cancel the termination" %}</a></li>{% endif %}</ul></details></div></td>{% endif %}
+        </tr>{% endfor %}</tbody>
+    </table></div>
+    <p class="caption">{% translate "Full entrustment. One row is one period: register the renewed period as the next contract (it starts the day after the planned end date). Register an actual termination with “Register the termination”." %}</p>
+    {% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}
+    </section>
+
+  {% if can_see_templates %}
+  <section class="doc-section" id="condition-templates" aria-labelledby="condition-templates-title">
+    <div class="section-head">
+      <span class="section-head__no">{{ section_no.condition_templates }}</span><h2 class="section-head__title" id="condition-templates-title">{% translate "Employment condition templates" %}</h2><div class="section-head__actions">{% if can_manage %}<a class="button button--light" id="condition-template-create" href="{% url 'hosts:condition_template_create' host.pk %}">{% translate "Add a template" %}</a>{% endif %}</div>
+    </div>
+    {% if condition_templates %}
+    <ul class="stack" style="list-style: none; padding: 0; margin: 0">{% for item in condition_templates %}<li data-template="{{ item.pk }}">{% if can_manage %}<a href="{% url 'hosts:condition_template_edit' host.pk item.pk %}">{{ item.name }}</a>{% else %}{{ item.name }}{% endif %} <span class="caption">{% blocktranslate count counter=item.marked|length %}{{ counter }} item entered for each worker{% plural %}{{ counter }} items entered for each worker{% endblocktranslate %}{% if not item.is_active %} · {% translate "not in use" %}{% endif %}</span></li>{% endfor %}</ul>
+    {% else %}<p class="muted">{% translate "No employment condition templates are registered." %}</p>{% endif %}
+    </section>
+  {% endif %}
+
+  <section class="doc-section" id="host-documents" aria-labelledby="host-documents-title">
+    <div class="section-head">
+      <span class="section-head__no">{{ section_no.host_documents }}</span><h2 class="section-head__title" id="host-documents-title">{% translate "Documents of the host organization" %}</h2><div class="section-head__actions">{% if can_manage %}<a class="button button--light" id="host-document-create" href="{% url 'hosts:host_document_create' host.pk %}">{% translate "Add a document" %}</a>{% endif %}</div>
+    </div>
+    <p class="caption">{% translate "Agreements and annual calendars of the variable working hours system, wage rules, work rules and the documents of table 2. They are chosen automatically for the documents for the application." %}</p>
+    {% if host_document_rows %}
+    <div class="table-scroll"><table class="table table--list table--cards" id="host-document-list">
+      <thead><tr><th>{% translate "kind" %}</th><th>{% translate "site" %}</th><th>{% translate "period or issue date" %}</th><th>{% translate "languages" %}</th><th>{% translate "files" %}</th></tr></thead>
+      <tbody>{% for item in host_document_rows %}{% with document=item.document %}<tr data-host-document="{{ document.pk }}">
+        <td class="card-head">{{ document.get_kind_display }}{% if not item.valid %}<br><span class="badge badge--overdue">{% translate "outside the period" %}</span>{% elif item.ending %}<br><span class="badge badge--within-7">{% translate "period ending soon" %}</span>{% endif %}{% if item.old %}<br><span class="badge badge--within-7">{% translate "issued more than 3 months ago" %}</span>{% endif %}</td>
+        <td>{{ document.site.name|default:"—" }}</td>
+        <td class="mono">{% if document.period_start %}{{ document.period_start|date:"Y-m-d" }}〜{{ document.period_end|date:"Y-m-d" }}{% elif document.issued_on %}{{ document.issued_on|date:"Y-m-d" }}{% else %}—{% endif %}{% if document.valid_until %}<br>〜{{ document.valid_until|date:"Y-m-d" }}{% endif %}</td>
+        <td>{% for language in document.languages.all %}{{ language.name }}{% if not forloop.last %}・{% endif %}{% empty %}—{% endfor %}</td>
+        <td class="card-action"><div class="cluster">{% for file in item.files %}<a class="button button--neutral button--small" href="{% url 'attachment_download' file.pk %}">{% translate "file" %} {{ forloop.counter }}</a>{% endfor %}{% if can_manage %}<a class="button button--danger button--small" href="{% url 'hosts:host_document_void' host.pk document.pk %}">{% translate "Void" %}</a>{% endif %}</div></td>
+      </tr>{% endwith %}{% endfor %}</tbody>
+    </table></div>
+    {% else %}<p class="muted">{% translate "No documents are kept." %}</p>{% endif %}
+    </section>
+
+  <section class="doc-section" id="host-application" aria-labelledby="host-application-title">
+    <div class="section-head">
+      <span class="section-head__no">{{ section_no.host_application }}</span><h2 class="section-head__title" id="host-application-title">{% translate "Items for the bulk application" %}</h2><div class="section-head__actions">{% if can_manage %}<a class="button button--light" href="{% url 'hosts:edit' host.pk %}">{% translate "Edit" %}</a>{% endif %}</div>
+    </div>
+    <dl class="pairs">
+      <div class="pairs__item"><dt>{% translate "industry" %}</dt><dd id="host-industries">{% for label, other in application.industries %}{{ label }}{% if other %}（{{ other }}）{% endif %}{% if not forloop.last %}、{% endif %}{% empty %}<span class="muted">—</span>{% endfor %}</dd></div>
+      <div class="pairs__item"><dt>{% translate "capital (yen)" %}</dt><dd class="mono">{% if host.capital is not None %}¥{{ host.capital|yen }}{% else %}—{% endif %}</dd></div>
     </dl>
 
-    <div class="card__header" style="margin-top: var(--space-12)"><h3 class="card__title">{% translate "Declarations (items (11) to (32))" %}</h3>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'hosts:declaration_create' host.pk %}" id="declaration-create">{% translate "New version" %}</a>{% endif %}</div>
+    <div class="sub-head"><h3 class="section-sub">{% translate "Declarations (items (11) to (32))" %}</h3>{% if can_manage %}<a class="button button--light button--small" href="{% url 'hosts:declaration_create' host.pk %}" id="declaration-create">{% translate "New version" %}</a>{% endif %}</div>
     {% with declaration=application.declaration %}{% if declaration %}
     <p id="declaration-latest">{% blocktranslate with day=declaration.declared_on|date:"Y-m-d" %}Latest version: declared on {{ day }}{% endblocktranslate %}{% if can_manage %} <a class="caption" href="{% url 'hosts:declaration_void' host.pk declaration.pk %}">{% translate "Void" %}</a>{% endif %}</p>
     {% if application.missing %}<p class="caption"><span class="badge badge--within-14">{% blocktranslate count counter=application.missing|length %}{{ counter }} required item is not answered.{% plural %}{{ counter }} required items are not answered.{% endblocktranslate %}</span></p>{% endif %}
     {% if application.unusual %}<ul class="caption" id="declaration-unusual">{% for item in application.unusual %}<li>{{ item.label }}</li>{% endfor %}</ul>{% endif %}
     {% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}{% endwith %}
 
-    <div class="card__header" style="margin-top: var(--space-12)"><h3 class="card__title">{% translate "Financial results" %}</h3>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'hosts:application_row_create' host.pk 'financial-years' %}">{% translate "Add" %}</a>{% endif %}</div>
-    {% if application.financial_years %}<div class="table-scroll"><table class="table table--list" id="financial-years">
+    <div class="sub-head"><h3 class="section-sub">{% translate "Financial results" %}</h3>{% if can_manage %}<a class="button button--light button--small" href="{% url 'hosts:application_row_create' host.pk 'financial-years' %}">{% translate "Add" %}</a>{% endif %}</div>
+    {% if application.financial_years %}<div class="table-scroll"><table class="table table--list table--cards" id="financial-years">
       <thead><tr><th>{% translate "end of the fiscal year" %}</th><th>{% translate "sales (yen)" %}</th><th>{% translate "ordinary profit or loss (yen)" %}</th><th>{% translate "net profit or loss (yen)" %}</th><th>{% translate "net assets (yen)" %}</th>{% if can_manage %}<th>{% translate "Actions" %}</th>{% endif %}</tr></thead>
       <tbody>{% for row in application.financial_years %}<tr{% if row.voided_at %} class="is-voided"{% endif %}>
-        <td class="mono">{{ row.fiscal_year_end|date:"Y-m-d" }}</td><td class="mono">{{ row.sales|yen }}</td><td class="mono">{{ row.ordinary_profit|default_if_none:"—" }}</td><td class="mono">{{ row.net_profit|default_if_none:"—" }}</td><td class="mono">{{ row.net_assets|default_if_none:"—" }}</td>
+        <td class="card-head mono">{{ row.fiscal_year_end|date:"Y-m-d" }}</td><td class="mono">{{ row.sales|yen }}</td><td class="mono">{{ row.ordinary_profit|default_if_none:"—" }}</td><td class="mono">{{ row.net_profit|default_if_none:"—" }}</td><td class="mono">{{ row.net_assets|default_if_none:"—" }}</td>
         {% if can_manage %}<td>{% if row.voided_at %}<span class="caption">{{ row.void_reason }}</span>{% else %}<a class="button button--danger button--small" href="{% url 'hosts:application_row_void' host.pk 'financial-years' row.pk %}">{% translate "Void" %}</a>{% endif %}</td>{% endif %}
       </tr>{% endfor %}</tbody></table></div>{% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}
 
-    <div class="card__header" style="margin-top: var(--space-12)"><h3 class="card__title">{% translate "Officers" %}</h3>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'hosts:application_row_create' host.pk 'officers' %}">{% translate "Add" %}</a>{% endif %}</div>
-    {% if application.officers %}<div class="table-scroll"><table class="table table--list" id="officers">
+    <div class="sub-head"><h3 class="section-sub">{% translate "Officers" %}</h3>{% if can_manage %}<a class="button button--light button--small" href="{% url 'hosts:application_row_create' host.pk 'officers' %}">{% translate "Add" %}</a>{% endif %}</div>
+    {% if application.officers %}<div class="table-scroll"><table class="table table--list table--cards" id="officers">
       <thead><tr><th>{% translate "full name" %}</th><th>{% translate "position" %}</th><th>{% translate "appointed on" %}</th><th>{% translate "resigned on" %}</th>{% if can_manage %}<th>{% translate "Actions" %}</th>{% endif %}</tr></thead>
       <tbody>{% for row in application.officers %}<tr{% if row.voided_at or row.resigned_on %} class="is-voided"{% endif %}>
-        <td>{{ row.name }}{% if row.name_kana %} <span class="caption">{{ row.name_kana }}</span>{% endif %}</td><td>{{ row.position }}{% if row.not_involved_in_acceptance %} <span class="caption" data-not-involved>{% translate "not involved in the acceptance" %}</span>{% endif %}</td><td class="mono">{{ row.appointed_on|date:"Y-m-d"|default:"—" }}</td><td class="mono">{{ row.resigned_on|date:"Y-m-d"|default:"—" }}</td>
+        <td class="card-head">{{ row.name }}{% if row.name_kana %} <span class="caption">{{ row.name_kana }}</span>{% endif %}</td><td>{{ row.position }}{% if row.not_involved_in_acceptance %} <span class="caption" data-not-involved>{% translate "not involved in the acceptance" %}</span>{% endif %}</td><td class="mono">{{ row.appointed_on|date:"Y-m-d"|default:"—" }}</td><td class="mono">{{ row.resigned_on|date:"Y-m-d"|default:"—" }}</td>
         {% if can_manage %}<td>{% if row.voided_at %}<span class="caption">{{ row.void_reason }}</span>{% else %}<div class="actions"><a class="button button--neutral button--small" href="{% url 'hosts:application_row_edit' host.pk 'officers' row.pk %}">{% translate "Edit" %}</a><a class="button button--danger button--small" href="{% url 'hosts:application_row_void' host.pk 'officers' row.pk %}">{% translate "Void" %}</a></div>{% endif %}</td>{% endif %}
       </tr>{% endfor %}</tbody></table></div>{% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}
 
-    <div class="card__header" style="margin-top: var(--space-12)"><h3 class="card__title">{% translate "Applicant contacts (agent of the bulk application)" %}</h3>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'hosts:application_row_create' host.pk 'applicant-contacts' %}">{% translate "Add" %}</a>{% endif %}</div>
+    <div class="sub-head"><h3 class="section-sub">{% translate "Applicant contacts (agent of the bulk application)" %}</h3>{% if can_manage %}<a class="button button--light button--small" href="{% url 'hosts:application_row_create' host.pk 'applicant-contacts' %}">{% translate "Add" %}</a>{% endif %}</div>
     {% if application.contacts %}<ul class="attachment-list" id="applicant-contacts">{% for row in application.contacts %}<li{% if not row.is_active %} class="is-voided"{% endif %}><span>{{ row.name }}（{{ row.relationship }}）</span><span class="caption">{% if row.address %}〒{{ row.postal_code }} {{ row.address }}{% else %}{% translate "address of the host organization" %}{% endif %}</span>{% if can_manage %} <a class="button button--neutral button--small" href="{% url 'hosts:application_row_edit' host.pk 'applicant-contacts' row.pk %}">{% translate "Edit" %}</a>{% endif %}</li>{% endfor %}</ul>{% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}
-  </section>
+    </section>
 
-  <section class="card" id="support-contracts">
-    <div class="card__header"><h2 class="card__title">{% translate "Support contracts" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'hosts:support_contract_create' host.pk %}">{% translate "Add" %}</a>{% endif %}</div>
-    {% if detail.support_contracts %}
-    <div class="table-scroll"><table class="table table--list">
-      <thead><tr><th>{% translate "period" %}</th><th>{% translate "concluded on" %}</th><th>{% translate "ends on" %}</th><th>{% translate "fee per person per month" %}</th><th>{% translate "Attachments" %}</th>{% if can_manage %}<th>{% translate "Actions" %}</th>{% endif %}</tr></thead>
-      <tbody>{% for row in detail.support_contracts %}
-        <tr{% if row.item == detail.current_support_contract %} aria-current="true"{% endif %} data-contract="{{ row.item.pk }}">
-          <td class="mono">{{ row.item.starts_on|date:"Y-m-d" }} – {{ row.item.ends_on|date:"Y-m-d"|default:"" }}</td>
-          <td class="mono">{{ row.item.concluded_on|date:"Y-m-d" }}</td>
-          <td>{% if row.item.terminated_on %}<span class="mono">{{ row.item.terminated_on|date:"Y-m-d" }}</span> <span class="status" data-terminated>{% translate "terminated" %}</span><div class="caption">{{ row.item.get_termination_category_display }} / {{ row.item.get_termination_reason_display }}{% if row.item.termination_note %}（{{ row.item.termination_note }}）{% endif %}{% if row.item.ends_on %} · {% translate "planned end date" %} {{ row.item.ends_on|date:"Y-m-d" }}{% endif %}</div>{% elif row.deadline %}{% due_date row.deadline %}{% elif not row.item.ends_on %}<span class="muted">{% translate "no end date" %}</span>{% else %}<span class="mono muted">{{ row.item.ends_on|date:"Y-m-d" }}</span>{% endif %}</td>
-          <td class="mono">{% if row.item.monthly_fee is not None %}¥{{ row.item.monthly_fee|yen }}{% else %}<span class="muted">—</span>{% endif %}</td>
-          <td>{% include "hosts/components/attachment_list.html" with attachments=row.attachments %}</td>
-          {% if can_manage %}<td><div class="actions"><a class="button button--neutral button--small" href="{% url 'hosts:support_contract_edit' host.pk row.item.pk %}">{% translate "Edit" %}</a><details class="menu"><summary class="button button--neutral button--small" aria-label="{% translate "Other actions" %}" title="{% translate "Other actions" %}">…</summary><ul class="popover menu__list"><li><a class="menu__item" href="{% url 'hosts:attachment_add' host.pk 'support-contracts' row.item.pk %}">{% translate "Attach" %}</a></li>{% if not row.item.terminated_on %}<li><a class="menu__item menu__item--danger" href="{% url 'hosts:support_contract_terminate' host.pk row.item.pk %}">{% translate "Register the termination" %}</a></li>{% elif can_reopen %}<li><a class="menu__item menu__item--danger" href="{% url 'hosts:support_contract_reopen' host.pk row.item.pk %}">{% translate "Cancel the termination" %}</a></li>{% endif %}</ul></details></div></td>{% endif %}
-        </tr>{% endfor %}</tbody>
-    </table></div>
-    <p class="caption">{% translate "Full entrustment. One row is one period: register the renewed period as the next contract (it starts the day after the planned end date). Register an actual termination with “Register the termination”." %}</p>
-    {% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}
-  </section>
-
-  <section class="card" id="sites">
-    <div class="card__header"><h2 class="card__title">{% translate "Sites and operation categories" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'hosts:site_create' host.pk %}">{% translate "Add" %}</a>{% endif %}</div>
-    {% if detail.sites %}
-    <div class="table-scroll"><table class="table table--list">
-      <thead><tr><th>{% translate "name" %}</th><th>{% translate "specified skill field" %}</th><th>{% translate "industry code" %}</th><th>{% translate "operation categories" %}</th><th>{% translate "address" %}</th>{% if can_manage %}<th>{% translate "Actions" %}</th>{% endif %}</tr></thead>
-      <tbody>{% for site in detail.sites %}
-        <tr{% if not site.is_active %} class="is-voided"{% endif %} data-site="{{ site.pk }}">
-          <td>{{ site.name }}{% if not site.is_active %} <span class="caption">{% translate "inactive" %}</span>{% endif %}</td>
-          <td>{% field_tag site.field %}</td>
-          <td class="mono">{{ site.industry_code }}</td>
-          <td>{% for category in site.categories.all %}{% category_label category today %}{% if not forloop.last %}、{% endif %}{% empty %}—{% endfor %}</td>
-          <td><span class="truncate-line truncate-line--wide" title="〒{{ site.postal_code }} {{ site.address }}"><span class="truncate">〒{{ site.postal_code }} {{ site.address }}</span></span>{% if site.phone_number %}<span class="caption mono">{{ site.phone_number }}</span>{% endif %}</td>
-          {% if can_manage %}<td><div class="actions"><a class="button button--neutral button--small" href="{% url 'hosts:site_edit' host.pk site.pk %}">{% translate "Edit" %}</a></div></td>{% endif %}
-        </tr>{% endfor %}</tbody>
-    </table></div>
-    {% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}
-  </section>
-
-  <section class="card" id="memberships">
-    <div class="card__header"><h2 class="card__title">{% translate "Memberships" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'hosts:membership_create' host.pk %}">{% translate "Add" %}</a>{% endif %}</div>
-    {% if detail.memberships %}
-    <div class="table-scroll"><table class="table table--list">
-      <thead><tr><th>{% translate "membership body" %}</th><th>{% translate "joined on" %}</th><th>{% translate "member number" %}</th><th>{% translate "valid until" %}</th><th>{% translate "certificate" %}</th>{% if can_manage %}<th>{% translate "Actions" %}</th>{% endif %}</tr></thead>
-      <tbody>{% for row in detail.memberships %}
-        <tr data-membership="{{ row.item.pk }}">
-          <td><span class="truncate-line truncate-line--full" title="{{ row.item.field.membership_body_name }}">{% field_tag row.item.field %}<span class="truncate">{{ row.item.field.membership_body_name }}</span></span></td>
-          <td class="mono">{{ row.item.joined_on|date:"Y-m-d" }}</td>
-          <td class="mono">{{ row.item.member_number|default:"—" }}</td>
-          <td>{% if row.deadline %}{% due_date row.deadline %}{% else %}<span class="muted">{% translate "no expiry date" %}</span>{% endif %}</td>
-          <td>{% include "hosts/components/attachment_list.html" with attachments=row.attachments %}</td>
-          {% if can_manage %}<td><div class="actions"><a class="button button--neutral button--small" href="{% url 'hosts:membership_edit' host.pk row.item.pk %}">{% translate "Edit" %}</a><details class="menu"><summary class="button button--neutral button--small" aria-label="{% translate "Other actions" %}" title="{% translate "Other actions" %}">…</summary><ul class="popover menu__list"><li><a class="menu__item" href="{% url 'hosts:membership_certificate' host.pk row.item.pk %}">{% translate "Replace" %}</a></li></ul></details></div></td>{% endif %}
-        </tr>{% endfor %}</tbody>
-    </table></div>
-    {% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}
-  </section>
-
-  <section class="card" id="cooperation">
-    <div class="card__header"><h2 class="card__title">{% translate "Cooperation confirmations" %}</h2>{% if can_manage and detail.cooperation_status %}<a class="button button--neutral button--small" href="{% url 'hosts:cooperation_create' host.pk %}">{% translate "Register a submission" %}</a>{% endif %}</div>
-    <p class="caption">{% translate "Submitted for each site to the municipalities of the site and of the worker's residence. No expiry date; submitted again when the written items change." %}</p>
-    {% if detail.cooperation_status %}
-    <div class="table-scroll"><table class="table table--list" id="cooperation-status">
-      <thead><tr><th>{% translate "host site" %}</th><th>{% translate "submission status (latest for each municipality)" %}</th></tr></thead>
-      <tbody>{% for status in detail.cooperation_status %}
-        <tr data-site="{{ status.site.pk }}">
-          <td>{{ status.site.name }}</td>
-          <td>{% for confirmation in status.latest %}<span>{{ confirmation.municipality }} <span class="mono">{{ confirmation.submitted_on|date:"Y-m-d" }}</span></span>{% if not forloop.last %}、{% endif %}{% empty %}<span class="badge badge--within-7" data-status="not-submitted">{% translate "not submitted" %}</span>{% endfor %}</td>
-        </tr>{% endfor %}</tbody>
-    </table></div>
-    {% else %}<p class="muted">{% translate "Register a site first." %}</p>{% endif %}
-    {% if detail.cooperation_confirmations %}
-    <h3 class="caption" style="margin-top: var(--space-16)">{% translate "Submissions" %}</h3>
-    <div class="table-scroll"><table class="table table--list" id="cooperation-submissions">
-      <thead><tr><th>{% translate "host site" %}</th><th>{% translate "submitted to" %}</th><th>{% translate "submitted on" %}</th><th>{% translate "copy" %}</th>{% if can_manage %}<th>{% translate "Actions" %}</th>{% endif %}</tr></thead>
-      <tbody>{% for row in detail.cooperation_confirmations %}
-        <tr data-confirmation="{{ row.item.pk }}">
-          <td>{{ row.item.site.name }}</td>
-          <td>{{ row.item.municipality }}</td>
-          <td class="mono">{{ row.item.submitted_on|date:"Y-m-d" }}</td>
-          <td>{% include "hosts/components/attachment_list.html" with attachments=row.attachments %}</td>
-          {% if can_manage %}<td><div class="actions"><a class="button button--neutral button--small" href="{% url 'hosts:cooperation_edit' host.pk row.item.pk %}">{% translate "Edit" %}</a><details class="menu"><summary class="button button--neutral button--small" aria-label="{% translate "Other actions" %}" title="{% translate "Other actions" %}">…</summary><ul class="popover menu__list"><li><a class="menu__item" href="{% url 'hosts:attachment_add' host.pk 'cooperation' row.item.pk %}">{% translate "Attach" %}</a></li></ul></details></div></td>{% endif %}
-        </tr>{% endfor %}</tbody>
-    </table></div>
-    {% endif %}
-  </section>
-
-  <section class="card" id="career-plans">
-    <div class="card__header"><h2 class="card__title">{% translate "Career-up plans" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" id="career-plan-create" href="{% url 'hosts:career_plan_create' host.pk %}">{% translate "Create a career-up plan" %}</a>{% endif %}</div>
+  <section class="doc-section" id="career-plans" aria-labelledby="career-plans-title">
+    <div class="section-head">
+      <span class="section-head__no">{{ section_no.career_plans }}</span><h2 class="section-head__title" id="career-plans-title">{% translate "Career-up plans" %}</h2><div class="section-head__actions">{% if can_manage %}<a class="button button--light" id="career-plan-create" href="{% url 'hosts:career_plan_create' host.pk %}">{% translate "Create a career-up plan" %}</a>{% endif %}</div>
+    </div>
     {% if career_plans %}
     <ul class="stack" style="list-style: none; padding: 0; margin: 0">{% for plan, latest in career_plans %}<li><a href="{% url 'hosts:career_plan' host.pk plan.pk %}">{{ plan.field.name }}{% if plan.site %} · {{ plan.site.name }}{% else %} · {% translate "all sites" %}{% endif %}</a> <span class="caption">{% if latest %}{% blocktranslate with number=latest.version day=latest.applies_from|date:"Y-m-d" %}Version {{ number }} (applies from {{ day }}){% endblocktranslate %}{% endif %}</span></li>{% endfor %}</ul>
     {% else %}<p class="muted">{% translate "No career-up plans are registered." %}</p>{% endif %}
-  </section>
+    </section>
 
-  <section class="card" id="host-documents">
-    <div class="card__header"><h2 class="card__title">{% translate "Documents of the host organization" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" id="host-document-create" href="{% url 'hosts:host_document_create' host.pk %}">{% translate "Add a document" %}</a>{% endif %}</div>
-    <p class="caption">{% translate "Agreements and annual calendars of the variable working hours system, wage rules, work rules and the documents of table 2. They are chosen automatically for the documents for the application." %}</p>
-    {% if host_document_rows %}
-    <div class="table-scroll"><table class="table table--list" id="host-document-list">
-      <thead><tr><th>{% translate "kind" %}</th><th>{% translate "site" %}</th><th>{% translate "period or issue date" %}</th><th>{% translate "languages" %}</th><th>{% translate "files" %}</th></tr></thead>
-      <tbody>{% for item in host_document_rows %}{% with document=item.document %}<tr data-host-document="{{ document.pk }}">
-        <td>{{ document.get_kind_display }}{% if not item.valid %}<br><span class="badge badge--overdue">{% translate "outside the period" %}</span>{% elif item.ending %}<br><span class="badge badge--within-7">{% translate "period ending soon" %}</span>{% endif %}{% if item.old %}<br><span class="badge badge--within-7">{% translate "issued more than 3 months ago" %}</span>{% endif %}</td>
-        <td>{{ document.site.name|default:"—" }}</td>
-        <td class="mono">{% if document.period_start %}{{ document.period_start|date:"Y-m-d" }}〜{{ document.period_end|date:"Y-m-d" }}{% elif document.issued_on %}{{ document.issued_on|date:"Y-m-d" }}{% else %}—{% endif %}{% if document.valid_until %}<br>〜{{ document.valid_until|date:"Y-m-d" }}{% endif %}</td>
-        <td>{% for language in document.languages.all %}{{ language.name }}{% if not forloop.last %}・{% endif %}{% empty %}—{% endfor %}</td>
-        <td><div class="cluster">{% for file in item.files %}<a class="button button--neutral button--small" href="{% url 'attachment_download' file.pk %}">{% translate "file" %} {{ forloop.counter }}</a>{% endfor %}{% if can_manage %}<a class="button button--danger button--small" href="{% url 'hosts:host_document_void' host.pk document.pk %}">{% translate "Void" %}</a>{% endif %}</div></td>
-      </tr>{% endwith %}{% endfor %}</tbody>
-    </table></div>
-    {% else %}<p class="muted">{% translate "No documents are kept." %}</p>{% endif %}
-  </section>
-
-  {% if can_see_templates %}
-  <section class="card" id="condition-templates">
-    <div class="card__header"><h2 class="card__title">{% translate "Employment condition templates" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" id="condition-template-create" href="{% url 'hosts:condition_template_create' host.pk %}">{% translate "Add a template" %}</a>{% endif %}</div>
-    {% if condition_templates %}
-    <ul class="stack" style="list-style: none; padding: 0; margin: 0">{% for item in condition_templates %}<li data-template="{{ item.pk }}">{% if can_manage %}<a href="{% url 'hosts:condition_template_edit' host.pk item.pk %}">{{ item.name }}</a>{% else %}{{ item.name }}{% endif %} <span class="caption">{% blocktranslate count counter=item.marked|length %}{{ counter }} item entered for each worker{% plural %}{{ counter }} items entered for each worker{% endblocktranslate %}{% if not item.is_active %} · {% translate "not in use" %}{% endif %}</span></li>{% endfor %}</ul>
-    {% else %}<p class="muted">{% translate "No employment condition templates are registered." %}</p>{% endif %}
-  </section>
+  {% if can_generate_consultations %}
+  <section class="doc-section" id="periodic-report" aria-labelledby="periodic-report-title">
+    <div class="section-head">
+      <span class="section-head__no">{{ section_no.periodic_report }}</span><h2 class="section-head__title" id="periodic-report-title">{% translate "Periodic notification (form 3-6)" %}</h2><div class="section-head__actions"><a class="button button--light" href="{% url 'hosts:periodic_report' host.pk %}">{% translate "Make the periodic notification" %}</a></div>
+    </div>
+    <p class="caption">{% translate "Form 3-6 and attachments 1 and 2 for a fiscal year (submitted from April 1 to May 31 of the next year)." %}</p>
+    </section>
   {% endif %}
 
   {% if can_generate_consultations %}
-  <section class="card" id="periodic-report">
-    <div class="card__header"><h2 class="card__title">{% translate "Periodic notification (form 3-6)" %}</h2><a class="button button--neutral button--small" href="{% url 'hosts:periodic_report' host.pk %}">{% translate "Make the periodic notification" %}</a></div>
-    <p class="caption">{% translate "Form 3-6 and attachments 1 and 2 for a fiscal year (submitted from April 1 to May 31 of the next year)." %}</p>
-  </section>
-  <section class="card" id="consultation-records">
-    <div class="card__header"><h2 class="card__title">{% translate "Consultation records (form 5-4)" %}</h2><a class="button button--neutral button--small" href="{% url 'hosts:consultation_records' host.pk %}">{% translate "Generate the consultation records" %}</a></div>
+  <section class="doc-section" id="consultation-records" aria-labelledby="consultation-records-title">
+    <div class="section-head">
+      <span class="section-head__no">{{ section_no.consultation_records }}</span><h2 class="section-head__title" id="consultation-records-title">{% translate "Consultation records (form 5-4)" %}</h2><div class="section-head__actions"><a class="button button--light" href="{% url 'hosts:consultation_records' host.pk %}">{% translate "Generate the consultation records" %}</a></div>
+    </div>
     {% if consultation_documents %}
     <ul class="stack" style="list-style: none; padding: 0; margin: 0">{% for document in consultation_documents %}<li><a href="{% url 'forms:document' document.pk %}">{{ document.template.form_id }} · {{ document.basis_on|date:"Y-m-d" }} #{{ document.pk }}</a> <span class="caption">{{ document.get_status_display }} · {{ document.created_at|date:"Y-m-d H:i" }}</span></li>{% endfor %}</ul>
     {% else %}<p class="muted">{% translate "No consultation records have been generated." %}</p>{% endif %}
-  </section>
+    </section>
   {% endif %}
 
   {% if with_workers %}
-  <section id="host-workers">
-    <h2 style="margin-bottom: var(--space-12)">{% translate "Foreign workers" %} <span class="caption">{% blocktranslate count counter=detail.workers|length %}{{ counter }} person{% plural %}{{ counter }} people{% endblocktranslate %}</span></h2>
+  <section class="doc-section" id="host-workers" aria-labelledby="host-workers-title">
+    <div class="section-head">
+      <span class="section-head__no">{{ section_no.host_workers }}</span><h2 class="section-head__title" id="host-workers-title">{% translate "Foreign workers of this host organization" %}</h2><span class="section-head__meta">{% blocktranslate count counter=detail.workers|length %}{{ counter }} person{% plural %}{{ counter }} people{% endblocktranslate %}</span>
+    </div>
     {% if detail.workers %}
       {% include "workers/components/worker_table.html" with rows=detail.workers table_id="host-worker-list" %}
     {% else %}
       <div class="card"><div class="empty">{% translate "No foreign workers have an employment contract with this host organization." %}</div></div>
     {% endif %}
-  </section>
+    </section>
   {% endif %}
-</div>
+</article>
 {% endblock %}

@@ -59,11 +59,11 @@ class FilingRow:
     notes: tuple[str, ...] = ()  # 行に添える注意（services.filings.task_notes）
 
 
-def _host_id_of(target: object) -> int | None:
+def host_id_of(target: object) -> int | None:
     if isinstance(target, HostOrganization):
         return target.pk
     if isinstance(target, Attachment):
-        return _host_id_of(target.target)
+        return host_id_of(target.target)
     host_id = getattr(target, "host_organization_id", None)
     return host_id if isinstance(host_id, int) else None
 
@@ -72,7 +72,7 @@ def _target_link(filing: Filing) -> tuple[str, str, int | None]:
     """対象の表示名とリンク先（外国人の詳細、受入れ機関の詳細、無し）。"""
     if filing.worker_id is not None and filing.worker is not None:
         return str(filing.worker), "workers:detail", filing.worker_id
-    host_id = _host_id_of(filing.target)
+    host_id = host_id_of(filing.target)
     if host_id is not None:
         return filing.target_repr, "hosts:detail", host_id
     return filing.target_repr, "", None
@@ -213,7 +213,7 @@ def _owner(target: object) -> tuple[str, str, int | None, int | None]:
     worker = getattr(target, "worker", None)
     if worker is not None:
         return str(worker), "workers:detail", worker.pk, worker.assigned_staff_id
-    host_id = _host_id_of(target)
+    host_id = host_id_of(target)
     if host_id is not None:
         host = HostOrganization.objects.filter(pk=host_id).first()
         return (str(host) if host else str(target)), "hosts:detail", host_id, None
