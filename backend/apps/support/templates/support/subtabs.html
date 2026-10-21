@@ -1,5 +1,5 @@
-{% load i18n %}<nav class="cluster plan-subtabs" aria-label="{% translate 'Support' %}">
-  <a class="button button--small {% if support_subtab == 'plan' %}button--primary{% else %}button--neutral{% endif %}" href="{% url 'workers:support' worker.pk %}"{% if support_subtab == 'plan' %} aria-current="page"{% endif %}>{% translate "Plan" %}</a>
-  <a class="button button--small {% if support_subtab == 'records' %}button--primary{% else %}button--neutral{% endif %}" href="{% url 'workers:support_records' worker.pk %}"{% if support_subtab == 'records' %} aria-current="page"{% endif %}>{% translate "Records" %}</a>
-  <a class="button button--small {% if support_subtab == 'deliveries' %}button--primary{% else %}button--neutral{% endif %}" href="{% url 'workers:support_deliveries' worker.pk %}"{% if support_subtab == 'deliveries' %} aria-current="page"{% endif %}>{% translate "Deliveries" %}</a>
+{% load i18n %}{# 支援のタブの中の全部の記録・交付の画面の切り替え（計画は支援のタブの 1 枚。U5-D1） #}<nav class="tabs plan-subtabs" aria-label="{% translate 'Support' %}">
+  <a class="tabs__link" href="{% url 'workers:support' worker.pk %}"{% if support_subtab == 'plan' %} aria-current="page"{% endif %}>{% translate "Plan" %}</a>
+  <a class="tabs__link" href="{% url 'workers:support_records' worker.pk %}"{% if support_subtab == 'records' %} aria-current="page"{% endif %}>{% translate "Records" %}</a>
+  <a class="tabs__link" href="{% url 'workers:support_deliveries' worker.pk %}"{% if support_subtab == 'deliveries' %} aria-current="page"{% endif %}>{% translate "Deliveries" %}</a>
 </nav>

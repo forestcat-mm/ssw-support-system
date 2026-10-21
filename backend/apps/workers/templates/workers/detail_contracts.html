@@ -1,159 +1,180 @@
 {% extends "workers/detail_base.html" %}{% load i18n ui %}
 {% block tab_content %}
+{# 契約のタブ（仕様 5.2・見本 05）: 1 雇用契約（いまの版）→ 2 版の履歴 → 3 契約の書類 → 4 支援委託契約 #}
 {% if not view %}
 <div class="card"><div class="empty">{% translate "No employment contracts are registered." %}{% if can_manage_contracts %} <a class="button button--primary button--small" href="{% url 'workers:contract_create' worker.pk %}">{% translate "Register an employment contract" %}</a>{% endif %}</div></div>
 {% else %}
-<div class="stack">
-  <section class="card">
-    <div class="card__header"><h2 class="card__title">{% translate "Employment contracts" %}</h2>{% if can_manage_contracts %}<a class="button button--neutral button--small" href="{% url 'workers:contract_create' worker.pk %}">{% translate "Register an employment contract" %}</a>{% endif %}</div>
+{% with version=view.version contract=view.contract %}
+<article class="doc">
+  <section class="doc-section" id="contract-main" aria-labelledby="contract-main-title">
+    <div class="section-head">
+      <span class="section-head__no">1</span><h2 class="section-head__title" id="contract-main-title">{% translate "Employment contract" %}</h2>
+      <span class="section-head__meta">{% blocktranslate with number=version.version day=version.starts_on|date:"Y-m-d" %}version {{ number }} · from {{ day }}{% endblocktranslate %} · <span class="status">{{ view.status.label }}</span></span>
+      {% if can_manage_contracts or can_reopen %}
+      {# 主な操作 1 つと「…」のメニュー（危ない操作はメニューの中の赤字。修正 1 回目 B15） #}
+      <div class="section-head__actions actions" id="contract-actions">
+        {% if can_manage_contracts and not contract.terminated_on %}
+          <a class="button button--primary button--small" href="{% url 'workers:contract_version_create' worker.pk contract.pk %}">{% translate "Add a new version" %}</a>
+        {% elif can_manage_contracts %}
+          <a class="button button--neutral button--small" href="{% url 'workers:contract_attach' worker.pk contract.pk version.version %}">{% translate "Attach documents" %}</a>
+        {% endif %}
+        {% if can_manage_contracts and not contract.terminated_on or can_reopen and contract.terminated_on %}
+        <details class="menu">
+          <summary class="button button--neutral button--small" aria-label="{% translate "Other actions" %}" title="{% translate "Other actions" %}">…</summary>
+          <ul class="popover menu__list">
+            {% if can_manage_contracts and not contract.terminated_on %}
+              <li><a class="menu__item" href="{% url 'workers:contract_attach' worker.pk contract.pk version.version %}">{% translate "Attach documents" %}</a></li>
+              <li><a class="menu__item" href="{% url 'workers:contract_create' worker.pk %}">{% translate "Register an employment contract" %}</a></li>
+              <li><a class="menu__item menu__item--danger" href="{% url 'workers:contract_terminate' worker.pk contract.pk %}">{% translate "Register the termination" %}</a></li>
+            {% endif %}
+            {% if can_reopen and contract.terminated_on %}<li><a class="menu__item menu__item--danger" href="{% url 'workers:contract_reopen' worker.pk contract.pk %}">{% translate "Cancel the termination" %}</a></li>{% endif %}
+          </ul>
+        </details>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+    {% if conversion_warning or conversion_terms_missing %}
+    <div id="contract-warnings">
+      {% if conversion_warning %}<p class="section-notice section-notice--caution">{{ conversion_warning }}</p>{% endif %}
+      {% if conversion_terms_missing %}<p class="section-notice section-notice--caution">{% translate "The working conditions change after conversion. Attach annex 2 of the employment conditions (form 1-6)." %}</p>{% endif %}
+    </div>
+    {% endif %}
+    {% if contracts|length > 1 %}
+    <div class="sub-block" id="contract-list">
+      <h3 class="section-sub">{% translate "Employment contracts" %}</h3>
+      <ul class="item-rows">{% for item, status in contracts %}
+        <li class="item-row"{% if item.pk == contract.pk %} aria-current="true"{% endif %}>
+          <span class="item-row__state"><span class="status">{{ status.label }}</span></span>
+          <div class="item-row__body"><a class="cell-name" href="?contract={{ item.pk }}">{{ item.host_organization.name }}</a><div class="item-row__note">{{ item.current_starts_on|date:"Y-m-d" }} – {{ item.terminated_on|default:item.current_ends_on|date:"Y-m-d"|default:"—" }}{% if item.pk == contract.pk %} · {% translate "(shown below)" %}{% endif %}</div></div>
+        </li>{% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <h3 class="section-sub">{% translate "Period and place" %}</h3>
+    <dl class="pairs">
+      <div class="pairs__item"><dt>{% translate "host organization" %}</dt><dd>{{ contract.host_organization.name }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "host site" %}</dt><dd>{{ version.site.name }} {% field_tag version.site.field %}</dd></div>
+      <div class="pairs__item"><dt>{% translate "period" %}</dt><dd>{{ version.starts_on|date:"Y-m-d" }} – {{ version.ends_on|date:"Y-m-d"|default:"—" }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "renewal" %}</dt><dd>{{ version.get_renewal_display }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "operation categories" %}</dt><dd>{% for category in version.categories.all %}{{ category.name }}{% if not forloop.last %}、{% endif %}{% empty %}—{% endfor %}</dd></div>
+      {% if contract.terminated_on %}<div class="pairs__item"><dt>{% translate "terminated on" %}</dt><dd>{{ contract.terminated_on|date:"Y-m-d" }} {{ contract.get_termination_reason_display }}</dd></div>{% endif %}
+      {% if version.indefinite_conversion %}<div class="pairs__item pairs__item--wide"><dt>{% translate "conversion to an indefinite contract" %}</dt><dd>{% blocktranslate with day=version.ends_on|add_days:1|date:"Y-m-d" %}Can apply (from {{ day }}){% endblocktranslate %} · {{ version.get_conversion_conditions_change_display }}</dd></div>{% endif %}
+      <div class="pairs__item"><dt>{% translate "changed on" %}</dt><dd>{{ version.changed_on|date:"Y-m-d" }}</dd></div>
+      {% if version.change_reason %}<div class="pairs__item"><dt>{% translate "change reason" %}</dt><dd>{{ version.change_reason }}</dd></div>{% endif %}
+    </dl>
+
+    <h3 class="section-sub">{% translate "Working hours and days off" %}</h3>
+    <dl class="pairs">
+      <div class="pairs__item"><dt>{% translate "start and end time" %}</dt><dd>{{ version.start_time|time:"H:i" }}〜{{ version.end_time|time:"H:i" }}（{% blocktranslate with minutes=version.break_minutes %}break {{ minutes }} min{% endblocktranslate %}）</dd></div>
+      <div class="pairs__item"><dt>{% translate "scheduled working hours" %}</dt><dd>{% blocktranslate with day=version.daily_working_minutes|minutes_label week=version.weekly_working_minutes|minutes_label %}{{ day }} a day · {{ week }} a week{% endblocktranslate %}</dd></div>
+      <div class="pairs__item"><dt>{% translate "annual holidays" %}</dt><dd>{% blocktranslate with days=version.annual_holidays %}{{ days }} days a year{% endblocktranslate %}</dd></div>
+      <div class="pairs__item"><dt>{% translate "annual paid leave after 6 months (days)" %}</dt><dd>{{ version.paid_leave_days }}</dd></div>
+    </dl>
+
+    <h3 class="section-sub">{% translate "Wages" %}</h3>
+    <dl class="pairs">
+      <div class="pairs__item"><dt>{% translate "wage type" %}</dt><dd>{{ version.get_wage_type_display }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "base wage (yen)" %}</dt><dd>¥{{ version.base_wage|yen }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "approximate monthly payment" %}</dt><dd>{% if view.monthly_total is not None %}¥{{ view.monthly_total|yen }}{% else %}—{% endif %}</dd></div>
+      <div class="pairs__item"><dt>{% translate "approximate take-home pay" %}</dt><dd>{% if view.take_home is not None %}¥{{ view.take_home|yen }}{% else %}—{% endif %}</dd></div>
+      {% for allowance in version.allowances.all %}<div class="pairs__item"><dt>{% translate "allowance" %}</dt><dd>{{ allowance.name }} ¥{{ allowance.amount|yen }}</dd></div>{% endfor %}
+      {% for deduction in version.deductions.all %}<div class="pairs__item"><dt>{% translate "deduction" %}</dt><dd>{{ deduction.name|default:deduction.get_kind_display }} ¥{{ deduction.amount|yen }}</dd></div>{% endfor %}
+    </dl>
+
+    <h3 class="section-sub">{% translate "Contacts" %}</h3>
+    <dl class="pairs">
+      <div class="pairs__item pairs__item--wide"><dt>{% translate "consultation contact" %}</dt><dd>{{ version.consultation_contact_department|default:"" }} {{ version.consultation_contact_person|default:"" }}{% if version.consultation_contact_phone %}（{{ version.consultation_contact_phone }}）{% endif %}{% if not version.consultation_contact_department and not version.consultation_contact_person %}—{% endif %}</dd></div>
+    </dl>
+    <p class="caption" id="host-documents-guide">{% translate "Annual calendars, agreements of the variable working hours system and wage rules are kept in the documents of the host organization (per site)." %} <a href="{% url 'hosts:detail' contract.host_organization_id %}#host-documents">{% translate "Documents of the host organization" %}</a></p>
+    {% if view.attachments %}
+    <h3 class="section-sub">{% translate "Attachments" %}</h3>
+    <ul class="attachment-list" id="version-attachments">{% for attachment in view.attachments %}<li{% if attachment.voided_at %} class="is-voided"{% endif %}><a class="attachment-list__name" href="{% url 'attachment_download' attachment.pk %}">{{ attachment.original_filename }}</a> <span class="caption">{{ attachment.get_kind_display }}{% if attachment.voided_at %} · {% translate "voided" %} {{ attachment.voided_at|date:"Y-m-d" }}: {{ attachment.void_reason }}{% endif %}</span>{% if can_manage_contracts and not attachment.voided_at %} <a class="caption" href="{% url 'workers:contract_attachment_void' worker.pk contract.pk attachment.pk %}">{% translate "Void" %}</a>{% endif %}</li>{% endfor %}</ul>
+    {% endif %}
+  </section>
+
+  <section class="doc-section" id="versions" aria-labelledby="versions-title">
+    <div class="section-head">
+      <span class="section-head__no">2</span><h2 class="section-head__title" id="versions-title">{% translate "Version history" %}</h2>
+      <span class="section-head__meta">{% translate "A new version is added for every change. Earlier versions stay." %}</span>
+    </div>
     <div class="table-scroll">
-      <table class="table table--list">
-        <thead><tr><th>{% translate "host organization" %}</th><th>{% translate "starts on" %}</th><th>{% translate "ends on" %}</th><th>{% translate "status" %}</th></tr></thead>
+      <table class="table table--list table--cards">
+        <thead><tr><th>{% translate "version" %}</th><th>{% translate "applies from" %}</th><th>{% translate "what changed" %}</th><th>{% translate "filing" %}</th><th><span class="visually-hidden">{% translate "action" %}</span></th></tr></thead>
         <tbody>
-          {% for contract, status in contracts %}
-            <tr{% if contract.pk == view.contract.pk %} aria-current="true"{% endif %}>
-              <td><a href="?contract={{ contract.pk }}">{{ contract.host_organization.name }}</a></td>
-              <td class="mono">{{ contract.current_starts_on|date:"Y-m-d" }}</td>
-              <td class="mono">{{ contract.terminated_on|default:contract.current_ends_on|date:"Y-m-d"|default:"—" }}</td>
-              <td>{{ status.label }}{% if contract.pk == view.contract.pk %} <span class="caption">{% translate "(shown below)" %}</span>{% endif %}</td>
+          {% for item, filing in version_rows %}
+            <tr{% if item.pk == version.pk %} aria-current="true"{% endif %}>
+              <td class="card-head"><strong>{% blocktranslate with number=item.version %}Version {{ number }}{% endblocktranslate %}</strong>{% if item.pk == view.versions.0.pk %} <span class="caption">{% translate "current version" %}</span>{% endif %}</td>
+              <td class="card-meta" data-label="{% translate 'applies from' %}">{{ item.changed_on|date:"Y-m-d" }}</td>
+              <td class="card-title cell-kind"><span class="clamp-2" title="{{ item.change_reason }}">{{ item.change_reason|default:"—" }}</span></td>
+              <td class="card-meta" data-label="{% translate 'filing' %}">{% if filing %}<a href="{% url 'filings:detail' filing.pk %}">{{ filing.get_kind_display }}</a> · {{ filing.get_status_display }}{% if filing.submitted_on %}（{{ filing.submitted_on|date:"Y-m-d" }}）{% endif %}{% else %}<span class="muted">—</span>{% endif %}</td>
+              <td class="cell-action card-action">{% if item.pk == version.pk %}<span class="caption">{% translate "(shown above)" %}</span>{% else %}<a href="?contract={{ contract.pk }}&amp;version={{ item.version }}#diff">{% translate "See the changes" %}</a>{% endif %}</td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
-  </section>
-
-  {% with version=view.version contract=view.contract %}
-  {% if can_manage_contracts or can_reopen %}
-  {# 主な操作 1 つと「…」のメニュー（危ない操作はメニューの中の赤字。修正 1 回目 B15） #}
-  <div class="actions" id="contract-actions">
-    {% if can_manage_contracts and not contract.terminated_on %}
-      <a class="button button--primary" href="{% url 'workers:contract_version_create' worker.pk contract.pk %}">{% translate "Add a new version" %}</a>
-    {% elif can_manage_contracts %}
-      <a class="button button--neutral" href="{% url 'workers:contract_attach' worker.pk contract.pk version.version %}">{% translate "Attach documents" %}</a>
-    {% endif %}
-    {% if can_manage_contracts and not contract.terminated_on or can_reopen and contract.terminated_on %}
-    <details class="menu">
-      <summary class="button button--neutral" aria-label="{% translate "Other actions" %}" title="{% translate "Other actions" %}">…</summary>
-      <ul class="popover menu__list">
-        {% if can_manage_contracts and not contract.terminated_on %}
-          <li><a class="menu__item" href="{% url 'workers:contract_attach' worker.pk contract.pk version.version %}">{% translate "Attach documents" %}</a></li>
-          <li><a class="menu__item menu__item--danger" href="{% url 'workers:contract_terminate' worker.pk contract.pk %}">{% translate "Register the termination" %}</a></li>
-        {% endif %}
-        {% if can_reopen and contract.terminated_on %}<li><a class="menu__item menu__item--danger" href="{% url 'workers:contract_reopen' worker.pk contract.pk %}">{% translate "Cancel the termination" %}</a></li>{% endif %}
-      </ul>
-    </details>
-    {% endif %}
-  </div>
-  {% endif %}
-  {% if conversion_warning or conversion_terms_missing %}
-  <ul class="messages" id="contract-warnings">
-    {% if conversion_warning %}<li class="message message--warning">{{ conversion_warning }}</li>{% endif %}
-    {% if conversion_terms_missing %}<li class="message message--warning">{% translate "The working conditions change after conversion. Attach annex 2 of the employment conditions (form 1-6)." %}</li>{% endif %}
-  </ul>
-  {% endif %}
-  <div class="grid-2">
-    <section class="card" id="contract-main">
-      <div class="card__header">
-        <h2 class="card__title">{% blocktranslate with number=version.version %}Version {{ number }}{% endblocktranslate %}</h2>
-        <span class="status">{{ view.status.label }}</span>
-      </div>
-      <dl class="fields">
-        <dt>{% translate "host organization" %}</dt><dd>{{ contract.host_organization.name }}</dd>
-        <dt>{% translate "host site" %}</dt><dd>{{ version.site.name }} {% field_tag version.site.field %}</dd>
-        <dt>{% translate "period" %}</dt><dd><span class="mono">{{ version.starts_on|date:"Y-m-d" }}</span> – <span class="mono">{{ version.ends_on|date:"Y-m-d"|default:"—" }}</span></dd>
-        {% if contract.terminated_on %}<dt>{% translate "terminated on" %}</dt><dd><span class="mono">{{ contract.terminated_on|date:"Y-m-d" }}</span> {{ contract.get_termination_reason_display }}</dd>{% endif %}
-        <dt>{% translate "wage type" %}</dt><dd>{{ version.get_wage_type_display }}</dd>
-        <dt>{% translate "base wage (yen)" %}</dt><dd class="mono">¥{{ version.base_wage|yen }}</dd>
-        <dt>{% translate "approximate monthly payment" %}</dt><dd class="mono">{% if view.monthly_total is not None %}¥{{ view.monthly_total|yen }}{% else %}—{% endif %}</dd>
-        <dt>{% translate "approximate take-home pay" %}</dt><dd class="mono">{% if view.take_home is not None %}¥{{ view.take_home|yen }}{% else %}—{% endif %}</dd>
-        <dt>{% translate "operation categories" %}</dt><dd>{% for category in version.categories.all %}{{ category.name }}{% if not forloop.last %}、{% endif %}{% empty %}—{% endfor %}</dd>
-        {% if version.indefinite_conversion %}<dt>{% translate "conversion to an indefinite contract" %}</dt><dd>{% blocktranslate with day=version.ends_on|add_days:1|date:"Y-m-d" %}Can apply (from {{ day }}){% endblocktranslate %} · {{ version.get_conversion_conditions_change_display }}</dd>{% endif %}
-        <dt>{% translate "changed on" %}</dt><dd class="mono">{{ version.changed_on|date:"Y-m-d" }}</dd>
-        {% if version.change_reason %}<dt>{% translate "change reason" %}</dt><dd>{{ version.change_reason }}</dd>{% endif %}
-      </dl>
-    </section>
-
-    <section class="card">
-      <div class="card__header"><h2 class="card__title">{% translate "Allowances and deductions" %}</h2></div>
+    {% if view.previous %}
+    <div class="sub-block" id="diff">
+      <h3 class="section-sub">{% blocktranslate with old=view.previous.version new=version.version %}Changes from version {{ old }} to {{ new }}{% endblocktranslate %}</h3>
+      {% if view.diff %}
       <div class="table-scroll">
         <table class="table">
-          <thead><tr><th>{% translate "kind" %}</th><th>{% translate "name" %}</th><th>{% translate "amount per month (yen)" %}</th></tr></thead>
-          <tbody>
-            {% for allowance in version.allowances.all %}<tr><td>{% translate "allowance" %}</td><td>{{ allowance.name }}</td><td class="mono">¥{{ allowance.amount|yen }}</td></tr>{% endfor %}
-            {% for deduction in version.deductions.all %}<tr><td>{% translate "deduction" %}</td><td>{{ deduction.name|default:deduction.get_kind_display }}</td><td class="mono">¥{{ deduction.amount|yen }}</td></tr>{% endfor %}
-            {% if not version.allowances.all and not version.deductions.all %}<tr><td colspan="3" class="muted">{% translate "None." %}</td></tr>{% endif %}
-          </tbody>
+          <thead><tr><th>{% translate "item" %}</th><th>{% translate "before" %}</th><th>{% translate "after" %}</th></tr></thead>
+          <tbody>{% for row in view.diff %}<tr><td>{{ row.label }}</td><td>{{ row.before }}</td><td>{{ row.after }}</td></tr>{% endfor %}</tbody>
         </table>
       </div>
-      <p class="caption" id="host-documents-guide">{% translate "Annual calendars, agreements of the variable working hours system and wage rules are kept in the documents of the host organization (per site)." %} <a href="{% url 'hosts:detail' contract.host_organization_id %}#host-documents">{% translate "Documents of the host organization" %}</a></p>
-      {% if view.attachments %}
-      <h3>{% translate "Attachments" %}</h3>
-      <ul class="attachment-list" id="version-attachments">{% for attachment in view.attachments %}<li{% if attachment.voided_at %} class="is-voided"{% endif %}><a class="attachment-list__name" href="{% url 'attachment_download' attachment.pk %}">{{ attachment.original_filename }}</a> <span class="caption">{{ attachment.get_kind_display }}{% if attachment.voided_at %} · {% translate "voided" %} {{ attachment.voided_at|date:"Y-m-d" }}: {{ attachment.void_reason }}{% endif %}</span>{% if can_manage_contracts and not attachment.voided_at %} <a class="caption" href="{% url 'workers:contract_attachment_void' worker.pk contract.pk attachment.pk %}">{% translate "Void" %}</a>{% endif %}</li>{% endfor %}</ul>
-      {% endif %}
-    </section>
-  </div>
-
-  <section class="card" id="contract-documents">
-    <div class="card__header">
-      <h2 class="card__title">{% blocktranslate with number=version.version %}Documents of version {{ number }}{% endblocktranslate %}</h2>
-      {% if can_manage_contracts %}<a class="button button--neutral button--small" href="{% url 'workers:contract_wage_explanation' worker.pk contract.pk version.version %}" id="wage-explanation-edit">{% if wage_explanation %}{% translate "Edit the wage explanation" %}{% else %}{% translate "Enter the wage explanation" %}{% endif %}</a>{% endif %}
-    </div>
-    <dl class="fields fields--long-labels">
-      <dt>{% translate "wage explanation (form 1-4)" %}</dt>
-      <dd id="wage-explanation">{% if wage_explanation and wage_explanation.comparison %}{{ wage_explanation.get_comparison_display }}{% if wage_explanation.japanese_wage is not None %} · {{ wage_explanation.get_wage_unit_display }} ¥{{ wage_explanation.japanese_wage|yen }}{% endif %}{% else %}{% translate "Not entered." %}{% endif %}</dd>
-    </dl>
-    {% if can_generate_forms %}
-    <div class="cluster" id="contract-generate">
-      <a class="button button--neutral button--small" href="{% url 'workers:contract_generate' worker.pk contract.pk version.version '1-6' %}">{% translate "Generate form 1-6" %}</a>
-      <a class="button button--neutral button--small" href="{% url 'workers:contract_generate' worker.pk contract.pk version.version '1-5' %}">{% translate "Generate form 1-5" %}</a>
-      <a class="button button--neutral button--small" href="{% url 'workers:contract_generate' worker.pk contract.pk version.version '1-4' %}">{% translate "Generate form 1-4" %}</a>
-      <a class="button button--neutral button--small" href="{% url 'workers:contract_own_document' worker.pk contract.pk 'career-plan' %}">{% translate "Generate the career-up plan" %}</a>
-      <a class="button button--neutral button--small" href="{% url 'workers:contract_own_document' worker.pk contract.pk 'experience-certificate' %}">{% translate "Generate the certificate of work experience" %}</a>
-    </div>
-    <div class="cluster" id="contract-application-generate">
-      {% if version.site.field.code == "industrial_products" %}<a class="button button--neutral button--small" href="{% url 'workers:contract_own_document' worker.pk contract.pk '3-1' %}">{% translate "Generate form 3-1" %}</a>{% endif %}
-      {% if version.site.field.code == "food_manufacturing" %}<a class="button button--neutral button--small" href="{% url 'workers:contract_own_document' worker.pk contract.pk '13-1' %}">{% translate "Generate form 13-1" %}</a>
-      <a class="button button--neutral button--small" href="{% url 'workers:contract_own_document' worker.pk contract.pk '13-2' %}">{% translate "Generate form 13-2" %}</a>{% endif %}
-      <a class="button button--neutral button--small" href="{% url 'workers:contract_own_document' worker.pk contract.pk '5-10' %}">{% translate "Generate form 5-10" %}</a>
-      <a class="button button--neutral button--small" href="{% url 'workers:contract_own_document' worker.pk contract.pk '1-25' %}">{% translate "Generate form 1-25" %}</a>
+      {% else %}<p class="muted">{% translate "No changes." %}</p>{% endif %}
     </div>
     {% endif %}
   </section>
 
-  <section class="card" id="versions">
-    <div class="card__header"><h2 class="card__title">{% translate "Versions" %}</h2></div>
-    <div class="table-scroll">
-      <table class="table table--list">
-        <thead><tr><th>{% translate "version" %}</th><th>{% translate "changed on" %}</th><th>{% translate "period" %}</th><th>{% translate "change reason" %}</th></tr></thead>
-        <tbody>
-          {% for item in view.versions %}
-            <tr{% if item.pk == version.pk %} aria-current="true"{% endif %}>
-              <td>{% if item.pk == version.pk %}{{ item.version }}{% else %}<a href="?contract={{ contract.pk }}&amp;version={{ item.version }}">{{ item.version }}</a>{% endif %}</td>
-              <td class="mono">{{ item.changed_on|date:"Y-m-d" }}</td>
-              <td class="mono">{{ item.starts_on|date:"Y-m-d" }} – {{ item.ends_on|date:"Y-m-d"|default:"—" }}</td>
-              <td><span class="truncate-line truncate-line--wide" title="{{ item.change_reason }}"><span class="truncate">{{ item.change_reason|default:"—" }}</span></span></td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+  <section class="doc-section" id="contract-documents" aria-labelledby="contract-documents-title">
+    <div class="section-head">
+      <span class="section-head__no">3</span><h2 class="section-head__title" id="contract-documents-title">{% translate "Contract documents" %}</h2>
+      <span class="section-head__meta">{% blocktranslate with number=version.version %}Made from version {{ number }}{% endblocktranslate %}</span>
     </div>
+    <ul class="item-rows">
+      <li class="item-row" id="wage-explanation-row">
+        <span class="item-row__state">{% if wage_explanation and wage_explanation.comparison %}<span class="status-dot status-dot--ok">{% translate "entered" %}</span>{% else %}<span class="status-dot status-dot--caution">{% translate "not entered" %}</span>{% endif %}</span>
+        <div class="item-row__body"><div class="item-row__title">{% translate "wage explanation (form 1-4)" %}</div><div class="item-row__note" id="wage-explanation">{% if wage_explanation and wage_explanation.comparison %}{{ wage_explanation.get_comparison_display }}{% if wage_explanation.japanese_wage is not None %} · {{ wage_explanation.get_wage_unit_display }} ¥{{ wage_explanation.japanese_wage|yen }}{% endif %}{% else %}{% translate "Not entered." %}{% endif %}</div></div>
+        {% if can_manage_contracts %}<a class="button button--ghost button--small" href="{% url 'workers:contract_wage_explanation' worker.pk contract.pk version.version %}" id="wage-explanation-edit">{% if wage_explanation %}{% translate "Edit the wage explanation" %}{% else %}{% translate "Enter the wage explanation" %}{% endif %}</a>{% endif %}
+      </li>
+    </ul>
+    <ul class="item-rows" id="contract-generate">
+      {% include "workers/components/contract_document_row.html" with doc=contract_documents|get_item:"1-6" label=_("Employment conditions (form 1-6)") generate=can_generate_forms url_kind="version" form="1-6" action=_("Generate form 1-6") %}
+      {% include "workers/components/contract_document_row.html" with doc=contract_documents|get_item:"1-5" label=_("Employment contract (form 1-5)") generate=can_generate_forms url_kind="version" form="1-5" action=_("Generate form 1-5") %}
+      {% include "workers/components/contract_document_row.html" with doc=contract_documents|get_item:"1-4" label=_("Explanation of the wage (form 1-4)") generate=can_generate_forms url_kind="version" form="1-4" action=_("Generate form 1-4") %}
+      {% include "workers/components/contract_document_row.html" with doc=contract_documents|get_item:"career-plan" label=_("Career-up plan") generate=can_generate_forms url_kind="own" form="career-plan" action=_("Generate the career-up plan") %}
+      {% include "workers/components/contract_document_row.html" with doc=contract_documents|get_item:"experience-certificate" label=_("Certificate of work experience") generate=can_generate_forms url_kind="own" form="experience-certificate" action=_("Generate the certificate of work experience") %}
+    </ul>
+    <h3 class="section-sub">{% translate "Documents for the application (host organization)" %}</h3>
+    <ul class="item-rows" id="contract-application-generate">
+      {% if version.site.field.code == "industrial_products" %}{% include "workers/components/contract_document_row.html" with doc=contract_documents|get_item:"3-1" label=_("Form 3-1") generate=can_generate_forms url_kind="own" form="3-1" action=_("Generate form 3-1") %}{% endif %}
+      {% if version.site.field.code == "food_manufacturing" %}{% include "workers/components/contract_document_row.html" with doc=contract_documents|get_item:"13-1" label=_("Form 13-1") generate=can_generate_forms url_kind="own" form="13-1" action=_("Generate form 13-1") %}
+      {% include "workers/components/contract_document_row.html" with doc=contract_documents|get_item:"13-2" label=_("Form 13-2") generate=can_generate_forms url_kind="own" form="13-2" action=_("Generate form 13-2") %}{% endif %}
+      {% include "workers/components/contract_document_row.html" with doc=contract_documents|get_item:"5-10" label=_("Support contract (form 5-10)") generate=can_generate_forms url_kind="own" form="5-10" action=_("Generate form 5-10") %}
+      {% include "workers/components/contract_document_row.html" with doc=contract_documents|get_item:"1-25" label=_("Form 1-25") generate=can_generate_forms url_kind="own" form="1-25" action=_("Generate form 1-25") %}
+    </ul>
   </section>
 
-  {% if view.previous %}
-  <section class="card" id="diff">
-    <div class="card__header"><h2 class="card__title">{% blocktranslate with old=view.previous.version new=version.version %}Changes from version {{ old }} to {{ new }}{% endblocktranslate %}</h2></div>
-    {% if view.diff %}
-    <div class="table-scroll">
-      <table class="table">
-        <thead><tr><th>{% translate "item" %}</th><th>{% translate "before" %}</th><th>{% translate "after" %}</th></tr></thead>
-        <tbody>{% for row in view.diff %}<tr><td>{{ row.label }}</td><td>{{ row.before }}</td><td>{{ row.after }}</td></tr>{% endfor %}</tbody>
-      </table>
+  <section class="doc-section" id="support-contract" aria-labelledby="support-contract-title">
+    <div class="section-head">
+      <span class="section-head__no">4</span><h2 class="section-head__title" id="support-contract-title">{% translate "Support contract" %}</h2>
+      <span class="section-head__meta">{% translate "Contract with the host organization in effect for this worker" %}</span>
+      <div class="section-head__actions"><a class="button button--light" href="{% url 'hosts:detail' contract.host_organization_id %}#support-contracts">{% translate "Open on the host organization screen" %}</a></div>
     </div>
-    {% else %}<p class="muted">{% translate "No changes." %}</p>{% endif %}
+    {% if support_contract %}
+    <dl class="pairs">
+      <div class="pairs__item"><dt>{% translate "host organization" %}</dt><dd>{{ contract.host_organization.name }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "period" %}</dt><dd>{{ support_contract.starts_on|date:"Y-m-d" }} – {{ support_contract.ends_on|date:"Y-m-d"|default:"—" }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "entrustment fee" %}</dt><dd>{% if support_contract.monthly_fee is not None %}¥{{ support_contract.monthly_fee|yen }}{% else %}—{% endif %}</dd></div>
+      <div class="pairs__item"><dt>{% translate "scope" %}</dt><dd>{{ support_contract.get_scope_display }}</dd></div>
+    </dl>
+    {% else %}<p class="muted">{% translate "No support contract is in effect today." %}</p>{% endif %}
   </section>
-  {% endif %}
-  {% endwith %}
-</div>
+</article>
+{% endwith %}
 {% endif %}
 {% endblock %}

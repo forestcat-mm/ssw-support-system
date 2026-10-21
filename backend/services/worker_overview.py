@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import datetime
 from dataclasses import dataclass, field
+from typing import Any
 
 from django.db.models import Q
 from django.urls import reverse
@@ -328,3 +329,130 @@ def initial_of(worker: ForeignWorker) -> str:
         return worker.name_kanji.strip()[0]
     words = worker.name_romaji.split()
     return words[0][0].upper() if words else "?"
+
+
+# --- 契約のタブの「3 契約の書類」（U5。見本 05） ---------------------------------------------
+
+STATE_TONES = {
+    "missing": "danger",
+    "generating": "neutral",
+    "awaiting": "caution",
+    "signed": "ok",
+    "generated": "ok",
+}
+
+
+@dataclass(frozen=True)
+class ContractDocument:
+    form_id: str
+    state: str  # missing・generating・awaiting・signed・generated
+    tone: str
+    document: Any  # GeneratedDocument | None
+    signed_on: datetime.date | None
+
+
+def contract_documents(
+    worker: ForeignWorker,
+    contract: EmploymentContract,
+    version: EmploymentContractVersion,
+    form_ids: list[str],
+) -> dict[str, ContractDocument]:
+    """様式ごとの、この契約・版の最新の生成物と署名の状態。"""
+    from services import form_signatures  # 循環を避ける
+
+    latest: dict[str, form_signatures.DocumentRow] = {}
+    for candidate in form_signatures.rows_for(worker):  # 新しい順
+        document = candidate.document
+        form_id = document.template.form_id
+        if form_id not in form_ids or form_id in latest:
+            continue
+        model = document.content_type.model
+        if model == "employmentcontractversion" and document.object_id != version.pk:
+            continue
+        if model == "employmentcontract" and document.object_id != contract.pk:
+            continue
+        latest[form_id] = candidate
+    result = {}
+    for form_id in form_ids:
+        found = latest.get(form_id)
+        row = found
+        if row is None:
+            state = "missing"
+        elif row.state == form_signatures.SignatureState.NOT_GENERATED:
+            state = "generating"
+        elif row.state == form_signatures.SignatureState.AWAITING:
+            state = "awaiting"
+        elif row.state == form_signatures.SignatureState.SIGNED:
+            state = "signed"
+        else:
+            state = "generated"
+        result[form_id] = ContractDocument(
+            form_id=form_id,
+            state=state,
+            tone=STATE_TONES[state],
+            document=row.document if row else None,
+            signed_on=row.signed_on if row else None,
+        )
+    return result
+
+
+def version_filings(worker: ForeignWorker, contract: EmploymentContract) -> dict[int, Any]:
+    """版ごとの雇用契約の届出（変更は trigger_details の version、第 1 版は締結の届出）。"""
+    found: dict[int, Any] = {}
+    for filing in worker.filings.filter(
+        kind__in=[FilingKind.CONTRACT_CHANGE, FilingKind.CONTRACT_NEW],
+        content_type__model="employmentcontract",
+        object_id=contract.pk,
+    ).order_by("pk"):
+        number = (filing.trigger_details or {}).get("version")
+        if number is None and filing.kind == FilingKind.CONTRACT_NEW:
+            number = 1
+        if isinstance(number, int):
+            found[number] = filing
+    return found
+
+
+# --- 支援のタブ（U5。見本 06） --------------------------------------------------------------
+
+RECENT_LIMIT = 10
+
+
+@dataclass(frozen=True)
+class SupportTab:
+    summary: SupportSummary
+    supervisor: str  # 前の定期面談（監督者）の相手の名前
+    records: list[Any]  # SupportRecord（新しい順に 10 件。取消も残す）
+    record_total: int
+    consultations: list[Any]  # 対応中の相談
+    deliveries: list[Any]  # DocumentDelivery（新しい順に 10 件）
+    delivery_total: int
+
+
+def support_tab(worker: ForeignWorker, today: datetime.date) -> SupportTab:
+    from apps.support.models import Counterpart, DocumentDelivery  # 循環を避ける
+
+    records = SupportRecord.objects.filter(worker=worker).select_related("staff")
+    supervisor = (
+        records.filter(
+            kind=SupportItem.PERIODIC_INTERVIEW,
+            counterpart=Counterpart.SUPERVISOR,
+            voided_at__isnull=True,
+        )
+        .order_by("-occurred_on", "-pk")
+        .values_list("counterpart_name", flat=True)
+        .first()
+    )
+    deliveries = DocumentDelivery.objects.filter(worker=worker)
+    return SupportTab(
+        summary=support_summary(worker, today),
+        supervisor=supervisor or "",
+        records=list(records.order_by("-occurred_on", "-pk")[:RECENT_LIMIT]),
+        record_total=records.count(),
+        consultations=list(
+            Consultation.objects.filter(worker=worker, status__in=OPEN_CONSULTATION_STATUSES)
+            .select_related("record")
+            .order_by("-record__occurred_on", "-pk")
+        ),
+        deliveries=list(deliveries.order_by("-delivered_on", "-pk")[:RECENT_LIMIT]),
+        delivery_total=deliveries.count(),
+    )

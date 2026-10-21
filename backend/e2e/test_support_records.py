@@ -26,7 +26,8 @@ def test_record_then_void_and_see_strikethrough(
     sign_in(support_staff)
     base = page.url.rstrip("/")
     page.goto(f"{base}/workers/{worker.pk}/support/")
-    page.get_by_role("link", name="記録", exact=True).click()
+    # 支援のタブの「3 支援の記録」から全部の記録へ（U5-D1）
+    page.locator("#all-records-link").click()
     expect(page.get_by_text("まだ記録はありません。")).to_be_visible()
 
     # 種別のボタンから入力画面を開く（担当者・本文の言語は補われている）

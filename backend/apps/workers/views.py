@@ -246,6 +246,21 @@ def overview_toc(found: worker_overview.Overview) -> list[dict[str, Any]]:
     ]
 
 
+# 契約のタブの「3 契約の書類」に出す様式（生成の画面と同じ ID）
+CONTRACT_FORM_IDS = [
+    "1-6",
+    "1-5",
+    "1-4",
+    "career-plan",
+    "experience-certificate",
+    "3-1",
+    "13-1",
+    "13-2",
+    "5-10",
+    "1-25",
+]
+
+
 class WorkerContractsView(WorkerDetailView):
     tab = "contracts"
     template_name = "workers/detail_contracts.html"
@@ -282,6 +297,27 @@ class WorkerContractsView(WorkerDetailView):
         )
         if view is None:
             return {"shown": {}}
+        # 見本 05 の形（U5）: 1 雇用契約・2 版の履歴（届出）・3 契約の書類（状態）・4 支援委託契約
+        documents = worker_overview.contract_documents(
+            self.worker, view.contract, view.version, CONTRACT_FORM_IDS
+        )
+        filings_by_version = worker_overview.version_filings(self.worker, view.contract)
+        summary = worker_overview.contract_summary(view.contract, today)
+        context.update(
+            contract_documents=documents,
+            version_rows=[(item, filings_by_version.get(item.version)) for item in view.versions],
+            support_contract=summary.support_contract if summary else None,
+            toc=[
+                {"id": "contract-main", "label": _("1 Employment contract"), "warn": False},
+                {"id": "versions", "label": _("2 Version history"), "warn": False},
+                {
+                    "id": "contract-documents",
+                    "label": _("3 Contract documents"),
+                    "warn": any(doc.tone == "danger" for doc in documents.values()),
+                },
+                {"id": "support-contract", "label": _("4 Support contract"), "warn": False},
+            ],
+        )
         return {
             "shown": {"contract": view.contract.pk, "contract_version": view.version.pk},
         }
@@ -294,6 +330,9 @@ class WorkerFilingsView(WorkerDetailView):
     def tab_context(self, context: dict[str, Any]) -> dict[str, Any]:
         rows = worker_detail.worker_filings(self.worker)
         context["filing_rows"] = rows
+        context["toc"] = [
+            {"id": "worker-filings", "label": _("1 Filing tasks"), "warn": False},
+        ]
         context["can_create_filing"] = workers.is_active(self.worker) and authorization.has_action(
             self.request.user, Action.FILINGS_MANAGE
         )
@@ -307,6 +346,11 @@ class WorkerHistoryView(WorkerDetailView):
     def tab_context(self, context: dict[str, Any]) -> dict[str, Any]:
         entries = worker_detail.history(self.worker)
         context["entries"] = entries
+        context["toc"] = [
+            {"id": "staff-periods", "label": _("1 Assigned staff"), "warn": False},
+            {"id": "photos", "label": _("2 Application photos"), "warn": False},
+            {"id": "ledger-history", "label": _("3 History of the ledger"), "warn": False},
+        ]
         photos = worker_photos.history(self.worker)
         # 「使っている写真」は取り消していない最新の写真（並びは新しい順）
         context["photos"] = photos
@@ -690,6 +734,11 @@ class WorkerBooksView(WorkerDetailView):
     def tab_context(self, context: dict[str, Any]) -> dict[str, Any]:
         book = book_exports.worker_book(self.worker)
         context["book"] = book
+        context["toc"] = [
+            {"id": "book-recipient", "label": _("1 Support recipient"), "warn": False},
+            {"id": "book-support", "label": _("2 Support carried out"), "warn": False},
+            {"id": "book-documents", "label": _("3 Related forms"), "warn": False},
+        ]
         return {
             "shown": {"books": [self.worker.pk]},
             "decrypted": ["card_number"] if book.card_number else [],

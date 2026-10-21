@@ -277,6 +277,14 @@ class WorkerDocumentsView(WorkerDetailView):
             ],
             legacy_rows=legacy,
             stale_minutes=settings.FORM_STALE_AFTER // 60,
+            toc=[
+                {"id": "generated-documents", "label": _("1 Generated forms"), "warn": False},
+                *(
+                    [{"id": "legacy-signed", "label": _("2 Signed documents"), "warn": False}]
+                    if legacy
+                    else []
+                ),
+            ],
         )
         return {"shown": {"generated_documents": [row.document.pk for row in rows]}}
 

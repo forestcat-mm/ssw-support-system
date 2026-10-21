@@ -106,3 +106,8 @@ def test_capture_screens_like_the_mocks(
         SHOTS.mkdir(parents=True, exist_ok=True)
         page.screenshot(path=SHOTS / f"04-worker-overview-scrolled-{width}.png", scale="css")
         page.evaluate("window.scrollTo(0, 0)")
+        worker = overdue_worker(seeded)
+        page.goto(f"{base}/workers/{worker.pk}/contracts/")
+        shoot(page, "05-worker-contract-tab", width)
+        page.goto(f"{base}/workers/{worker.pk}/support/")
+        shoot(page, "06-worker-support-tab", width)

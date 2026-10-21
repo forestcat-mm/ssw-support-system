@@ -25,6 +25,7 @@ from apps.workers.models import ForeignWorker
 from apps.workers.views import WorkerDetailView, WorkerFormView
 from services import (
     authorization,
+    deadlines,
     form_checks,
     form_data_1_17,
     form_generation,
@@ -32,6 +33,7 @@ from services import (
     form_templates,
     support_plans,
     worker_detail,
+    worker_overview,
     workers,
 )
 
@@ -85,8 +87,29 @@ class SupportPlanTabView(WorkerDetailView):
             and not any(p.host_organization == host for p in plans),
             support_subtab="plan",
         )
+        # 見本 06 の形（U5-D1）: 1 定期面談・2 支援計画・3 支援の記録・4 相談・5 交付
+        found = worker_overview.support_tab(worker, today)
+        context.update(
+            support=found,
+            toc=[
+                {
+                    "id": "interviews",
+                    "label": _("1 Periodic interviews"),
+                    "warn": found.summary.next_interview_level is deadlines.Level.OVERDUE,
+                },
+                {"id": "plan", "label": _("2 Support plan"), "warn": False},
+                {"id": "records-summary", "label": _("3 Support records"), "warn": False},
+                {"id": "consultations-summary", "label": _("4 Consultations"), "warn": False},
+                {"id": "deliveries-summary", "label": _("5 Deliveries"), "warn": False},
+            ],
+        )
+        shown_support = {
+            "support_records": [record.pk for record in found.records],
+            "consultations": [item.pk for item in found.consultations],
+            "deliveries": [item.pk for item in found.deliveries],
+        }
         if plan is None:
-            return {"shown": {}}
+            return {"shown": shown_support}
         versions = list(plan.versions.select_related("created_by").order_by("-version"))
         number = self.request.GET.get("version", "")
         version = next((v for v in versions if str(v.version) == number), None)
@@ -102,7 +125,13 @@ class SupportPlanTabView(WorkerDetailView):
             view=plan_view(content, support_plans.warnings(content)),
             diff=support_plans.diff_rows(previous, version) if previous else [],
         )
-        return {"shown": {"support_plan": plan.pk, "support_plan_version": version.pk}}
+        return {
+            "shown": {
+                "support_plan": plan.pk,
+                "support_plan_version": version.pk,
+                **shown_support,
+            }
+        }
 
 
 class PlanEditView(WorkerFormView):

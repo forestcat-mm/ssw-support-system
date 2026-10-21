@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 13:15+0900\n"
+"POT-Creation-Date: 2026-10-21 15:52+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -2676,6 +2676,10 @@ msgstr "14日以内 %(count)s人"
 msgid "not in effect"
 msgstr "適用期間外"
 
+#, python-format
+msgid "%(hours)s h %(minutes)s min"
+msgstr "%(hours)s時間%(minutes)s分"
+
 msgid "The code is incorrect. Check the time on your device."
 msgstr "コードが正しくありません。端末の時刻がずれていないか確認してください。"
 
@@ -4668,6 +4672,12 @@ msgstr "作っていません。今は %(count)s 件の不足で生成できま�
 
 msgid "Requested the generation with the chosen version."
 msgstr "選んだ版で生成を依頼しました。"
+
+msgid "1 Generated forms"
+msgstr "1 生成した帳票"
+
+msgid "2 Signed documents"
+msgstr "2 署名済みの書類"
 
 msgid "Attached the signed copy."
 msgstr "署名済みの書類を添付しました。"
@@ -7170,8 +7180,36 @@ msgstr "なし"
 msgid "No documents have been recorded as given yet."
 msgstr "まだ交付の記録はありません。"
 
-msgid "current"
-msgstr "現在"
+msgid "+ Record support"
+msgstr "＋ 支援を記録する"
+
+msgid "Periodic interviews"
+msgstr "定期面談"
+
+msgid "At least once every 3 months, with the worker and the supervisor"
+msgstr "3か月に1回以上・本人と監督者"
+
+#, python-format
+msgid "The deadline of the next interview (%(day)s) has passed."
+msgstr "次の面談の期限（%(day)s）を過ぎています。"
+
+msgid "deadline of the next interview"
+msgstr "次の面談の期限"
+
+msgid "both the worker and the supervisor"
+msgstr "本人・監督者の両方"
+
+msgid "previous periodic interview"
+msgstr "前の定期面談"
+
+msgid "supervisor"
+msgstr "監督者"
+
+msgid "Record an interview"
+msgstr "面談を記録する"
+
+msgid "Support plan"
+msgstr "支援計画"
 
 msgid "Create a support plan"
 msgstr "支援計画を作成"
@@ -7180,6 +7218,9 @@ msgstr "支援計画を作成"
 msgid "Generate the support plan (version %(number)s)"
 msgstr "支援計画書を作る（第 %(number)s 版）"
 
+msgid "current"
+msgstr "現在"
+
 msgid "No support plan is registered."
 msgstr "支援計画は登録されていません。"
 
@@ -7187,6 +7228,46 @@ msgid ""
 "Register an employment contract first; the plan is made for the host "
 "organization."
 msgstr "先に雇用契約を登録してください。支援計画は受入れ機関ごとに作ります。"
+
+msgid "Support records"
+msgstr "支援の記録"
+
+msgid "Newest first. Voided records stay."
+msgstr "新しい順・取り消した記録も残る"
+
+#, python-format
+msgid "See all %(counter)s record"
+msgid_plural "See all %(counter)s records"
+msgstr[0] "記録をすべて見る（%(counter)s 件）"
+
+msgid "No records yet."
+msgstr "まだ記録はありません。"
+
+#, python-format
+msgid "%(counter)s open"
+msgid_plural "%(counter)s open"
+msgstr[0] "対応中 %(counter)s 件"
+
+msgid "+ Receive a consultation"
+msgstr "＋ 相談を受け付ける"
+
+#, python-format
+msgid "received on %(day)s"
+msgstr "受付 %(day)s"
+
+msgid "No open consultations."
+msgstr "対応中の相談はありません。"
+
+msgid "Deliveries of documents"
+msgstr "書類の交付"
+
+#, python-format
+msgid "See all %(counter)s delivery"
+msgid_plural "See all %(counter)s deliveries"
+msgstr[0] "交付をすべて見る（%(counter)s 件）"
+
+msgid "No deliveries yet."
+msgstr "まだ交付の記録はありません。"
 
 msgid "Add a support record"
 msgstr "支援実績の記録"
@@ -7223,6 +7304,21 @@ msgstr "条件に合う記録はありません。"
 
 msgid "No support records yet."
 msgstr "まだ記録はありません。"
+
+msgid "1 Periodic interviews"
+msgstr "1 定期面談"
+
+msgid "2 Support plan"
+msgstr "2 支援計画"
+
+msgid "3 Support records"
+msgstr "3 支援の記録"
+
+msgid "4 Consultations"
+msgstr "4 相談"
+
+msgid "5 Deliveries"
+msgstr "5 交付"
 
 msgid "Select the host organization."
 msgstr "受入れ機関を選んでください。"
@@ -7638,6 +7734,14 @@ msgid ""
 msgstr ""
 "無効化のときに取り消した在留情報・旅券と、取消にした届出タスクは戻りません。新しい行として登録し直してください（日付で起票される届出タスクは翌朝の日次の起票で起票し直されます）。"
 
+#, python-format
+msgid "generated on %(day)s"
+msgstr "%(day)s 生成"
+
+#, python-format
+msgid "signed on %(day)s"
+msgstr "署名日 %(day)s"
+
 msgid ""
 "Before entry: do not add a row before the certificate of eligibility is "
 "issued. After it is issued, choose “Certificate of Eligibility” as the "
@@ -7821,9 +7925,6 @@ msgstr "定期面談の期限を過ぎています。"
 msgid "next periodic interview"
 msgstr "次の定期面談"
 
-msgid "previous periodic interview"
-msgstr "前の定期面談"
-
 msgid "consultations (open)"
 msgstr "相談（対応中）"
 
@@ -7901,21 +8002,14 @@ msgstr "関係する書類"
 msgid "No employment contracts are registered."
 msgstr "雇用契約は登録されていません。"
 
-msgid "(shown below)"
-msgstr "（下に表示中）"
-
 msgid "Attach documents"
 msgstr "根拠資料を添付"
 
-#, python-format
-msgid "Version %(number)s"
-msgstr "第%(number)s版"
+msgid "(shown below)"
+msgstr "（下に表示中）"
 
-msgid "approximate monthly payment"
-msgstr "1か月の支払概算額"
-
-msgid "approximate take-home pay"
-msgstr "手取り支給額（概算）"
+msgid "Period and place"
+msgstr "期間と場所"
 
 msgid "conversion to an indefinite contract"
 msgstr "無期転換"
@@ -7924,23 +8018,84 @@ msgstr "無期転換"
 msgid "Can apply (from %(day)s)"
 msgstr "申込みができる（%(day)s から転換）"
 
-msgid "Allowances and deductions"
-msgstr "手当・控除"
+msgid "Working hours and days off"
+msgstr "労働時間と休日"
+
+msgid "start and end time"
+msgstr "始業・終業"
+
+#, python-format
+msgid "break %(minutes)s min"
+msgstr "休憩 %(minutes)s 分"
+
+msgid "scheduled working hours"
+msgstr "所定労働時間"
+
+#, python-format
+msgid "%(day)s a day · %(week)s a week"
+msgstr "1日 %(day)s・週 %(week)s"
+
+#, python-format
+msgid "%(days)s days a year"
+msgstr "年 %(days)s 日"
+
+msgid "Wages"
+msgstr "賃金"
+
+msgid "approximate monthly payment"
+msgstr "1か月の支払概算額"
+
+msgid "approximate take-home pay"
+msgstr "手取り支給額（概算）"
+
+msgid "Contacts"
+msgstr "窓口"
+
+msgid "consultation contact"
+msgstr "相談の窓口"
 
 msgid ""
 "Annual calendars, agreements of the variable working hours system and wage "
 "rules are kept in the documents of the host organization (per site)."
 msgstr "年間カレンダー・変形労働時間制の協定書・賃金規程は、受入れ機関の書類（事業所ごと）に保管します。"
 
+msgid "Version history"
+msgstr "版の履歴"
+
+msgid "A new version is added for every change. Earlier versions stay."
+msgstr "変更のたびに版が増える。前の版は消えない"
+
+msgid "what changed"
+msgstr "変わったこと"
+
+msgid "filing"
+msgstr "届出"
+
 #, python-format
-msgid "Documents of version %(number)s"
-msgstr "第%(number)s版の書類"
+msgid "Version %(number)s"
+msgstr "第%(number)s版"
 
-msgid "Edit the wage explanation"
-msgstr "報酬の説明を直す"
+msgid "current version"
+msgstr "いまの版"
 
-msgid "Enter the wage explanation"
-msgstr "報酬の説明を入れる"
+msgid "(shown above)"
+msgstr "（上に表示）"
+
+msgid "See the changes"
+msgstr "差分を見る"
+
+msgid "Contract documents"
+msgstr "契約の書類"
+
+#, python-format
+msgid "Made from version %(number)s"
+msgstr "第%(number)s版から作る"
+
+msgid "entered"
+msgstr "入力済み"
+
+msgid "not entered"
+msgstr "未入力"
 
 msgid "wage explanation (form 1-4)"
 msgstr "報酬の説明（第1-4号）"
@@ -7948,11 +8103,26 @@ msgstr "報酬の説明（第1-4号）"
 msgid "Not entered."
 msgstr "入力していません。"
 
+msgid "Edit the wage explanation"
+msgstr "報酬の説明を直す"
+
+msgid "Enter the wage explanation"
+msgstr "報酬の説明を入れる"
+
+msgid "Employment conditions (form 1-6)"
+msgstr "雇用条件書（第1-6号）"
+
 msgid "Generate form 1-6"
 msgstr "第1-6号を作る"
 
+msgid "Employment contract (form 1-5)"
+msgstr "特定技能雇用契約書（第1-5号）"
+
 msgid "Generate form 1-5"
 msgstr "第1-5号を作る"
+
+msgid "Explanation of the wage (form 1-4)"
+msgstr "報酬に関する説明書（第1-4号）"
 
 msgid "Generate form 1-4"
 msgstr "第1-4号を作る"
@@ -7960,23 +8130,65 @@ msgstr "第1-4号を作る"
 msgid "Generate the career-up plan"
 msgstr "キャリアアッププランを作る"
 
+msgid "Certificate of work experience"
+msgstr "実務経験証明書"
+
 msgid "Generate the certificate of work experience"
 msgstr "実務経験証明書を作る"
+
+msgid "Documents for the application (host organization)"
+msgstr "申請の書類（受入れ機関）"
+
+msgid "Form 3-1"
+msgstr "第3-1号"
 
 msgid "Generate form 3-1"
 msgstr "第3-1号を作る"
 
+msgid "Form 13-1"
+msgstr "第13-1号"
+
 msgid "Generate form 13-1"
 msgstr "第13-1号を作る"
+
+msgid "Form 13-2"
+msgstr "第13-2号"
 
 msgid "Generate form 13-2"
 msgstr "第13-2号を作る"
 
+msgid "Support contract (form 5-10)"
+msgstr "支援委託契約書（第5-10号）"
+
 msgid "Generate form 5-10"
 msgstr "第5-10号を作る"
 
+msgid "Form 1-25"
+msgstr "第1-25号"
+
 msgid "Generate form 1-25"
 msgstr "第1-25号を作る"
+
+msgid "Support contract"
+msgstr "支援委託契約"
+
+msgid "Contract with the host organization in effect for this worker"
+msgstr "受入れ機関との契約・この人に効いているもの"
+
+msgid "Open on the host organization screen"
+msgstr "受入れ機関の画面で開く"
+
+msgid "entrustment fee"
+msgstr "委託料"
+
+msgid "No support contract is in effect today."
+msgstr "今日効いている支援委託契約はありません。"
+
+msgid "Filing tasks"
+msgstr "届出タスク"
+
+msgid "Open tasks first, nearest deadline first"
+msgstr "未完了を先に・期限の近い順"
 
 msgid "No filing tasks for this foreign worker."
 msgstr "この外国人の届出タスクはありません。"
@@ -8004,6 +8216,13 @@ msgstr "ダウンロード（JPEG）"
 
 msgid "No application photo is registered."
 msgstr "申請用の写真が登録されていません。"
+
+msgid "History of the ledger"
+msgstr "台帳の履歴"
+
+msgid ""
+"residence, passport, address, contact and the items for the bulk application"
+msgstr "在留情報・旅券・住所・連絡先・一括申請の項目"
 
 msgid "number"
 msgstr "番号"
@@ -8108,6 +8327,30 @@ msgstr "7 一括申請の項目"
 msgid "8 Health check documents"
 msgstr "8 健康診断の書類"
 
+msgid "1 Employment contract"
+msgstr "1 雇用契約"
+
+msgid "2 Version history"
+msgstr "2 版の履歴"
+
+msgid "3 Contract documents"
+msgstr "3 契約の書類"
+
+msgid "4 Support contract"
+msgstr "4 支援委託契約"
+
+msgid "1 Filing tasks"
+msgstr "1 届出タスク"
+
+msgid "1 Assigned staff"
+msgstr "1 担当者"
+
+msgid "2 Application photos"
+msgstr "2 申請用の写真"
+
+msgid "3 History of the ledger"
+msgstr "3 台帳の履歴"
+
 msgid "Add residence record"
 msgstr "在留情報を追加"
 
@@ -8153,6 +8396,15 @@ msgstr "担当者を変えました。"
 
 msgid "Deactivated the foreign worker."
 msgstr "外国人を無効化しました。"
+
+msgid "1 Support recipient"
+msgstr "1 支援対象者"
+
+msgid "2 Support carried out"
+msgstr "2 支援の実施"
+
+msgid "3 Related forms"
+msgstr "3 関係する書類"
 
 msgid "Back to business screens"
 msgstr "業務画面へ戻る"
@@ -8806,9 +9058,6 @@ msgstr ""
 #, python-format
 msgid "Change of the support contract on %(day)s: %(changes)s"
 msgstr "支援委託契約の変更（%(day)s）: %(changes)s"
-
-msgid "entrustment fee"
-msgstr "委託料"
 
 #, python-format
 msgid "%(amount)s yen"

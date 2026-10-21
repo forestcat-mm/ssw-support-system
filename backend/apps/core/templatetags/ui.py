@@ -186,3 +186,12 @@ def fields_except(form: Any, names: str) -> list[Any]:
     """フォームの欄（names〔空白区切り〕の欄を除く）。一覧の絞り込みで、タブで決める欄を除く（U2）。"""
     skip = set(names.split())
     return [bound for bound in form if bound.name not in skip]
+
+
+@register.filter
+def minutes_label(value: int | None) -> str:
+    """分を「8時間0分」の形に（契約のタブの所定労働時間。U5）。"""
+    if value is None:
+        return "—"
+    hours, minutes = divmod(int(value), 60)
+    return _("%(hours)s h %(minutes)s min") % {"hours": hours, "minutes": minutes}

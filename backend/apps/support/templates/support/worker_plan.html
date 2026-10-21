@@ -1,59 +1,122 @@
 {% extends "workers/detail_base.html" %}{% load i18n ui %}
+{% block toc_actions %}{% if can_manage_support %}<a class="button button--primary button--small toc__actions" href="{% url 'workers:support_records' worker.pk %}#record-kinds">{% translate "+ Record support" %}</a>{% endif %}{% endblock %}
 {% block tab_content %}
-{% include "support/subtabs.html" %}
-<div class="stack" style="margin-top: var(--space-16)">
-  {% if plans %}
-  <div class="page-header" style="margin-bottom: 0">
-    <div class="page-header__title">
-      {% if plans|length > 1 %}
-      <form method="get" class="cluster">
-        <label class="form-row__label" for="plan-select">{% translate "host organization" %}</label>
-        <select class="select" id="plan-select" name="plan" onchange="this.form.submit()">
-          {% for item in plans %}<option value="{{ item.pk }}"{% if item.pk == plan.pk %} selected{% endif %}>{{ item.host_organization.name }}{% if item.host_organization == current_host %}（{% translate "current" %}）{% endif %}</option>{% endfor %}
-        </select>
-        <noscript><button class="button button--neutral button--small" type="submit">{% translate "Show" %}</button></noscript>
-      </form>
-      {% else %}
-      <h2>{{ plan.host_organization.name }}</h2>
-      {% endif %}
+{# 支援のタブ（仕様 5.2・見本 06。U5-D1）: 1 定期面談 → 2 支援計画 → 3 支援の記録（新しい順に 10 件）→ 4 相談 → 5 交付（新しい順に 10 件）。全部の記録と交付は今の画面（URL）で #}
+<article class="doc">
+  <section class="doc-section" id="interviews" aria-labelledby="interviews-title">
+    {% with summary=support.summary %}
+    <div class="section-head">
+      <span class="section-head__no">1</span><h2 class="section-head__title" id="interviews-title">{% translate "Periodic interviews" %}</h2>
+      <span class="section-head__meta">{% translate "At least once every 3 months, with the worker and the supervisor" %}</span>
     </div>
-    <div class="page-header__actions">
-      {% if can_create_plan %}<a class="button button--neutral" href="{% url 'workers:support_plan_create' worker.pk %}">{% translate "Create a support plan" %}</a>{% endif %}
-      {% if can_generate_forms %}<a class="button button--neutral" id="plan-generate" href="{% url 'workers:support_plan_generate' worker.pk plan.pk version.version %}">{% blocktranslate with number=version.version %}Generate the support plan (version {{ number }}){% endblocktranslate %}</a>{% endif %}
-      {% if can_manage_support %}<a class="button button--primary" href="{% url 'workers:support_version_create' worker.pk plan.pk %}">{% translate "Add a new version" %}</a>{% endif %}
+    {% if summary.next_interview_level == "overdue" %}<p class="section-notice" data-section-notice>{% blocktranslate with day=summary.next_interview.unadjusted_due_on|date:"Y-m-d" %}The deadline of the next interview ({{ day }}) has passed.{% endblocktranslate %}</p>{% endif %}
+    <div class="stat-cards">
+      <div class="stat-card"><div class="stat-card__label">{% translate "deadline of the next interview" %}</div><div class="stat-card__value">{% if summary.next_interview %}{% due_date summary.next_interview %}{% else %}—{% endif %}</div><div class="stat-card__note">{% translate "both the worker and the supervisor" %}</div></div>
+      <div class="stat-card"><div class="stat-card__label">{% translate "previous periodic interview" %}</div><div class="stat-card__value">{{ summary.last_interview_on|date:"Y-m-d"|default:"—" }}</div></div>
+      <div class="stat-card"><div class="stat-card__label">{% translate "supervisor" %}</div><div class="stat-card__value">{{ support.supervisor|default:"—" }}</div></div>
     </div>
-  </div>
-  <p class="caption" id="plan-version-label">{% blocktranslate with number=version.version day=version.applies_from|date:"Y-m-d" %}Version {{ number }} (applies from {{ day }}){% endblocktranslate %}{% if view.warning_count %} · <span class="badge badge--within-7">{% blocktranslate count counter=view.warning_count %}{{ counter }} note{% plural %}{{ counter }} notes{% endblocktranslate %}</span>{% endif %}</p>
-  {% include "support/components/plan_display.html" %}
-  <section class="card" id="plan-versions">
-    <div class="card__header"><h2 class="card__title">{% translate "Versions" %}</h2></div>
-    <div class="table-scroll"><table class="table table--list">
-      <thead><tr><th>{% translate "version" %}</th><th>{% translate "applies from" %}</th><th>{% translate "change reason" %}</th><th>{% translate "created by" %}</th></tr></thead>
-      <tbody>{% for item in versions %}
-        <tr{% if item.pk == version.pk %} aria-current="true"{% endif %}>
-          <td>{% if item.pk == version.pk %}{{ item.version }}{% else %}<a href="?plan={{ plan.pk }}&amp;version={{ item.version }}">{{ item.version }}</a>{% endif %}</td>
-          <td class="mono">{{ item.applies_from|date:"Y-m-d" }}</td>
-          <td><span class="truncate-line truncate-line--full" title="{{ item.change_reason }}"><span class="truncate">{{ item.change_reason|default:"—" }}</span></span></td>
-          <td>{{ item.created_by.get_username|default:"—" }}</td>
-        </tr>{% endfor %}</tbody>
-    </table></div>
+    {% if can_manage_support %}<div class="cluster" style="margin-top: var(--space-12)"><a class="button button--ghost button--small" href="{% url 'workers:support_interview_create' worker.pk %}">{% translate "Record an interview" %}</a></div>{% endif %}
+    {% endwith %}
   </section>
-  {% if previous %}
-  <section class="card" id="plan-diff">
-    <div class="card__header"><h2 class="card__title">{% blocktranslate with old=previous.version new=version.version %}Changes from version {{ old }} to {{ new }}{% endblocktranslate %}</h2></div>
-    {% if diff %}
-    <div class="table-scroll"><table class="table">
-      <thead><tr><th>{% translate "item" %}</th><th>{% translate "before" %}</th><th>{% translate "after" %}</th></tr></thead>
-      <tbody>{% for row in diff %}<tr><td>{{ row.label }}</td><td>{{ row.before }}</td><td>{{ row.after }}</td></tr>{% endfor %}</tbody>
-    </table></div>
-    {% else %}<p class="muted">{% translate "No changes." %}</p>{% endif %}
+
+  <section class="doc-section" id="plan" aria-labelledby="plan-title">
+    <div class="section-head">
+      <span class="section-head__no">2</span><h2 class="section-head__title" id="plan-title">{% translate "Support plan" %}</h2>
+      {% if plan %}<span class="section-head__meta" id="plan-version-label">{% blocktranslate with number=version.version day=version.applies_from|date:"Y-m-d" %}Version {{ number }} (applies from {{ day }}){% endblocktranslate %}{% if view.warning_count %} · <span class="badge badge--within-7">{% blocktranslate count counter=view.warning_count %}{{ counter }} note{% plural %}{{ counter }} notes{% endblocktranslate %}</span>{% endif %}</span>{% endif %}
+      <div class="section-head__actions">
+        {% if can_create_plan %}<a class="button button--light" href="{% url 'workers:support_plan_create' worker.pk %}">{% translate "Create a support plan" %}</a>{% endif %}
+        {% if plan and can_generate_forms %}<a class="button button--light" id="plan-generate" href="{% url 'workers:support_plan_generate' worker.pk plan.pk version.version %}">{% blocktranslate with number=version.version %}Generate the support plan (version {{ number }}){% endblocktranslate %}</a>{% endif %}
+        {% if plan and can_manage_support %}<a class="button button--light" href="{% url 'workers:support_version_create' worker.pk plan.pk %}">{% translate "Add a new version" %}</a>{% endif %}
+      </div>
+    </div>
+    {% if plan %}
+    {% if plans|length > 1 %}
+    <form method="get" class="cluster" style="margin-top: var(--space-12)">
+      <label class="form-row__label" for="plan-select">{% translate "host organization" %}</label>
+      <select class="select" id="plan-select" name="plan" onchange="this.form.submit()" style="width: auto">
+        {% for item in plans %}<option value="{{ item.pk }}"{% if item.pk == plan.pk %} selected{% endif %}>{{ item.host_organization.name }}{% if item.host_organization == current_host %}（{% translate "current" %}）{% endif %}</option>{% endfor %}
+      </select>
+      <noscript><button class="button button--neutral button--small" type="submit">{% translate "Show" %}</button></noscript>
+    </form>
+    {% else %}<p class="caption">{{ plan.host_organization.name }}</p>{% endif %}
+    {% include "support/components/plan_display.html" %}
+    <div class="sub-block" id="plan-versions">
+      <h3 class="section-sub">{% translate "Versions" %}</h3>
+      <div class="table-scroll"><table class="table table--list table--cards">
+        <thead><tr><th>{% translate "version" %}</th><th>{% translate "applies from" %}</th><th>{% translate "change reason" %}</th><th>{% translate "created by" %}</th></tr></thead>
+        <tbody>{% for item in versions %}
+          <tr{% if item.pk == version.pk %} aria-current="true"{% endif %}>
+            <td class="card-head">{% if item.pk == version.pk %}{{ item.version }}{% else %}<a href="?plan={{ plan.pk }}&amp;version={{ item.version }}#plan">{{ item.version }}</a>{% endif %}</td>
+            <td class="mono card-meta" data-label="{% translate 'applies from' %}">{{ item.applies_from|date:"Y-m-d" }}</td>
+            <td class="card-title"><span class="truncate-line truncate-line--full" title="{{ item.change_reason }}"><span class="truncate">{{ item.change_reason|default:"—" }}</span></span></td>
+            <td class="card-meta" data-label="{% translate 'created by' %}">{{ item.created_by.get_username|default:"—" }}</td>
+          </tr>{% endfor %}</tbody>
+      </table></div>
+    </div>
+    {% if previous %}
+    <div class="sub-block" id="plan-diff">
+      <h3 class="section-sub">{% blocktranslate with old=previous.version new=version.version %}Changes from version {{ old }} to {{ new }}{% endblocktranslate %}</h3>
+      {% if diff %}
+      <div class="table-scroll"><table class="table">
+        <thead><tr><th>{% translate "item" %}</th><th>{% translate "before" %}</th><th>{% translate "after" %}</th></tr></thead>
+        <tbody>{% for row in diff %}<tr><td>{{ row.label }}</td><td>{{ row.before }}</td><td>{{ row.after }}</td></tr>{% endfor %}</tbody>
+      </table></div>
+      {% else %}<p class="muted">{% translate "No changes." %}</p>{% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <p class="muted">{% translate "No support plan is registered." %}{% if not can_create_plan and can_manage_support and not current_host %} {% translate "Register an employment contract first; the plan is made for the host organization." %}{% endif %}</p>
+    {% endif %}
   </section>
-  {% endif %}
-  {% else %}
-  <div class="card"><div class="empty">
-    {% translate "No support plan is registered." %}
-    {% if can_create_plan %}<p><a class="button button--primary" href="{% url 'workers:support_plan_create' worker.pk %}">{% translate "Create a support plan" %}</a></p>{% elif can_manage_support and not current_host %}<p class="caption">{% translate "Register an employment contract first; the plan is made for the host organization." %}</p>{% endif %}
-  </div></div>
-  {% endif %}
-</div>
+
+  <section class="doc-section" id="records-summary" aria-labelledby="records-summary-title">
+    <div class="section-head">
+      <span class="section-head__no">3</span><h2 class="section-head__title" id="records-summary-title">{% translate "Support records" %}</h2>
+      <span class="section-head__meta">{% translate "Newest first. Voided records stay." %}</span>
+      <div class="section-head__actions"><a class="button button--light" href="{% url 'workers:support_records' worker.pk %}" id="all-records-link">{% blocktranslate count counter=support.record_total %}See all {{ counter }} record{% plural %}See all {{ counter }} records{% endblocktranslate %}</a></div>
+    </div>
+    {% if support.records %}
+    <ul class="item-rows" id="recent-records">{% for record in support.records %}
+      <li class="item-row{% if record.voided_at %} is-voided{% endif %}" data-record="{{ record.pk }}">
+        <span class="item-row__state mono">{{ record.occurred_on|date:"Y-m-d" }}</span>
+        <div class="item-row__body"><div class="item-row__title">{{ record.get_kind_display }}</div><div class="item-row__note">{{ record.get_method_display }} · {{ record.staff.name }}{% if record.voided_at %} · {% translate "voided" %}: {{ record.void_reason }}{% endif %}</div></div>
+        <a href="{% url 'workers:support_record' worker.pk record.pk %}">{% translate "Open" %}</a>
+      </li>{% endfor %}
+    </ul>
+    {% else %}<p class="muted">{% translate "No records yet." %}</p>{% endif %}
+  </section>
+
+  <section class="doc-section" id="consultations-summary" aria-labelledby="consultations-summary-title">
+    <div class="section-head">
+      <span class="section-head__no">4</span><h2 class="section-head__title" id="consultations-summary-title">{% translate "Consultations" %}</h2>
+      <span class="section-head__meta">{% blocktranslate count counter=support.consultations|length %}{{ counter }} open{% plural %}{{ counter }} open{% endblocktranslate %}</span>
+      {% if can_manage_support %}<div class="section-head__actions"><a class="button button--light" href="{% url 'workers:support_consultation_create' worker.pk %}">{% translate "+ Receive a consultation" %}</a></div>{% endif %}
+    </div>
+    {% if support.consultations %}
+    <ul class="item-rows">{% for item in support.consultations %}
+      <li class="item-row" data-consultation="{{ item.pk }}">
+        <span class="item-row__state"><span class="status-dot status-dot--caution">{{ item.get_status_display }}</span></span>
+        <div class="item-row__body"><div class="item-row__title">{{ item.get_category_display }}</div><div class="item-row__note">{% blocktranslate with day=item.record.occurred_on|date:"Y-m-d" %}received on {{ day }}{% endblocktranslate %}</div></div>
+        <a href="{% url 'workers:support_consultation' worker.pk item.pk %}">{% translate "Open" %}</a>
+      </li>{% endfor %}
+    </ul>
+    {% else %}<p class="muted">{% translate "No open consultations." %}</p>{% endif %}
+  </section>
+
+  <section class="doc-section" id="deliveries-summary" aria-labelledby="deliveries-summary-title">
+    <div class="section-head">
+      <span class="section-head__no">5</span><h2 class="section-head__title" id="deliveries-summary-title">{% translate "Deliveries of documents" %}</h2>
+      <div class="section-head__actions"><a class="button button--light" href="{% url 'workers:support_deliveries' worker.pk %}" id="all-deliveries-link">{% blocktranslate count counter=support.delivery_total %}See all {{ counter }} delivery{% plural %}See all {{ counter }} deliveries{% endblocktranslate %}</a></div>
+    </div>
+    {% if support.deliveries %}
+    <ul class="item-rows">{% for item in support.deliveries %}
+      <li class="item-row{% if item.voided_at %} is-voided{% endif %}">
+        <span class="item-row__state mono">{{ item.delivered_on|date:"Y-m-d" }}</span>
+        <div class="item-row__body"><div class="item-row__title">{{ item.get_kind_display }}{% if item.title %} · {{ item.title }}{% endif %}</div><div class="item-row__note">{{ item.get_method_display }}</div></div>
+        <a href="{% url 'workers:support_delivery' worker.pk item.pk %}">{% translate "Open" %}</a>
+      </li>{% endfor %}
+    </ul>
+    {% else %}<p class="muted">{% translate "No deliveries yet." %}</p>{% endif %}
+  </section>
+</article>
 {% endblock %}

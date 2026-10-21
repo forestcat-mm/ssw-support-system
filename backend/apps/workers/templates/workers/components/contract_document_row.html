@@ -1,0 +1,9 @@
+{% load i18n %}{# 契約のタブの「3 契約の書類」の 1 行（状態・書類の名前・次の操作。見本 05）。doc は services.worker_overview.ContractDocument #}
+<li class="item-row" data-contract-document="{{ form }}" data-state="{{ doc.state }}">
+  <span class="item-row__state"><span class="status-dot status-dot--{{ doc.tone }}">{% if doc.state == "missing" %}{% translate "not generated" %}{% elif doc.state == "generating" %}{% translate "generating" %}{% elif doc.state == "awaiting" %}{% translate "waiting for signature" %}{% elif doc.state == "signed" %}{% translate "signed" %}{% else %}{% translate "generated" %}{% endif %}</span></span>
+  <div class="item-row__body">
+    <div class="item-row__title">{% if doc.document %}<a class="cell-name" href="{% url 'forms:document' doc.document.pk %}">{{ label }}</a>{% else %}{{ label }}{% endif %}</div>
+    {% if doc.document %}<div class="item-row__note">{% blocktranslate with day=doc.document.created_at|date:"Y-m-d" %}generated on {{ day }}{% endblocktranslate %}{% if doc.signed_on %} · {% blocktranslate with day=doc.signed_on|date:"Y-m-d" %}signed on {{ day }}{% endblocktranslate %}{% endif %}{% if doc.state == "awaiting" %} · <a href="{% url 'workers:document_signature' worker.pk doc.document.pk %}">{% translate "Attach the signed copy" %}</a>{% endif %}</div>{% endif %}
+  </div>
+  {% if generate %}{% if url_kind == "version" %}<a class="button button--ghost button--small" href="{% url 'workers:contract_generate' worker.pk contract.pk version.version form %}">{{ action }}</a>{% else %}<a class="button button--ghost button--small" href="{% url 'workers:contract_own_document' worker.pk contract.pk form %}">{{ action }}</a>{% endif %}{% endif %}
+</li>
