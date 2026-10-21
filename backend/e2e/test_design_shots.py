@@ -15,6 +15,7 @@ from django.utils import timezone
 from playwright.sync_api import Page
 from pytest_django.fixtures import Settings
 
+from apps.contracts.models import EmploymentContract
 from apps.core.models import User
 from apps.seed.context import DUMMY_USERNAME
 from apps.seed.models import SeedObject
@@ -111,3 +112,8 @@ def test_capture_screens_like_the_mocks(
         shoot(page, "05-worker-contract-tab", width)
         page.goto(f"{base}/workers/{worker.pk}/support/")
         shoot(page, "06-worker-support-tab", width)
+        # 07: 雇用契約の新しい版の入力（上の細い帯・番号つきのセクション・下に留める帯。U6）
+        contract = EmploymentContract.objects.filter(worker=worker).order_by("-pk").first()
+        if contract:
+            page.goto(f"{base}/workers/{worker.pk}/contracts/{contract.pk}/versions/new/")
+            shoot(page, "07-contract-version-form", width)

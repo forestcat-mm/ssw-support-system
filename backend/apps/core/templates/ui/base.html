@@ -1,4 +1,4 @@
-{% load i18n static %}<!doctype html>
+{% load i18n static worker_band %}<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -48,6 +48,7 @@
   </nav>
   <div class="app__body">
     {% block topbar %}
+    {% person_band_for as person_band %}{% if person_band %}{% include "workers/components/person_band.html" with band=person_band %}{% else %}
     <header class="topbar">
       {% if global_search_url %}
       <form class="topbar__search" method="get" action="{{ global_search_url }}" role="search" id="global-search">
@@ -60,6 +61,7 @@
       </form>
       {% endif %}
     </header>
+    {% endif %}
     {% endblock %}
     <main class="main" id="main">
       <div class="main__inner">
@@ -89,6 +91,8 @@
   <div class="cluster"><button class="button button--primary button--small" type="button" data-session-extend>{% translate "Extend" %}</button></div>
 </div>
 {% endif %}
+{# 入力の画面の下の帯と欄を離れたときの確かめの文（forms.js の initFormBar。U6） #}
+<template id="form-bar-text" data-missing="{% translate 'Missing items: {count}' %}" data-caution="{% translate 'Notes: {count}' %}" data-required="{% translate 'Enter this item.' %}" data-has-errors="{% translate 'This section has missing items.' %}"></template>
 {# モーダル（forms.js の initModal。a[data-modal] のリンク先の [data-modal-content] を読み込む） #}
 <dialog class="modal" id="modal" aria-labelledby="modal-title">
   <div class="modal__header"><h2 class="modal__title" id="modal-title" data-modal-title></h2><button class="button button--neutral button--small" type="button" data-modal-close>{% translate "Close" %}</button></div>

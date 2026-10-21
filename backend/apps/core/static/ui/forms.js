@@ -820,11 +820,15 @@ const initPersonBar = () => {
     bar.hidden = entry.isIntersecting;
   }).observe(head);
   window.addEventListener("resize", setOffset);
-  const links = Array.from(document.querySelectorAll("[data-toc] [data-toc-target]"));
+  observeToc(Array.from(document.querySelectorAll("[data-toc] [data-toc-target]")), offset);
+};
+
+// 目次の今いるセクションに aria-current="location" を付け替える（上に留めた帯の下から画面の半ばまでを「今いる」とする）
+const observeToc = (links, offset) => {
   const targets = [...new Set(links.map((link) => link.dataset.tocTarget))]
     .map((id) => document.getElementById(id))
     .filter(Boolean);
-  if (!targets.length) return;
+  if (!targets.length || !("IntersectionObserver" in window)) return;
   const visible = new Set();
   const mark = () => {
     const current = targets.find((target) => visible.has(target.id)) ?? null;
@@ -838,7 +842,7 @@ const initPersonBar = () => {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => (entry.isIntersecting ? visible.add(entry.target.id) : visible.delete(entry.target.id)));
     mark();
-  }, { rootMargin: `-${offset + 2}px 0px -55% 0px` });  // 細い帯の下から画面の半ばまでを「今いる」とする
+  }, { rootMargin: `-${offset + 2}px 0px -55% 0px` });
   targets.forEach((target) => observer.observe(target));
 };
 
@@ -915,6 +919,148 @@ initializers.push((root) => root.querySelectorAll("form[data-photo-form]").forEa
     else { box.x += step[0]; box.y += step[1]; }
     draw();
   });
+}));
+
+// 入力の画面の型（仕様 4・5.3・見本 07。U6）
+// 1. 下に留める帯: form.form（POST）のすぐ下の .form-actions を下に留め、左に「入力が足りない項目 n 件」（押すと最初の
+//    欄へ）と注意の件数を出す。数えるのは見えている必須の欄（required）の空欄と、形式の注意（forms.js の data-normalize）。
+// 2. 欄を離れたときの確かめ（U6-D3）: 必須の欄が空なら、その欄の下に「入力してください。」（role="alert"）と danger の枠。
+//    入れたら消す。最後の判定は今までどおりサーバー（JS が動かなくても保存できる）。
+// 3. 番号つきのセクションと目次: 見出し（h2）で始まる section.card が 2 つ以上なら番号を付け、4 つ以上なら目次を作る
+//    （外国人の画面は上の細い帯の [data-form-toc]、ほかは入力の上）。足りない欄のあるセクションに danger の点。
+const formBarText = () => document.getElementById("form-bar-text")?.dataset ?? {};
+const isShown = (element) => element.getClientRects().length > 0 && !element.closest("[hidden], template");
+const requiredFields = (form) => Array.from(form.querySelectorAll("input[required], select[required], textarea[required]"))
+  .filter((field) => field.type !== "hidden" && !field.disabled && isShown(field));
+const isEmpty = (field) => {
+  if (field.type === "checkbox") return !field.checked;
+  if (field.type === "radio") return !field.form?.querySelector(`input[name="${CSS.escape(field.name)}"]:checked`);
+  if (field.type === "file") return !(field.files && field.files.length);
+  return String(field.value || "").trim() === "";
+};
+const fieldRow = (field) => field.closest(".form-row");
+const showRequired = (field, missing) => {
+  const row = fieldRow(field);
+  if (!row) return;
+  let note = row.querySelector("[data-client-error]");
+  if (missing && !note) {
+    note = document.createElement("span");
+    note.className = "form-row__error";
+    note.dataset.clientError = "true";
+    note.id = `${field.id || field.name}-client-error`;
+    note.setAttribute("role", "alert");
+    note.textContent = formBarText().required || "";
+    (field.closest(".date-field") || field).insertAdjacentElement("afterend", note);
+    field.setAttribute("aria-invalid", "true");
+    row.classList.add("form-row--error");
+    row.dataset.clientInvalid = "true";
+  } else if (!missing && note) {
+    note.remove();
+    field.removeAttribute("aria-invalid");
+    if (row.dataset.clientInvalid && !row.querySelector(".form-row__error")) row.classList.remove("form-row--error");
+    delete row.dataset.clientInvalid;
+  }
+};
+const formSections = (form) => Array.from(form.querySelectorAll("section.card"))
+  .filter((section) => section.firstElementChild?.tagName === "H2" && isShown(section))
+  .filter((section) => !section.parentElement.closest("section.card"));
+initializers.push((root) => root.querySelectorAll("form.form").forEach((form) => {
+  if (form.method.toLowerCase() !== "post" || form.dataset.formBar === "off" || form.dataset.formBarReady) return;
+  if (form.closest("dialog, .modal")) return;
+  form.dataset.formBarReady = "true";
+  const text = formBarText();
+  const actions = Array.from(form.children).find((child) => child.classList.contains("form-actions"));
+  let missingButton = null;
+  let caution = null;
+  if (actions && form.querySelector("input:not([type=hidden]), select, textarea")) {
+    actions.classList.add("form-bar");
+    const status = document.createElement("div");
+    status.className = "form-bar__status";
+    status.setAttribute("aria-live", "polite");
+    missingButton = document.createElement("button");
+    missingButton.type = "button";
+    missingButton.className = "button button--ghost button--small form-bar__missing";
+    missingButton.hidden = true;
+    caution = document.createElement("span");
+    caution.className = "form-bar__caution";
+    caution.hidden = true;
+    status.append(missingButton, caution);
+    actions.prepend(status);
+    missingButton.addEventListener("click", () => {
+      const first = requiredFields(form).find(isEmpty);
+      if (!first) return;
+      first.scrollIntoView({ block: "center" });
+      first.focus({ preventScroll: true });
+      showRequired(first, true);
+    });
+  }
+  // セクションの番号と目次
+  const sections = formSections(form);
+  const tocLinks = new Map();
+  if (sections.length >= 2) {
+    form.classList.add("form--sections");
+    sections.forEach((section, index) => {
+      if (!section.id) section.id = `form-section-${index + 1}`;
+    });
+  }
+  if (sections.length >= 4) {
+    let toc = document.querySelector("[data-form-toc]");
+    if (!toc) {
+      toc = document.createElement("nav");
+      toc.className = "toc";
+      toc.dataset.toc = "";
+      form.prepend(toc);
+    }
+    toc.setAttribute("data-toc", "");
+    sections.forEach((section, index) => {
+      const link = document.createElement("a");
+      link.className = "toc__link";
+      link.href = `#${section.id}`;
+      link.dataset.tocTarget = section.id;
+      link.textContent = `${index + 1} ${section.firstElementChild.textContent.trim()}`;
+      toc.append(link);
+      tocLinks.set(section, link);
+    });
+    toc.hidden = false;
+    const band = document.getElementById("person-band");
+    const offset = (band ? band.offsetHeight : 0) + 12;
+    document.documentElement.style.setProperty("--sticky-offset", `${offset}px`);
+    observeToc(Array.from(tocLinks.values()), offset);
+  }
+  const update = () => {
+    const missing = requiredFields(form).filter(isEmpty);
+    const notes = Array.from(form.querySelectorAll(".form-row__note--warning")).filter((note) => !note.hidden).length
+      + Array.from(form.querySelectorAll(".form-row--caution")).filter(isShown).length;
+    if (missingButton) {
+      missingButton.textContent = (text.missing || "").replace("{count}", missing.length);
+      missingButton.hidden = missing.length === 0;
+    }
+    if (caution) {
+      caution.textContent = (text.caution || "").replace("{count}", notes);
+      caution.hidden = notes === 0;
+    }
+    tocLinks.forEach((link, section) => {
+      const lacking = missing.some((field) => section.contains(field))
+        || Boolean(section.querySelector(".form-row--error"));
+      link.classList.toggle("toc__link--danger", lacking);
+      if (lacking) link.title = text.hasErrors || "";
+      else link.removeAttribute("title");
+    });
+  };
+  form.addEventListener("focusout", (event) => {
+    const field = event.target;
+    if (field instanceof HTMLElement && field.matches("[required]") && isShown(field)) {
+      whenReleased(() => showRequired(field, isEmpty(field)));
+    }
+    whenReleased(update);
+  });
+  form.addEventListener("input", (event) => {
+    const field = event.target;
+    if (field instanceof HTMLElement && field.matches("[required]") && !isEmpty(field)) showRequired(field, false);
+    update();
+  });
+  form.addEventListener("change", update);
+  update();
 }));
 
 const initAll = (root) => initializers.forEach((init) => init(root));

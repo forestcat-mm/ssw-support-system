@@ -401,6 +401,53 @@ RECORD_MODELS: dict[str, type[Any]] = {
 }
 
 
+# 入力の画面の URL の名前 → 細い帯のタブで今いるタブ（U6）
+# 入力などの画面（URL の名前の頭）と、細い帯で今いるタブ（U6）
+BAND_TABS = (
+    ("workers:contract", "contracts"),
+    ("workers:hiring_explanation", "contracts"),
+    ("workers:support", "support"),
+    ("workers:filings", "filings"),
+    ("workers:document", "documents"),
+    ("workers:application", "documents"),
+    ("workers:submission", "documents"),
+    ("workers:public_duty", "documents"),
+    ("workers:book", "books"),
+    ("workers:staff", "history"),
+    ("workers:record", "history"),
+)
+
+
+def person_band(request: HttpRequest, worker: ForeignWorker) -> dict[str, Any]:
+    """外国人に関わる入力の画面の上に留める細い帯（仕様 5.3・見本 07）の中身。"""
+    user = request.user
+    today = timezone.localdate()
+    info = worker_detail.basic_info(worker)
+    name, name_lang, romaji = worker_list.display_name(worker)
+    match = request.resolver_match
+    current = match.view_name if match else ""
+    active = next((tab for prefix, tab in BAND_TABS if current.startswith(prefix)), "basic")
+    return {
+        "worker": worker,
+        "display_name": name,
+        "display_name_lang": name_lang,
+        "romaji": romaji,
+        "initial": worker_overview.initial_of(worker),
+        "photo": worker_photos.latest(worker),
+        "head": worker_overview.header(worker, info, today),
+        "tabs": [
+            {
+                "label": tab.label,
+                "url": reverse(tab.url_name, args=[worker.pk]),
+                "active": tab.key == active,
+            }
+            for tab in DETAIL_TABS
+            if tab.action is None or authorization.has_action(user, tab.action)
+        ],
+        "back_url": reverse("workers:detail", args=[worker.pk]),
+    }
+
+
 class WorkerFormView(ActionRequiredMixin, View):
     """登録・編集の画面の共通部分（二重送信の防止と、表示）。"""
 

@@ -1,0 +1,17 @@
+{% load i18n ui %}{# 外国人に関わる入力の画面の上に留める細い帯（仕様 5.3・見本 07。U6）: 戻る・写真・氏名・在留期限・受入れ機関・担当・タブ・入力の目次（目次は forms.js が入力のセクションから作る） #}
+<div class="person-bar person-bar--band" id="person-band">
+  <div class="person-bar__row">
+    <a class="person-bar__back" href="{{ band.back_url }}" aria-label="{% translate 'Back to the foreign worker' %}">←</a>
+    <div class="person-photo person-photo--small" aria-hidden="true">{% if band.photo %}<img class="person-photo__image" src="{% url 'workers:photo_image' band.worker.pk band.photo.pk %}" alt="" width="30" height="40">{% else %}<span class="person-photo__initial"{% if band.display_name_lang %} lang="{{ band.display_name_lang }}"{% endif %}>{{ band.initial }}</span>{% endif %}</div>
+    <span class="person-bar__name"><span{% if band.display_name_lang %} lang="{{ band.display_name_lang }}"{% endif %}>{{ band.display_name }}</span></span>
+    {% if band.romaji %}<span class="person-head__romaji">{{ band.romaji }}</span>{% endif %}
+    {% worker_status band.worker.status band.worker.get_status_display %}
+    {% if band.head.expiry %}<span class="expiry-pill expiry-pill--{{ band.head.expiry.tone }}"><span class="expiry-pill__label">{% translate "period of stay expires on" %}</span> <span class="expiry-pill__date">{{ band.head.expiry.deadline.unadjusted_due_on|date:"Y-m-d" }}</span> {% level_badge band.head.expiry.deadline %}</span>{% endif %}
+    {% if band.head.contract %}<span class="person-bar__fact"><span class="muted">{% translate "host organization" %}</span> {{ band.head.contract.host_organization.name }}</span>{% endif %}
+    <span class="person-bar__fact"><span class="muted">{% translate "assigned staff" %}</span> {{ band.worker.assigned_staff.name|default:_("not assigned") }}</span>
+  </div>
+  <nav class="tabs person-tabs" aria-label="{% translate 'Tabs' %}">
+    {% for tab in band.tabs %}<a class="tabs__link" href="{{ tab.url }}"{% if tab.active %} aria-current="page"{% endif %}>{{ tab.label }}</a>{% endfor %}
+  </nav>
+  <nav class="toc toc--bar" aria-label="{% translate 'Contents of the input' %}" data-form-toc hidden><span class="toc__title">{% translate "Contents" context "table of contents" %}</span></nav>
+</div>

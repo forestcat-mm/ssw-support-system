@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 15:52+0900\n"
+"POT-Creation-Date: 2026-10-21 16:21+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -2391,6 +2391,20 @@ msgstr "ログアウトしました。必要な入力は写してから、もう
 
 msgid "Extend"
 msgstr "延長する"
+
+#, python-brace-format
+msgid "Missing items: {count}"
+msgstr "入力が足りない項目 {count} 件"
+
+#, python-brace-format
+msgid "Notes: {count}"
+msgstr "注意 {count} 件"
+
+msgid "Enter this item."
+msgstr "入力してください。"
+
+msgid "This section has missing items."
+msgstr "このセクションに入力が足りない項目があります。"
 
 msgid "Close"
 msgstr "閉じる"
@@ -7742,6 +7756,19 @@ msgstr "%(day)s 生成"
 msgid "signed on %(day)s"
 msgstr "署名日 %(day)s"
 
+msgid "Back to the foreign worker"
+msgstr "外国人の詳細へ戻る"
+
+msgid "Tabs"
+msgstr "タブ"
+
+msgid "Contents of the input"
+msgstr "入力の目次"
+
+msgctxt "table of contents"
+msgid "Contents"
+msgstr "目次"
+
 msgid ""
 "Before entry: do not add a row before the certificate of eligibility is "
 "issued. After it is issued, choose “Certificate of Eligibility” as the "
@@ -7792,15 +7819,8 @@ msgstr "写真を変える"
 msgid "Back to the foreign workers"
 msgstr "外国人台帳へ戻る"
 
-msgid "Tabs"
-msgstr "タブ"
-
 msgid "Contents (on the bar)"
 msgstr "目次（上の帯）"
-
-msgctxt "table of contents"
-msgid "Contents"
-msgstr "目次"
 
 msgid "needs attention"
 msgstr "注意あり"

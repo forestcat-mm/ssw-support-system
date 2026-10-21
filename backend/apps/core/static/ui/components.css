@@ -2094,3 +2094,165 @@ input[list="time-options"] {
 .doc-section > .section-head + * {
   margin-top: var(--space-12);
 }
+
+/* 入力の画面の細い帯（ふだんから上に留める。U6） */
+.person-bar--band {
+  position: sticky;
+  left: auto;
+  right: auto;
+}
+
+@media (max-width: 719px) {
+  .person-bar--band .person-tabs {
+    display: none;
+  }
+}
+
+/* --- 入力の画面の型（仕様 4・5.3・見本 07。U6） ----------------------------------------- */
+.form {
+  max-width: 1000px;
+}
+
+/* 項目名を左（200px）、欄を右。補足・誤りは欄の下。狭い幅では上下（今の形） */
+@media (min-width: 720px) {
+  .form .form-row:not(.formset-row .form-row):not(.plan-grid .form-row):not(.filter-bar .form-row) {
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 0 var(--space-20);
+    align-items: start;
+  }
+
+  /* 項目名が 6 行にまたがるので行の間は 0 にし、欄・補足・誤りの間は上の余白で空ける */
+  .form .form-row:not(.formset-row .form-row):not(.plan-grid .form-row):not(.filter-bar .form-row) > :not(.form-row__label) + :not(.form-row__label) {
+    margin-top: var(--space-4);
+  }
+
+  .form .form-row:not(.formset-row .form-row):not(.plan-grid .form-row):not(.filter-bar .form-row) > .form-row__label {
+    grid-column: 1;
+    grid-row: 1 / span 6;
+    padding-top: var(--space-8);
+  }
+
+  .form .form-row:not(.formset-row .form-row):not(.plan-grid .form-row):not(.filter-bar .form-row) > :not(.form-row__label) {
+    grid-column: 2;
+  }
+
+  .form .form-row:has(> .form-row__check) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .form .form-row:has(> .form-row__check) > .form-row__label {
+    grid-row: auto;
+    padding-top: 0;
+  }
+}
+
+/* 番号つきの入力のセクション（forms.js が 2 つ以上のセクションの入力の画面に form--sections を付ける） */
+.form--sections {
+  counter-reset: form-section;
+}
+
+.form--sections section.card > h2:first-child {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--color-section-rule);
+  font-size: var(--text-subheading);
+}
+
+.form--sections section.card > h2:first-child::before {
+  counter-increment: form-section;
+  content: counter(form-section);
+  font-size: var(--text-small);
+  color: var(--color-ash);
+}
+
+/* ひな形で外国人ごとに入れる項目（◆）の説明 */
+#template-marked {
+  border-color: var(--button-secondary-border);
+}
+
+#template-marked > .caption:first-of-type {
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-input);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+/* 下に留める帯（入力が足りない項目の数・注意の数・キャンセル・保存する） */
+.form-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  align-items: center;
+  padding: var(--space-12) var(--space-16);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-line-structure);
+  border-radius: 0 0 var(--radius-card) var(--radius-card);
+}
+
+.form-bar__status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4) var(--space-12);
+  margin-right: auto;
+  font-size: var(--text-small);
+}
+
+.form-bar__missing {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: var(--level-overdue-fg);
+}
+
+.form-bar__missing::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.form-bar__caution {
+  color: var(--level-within-7-fg);
+}
+
+@media (max-width: 959px) {
+  .form-bar .button {
+    flex: 0 1 auto;
+  }
+
+  .form-bar__status {
+    flex-basis: 100%;
+  }
+}
+
+/* 入力の目次: 足りない欄のあるセクション（danger の点） */
+.toc__link--danger::after {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: var(--level-overdue-dot);
+  vertical-align: 2px;
+}
+
+.form > .toc {
+  margin-bottom: 0;
+}
+
+/* 下の帯のボタンは右に「キャンセル」「保存する」の順（主ボタンを右の端に） */
+.form-bar > .button,
+.form-bar > button,
+.form-bar > a {
+  order: 1;
+}
+
+.form-bar > .button--primary {
+  order: 2;
+}
