@@ -16,7 +16,7 @@ E2E = $(COMPOSE) --profile e2e run --rm $(foreach v,$(1),-e $(v)) e2e
 endif
 MANAGE := $(WEB) python manage.py
 
-.PHONY: checks check-quick test-lf test-db e2e gate2 gate3 gate4 design-shots seed seed-reset seed-scenario filings env up down build logs migrate admin shell psql lock test lint format messages
+.PHONY: checks check-quick test-lf test-db e2e gate2 gate3 gate4 design-shots blank-pages seed seed-reset seed-scenario filings env up down build logs migrate admin shell psql lock test lint format messages
 
 env:        ## .env を作る・足りないキーを補う・鍵を生成する（既存の値は変えない）
 	python3 scripts/init_env.py
@@ -151,6 +151,9 @@ filings:    ## 日次の届出タスクの起票を手で実行する（DATE=YYY
 
 forms:      ## 様式マスタ（templates/forms・mappings）を読み込む。何度実行しても同じ結果
 	$(MANAGE) load_form_templates
+
+blank-pages: ## 公式の様式を空のまま PDF にし、頁数・埋め込みの字体・代わりの字体を出す（FORMS="1-23 1-5" で絞る、MD=1 で Markdown。手元とクラウドの見比べ）
+	$(WEB) python ../tools/forms/blank_pages.py $(if $(MD),--markdown,) $(FORMS)
 
 messages:   ## UI 文言を .po に抽出し .mo にコンパイルする（.po と .mo の両方をコミットする）
 	$(WEB) sh -c 'python manage.py makemessages -l ja --no-location --no-obsolete && python manage.py compilemessages -l ja'
