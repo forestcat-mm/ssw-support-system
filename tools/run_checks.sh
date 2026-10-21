@@ -8,6 +8,8 @@
 # - 最後に必ず「=== DONE」を書く（途中で止めても書く）。待つ側はこの行と上限の時間で待つ。
 # - コマンドの出力そのものは <ログ> の .log を .full.log にしたファイルに書く。終了コードは、1 つでも失敗があれば 1。
 # - 同じフォルダの latest.log・latest.full.log を、このログを指すリンクにする（いちばん新しいログを開く入口）。
+# - ログの先頭に、どこで動かしたか（RUNNER。Makefile の docker か host）を書く。pytest が飛ばした
+#   テストの件数と理由（-rs の SKIPPED の行）も、検査ごとに写す。
 set -u
 cd "$(dirname "$0")/.." || exit 1
 log=$1; limit=$2; shift 2
@@ -19,6 +21,7 @@ ln -sfn "$(basename "$log")" "$dir/latest.log"
 ln -sfn "$(basename "$full")" "$dir/latest.full.log"
 failed=0
 trap 'echo "=== DONE failed=$failed" >> "$log"' EXIT
+echo "=== RUNNER=${RUNNER:-docker} (start $(date '+%Y-%m-%d %H:%M:%S'))" >> "$log"
 for item in "$@"; do
   name=${item%%::*}; cmd=${item#*::}
   echo "=== $name (start $(date +%H:%M:%S))" >> "$log"
@@ -37,6 +40,7 @@ for item in "$@"; do
   fi
   # pytest の結果の行（件数）と、make のエラーの行だけを要約に写す
   sed -n "/^=== $name\$/,\$p" "$full" | grep -E "[0-9]+ (passed|failed|errors?)\b.* in [0-9.]+s|^make: \*\*\*|^Found [0-9]+ error|^Success:" | tail -n 3 >> "$log"
+  sed -n "/^=== $name\$/,\$p" "$full" | grep -E "^SKIPPED \[[0-9]+\]" | head -n 10 >> "$log"
   echo "=== $name exit=$code (end $(date +%H:%M:%S))" >> "$log"
   [ "$code" -ne 0 ] && failed=$((failed + 1))
 done
