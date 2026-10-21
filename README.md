@@ -107,7 +107,7 @@ make messages       # UI 文言を .po に抽出し .mo にコンパイルする
 - ログの名前をまるごと決めたいときは `CHECKS_LOG=.checks/logs/<名前>.log` を渡す（このときは `CHECKS_NAME` を使わない）。
 - いちばん新しいログは `.checks/logs/latest.log`（出力は `latest.full.log`）でも開ける（実行の始めにリンクを付け替える）。
 - `.checks/` の並べ方は `.checks/README.md`（目次）と CLAUDE.md の「.checks/ の置き方」。
-- 1 件の上限は `CHECK_LIMIT`（秒。既定 900）。超えたら止めて、終了コード 124 にする。
+- 1 件の上限は `CHECK_LIMIT`（秒。既定 900。`RUNNER=host` は 1800）。超えたら止めて、終了コード 124 にする。
 - ログの先頭に、どこで動かしたか（`=== RUNNER=docker` か `host`）を書き、検査ごとに飛ばしたテストの件数と理由（`SKIPPED [n] …`。単体テストは `-rs` で出す）を写す。
 - クラウドのセッション（Docker なし）では `RUNNER=host` で、同じ `make` が VM の上で動く（SessionStart フックが立てる。`docs/cloud-session.md`）。
 - 別のシェルから待つときは、`=== DONE` の行と上限の時間（例: 30 分）の両方で待つ。

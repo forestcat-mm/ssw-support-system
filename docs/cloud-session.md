@@ -94,10 +94,10 @@
 | make | `RUNNER=host` で流すもの | 2026-10-21 の結果 |
 |---|---|---|
 | `make lint` | `ruff check`・`ruff format --check`・`mypy`（e2e の依存も入った venv で） | 約 30 秒。e2e の型の誤りを直して通る |
-| `make check-quick T=…`・`make test`・`make test-lf`・`make test-db` | `pytest -n auto --reuse-db -rs` | 全部で約 19 分（4 CPU）。1610 件が通り、`.doc` を変換し直すテスト 2 件は LibreOffice の版が違うので飛ばす（下の 7） |
-| `make e2e` | `pytest e2e -n 4`（`TEST_DB_SUFFIX=e2e`） | 約 5 分 40 秒。131 件が通り、5 件を飛ばす（ゲートと design-shots） |
-| `make gate2`・`make gate3`・`make gate4` | 同じテストを同じ環境変数で | 各 1 件が通る（約 1 分 50 秒・1 分 50 秒・2 分 25 秒） |
-| `make checks` | `tools/run_checks.sh`。ログの先頭に `=== RUNNER=host`、検査ごとに飛ばしたテストの件数と理由（`SKIPPED [n] …`） | |
+| `make check-quick T=…`・`make test`・`make test-lf`・`make test-db` | `pytest -n auto --reuse-db -rs` | 全部で約 19 分（4 CPU）。1620 件が通り、`.doc` を変換し直すテスト 2 件は LibreOffice の版が違うので飛ばす（下の 6 の「手元でしか流せない検査」） |
+| `make e2e` | `pytest e2e -n 4`（`TEST_DB_SUFFIX=e2e`。make のコマンド行の `GATE4=1` などのゲートの変数は外す） | 約 5 分 40 秒〜6 分 30 秒。131 件が通り、5 件を飛ばす（ゲートと design-shots） |
+| `make gate2`・`make gate3`・`make gate4` | 同じテストを同じ環境変数で | 各 1 件が通る（約 2 分・2 分・2 分 20 秒） |
+| `make checks` | `tools/run_checks.sh`。ログの先頭に `=== RUNNER=host`、検査ごとに飛ばしたテストの件数と理由（`SKIPPED [n] …`）。1 件の上限 `CHECK_LIMIT` は 1800 秒（既定の 900 秒では単体テストが時間切れになった） | 約 33 分（gate4 を含む。2026-10-21 は 32 分 36 秒） |
 | `make messages`・`make seed` など | `$(MANAGE)` を backend の venv で | |
 | `make design-shots` | 流さない（知らせて止める） | 字体と画面の見え方が手元の e2e のイメージと同じかを確かめていない |
 | `make up`・`down`・`build`・`logs` | 流さない（知らせて止める） | PostgreSQL・Redis はフックが起こす。依存は `uv sync` |
