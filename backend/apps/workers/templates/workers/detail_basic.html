@@ -1,102 +1,183 @@
 {% extends "workers/detail_base.html" %}{% load i18n ui %}
 {% block tab_content %}
-<div class="grid-2">
-  <section class="card">
-    <div class="card__header"><h2 class="card__title">{% translate "Personal information" %}</h2></div>
-    <dl class="fields">
-      <dt>{% translate "name (romaji)" %}</dt><dd>{{ worker.name_romaji }}</dd>
-      <dt>{% translate "name (kanji)" %}</dt><dd>{{ worker.name_kanji|default:"—" }}</dd>
-      <dt>{% translate "name (native script)" %}</dt><dd{% if native_lang %} lang="{{ native_lang }}"{% endif %}>{{ worker.name_native|default:"—" }}</dd>
-      <dt>{% translate "name (katakana)" %}</dt><dd id="worker-name-kana">{{ worker.name_kana|default:"—" }}</dd>
-      <dt>{% translate "nationality or region" %}</dt><dd>{{ worker.nationality.name }}</dd>
-      <dt>{% translate "date of birth" %}</dt><dd class="mono">{{ worker.birth_date|date:"Y-m-d" }}</dd>
-      <dt>{% translate "sex" %}</dt><dd>{{ worker.get_sex_display }}</dd>
-      <dt>{% translate "support language" %}</dt><dd>{{ worker.support_language }}</dd>
-      <dt>{% translate "assigned staff" %}</dt><dd id="worker-assigned-staff">{{ worker.assigned_staff.name|default:_("not assigned") }} <a class="caption" href="{% url 'workers:history' worker.pk %}#staff-periods">{% translate "history" %}</a>{% if can_manage %} · <a class="caption" href="{% url 'workers:staff_change' worker.pk %}" id="staff-change-link">{% translate "Change" %}</a>{% endif %}</dd>
-      <dt>{% translate "status" %}</dt><dd>{{ worker.get_status_display }}</dd>
-      <dt>{% translate "place of birth" %}</dt><dd id="worker-birthplace">{{ worker.birthplace|default:"—" }}</dd>
-      <dt>{% translate "records kept until (estimate)" %}</dt><dd id="worker-retention-until">{% if retention_until %}<span class="mono">{{ retention_until|date:"Y-m-d" }}</span>{% else %}<span class="muted">{% translate "not fixed yet (one year after the employment contract ends)" %}</span>{% endif %}</dd>
+{# 概要のタブ（仕様 5.2・見本 03）: 今やること → 1 本人の情報 → 2 在留情報 → 3 旅券 → 4 住所・連絡先 → 5 雇用契約 → 6 支援 → 7 一括申請の項目 → 8 健康診断の書類 #}
+<section class="card todo-panel doc-section--panel" id="todo" aria-labelledby="todo-title">
+  <div class="card__header">
+    <h2 class="card__title" id="todo-title">{% translate "To do" %}</h2>
+    {% if overview.todos %}<span class="count{% if 'todo' in overview.warnings %} count--danger{% endif %}">{{ overview.todos|length }}</span>{% endif %}
+    <span class="caption todo-panel__order">{% translate "nearest deadline first" %}</span>
+  </div>
+  {% if overview.todos %}
+  <ul class="item-rows">
+    {% for item in overview.todos %}
+    <li class="item-row" data-todo>
+      <span class="item-row__state"><span class="status-dot status-dot--{{ item.tone }}">{{ item.state }}</span></span>
+      <div class="item-row__body"><div class="item-row__title">{{ item.title }}</div><div class="item-row__note">{{ item.note }}</div></div>
+      {% if item.section %}<a class="caption" href="#{{ item.section }}">{% if item.section == "residence" %}{% translate "2 Residence" %}{% elif item.section == "passport" %}{% translate "3 Passport" %}{% elif item.section == "contract" %}{% translate "5 Employment contract" %}{% else %}{% translate "6 Support" %}{% endif %}</a>{% endif %}
+      <a class="button button--ghost button--small" href="{{ item.url }}">{{ item.action }}</a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}<p class="muted">{% translate "Nothing to do now." %}</p>{% endif %}
+</section>
+
+<article class="doc" style="margin-top: var(--space-16)">
+  <section class="doc-section" id="personal" aria-labelledby="personal-title">
+    <div class="section-head">
+      <span class="section-head__no">1</span><h2 class="section-head__title" id="personal-title">{% translate "Personal information" %}</h2>
+      {% if can_manage %}<div class="section-head__actions"><a class="button button--light" href="{% url 'workers:edit' worker.pk %}">{% translate "Edit" %}</a></div>{% endif %}
+    </div>
+    <dl class="pairs">
+      <div class="pairs__item"><dt>{% translate "name (romaji)" %}</dt><dd>{{ worker.name_romaji }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "name (kanji)" %}</dt><dd>{{ worker.name_kanji|default:"—" }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "name (native script)" %}</dt><dd{% if native_lang %} lang="{{ native_lang }}"{% endif %}>{{ worker.name_native|default:"—" }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "name (katakana)" %}</dt><dd id="worker-name-kana">{{ worker.name_kana|default:"—" }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "date of birth" %}</dt><dd>{{ worker.birth_date|date:"Y-m-d" }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "sex" %}</dt><dd>{{ worker.get_sex_display }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "nationality or region" %}</dt><dd>{{ worker.nationality.name }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "place of birth" %}</dt><dd id="worker-birthplace">{{ worker.birthplace|default:"—" }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "support language" %}</dt><dd>{{ worker.support_language }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "assigned staff" %}</dt><dd id="worker-assigned-staff">{{ worker.assigned_staff.name|default:_("not assigned") }} <a class="caption" href="{% url 'workers:history' worker.pk %}#staff-periods">{% translate "history" %}</a>{% if can_manage %} · <a class="caption" href="{% url 'workers:staff_change' worker.pk %}" id="staff-change-link">{% translate "Change" %}</a>{% endif %}</dd></div>
+      <div class="pairs__item"><dt>{% translate "status" %}</dt><dd>{{ worker.get_status_display }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "records kept until (estimate)" %}</dt><dd id="worker-retention-until">{% if retention_until %}{{ retention_until|date:"Y-m-d" }}{% else %}<span class="muted">{% translate "not fixed yet (one year after the employment contract ends)" %}</span>{% endif %}</dd></div>
     </dl>
   </section>
 
-  <section class="card" id="residence">
-    <div class="card__header"><h2 class="card__title">{% translate "Residence (latest)" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'workers:record_create' worker.pk 'residence' %}">{% translate "Add" %}</a>{% endif %}</div>
+  <section class="doc-section" id="residence" aria-labelledby="residence-title">
+    <div class="section-head">
+      <span class="section-head__no">2</span><h2 class="section-head__title" id="residence-title">{% translate "Residence" %}</h2><span class="section-head__meta">{% translate "latest" %}</span>
+      {% if can_manage %}<div class="section-head__actions"><a class="button button--light" href="{% url 'workers:record_create' worker.pk 'residence' %}">{% translate "+ Add" %}</a></div>{% endif %}
+    </div>
+    {% if head.expiry and head.expiry.tone == "danger" %}<p class="section-notice" data-section-notice>{% translate "The period of stay has expired. Check the task of the extension application." %}</p>
+    {% elif head.expiry and head.expiry.tone == "caution" %}<p class="section-notice section-notice--caution" data-section-notice>{% translate "The period of stay expires soon. Check the task of the extension application." %}</p>{% endif %}
     {% with record=info.residence %}{% if record %}
-    <dl class="fields">
-      <dt>{% translate "residence card number" %}</dt><dd class="mono" data-decrypted="card_number">{{ record.card_number|default:"—" }}</dd>
-      <dt>{% translate "status of residence" %}</dt><dd>{{ record.get_status_of_residence_display }}</dd>
-      {% if record.application_type == "coe" %}<dt>{% translate "certificate of eligibility valid until" %}</dt><dd class="mono" id="coe-valid-until">{{ record.expires_on|date:"Y-m-d" }}</dd>{% else %}<dt>{% translate "period of stay expires on" %}</dt><dd>{% due_date info.residence_deadline %}</dd>{% endif %}
-      <dt>{% translate "permitted on" %}</dt><dd class="mono">{{ record.permitted_on|date:"Y-m-d" }}</dd>
-      <dt>{% translate "application type" %}</dt><dd>{{ record.get_application_type_display }}</dd>
-      <dt>{% translate "period of stay" %}</dt><dd id="residence-period">{{ info.period_of_stay|default:"—" }}</dd>
-      {% if record.technical_intern_type %}<dt>{% translate "type of technical intern training" %}</dt><dd>{{ record.get_technical_intern_type_display }}</dd>{% endif %}
+    <dl class="pairs">
+      <div class="pairs__item"><dt>{% translate "residence card number" %}</dt><dd data-decrypted="card_number">{{ record.card_number|default:"—" }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "status of residence" %}</dt><dd>{{ record.get_status_of_residence_display }}</dd></div>
+      {% if record.application_type == "coe" %}<div class="pairs__item"><dt>{% translate "certificate of eligibility valid until" %}</dt><dd id="coe-valid-until">{{ record.expires_on|date:"Y-m-d" }}</dd></div>{% else %}<div class="pairs__item"><dt>{% translate "period of stay expires on" %}</dt><dd>{% due_date info.residence_deadline %}</dd></div>{% endif %}
+      <div class="pairs__item"><dt>{% translate "permitted on" %}</dt><dd>{{ record.permitted_on|date:"Y-m-d" }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "application type" %}</dt><dd>{{ record.get_application_type_display }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "period of stay" %}</dt><dd id="residence-period">{{ info.period_of_stay|default:"—" }}</dd></div>
+      {% if record.technical_intern_type %}<div class="pairs__item"><dt>{% translate "type of technical intern training" %}</dt><dd>{{ record.get_technical_intern_type_display }}</dd></div>{% endif %}
     </dl>
     {% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}{% endwith %}
   </section>
 
-  <section class="card" id="passport">
-    <div class="card__header"><h2 class="card__title">{% translate "Passport (latest)" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'workers:record_create' worker.pk 'passport' %}">{% translate "Add" %}</a>{% endif %}</div>
+  <section class="doc-section" id="passport" aria-labelledby="passport-title">
+    <div class="section-head">
+      <span class="section-head__no">3</span><h2 class="section-head__title" id="passport-title">{% translate "Passport" %}</h2><span class="section-head__meta">{% translate "latest" %}</span>
+      {% if can_manage %}<div class="section-head__actions"><a class="button button--light" href="{% url 'workers:record_create' worker.pk 'passport' %}">{% translate "+ Add" %}</a></div>{% endif %}
+    </div>
     {% with record=info.passport %}{% if record %}
-    <dl class="fields">
-      <dt>{% translate "passport number" %}</dt><dd class="mono" data-decrypted="passport_number">{{ record.number }}</dd>
-      <dt>{% translate "issuing country" %}</dt><dd>{{ record.issuing_country.name }}</dd>
-      <dt>{% translate "issued on" %}</dt><dd class="mono">{{ record.issued_on|date:"Y-m-d" }}</dd>
-      <dt>{% translate "expires on" %}</dt><dd>{% due_date info.passport_deadline %}</dd>
+    <dl class="pairs">
+      <div class="pairs__item"><dt>{% translate "passport number" %}</dt><dd data-decrypted="passport_number">{{ record.number }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "issuing country" %}</dt><dd>{{ record.issuing_country.name }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "issued on" %}</dt><dd>{{ record.issued_on|date:"Y-m-d" }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "expires on" %}</dt><dd>{% due_date info.passport_deadline %}</dd></div>
     </dl>
     {% else %}<p class="muted">{% translate "Not registered." %}</p>{% endif %}{% endwith %}
   </section>
 
-  <section class="card" id="address">
-    <div class="card__header"><h2 class="card__title">{% translate "Address and contact (latest)" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'workers:record_create' worker.pk 'address' %}">{% translate "Add address" %}</a><a class="button button--neutral button--small" href="{% url 'workers:record_create' worker.pk 'contact' %}">{% translate "Add contact" %}</a>{% endif %}</div>
-    <dl class="fields">
+  <section class="doc-section" id="address" aria-labelledby="address-title">
+    <div class="section-head">
+      <span class="section-head__no">4</span><h2 class="section-head__title" id="address-title">{% translate "Address and contact" %}</h2><span class="section-head__meta">{% translate "latest" %}</span>
+      {% if can_manage %}<div class="section-head__actions"><a class="button button--light" href="{% url 'workers:record_create' worker.pk 'address' %}">{% translate "Add address" %}</a><a class="button button--light" href="{% url 'workers:record_create' worker.pk 'contact' %}">{% translate "Add contact" %}</a></div>{% endif %}
+    </div>
+    <dl class="pairs">
       {% with record=info.address %}
-      <dt>{% translate "residential address" %}</dt><dd>{% if record %}〒{{ record.postal_code }} {{ record.address }} <span class="caption">{% blocktranslate with day=record.effective_from|date:"Y-m-d" %}from {{ day }}{% endblocktranslate %}</span>
-        <span class="caption" id="address-split" style="display: block">{% if info.address_split %}{% translate "for the bulk application:" %} {{ info.address_split }}{% else %}<strong data-split="none">{% translate "The prefecture and municipality could not be found in the address. Check the address." %}</strong>{% endif %}</span>{% else %}<span class="muted">{% translate "Not registered." %}</span>{% endif %}</dd>
+      <div class="pairs__item pairs__item--wide"><dt>{% translate "residential address" %}</dt><dd>{% if record %}〒{{ record.postal_code }} {{ record.address }} <span class="caption">{% blocktranslate with day=record.effective_from|date:"Y-m-d" %}from {{ day }}{% endblocktranslate %}</span>
+        <span class="caption" id="address-split" style="display: block">{% if info.address_split %}{% translate "for the bulk application:" %} {{ info.address_split }}{% else %}<strong data-split="none">{% translate "The prefecture and municipality could not be found in the address. Check the address." %}</strong>{% endif %}</span>{% else %}<span class="muted">{% translate "Not registered." %}</span>{% endif %}</dd></div>
       {% endwith %}
       {% with record=info.contact %}{% if record %}
-      <dt>{% translate "phone number" %}</dt><dd class="mono">{{ record.phone|default:"—" }}</dd>
-      <dt>{% translate "email" %}</dt><dd>{{ record.email|default:"—" }}</dd>
-      <dt>{% translate "emergency contact name" %}</dt><dd>{{ record.emergency_name|default:"—" }}{% if record.emergency_relationship %} <span class="caption">{{ record.emergency_relationship }}</span>{% endif %}</dd>
-      <dt>{% translate "emergency contact phone" %}</dt><dd class="mono">{{ record.emergency_phone|default:"—" }}</dd>
-      <dt>{% translate "home country address" %}</dt><dd>{{ record.home_country_address|default:"—" }}</dd>
-      <dt>{% translate "home country phone" %}</dt><dd class="mono">{{ record.home_country_phone|default:"—" }}</dd>
-      <dt>{% translate "effective from" %}</dt><dd id="contact-effective-from">{% if record.effective_from %}<span class="mono">{{ record.effective_from|date:"Y-m-d" }}</span>{% else %}{% blocktranslate with day=record.created_at|date:"Y-m-d" %}No date (registered on {{ day }}){% endblocktranslate %}{% endif %}</dd>
+      <div class="pairs__item"><dt>{% translate "phone number" %}</dt><dd>{{ record.phone|default:"—" }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "email" %}</dt><dd>{{ record.email|default:"—" }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "emergency contact name" %}</dt><dd>{{ record.emergency_name|default:"—" }}{% if record.emergency_relationship %} <span class="caption">{{ record.emergency_relationship }}</span>{% endif %}</dd></div>
+      <div class="pairs__item"><dt>{% translate "emergency contact phone" %}</dt><dd>{{ record.emergency_phone|default:"—" }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "home country address" %}</dt><dd>{{ record.home_country_address|default:"—" }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "home country phone" %}</dt><dd>{{ record.home_country_phone|default:"—" }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "effective from" %}</dt><dd id="contact-effective-from">{% if record.effective_from %}{{ record.effective_from|date:"Y-m-d" }}{% else %}{% blocktranslate with day=record.created_at|date:"Y-m-d" %}No date (registered on {{ day }}){% endblocktranslate %}{% endif %}</dd></div>
       {% else %}
-      <dt>{% translate "contact" %}</dt><dd><span class="muted">{% translate "Not registered." %}</span></dd>
+      <div class="pairs__item"><dt>{% translate "contact" %}</dt><dd><span class="muted">{% translate "Not registered." %}</span></dd></div>
       {% endif %}{% endwith %}
     </dl>
   </section>
-</div>
 
-<section class="card" id="application-items" style="margin-top: var(--space-16)">
-  <div class="card__header"><h2 class="card__title">{% translate "Items for the bulk application" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'workers:edit' worker.pk %}">{% translate "Edit" %}</a>{% endif %}</div>
-  <p class="caption">{% translate "Items of the bulk application tool of the online residence application. Enter what applies; the check before generating the bulk file shows what is missing." %}</p>
-  <dl class="fields">
-    <dt>{% translate "relatives or housemates in Japan" %}</dt><dd id="worker-has-relatives">{{ worker.has_relatives_in_japan|yesno:_("yes,no,not entered") }}</dd>
-    <dt>{% translate "work history" %}</dt><dd id="worker-has-work-history">{{ worker.has_work_history|yesno:_("yes,no,not entered") }}</dd>
-    <dt>{% translate "months as Specified Skilled Worker (i) not in this ledger" %}</dt><dd class="mono">{{ worker.ssw_months_outside_ledger|default_if_none:"—" }}</dd>
-  </dl>
-  {% for section in application_sections %}
-  <div class="stack" id="{{ section.kind }}" style="margin-top: var(--space-12)">
-    <div class="card__header"><h3 class="card__title">{{ section.title }}</h3>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'workers:record_create' worker.pk section.kind %}">{% translate "Add" %}</a>{% endif %}</div>
-    {% if section.rows %}<ul class="attachment-list" data-section="{{ section.kind }}">{% for row in section.rows %}
-      <li data-record="{{ row.record.pk }}"><span>{% for label, value in row.details %}{{ value }}{% if not forloop.last %} · {% endif %}{% endfor %}</span>{% if row.masked_number %} <span class="mono caption">{{ row.masked_number }}</span>{% endif %}{% for file in row.attachments %} <a class="attachment-list__name" href="{% url 'attachment_download' file.pk %}">{{ file.original_filename }}</a>{% endfor %}</li>
-    {% endfor %}</ul>{% else %}<p class="muted">{% translate "None." %}</p>{% endif %}
-  </div>
-  {% endfor %}
-  <p class="caption">{% translate "To correct a row, void it on the History tab and add a new one." %}</p>
-</section>
+  {% if overview.allowed.contracts %}
+  <section class="doc-section" id="contract" aria-labelledby="contract-title">
+    {% with summary=overview.contract %}
+    <div class="section-head">
+      <span class="section-head__no">5</span><h2 class="section-head__title" id="contract-title">{% translate "Employment contract" %}</h2>
+      {% if summary %}<span class="section-head__meta">{% blocktranslate with number=summary.version.version day=summary.version.starts_on|date:"Y-m-d" %}version {{ number }} · from {{ day }}{% endblocktranslate %}</span>{% endif %}
+      <div class="section-head__actions"><a class="button button--light" href="{% url 'workers:contracts' worker.pk %}">{% translate "Open on the Contract tab" %}</a></div>
+    </div>
+    {% if summary %}
+    <dl class="pairs">
+      <div class="pairs__item"><dt>{% translate "host organization" %}</dt><dd>{{ summary.contract.host_organization.name }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "site" %}</dt><dd>{{ summary.site_name }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "period" %}</dt><dd>{{ summary.version.starts_on|date:"Y-m-d" }}〜{{ summary.version.ends_on|date:"Y-m-d"|default:"" }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "field and job category" %}</dt><dd>{{ summary.field_and_categories|default:"—" }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "base wage" %}</dt><dd>{{ summary.version.get_wage_type_display }} {{ summary.version.base_wage|yen }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "support contract" %}</dt><dd>{% if summary.support_contract %}{% if summary.support_contract.ends_on %}{% blocktranslate with day=summary.support_contract.ends_on|date:"Y-m-d" %}until {{ day }}{% endblocktranslate %}{% else %}{% translate "no end date" %}{% endif %}{% else %}<span class="muted">{% translate "none" %}</span>{% endif %}</dd></div>
+    </dl>
+    {% else %}<p class="muted">{% translate "No employment contract." %}</p>{% endif %}
+    {% endwith %}
+  </section>
+  {% endif %}
 
-<section class="card" id="health-documents" style="margin-top: var(--space-16)">
-  <div class="card__header"><h2 class="card__title">{% translate "Health check documents" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'workers:health_document_add' worker.pk %}" data-modal data-modal-return>{% translate "Add" %}</a>{% endif %}</div>
-  <p class="caption">{% translate "Sensitive personal information. Only the assigned staff member and administrators can download the files." %}</p>
-  {% if health_documents %}<ul class="attachment-list">{% for row in health_documents %}{% with file=row.attachment %}
-    <li data-attachment="{{ file.pk }}" data-downloadable="{{ row.can_download|yesno:'true,false' }}"{% if file.voided_at %} class="is-voided"{% endif %}>
-      <span>{{ file.get_kind_display }}</span>
-      {% if row.can_download %}<a class="attachment-list__name" href="{% url 'attachment_download' file.pk %}">{{ file.original_filename }}</a>{% else %}<span class="caption muted">{% translate "(file name hidden)" %}</span>{% endif %}
-      <span class="caption">{% if file.examined_on %}{% translate "examined on" %} <span class="mono">{{ file.examined_on|date:"Y-m-d" }}</span> · {% else %}{% translate "examination date not entered" %} · {% endif %}{{ file.created_at|date:"Y-m-d" }}{% if file.retention_until %} · {% translate "keep until (guide)" %} <span class="mono">{{ file.retention_until|date:"Y-m-d" }}</span>{% if row.expired and not file.voided_at %} <span class="badge badge--overdue" data-expired="true">{% translate "past the guide" %}</span>{% endif %}{% endif %}{% if file.voided_at %} · {% translate "voided" %} {{ file.voided_at|date:"Y-m-d" }}: {{ file.void_reason }}{% endif %}</span>
-      {% if can_manage and not file.voided_at %}<a class="button button--danger button--small" href="{% url 'workers:health_document_void' worker.pk file.pk %}">{% translate "Void" %}</a>{% endif %}
-    </li>{% endwith %}{% endfor %}</ul>
-  {% else %}<p class="muted">{% translate "No health check documents." %}</p>{% endif %}
-</section>
+  {% if overview.allowed.support %}
+  <section class="doc-section" id="support" aria-labelledby="support-title">
+    {% with summary=overview.support %}
+    <div class="section-head">
+      <span class="section-head__no">6</span><h2 class="section-head__title" id="support-title">{% translate "Support" %}</h2>
+      {% if summary.plan_version %}<span class="section-head__meta">{% blocktranslate with number=summary.plan_version.version %}support plan version {{ number }}{% endblocktranslate %}</span>{% endif %}
+      <div class="section-head__actions"><a class="button button--light" href="{% url 'workers:support' worker.pk %}">{% translate "Open on the Support tab" %}</a></div>
+    </div>
+    {% if 'support' in overview.warnings %}<p class="section-notice" data-section-notice>{% translate "The deadline of the periodic interview has passed." %}</p>{% endif %}
+    <dl class="pairs">
+      <div class="pairs__item"><dt>{% translate "next periodic interview" %}</dt><dd>{% if summary.next_interview %}{% due_date summary.next_interview %}{% else %}<span class="muted">—</span>{% endif %}</dd></div>
+      <div class="pairs__item"><dt>{% translate "previous periodic interview" %}</dt><dd>{{ summary.last_interview_on|date:"Y-m-d"|default:"—" }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "consultations (open)" %}</dt><dd>{% blocktranslate count counter=summary.open_consultations %}{{ counter }} case{% plural %}{{ counter }} cases{% endblocktranslate %}</dd></div>
+    </dl>
+    {% endwith %}
+  </section>
+  {% endif %}
+
+  <section class="doc-section" id="application-items" aria-labelledby="application-items-title">
+    <div class="section-head">
+      <span class="section-head__no">7</span><h2 class="section-head__title" id="application-items-title">{% translate "Items for the bulk application" %}</h2>
+      {% if can_manage %}<div class="section-head__actions"><a class="button button--light" href="{% url 'workers:edit' worker.pk %}">{% translate "Edit" %}</a></div>{% endif %}
+    </div>
+    <p class="caption">{% translate "Items of the bulk application tool of the online residence application. Enter what applies; the check before generating the bulk file shows what is missing." %}</p>
+    <dl class="pairs">
+      <div class="pairs__item"><dt>{% translate "relatives or housemates in Japan" %}</dt><dd id="worker-has-relatives">{{ worker.has_relatives_in_japan|yesno:_("yes,no,not entered") }}</dd></div>
+      <div class="pairs__item"><dt>{% translate "work history" %}</dt><dd id="worker-has-work-history">{{ worker.has_work_history|yesno:_("yes,no,not entered") }}</dd></div>
+      <div class="pairs__item pairs__item--wide"><dt>{% translate "months as Specified Skilled Worker (i) not in this ledger" %}</dt><dd>{{ worker.ssw_months_outside_ledger|default_if_none:"—" }}</dd></div>
+    </dl>
+    {% for section in application_sections %}
+    <div class="sub-block" id="{{ section.kind }}">
+      <div class="sub-block__head"><h3 class="section-sub">{{ section.title }}</h3>{% if can_manage %}<a class="button button--light" href="{% url 'workers:record_create' worker.pk section.kind %}">{% translate "Add" %}</a>{% endif %}</div>
+      {% if section.rows %}<ul class="attachment-list" data-section="{{ section.kind }}">{% for row in section.rows %}
+        <li data-record="{{ row.record.pk }}"><span>{% for label, value in row.details %}{{ value }}{% if not forloop.last %} · {% endif %}{% endfor %}</span>{% if row.masked_number %} <span class="caption">{{ row.masked_number }}</span>{% endif %}{% for file in row.attachments %} <a class="attachment-list__name" href="{% url 'attachment_download' file.pk %}">{{ file.original_filename }}</a>{% endfor %}</li>
+      {% endfor %}</ul>{% else %}<p class="muted">{% translate "None." %}</p>{% endif %}
+    </div>
+    {% endfor %}
+    <p class="caption">{% translate "To correct a row, void it on the History tab and add a new one." %}</p>
+  </section>
+
+  <section class="doc-section" id="health-documents" aria-labelledby="health-documents-title">
+    <div class="section-head">
+      <span class="section-head__no">8</span><h2 class="section-head__title" id="health-documents-title">{% translate "Health check documents" %}</h2>
+      {% if can_manage %}<div class="section-head__actions"><a class="button button--light" href="{% url 'workers:health_document_add' worker.pk %}" data-modal data-modal-return>{% translate "Add" %}</a></div>{% endif %}
+    </div>
+    <p class="caption">{% translate "Sensitive personal information. Only the assigned staff member and administrators can download the files." %}</p>
+    {% if health_documents %}<ul class="attachment-list">{% for row in health_documents %}{% with file=row.attachment %}
+      <li data-attachment="{{ file.pk }}" data-downloadable="{{ row.can_download|yesno:'true,false' }}"{% if file.voided_at %} class="is-voided"{% endif %}>
+        <span>{{ file.get_kind_display }}</span>
+        {% if row.can_download %}<a class="attachment-list__name" href="{% url 'attachment_download' file.pk %}">{{ file.original_filename }}</a>{% else %}<span class="caption muted">{% translate "(file name hidden)" %}</span>{% endif %}
+        <span class="caption">{% if file.examined_on %}{% translate "examined on" %} {{ file.examined_on|date:"Y-m-d" }} · {% else %}{% translate "examination date not entered" %} · {% endif %}{{ file.created_at|date:"Y-m-d" }}{% if file.retention_until %} · {% translate "keep until (guide)" %} {{ file.retention_until|date:"Y-m-d" }}{% if row.expired and not file.voided_at %} <span class="badge badge--overdue" data-expired="true">{% translate "past the guide" %}</span>{% endif %}{% endif %}{% if file.voided_at %} · {% translate "voided" %} {{ file.voided_at|date:"Y-m-d" }}: {{ file.void_reason }}{% endif %}</span>
+        {% if can_manage and not file.voided_at %}<details class="menu"><summary class="button button--neutral button--small" aria-label="{% translate 'Other actions' %}" title="{% translate 'Other actions' %}">…</summary><ul class="popover menu__list"><li><a class="menu__item menu__item--danger" href="{% url 'workers:health_document_void' worker.pk file.pk %}">{% translate "Void" %}</a></li></ul></details>{% endif %}
+      </li>{% endwith %}{% endfor %}</ul>
+    {% else %}<p class="muted">{% translate "No health check documents." %}</p>{% endif %}
+  </section>
+</article>
 {% endblock %}

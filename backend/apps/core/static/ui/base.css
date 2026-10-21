@@ -282,6 +282,11 @@ code {
   max-width: var(--layout-max);
 }
 
+/* ページの中のリンクで移るとき、上に留めた帯に隠れないようにずらす（forms.js が帯の高さを入れる） */
+.main [id] {
+  scroll-margin-top: var(--sticky-offset);
+}
+
 .page-header {
   display: flex;
   flex-wrap: wrap;

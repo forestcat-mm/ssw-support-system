@@ -5,7 +5,7 @@ from playwright.sync_api import Page, expect
 
 from apps.core.models import User
 from apps.workers.models import ForeignWorker
-from e2e.conftest import SignIn
+from e2e.conftest import SignIn, menu_action
 from tests.contracts.factories import make_contract, site_with_categories
 from tests.workers.factories import add_residence, make_worker
 
@@ -53,7 +53,7 @@ def test_admin_deactivates_and_worker_leaves_the_list(
     sign_in(administrator)
     base = page.url.rstrip("/")
     page.goto(f"{base}/workers/{worker.pk}/")
-    page.get_by_role("link", name="無効化").click()
+    menu_action(page, "無効化する", "#person-head")  # 危ない操作は「…」の中（仕様 4。U3-D1）
     expect(page.locator("#effects")).to_contain_text("特定技能1号")
 
     page.get_by_role("button", name="無効化する").click()  # 理由が空

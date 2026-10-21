@@ -789,8 +789,51 @@ initializers.push((root) => root.querySelectorAll("form[data-auto-submit]").forE
   });
 }));
 
+// 外国人の詳細の細い帯と目次（仕様 5.2・7。U3）: ふだんの帯（#person-head）が画面の外に出たら細い帯
+// （#person-bar）を上に留め、目次の今いるセクションに aria-current="location" を付け替える。スクロールのたびの
+// 処理はせず IntersectionObserver で決める。目次で移るときは、帯の高さの分ずらして止める（--sticky-offset）。
+const initPersonBar = () => {
+  const head = document.getElementById("person-head");
+  const bar = document.getElementById("person-bar");
+  if (!head || !bar || !("IntersectionObserver" in window)) return;
+  const root = document.documentElement;
+  // 目次で移ると、ふだんの帯は画面の外に出て細い帯が出るので、いつも細い帯の高さの分ずらす（隠したまま測る）
+  let offset = 16;
+  const setOffset = () => {
+    const shown = !bar.hidden;
+    if (!shown) { bar.style.visibility = "hidden"; bar.hidden = false; }
+    offset = bar.offsetHeight + 12;
+    root.style.setProperty("--sticky-offset", `${offset}px`);
+    if (!shown) { bar.hidden = true; bar.style.visibility = ""; }
+  };
+  setOffset();
+  new IntersectionObserver(([entry]) => {
+    bar.hidden = entry.isIntersecting;
+  }).observe(head);
+  window.addEventListener("resize", setOffset);
+  const links = Array.from(document.querySelectorAll("[data-toc] [data-toc-target]"));
+  const targets = [...new Set(links.map((link) => link.dataset.tocTarget))]
+    .map((id) => document.getElementById(id))
+    .filter(Boolean);
+  if (!targets.length) return;
+  const visible = new Set();
+  const mark = () => {
+    const current = targets.find((target) => visible.has(target.id)) ?? null;
+    links.forEach((link) => {
+      if (current && link.dataset.tocTarget === current.id) link.setAttribute("aria-current", "location");
+      else link.removeAttribute("aria-current");
+    });
+  };
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => (entry.isIntersecting ? visible.add(entry.target.id) : visible.delete(entry.target.id)));
+    mark();
+  }, { rootMargin: `-${offset + 2}px 0px -55% 0px` });  // 細い帯の下から画面の半ばまでを「今いる」とする
+  targets.forEach((target) => observer.observe(target));
+};
+
 const initAll = (root) => initializers.forEach((init) => init(root));
 initAll(document);
 initModal();
+initPersonBar();
 initUnsavedLinks();
 initSessionNotice();

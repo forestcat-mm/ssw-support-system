@@ -1,17 +1,79 @@
 {% extends "ui/base.html" %}{% load i18n ui %}
 {% block title %}{{ display_name }}{% endblock %}
-{% block page_header %}
-  <p class="caption"><a href="{{ back_url }}">← {% translate "Back to list" %}</a></p>
-  <h1 class="person-name"><span{% if display_name_lang %} lang="{{ display_name_lang }}"{% endif %}>{{ display_name }}</span>{% if romaji %} <span class="caption">{{ romaji }}</span>{% endif %}</h1>
-  <div class="cluster">{% worker_status worker.status worker.get_status_display %}</div>
+{% block topbar %}
+{# 上の帯（ふだん。仕様 5.2・見本 03）: 戻る・写真・氏名・状態の札・在留期限・受入れ機関・分野・担当・支援言語・編集・「…」、その下にタブ #}
+<header class="person-head" id="person-head">
+  <a class="person-head__back" href="{{ back_url }}">← {% translate "Foreign workers" %}</a>
+  <div class="person-head__main">
+    <div class="person-head__who">
+      <div class="person-photo" role="img" aria-label="{% blocktranslate with name=display_name %}Photo of {{ name }}{% endblocktranslate %}"><span class="person-photo__initial" aria-hidden="true"{% if display_name_lang %} lang="{{ display_name_lang }}"{% endif %}>{{ initial }}</span></div>
+      <div class="person-head__name-block">
+        <div class="person-head__name">
+          <h1 class="person-name"><span{% if display_name_lang %} lang="{{ display_name_lang }}"{% endif %}>{{ display_name }}</span></h1>
+          {% if romaji %}<span class="person-head__romaji">{{ romaji }}</span>{% endif %}
+        </div>
+        <div class="cluster person-head__chips">{% worker_status worker.status worker.get_status_display %}{% if head.residence_status %}<span class="chip">{{ head.residence_status }}</span>{% endif %}</div>
+      </div>
+    </div>
+    {% if head.expiry %}{% with expiry=head.expiry %}
+    <div class="expiry-box expiry-box--{{ expiry.tone }}" id="residence-expiry" data-level="{{ expiry.level }}">
+      <span class="expiry-box__label">{% translate "period of stay expires on" %}</span>
+      <span class="expiry-box__date">{{ expiry.deadline.unadjusted_due_on|date:"Y-m-d" }}</span>
+      <span class="expiry-box__left">{% level_badge expiry.deadline %}</span>
+    </div>
+    {% endwith %}{% endif %}
+    <dl class="person-head__facts">
+      <div><dt>{% translate "host organization" %}</dt><dd>{% if head.contract %}<a href="{% url 'hosts:detail' head.contract.host_organization_id %}">{{ head.contract.host_organization.name }}</a>{% else %}<span class="muted">—</span>{% endif %}</dd></div>
+      <div><dt>{% translate "specified skill field" %}</dt><dd>{{ head.field_name|default:"—" }}</dd></div>
+      <div><dt>{% translate "assigned staff" %}</dt><dd id="person-head-staff">{{ worker.assigned_staff.name|default:_("not assigned") }}{% if can_manage %} <a class="person-head__change" href="{% url 'workers:staff_change' worker.pk %}">{% translate "Change" %}</a>{% endif %}</dd></div>
+      <div><dt>{% translate "support language" %}</dt><dd>{{ worker.support_language|default:"—" }}</dd></div>
+    </dl>
+    <div class="person-head__actions">{% block worker_actions %}
+      {% if can_manage %}<a class="button button--neutral" href="{% url 'workers:edit' worker.pk %}">{% translate "Edit" %}</a>{% endif %}
+      {% if can_deactivate or can_reactivate %}<details class="menu" id="person-menu"><summary class="button button--neutral" aria-label="{% translate 'Other actions' %}" title="{% translate 'Other actions' %}">…</summary><ul class="popover menu__list">
+        {% if can_deactivate %}<li><a class="menu__item menu__item--danger" href="{% url 'workers:deactivate' worker.pk %}">{% translate "Deactivate" %}</a></li>{% endif %}
+        {% if can_reactivate %}<li><a class="menu__item" href="{% url 'workers:reactivate' worker.pk %}">{% translate "Cancel deactivation" %}</a></li>{% endif %}
+      </ul></details>{% endif %}
+    {% endblock %}</div>
+  </div>
+  <nav class="tabs person-tabs" aria-label="{% translate 'Sections' %}">
+    {% for tab in tabs %}<a class="tabs__link" href="{{ tab.url }}"{% if tab.active %} aria-current="page"{% endif %}>{{ tab.label }}</a>{% endfor %}
+  </nav>
+</header>
+{# 細い帯（スクロールしたとき。仕様 5.2・見本 04）: ふだんの帯が画面の外に出たら上に留める（forms.js の initPersonBar。JS が動かないときは出ない） #}
+<div class="person-bar" id="person-bar" hidden>
+  <div class="person-bar__row">
+    <a class="person-bar__back" href="{{ back_url }}" aria-label="{% translate 'Back to the foreign workers' %}">←</a>
+    <div class="person-photo person-photo--small" aria-hidden="true"><span class="person-photo__initial"{% if display_name_lang %} lang="{{ display_name_lang }}"{% endif %}>{{ initial }}</span></div>
+    <span class="person-bar__name"><span{% if display_name_lang %} lang="{{ display_name_lang }}"{% endif %}>{{ display_name }}</span></span>
+    {% if romaji %}<span class="person-head__romaji">{{ romaji }}</span>{% endif %}
+    {% worker_status worker.status worker.get_status_display %}
+    {% if head.expiry %}<span class="expiry-pill expiry-pill--{{ head.expiry.tone }}"><span class="expiry-pill__label">{% translate "period of stay expires on" %}</span> <span class="expiry-pill__date">{{ head.expiry.deadline.unadjusted_due_on|date:"Y-m-d" }}</span> {% level_badge head.expiry.deadline %}</span>{% endif %}
+    {% if head.contract %}<span class="person-bar__fact"><span class="muted">{% translate "host organization" %}</span> <a href="{% url 'hosts:detail' head.contract.host_organization_id %}">{{ head.contract.host_organization.name }}</a></span>{% endif %}
+    <span class="person-bar__fact"><span class="muted">{% translate "assigned staff" %}</span> {{ worker.assigned_staff.name|default:_("not assigned") }}</span>
+    {% if can_manage %}<a class="button button--neutral button--small person-bar__edit" href="{% url 'workers:edit' worker.pk %}">{% translate "Edit" %}</a>{% endif %}
+  </div>
+  <nav class="tabs person-tabs" aria-label="{% translate 'Tabs' %}">
+    {% for tab in tabs %}<a class="tabs__link" href="{{ tab.url }}"{% if tab.active %} aria-current="page"{% endif %}>{{ tab.label }}</a>{% endfor %}
+  </nav>
+  {% if toc %}<nav class="toc toc--bar" aria-label="{% translate 'Contents (on the bar)' %}" data-toc>
+    <span class="toc__title">{% translate "Contents" context "table of contents" %}</span>
+    {% for item in toc %}<a class="toc__link" href="#{{ item.id }}" data-toc-target="{{ item.id }}">{{ item.label }}{% if item.warn %}<span class="toc__warn" role="img" aria-label="{% translate 'needs attention' %}"></span>{% endif %}</a>{% endfor %}
+  </nav>{% endif %}
+</div>
 {% endblock %}
-{% block actions %}{% block worker_actions %}{% if can_manage %}<a class="button button--neutral" href="{% url 'workers:edit' worker.pk %}">{% translate "Edit" %}</a>{% endif %}{% if can_deactivate %}<a class="button button--danger" href="{% url 'workers:deactivate' worker.pk %}">{% translate "Deactivate" %}</a>{% endif %}{% endblock %}{% endblock %}
+{% block page_header_wrap %}{% endblock %}
 {% block content %}
 {% if worker.deactivated_at %}
 <p class="message message--warning" role="status" id="deactivated-banner">{% blocktranslate with day=worker.deactivated_at|date:"Y-m-d H:i" by=worker.deactivated_by.get_username|default:"—" reason=worker.deactivation_reason %}This foreign worker was deactivated on {{ day }} by {{ by }}. Reason: {{ reason }}. Deactivated workers are excluded from the list, search, daily filing tasks and the dashboard.{% endblocktranslate %}{% if can_reactivate %} <a class="button button--neutral button--small" href="{% url 'workers:reactivate' worker.pk %}">{% translate "Cancel deactivation" %}</a>{% endif %}</p>
 {% endif %}
-<nav class="tabs" aria-label="{% translate 'Sections' %}">
-  {% for tab in tabs %}<a class="tabs__link" href="{{ tab.url }}"{% if tab.active %} aria-current="page"{% endif %}>{{ tab.label }}</a>{% endfor %}
+{% if toc %}
+{# 目次（仕様 5.2）: 本体の上に札で並べる。今いるセクションは細い帯の目次で示す（aria-current） #}
+<nav class="toc" aria-label="{% translate 'Contents of this page' %}" data-toc>
+  <span class="toc__title">{% translate "Contents" context "table of contents" %}</span>
+  {% for item in toc %}<a class="toc__link" href="#{{ item.id }}" data-toc-target="{{ item.id }}">{{ item.label }}{% if item.warn %}<span class="toc__warn" role="img" aria-label="{% translate 'needs attention' %}"></span>{% endif %}</a>{% endfor %}
+  {% block toc_actions %}{% endblock %}
 </nav>
+{% endif %}
 {% block tab_content %}{% endblock %}
 {% endblock %}

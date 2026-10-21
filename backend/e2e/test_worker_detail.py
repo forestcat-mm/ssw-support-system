@@ -50,7 +50,7 @@ def test_open_detail_from_list_and_switch_tabs(
     expect(page.locator("#history")).to_contain_text("AB********CD")
     expect(page.locator("#history")).not_to_contain_text("AB12345678CD")
 
-    page.get_by_role("link", name="← 一覧へ戻る").click()
+    page.get_by_role("link", name="← 外国人台帳").click()
     expect(page).to_have_url(page.url.split("/workers/")[0] + "/workers/?status=all")
 
     logs = AuditLog.objects.filter(

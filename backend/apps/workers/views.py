@@ -63,6 +63,7 @@ from services import (
     worker_detail,
     worker_documents,
     worker_list,
+    worker_overview,
     workers,
 )
 
@@ -114,15 +115,17 @@ class Tab:
     action: Action | None = None  # workers.view のほかに要る操作（無ければタブごと出さない）
 
 
+# タブの並びと名前（仕様 5.2: 概要・契約・支援・届出・帳票・帳簿・履歴）。
+# キー（監査ログの context.tab）は変えない
 DETAIL_TABS = [
-    Tab("basic", _("Basic"), "workers:detail"),
+    Tab("basic", _("Overview"), "workers:detail"),
     Tab("contracts", _("Contract"), "workers:contracts", Action.CONTRACTS_VIEW),
-    Tab("filings", _("Filings"), "workers:filings", Action.FILINGS_VIEW),
-    Tab("history", _("History"), "workers:history"),
     Tab("support", _("Support"), "workers:support", Action.SUPPORT_VIEW),
+    Tab("filings", _("Filings"), "workers:filings", Action.FILINGS_VIEW),
     Tab("documents", _("Forms"), "workers:documents", Action.FORMS_GENERATE),
     # 登録支援機関の帳簿（③④。T57、ADR-0044）
     Tab("books", _("Books"), "workers:books", Action.SUPPORT_VIEW),
+    Tab("history", _("History"), "workers:history"),
 ]
 
 
@@ -133,6 +136,8 @@ class WorkerDetailView(ActionRequiredMixin, TemplateView):
     tab = "basic"
     template_name = "workers/detail_basic.html"
     worker: ForeignWorker
+    info: worker_detail.BasicInfo
+    head: worker_overview.Header
 
     def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponseBase:
         current = next(tab for tab in DETAIL_TABS if tab.key == self.tab)
@@ -153,6 +158,10 @@ class WorkerDetailView(ActionRequiredMixin, TemplateView):
         self.worker = get_object_or_404(queryset, pk=kwargs["pk"])
         name, name_lang, romaji = worker_list.display_name(self.worker)
         active = workers.is_active(self.worker)
+        # 上の帯（仕様 5.2）: どのタブでも出す。在留情報は最新の行（概要のタブでも使う）
+        self.info = worker_detail.basic_info(self.worker)
+        today = timezone.localdate()
+        self.head = worker_overview.header(self.worker, self.info, today)
         list_query = self.request.session.get(LIST_QUERY_SESSION_KEY, "")
         context.update(
             worker=self.worker,
@@ -170,6 +179,9 @@ class WorkerDetailView(ActionRequiredMixin, TemplateView):
                 if tab.action is None or authorization.has_action(user, tab.action)
             ],
             back_url=reverse("workers:list") + (f"?{list_query}" if list_query else ""),
+            head=self.head,
+            initial=worker_overview.initial_of(self.worker),
+            toc=[],
             can_manage=active and authorization.has_action(user, Action.WORKERS_MANAGE),
             can_deactivate=active and authorization.has_action(user, Action.WORKERS_DEACTIVATE),
             can_reactivate=not active and authorization.has_action(user, Action.WORKERS_DEACTIVATE),
@@ -180,16 +192,55 @@ class WorkerDetailView(ActionRequiredMixin, TemplateView):
 
     def tab_context(self, context: dict[str, Any]) -> dict[str, Any]:
         """タブの中身を context に足し、監査ログの context（表示した行の ID など）を返す。"""
-        info = worker_detail.basic_info(self.worker)
+        info = self.info
         documents = worker_documents.rows_for(self.request.user, self.worker)
+        user = self.request.user
+        allowed = worker_overview.Allowed(
+            contracts=authorization.has_action(user, Action.CONTRACTS_VIEW),
+            support=authorization.has_action(user, Action.SUPPORT_VIEW),
+            filings=authorization.has_action(user, Action.FILINGS_VIEW),
+            forms=authorization.has_action(user, Action.FORMS_GENERATE),
+        )
+        found = worker_overview.overview(
+            self.worker, self.head, info, timezone.localdate(), allowed
+        )
         context.update(
             info=info,
             application_sections=worker_detail.application_sections(info),
             health_documents=documents,
             retention_until=books.retention_until(self.worker),  # 帳簿の保存義務の満了日（T44）
+            overview=found,
+            toc=overview_toc(found),
         )
         shown = info.shown_ids() | {"health_documents": [row.attachment.pk for row in documents]}
+        if found.contract is not None:  # 5 雇用契約の要約（U3）
+            shown["contract_version"] = found.contract.version.pk
         return {"shown": shown, "decrypted": info.decrypted_fields()}
+
+
+def overview_toc(found: worker_overview.Overview) -> list[dict[str, Any]]:
+    """概要のタブの目次（仕様 5.2。注意のあるセクションに点）。"""
+    items = [
+        ("todo", _("To do")),
+        ("personal", _("1 Personal information")),
+        ("residence", _("2 Residence")),
+        ("passport", _("3 Passport")),
+        ("address", _("4 Address and contact")),
+        ("contract", _("5 Employment contract")),
+        ("support", _("6 Support")),
+        ("application-items", _("7 Items for the bulk application")),
+        ("health-documents", _("8 Health check documents")),
+    ]
+    hidden = set()
+    if found.allowed is not None and not found.allowed.contracts:
+        hidden.add("contract")
+    if found.allowed is not None and not found.allowed.support:
+        hidden.add("support")
+    return [
+        {"id": key, "label": label, "warn": key in found.warnings}
+        for key, label in items
+        if key not in hidden
+    ]
 
 
 class WorkerContractsView(WorkerDetailView):

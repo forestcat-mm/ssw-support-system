@@ -20,6 +20,7 @@ from apps.seed.context import DUMMY_USERNAME
 from apps.seed.models import SeedObject
 from apps.workers.models import ForeignWorker
 from e2e.conftest import SignIn
+from services import deadlines, worker_detail
 from tests.core.factories import TEST_PASSWORD
 
 OUTPUT = Path(__file__).resolve().parents[2] / "docs" / "design"
@@ -64,6 +65,16 @@ def seeded(settings: Settings, tmp_path: Path) -> list[ForeignWorker]:
     return list(ForeignWorker.objects.filter(pk__in=ids).order_by("pk"))
 
 
+def overdue_worker(seeded: list[ForeignWorker]) -> ForeignWorker:
+    """在留期限を過ぎた外国人（見本 03 の呉雪麗さんの場面）。"""
+    today = timezone.localdate()
+    for worker in seeded:
+        deadline = worker_detail.basic_info(worker).residence_deadline
+        if deadline and deadlines.assess(deadline, today).level is deadlines.Level.OVERDUE:
+            return worker
+    return seeded[0]
+
+
 def shoot(page: Page, name: str, width: int) -> None:
     SHOTS.mkdir(parents=True, exist_ok=True)
     page.screenshot(path=SHOTS / f"{name}-{width}.png", full_page=True, scale="css")
@@ -83,3 +94,13 @@ def test_capture_screens_like_the_mocks(
         shoot(page, "01-dashboard", width)
         page.goto(f"{base}/workers/")
         shoot(page, "02-workers-list", width)
+        # 03・04: 在留期限が過ぎている外国人の概要（ふだん・目次で 3 旅券へ移った後の画面の高さ）
+        page.goto(f"{base}/workers/{overdue_worker(seeded).pk}/")
+        shoot(page, "03-worker-overview", width)
+        page.get_by_role("navigation", name="このページの目次").get_by_role(
+            "link", name="3 旅券"
+        ).click()
+        page.locator("#person-bar").wait_for(state="visible")
+        SHOTS.mkdir(parents=True, exist_ok=True)
+        page.screenshot(path=SHOTS / f"04-worker-overview-scrolled-{width}.png", scale="css")
+        page.evaluate("window.scrollTo(0, 0)")

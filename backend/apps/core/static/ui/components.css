@@ -1457,3 +1457,363 @@ input[list="time-options"] {
   text-align: right;
   white-space: nowrap;
 }
+
+/* --- 外国人の詳細の上の帯（仕様 5.2・見本 03・04） --------------------------------------- */
+.person-head {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: var(--space-16) var(--space-32) 0;
+  background: var(--topbar-bg);
+  border-bottom: 1px solid var(--color-line-structure);
+}
+
+.person-head__back {
+  font-size: var(--text-small);
+}
+
+.person-head__main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-16) 28px;
+}
+
+.person-head__who {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+}
+
+.person-head__name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-8);
+}
+
+.person-head__name h1 {
+  font-size: var(--text-person);
+  font-weight: 700;
+}
+
+.person-head__romaji {
+  font-size: var(--text-small);
+  color: var(--color-graphite);
+}
+
+.person-head__chips {
+  margin-top: 6px;
+  gap: 6px;
+}
+
+.person-head__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px var(--space-24);
+  margin: 0;
+  font-size: var(--text-small);
+}
+
+.person-head__facts dt {
+  font-size: var(--text-caption);
+  color: var(--color-graphite);
+}
+
+.person-head__facts dd {
+  margin: 0;
+}
+
+.person-head__change {
+  font-size: var(--text-caption);
+}
+
+.person-head__actions {
+  margin-left: auto;
+  display: flex;
+  gap: var(--space-8);
+}
+
+.person-tabs {
+  margin-bottom: -1px;
+  border-bottom: 0;
+}
+
+.person-tabs .tabs__link {
+  padding: var(--space-8) 14px;
+}
+
+/* 申請用の写真の枠（U4 までは頭文字の丸。仕様 6: 背景 accent-soft・文字 accent） */
+.person-photo {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 90px;
+  border-radius: var(--radius-input);
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-photo);
+  overflow: hidden;
+}
+
+.person-photo__initial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.person-photo--small {
+  width: 30px;
+  height: 38px;
+  border-radius: 4px;
+  border: 0;
+}
+
+.person-photo--small .person-photo__initial {
+  width: 24px;
+  height: 24px;
+  font-size: var(--text-caption);
+}
+
+/* 在留期限の面（レベルの色の面と枠で日付と残り日数） */
+.expiry-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: var(--space-8) 14px;
+  border: 1px solid var(--color-line-structure);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.expiry-box__label {
+  font-size: var(--text-caption);
+  color: var(--color-graphite);
+}
+
+.expiry-box__date {
+  font-size: var(--text-subheading);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.expiry-box--danger,
+.expiry-pill--danger {
+  background: var(--level-overdue-bg);
+  border-color: var(--level-overdue-border);
+}
+
+.expiry-box--caution,
+.expiry-pill--caution {
+  background: var(--level-within-7-bg);
+  border-color: var(--level-within-7-border);
+}
+
+.expiry-box .badge,
+.expiry-pill .badge {
+  font-weight: 700;
+}
+
+.expiry-box .badge::before,
+.expiry-pill .badge::before {
+  display: none;
+}
+
+/* 細い帯（スクロールしたとき。画面の上に留める） */
+.person-bar {
+  position: fixed;
+  top: 0;
+  left: var(--layout-nav);
+  right: 0;
+  z-index: 15;
+  padding: 0 var(--space-32);
+  background: var(--topbar-bg);
+  border-bottom: 1px solid var(--color-line-structure);
+}
+
+.person-bar__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8) 18px;
+  min-height: 56px;
+  padding-top: 6px;
+}
+
+.person-bar__back {
+  color: var(--color-graphite);
+  font-size: var(--text-panel);
+  padding: var(--space-4) 2px;
+}
+
+.person-bar__name {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.person-bar__fact {
+  font-size: var(--text-small);
+  color: var(--color-ink-2);
+}
+
+.person-bar__edit {
+  margin-left: auto;
+}
+
+.expiry-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px var(--space-12);
+  border: 1px solid var(--color-line-structure);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-small);
+}
+
+.expiry-pill__label {
+  color: var(--color-graphite);
+}
+
+.expiry-pill__date {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 目次（本体の上の札。細い帯の一番下の行にも同じ目次） */
+.toc {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.toc__title {
+  margin-right: var(--space-4);
+  font-size: var(--text-caption);
+  font-weight: 700;
+  color: var(--color-graphite);
+}
+
+.toc__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--space-4) var(--space-12);
+  border: 1px solid var(--color-line-structure);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-ink-2);
+  font-size: var(--text-small);
+  text-decoration: none;
+}
+
+.toc__link:hover {
+  text-decoration: none;
+  border-color: var(--button-secondary-border);
+}
+
+.toc__warn {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--level-overdue-dot);
+}
+
+.toc__actions {
+  margin-left: auto;
+}
+
+.toc--bar {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 2px var(--space-4);
+  margin: 0;
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--color-line);
+}
+
+.toc--bar .toc__link {
+  flex: none;
+  padding: var(--space-4) 10px;
+  border: 0;
+  background: transparent;
+  font-size: var(--text-caption);
+}
+
+.toc--bar .toc__link[aria-current="location"] {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.todo-panel .item-row:last-child {
+  border-bottom: 0;
+}
+
+.todo-panel__order {
+  margin-left: auto;
+}
+
+@media (max-width: 959px) {
+  .person-head {
+    padding: var(--space-12) var(--space-16) 0;
+  }
+
+  .person-head__actions {
+    margin-left: 0;
+  }
+
+  .person-bar {
+    left: 0;
+    padding: 0 var(--space-16);
+  }
+
+  .person-bar__fact {
+    display: none;
+  }
+
+  .toc {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: var(--space-4);
+  }
+
+  .toc__link {
+    flex: none;
+  }
+}
+
+/* セクションの中の小さなまとまり（小見出し＋右に軽い操作） */
+.sub-block {
+  margin-top: var(--space-12);
+}
+
+.sub-block__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-8);
+}
+
+.sub-block__head .section-sub {
+  margin: 0;
+}
+
+.sub-block > p,
+.sub-block > ul {
+  margin: var(--space-4) 0 0;
+}
+
+/* 項目の並びの中の受付前の期限（日付だけ）は、ほかの値と同じ大きさ・色 */
+.pairs dd .badge--not-yet {
+  font-size: inherit;
+  color: inherit;
+}
