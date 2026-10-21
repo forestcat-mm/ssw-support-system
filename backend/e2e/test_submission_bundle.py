@@ -1,6 +1,6 @@
 """通しのテスト: 不足の書類の一括生成と提出用の統合 PDF（T42）。
 
-申請の書類の一覧で行ごとの検査の結果（生成不可・生成できる）を見る →「不足の書類をまとめて生成」→
+申請の書類の一覧で行ごとの検査の結果（作れない・作れる）を見る →「不足の書類をまとめて生成」→
 第3-1号だけを選んで生成 → 一覧に戻る →「提出用の PDF を作る」→ 提出書類一覧表の行に PDF を足し、
 警告を確かめて作る → 統合 PDF の画面（頁数・ダウンロード）→ 一覧の履歴に出る。管理画面には行かない。
 """
@@ -54,8 +54,8 @@ def test_bulk_generation_and_submission_pdf(
     rows = page.locator("#application-set-rows")
     plan = rows.locator('[data-row="chg_t1-18-1"]')  # 第1-17号（支援計画が無い）
     pledge = rows.locator('[data-row="chg_ind-2-1"]')  # 第3-1号
-    expect(plan.locator('[data-check="blocked"]')).to_have_text("生成不可")
-    expect(pledge.locator('[data-check="ok"]')).to_have_text("生成できる")
+    expect(plan.locator('[data-check="blocked"]')).to_have_text("作れない")
+    expect(pledge.locator('[data-check="ok"]')).to_have_text("作れる")
     assert page.evaluate("document.documentElement.scrollWidth") <= width
 
     # 一括生成: 生成不可の行は選べない。第3-1号だけを選んで生成する

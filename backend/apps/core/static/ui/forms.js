@@ -961,6 +961,7 @@ const showRequired = (field, missing) => {
     delete row.dataset.clientInvalid;
   }
 };
+const OWN_NUMBER = /^[ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩⅪⅫ]+\s*[．.]/;
 const formSections = (form) => Array.from(form.querySelectorAll("section.card"))
   .filter((section) => section.firstElementChild?.tagName === "H2" && isShown(section))
   .filter((section) => !section.parentElement.closest("section.card"));
@@ -997,8 +998,12 @@ initializers.push((root) => root.querySelectorAll("form.form").forEach((form) =>
   // セクションの番号と目次
   const sections = formSections(form);
   const tocLinks = new Map();
+  // 様式の番号（Ⅰ．Ⅱ．…）が付いた見出しのある入力の画面は、システムの番号を付けない（番号が二重にならない
+  // ように、その画面のどの見出しにも付けない。目次も同じ書き方。U4〜U8 の見比べの直し）
+  const ownNumbers = sections.some((section) => OWN_NUMBER.test(section.firstElementChild.textContent.trim()));
   if (sections.length >= 2) {
     form.classList.add("form--sections");
+    if (ownNumbers) form.classList.add("form--own-numbers");
     sections.forEach((section, index) => {
       if (!section.id) section.id = `form-section-${index + 1}`;
     });
@@ -1017,7 +1022,8 @@ initializers.push((root) => root.querySelectorAll("form.form").forEach((form) =>
       link.className = "toc__link";
       link.href = `#${section.id}`;
       link.dataset.tocTarget = section.id;
-      link.textContent = `${index + 1} ${section.firstElementChild.textContent.trim()}`;
+      const title = section.firstElementChild.textContent.trim();
+      link.textContent = ownNumbers ? title : `${index + 1} ${title}`;
       toc.append(link);
       tocLinks.set(section, link);
     });

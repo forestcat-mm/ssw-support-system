@@ -333,8 +333,10 @@ def initial_of(worker: ForeignWorker) -> str:
 
 # --- 契約のタブの「3 契約の書類」（U5。見本 05） ---------------------------------------------
 
+# まだ作っていない書類は灰（赤は、申請の書類の一覧で
+# 要る書類が足りないときだけ。U4〜U8 の見比べの直し）
 STATE_TONES = {
-    "missing": "danger",
+    "missing": "neutral",
     "generating": "neutral",
     "awaiting": "caution",
     "signed": "ok",

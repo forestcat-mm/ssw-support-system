@@ -138,7 +138,7 @@
     <ul class="item-rows">
       <li class="item-row" id="wage-explanation-row">
         <span class="item-row__state">{% if wage_explanation and wage_explanation.comparison %}<span class="status-dot status-dot--ok">{% translate "entered" %}</span>{% else %}<span class="status-dot status-dot--caution">{% translate "not entered" %}</span>{% endif %}</span>
-        <div class="item-row__body"><div class="item-row__title">{% translate "wage explanation (form 1-4)" %}</div><div class="item-row__note" id="wage-explanation">{% if wage_explanation and wage_explanation.comparison %}{{ wage_explanation.get_comparison_display }}{% if wage_explanation.japanese_wage is not None %} · {{ wage_explanation.get_wage_unit_display }} ¥{{ wage_explanation.japanese_wage|yen }}{% endif %}{% else %}{% translate "Not entered." %}{% endif %}</div></div>
+        <div class="item-row__body"><div class="item-row__title">{% translate "Input of the wage explanation" %}</div><div class="item-row__note" id="wage-explanation">{% if wage_explanation and wage_explanation.comparison %}{{ wage_explanation.get_comparison_display }}{% if wage_explanation.japanese_wage is not None %} · {{ wage_explanation.get_wage_unit_display }} ¥{{ wage_explanation.japanese_wage|yen }}{% endif %}{% else %}{% translate "Not entered." %}{% endif %}</div></div>
         {% if can_manage_contracts %}<a class="button button--ghost button--small" href="{% url 'workers:contract_wage_explanation' worker.pk contract.pk version.version %}" id="wage-explanation-edit">{% if wage_explanation %}{% translate "Edit the wage explanation" %}{% else %}{% translate "Enter the wage explanation" %}{% endif %}</a>{% endif %}
       </li>
     </ul>

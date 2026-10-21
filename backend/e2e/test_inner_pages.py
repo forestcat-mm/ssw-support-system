@@ -5,7 +5,7 @@
 1366px と 390px で横にはみ出さず、管理画面へ行かない。
 """
 
-from datetime import timedelta
+from datetime import date, timedelta
 from urllib.parse import urlparse
 
 import pytest
@@ -15,7 +15,7 @@ from playwright.sync_api import Page, Request, expect
 from apps.core.models import User
 from apps.filings.models import FilingKind, Trigger
 from apps.forms_engine.models import BulkApplication
-from apps.hosts.models import HostOrganization, SupportContract
+from apps.hosts.models import HostMembership, HostOrganization, SupportContract
 from e2e.conftest import SignIn
 from services import filings, form_templates, host_records
 from tests.forms_engine.bulk_cases import complete_application
@@ -36,7 +36,13 @@ def watch_admin(page: Page) -> list[str]:
 @pytest.fixture
 def host() -> HostOrganization:
     host = make_host(name="（ダミー）サンプル精機工業株式会社")
-    make_site(host)
+    site = make_site(host)
+    HostMembership.objects.create(
+        host_organization=host,
+        field=site.field,
+        joined_on=date(2024, 8, 12),
+        member_number="DUMMY-0001",
+    )
     today = timezone.localdate()
     contract = SupportContract(
         host_organization=host,
@@ -76,6 +82,14 @@ def test_host_detail_band_todo_and_contents(
     expect(bar).to_be_visible()
     expect(bar.locator('[aria-current="location"]')).to_have_text("5 支援委託契約")
     assert page.evaluate("document.documentElement.scrollWidth") <= width
+    if width == 1366:
+        # 表は枠に収まる（右端の列が枠で切れない。U4〜U8 の見比べの直し）
+        cut = page.evaluate(
+            """() => [...document.querySelectorAll('.doc .table-scroll')]
+                .filter((wrap) => wrap.scrollWidth > wrap.clientWidth + 1)
+                .map((wrap) => wrap.closest('section').id)"""
+        )
+        assert cut == []
     assert admin_requests == []
 
 

@@ -81,7 +81,8 @@ def test_contract_form_sections_and_toc(
     expect(toc).to_be_visible()
     links = toc.get_by_role("link")
     assert links.count() >= 4
-    expect(links.first).to_have_text("1 変更")
+    # 様式の番号（Ⅰ．）がある画面はシステムの番号を付けない
+    expect(links.first).to_have_text("変更")
     # 変更日・変更理由（必須）が空なので、最初のセクションに足りない印
     expect(links.first).to_have_class("toc__link toc__link--danger")
     links.nth(2).click()

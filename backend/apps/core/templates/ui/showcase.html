@@ -67,7 +67,8 @@
   <section class="card" id="sample-status">
     <div class="card__header"><h2 class="card__title">{% translate "Status" %}</h2><span class="count count--danger">3</span><span class="count">12</span></div>
     <div class="cluster">
-      <span class="status-dot status-dot--danger">{% translate "not generated" %}</span>
+      <span class="status-dot status-dot--danger">{% translate "missing" context "application set summary" %}</span>
+      <span class="status-dot">{% translate "not generated" %}</span>
       <span class="status-dot status-dot--caution">{% translate "waiting for signature" %}</span>
       <span class="status-dot status-dot--ok">{% translate "signed" %}</span>
       <span class="status-dot">{% translate "outside the system" %}</span>

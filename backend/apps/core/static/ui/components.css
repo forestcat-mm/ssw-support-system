@@ -1156,17 +1156,22 @@ input[list="time-options"] {
   display: block;
 }
 
+/* 状態は 1 行（「未生成（作れる）」）。列は「システムの外で用意」が折れない幅にし、長い文だけ折り返す */
 .application-set__status > .status-dot {
-  display: flex;
+  display: block;
+  position: relative;
+  min-width: 12.5em;
+  padding-left: 14px;
   white-space: normal;
 }
 
-.application-set__check {
-  margin-top: 2px;
+.application-set__status > .status-dot::before {
+  position: absolute;
+  left: 0;
+  top: 0.55em;
 }
 
-.application-set__check .status-dot {
-  font-size: var(--text-caption);
+.application-set__check {
   font-weight: 400;
 }
 
@@ -2533,4 +2538,108 @@ input[list="time-options"] {
 
 .auth-card .muted {
   font-size: var(--text-small);
+}
+
+/* 支援計画の項目の表（見本 06: 項目・実施予定・担当・注意。U4〜U8 の見比べの直し）: 箱にせず、見出しの行と
+   項目ごとの行。行を押すと、その項目の中身が下に開く */
+.plan-table {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line-structure);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.plan-table__head,
+.plan-table .plan-section > summary {
+  display: grid;
+  grid-template-columns: minmax(0, 2.4fr) minmax(0, 1fr) minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: var(--space-12);
+  align-items: center;
+  padding: var(--table-cell-padding-y) var(--table-cell-padding-x);
+}
+
+.plan-table__head {
+  border-bottom: 1px solid var(--color-line-structure);
+  font-size: var(--text-caption);
+  font-weight: 500;
+  color: var(--color-graphite);
+}
+
+.plan-table .plan-section {
+  border-bottom: 1px solid var(--color-line-row);
+}
+
+.plan-table .plan-section:last-child {
+  border-bottom: 0;
+}
+
+.plan-table .plan-section > summary {
+  list-style: none;
+  font-size: var(--text-table);
+}
+
+.plan-table .plan-section > summary::-webkit-details-marker {
+  display: none;
+}
+
+.plan-table .plan-section > summary:hover {
+  background: var(--color-canvas);
+}
+
+.plan-table .plan-section__title {
+  flex: none;
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+.plan-table .plan-section__title::before {
+  content: "▸";
+  display: inline-block;
+  width: 1.1em;
+  color: var(--color-ash);
+}
+
+.plan-table .plan-section[open] .plan-section__title::before {
+  content: "▾";
+}
+
+.plan-table .plan-section[open] > summary {
+  margin-bottom: 0;
+}
+
+.plan-table .plan-section__body {
+  padding: 0 var(--table-cell-padding-x) var(--space-16) calc(var(--table-cell-padding-x) + 1.1em);
+}
+
+@media (max-width: 719px) {
+  .plan-table__head {
+    display: none;
+  }
+
+  .plan-table .plan-section > summary {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+
+  .plan-table .plan-section__cell--empty {
+    display: none;
+  }
+
+  .plan-table .plan-section__cell[data-label]::before {
+    content: attr(data-label) "　";
+    color: var(--color-graphite);
+    font-size: var(--text-caption);
+  }
+}
+
+/* 様式の番号（Ⅰ．など）が付いた見出しのある入力の画面は、システムの番号を付けない */
+.form--own-numbers section.card > h2:first-child::before {
+  content: none;
+}
+
+/* 一覧の表の中で折り返してよい列（添付のファイル名・業務区分・長い名前など）。表を枠に収める */
+.table--list td.cell-wrap {
+  white-space: normal;
+  min-width: 8em;
+  overflow-wrap: anywhere;
 }

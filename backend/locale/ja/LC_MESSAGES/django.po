@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 17:01+0900\n"
+"POT-Creation-Date: 2026-10-21 17:51+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -2549,6 +2549,10 @@ msgid ""
 "so that color is not the only signal."
 msgstr "色は閉庁日の繰り延べ前の期限を基準にします。色だけに頼らないよう、必ず文字を併記します。"
 
+msgctxt "application set summary"
+msgid "missing"
+msgstr "不足"
+
 msgid "not generated"
 msgstr "未生成"
 
@@ -4032,10 +4036,6 @@ msgid "Register a photo"
 msgstr "写真を登録する"
 
 msgctxt "application set summary"
-msgid "missing"
-msgstr "不足"
-
-msgctxt "application set summary"
 msgid "to check"
 msgstr "要確認"
 
@@ -4096,6 +4096,14 @@ msgstr "判断できない"
 
 msgid "prepared outside the system"
 msgstr "システムの外で用意"
+
+msgctxt "application set check"
+msgid "cannot make"
+msgstr "作れない"
+
+msgctxt "application set check"
+msgid "can make"
+msgstr "作れる"
 
 msgid "awaiting signature"
 msgstr "署名待ち"
@@ -7009,10 +7017,18 @@ msgstr "すべて「問題無」にする"
 msgid "Non-conformity with the standards (6 and 4)"
 msgstr "基準不適合等（⑥・４）"
 
+msgid "Support items"
+msgstr "支援の項目"
+
+msgctxt "plan warnings"
+msgid "notes"
+msgstr "注意"
+
 #, python-format
-msgid "%(counter)s planned"
-msgid_plural "%(counter)s planned"
-msgstr[0] "実施予定 %(counter)s"
+msgctxt "plan table"
+msgid "%(counter)s item"
+msgid_plural "%(counter)s items"
+msgstr[0] "%(counter)s 件"
 
 #, python-format
 msgid "%(counter)s note"
@@ -8174,8 +8190,8 @@ msgstr "入力済み"
 msgid "not entered"
 msgstr "未入力"
 
-msgid "wage explanation (form 1-4)"
-msgstr "報酬の説明（第1-4号）"
+msgid "Input of the wage explanation"
+msgstr "報酬の説明の入力"
 
 msgid "Not entered."
 msgstr "入力していません。"

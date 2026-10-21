@@ -111,7 +111,7 @@
           <td class="card-head">{{ site.name }}{% if not site.is_active %} <span class="caption">{% translate "inactive" %}</span>{% endif %}</td>
           <td>{% field_tag site.field %}</td>
           <td class="mono">{{ site.industry_code }}</td>
-          <td>{% for category in site.categories.all %}{% category_label category today %}{% if not forloop.last %}、{% endif %}{% empty %}—{% endfor %}</td>
+          <td class="cell-wrap">{% for category in site.categories.all %}{% category_label category today %}{% if not forloop.last %}、{% endif %}{% empty %}—{% endfor %}</td>
           <td><span class="truncate-line truncate-line--wide" title="〒{{ site.postal_code }} {{ site.address }}"><span class="truncate">〒{{ site.postal_code }} {{ site.address }}</span></span>{% if site.phone_number %}<span class="caption mono">{{ site.phone_number }}</span>{% endif %}</td>
           {% if can_manage %}<td class="card-action"><div class="actions"><a class="button button--neutral button--small" href="{% url 'hosts:site_edit' host.pk site.pk %}">{% translate "Edit" %}</a></div></td>{% endif %}
         </tr>{% endfor %}</tbody>
@@ -128,11 +128,11 @@
       <thead><tr><th>{% translate "membership body" %}</th><th>{% translate "joined on" %}</th><th>{% translate "member number" %}</th><th>{% translate "valid until" %}</th><th>{% translate "certificate" %}</th>{% if can_manage %}<th>{% translate "Actions" %}</th>{% endif %}</tr></thead>
       <tbody>{% for row in detail.memberships %}
         <tr data-membership="{{ row.item.pk }}">
-          <td class="card-head"><span class="truncate-line truncate-line--full" title="{{ row.item.field.membership_body_name }}">{% field_tag row.item.field %}<span class="truncate">{{ row.item.field.membership_body_name }}</span></span></td>
+          <td class="card-head cell-wrap">{% field_tag row.item.field %} {{ row.item.field.membership_body_name }}</td>
           <td class="mono">{{ row.item.joined_on|date:"Y-m-d" }}</td>
           <td class="mono">{{ row.item.member_number|default:"—" }}</td>
           <td>{% if row.deadline %}{% due_date row.deadline %}{% else %}<span class="muted">{% translate "no expiry date" %}</span>{% endif %}</td>
-          <td>{% include "hosts/components/attachment_list.html" with attachments=row.attachments %}</td>
+          <td class="cell-wrap">{% include "hosts/components/attachment_list.html" with attachments=row.attachments %}</td>
           {% if can_manage %}<td class="card-action"><div class="actions"><a class="button button--neutral button--small" href="{% url 'hosts:membership_edit' host.pk row.item.pk %}">{% translate "Edit" %}</a><details class="menu"><summary class="button button--neutral button--small" aria-label="{% translate "Other actions" %}" title="{% translate "Other actions" %}">…</summary><ul class="popover menu__list"><li><a class="menu__item" href="{% url 'hosts:membership_certificate' host.pk row.item.pk %}">{% translate "Replace" %}</a></li></ul></details></div></td>{% endif %}
         </tr>{% endfor %}</tbody>
     </table></div>
@@ -150,7 +150,7 @@
       <tbody>{% for status in detail.cooperation_status %}
         <tr data-site="{{ status.site.pk }}">
           <td class="card-head">{{ status.site.name }}</td>
-          <td>{% for confirmation in status.latest %}<span>{{ confirmation.municipality }} <span class="mono">{{ confirmation.submitted_on|date:"Y-m-d" }}</span></span>{% if not forloop.last %}、{% endif %}{% empty %}<span class="badge badge--within-7" data-status="not-submitted">{% translate "not submitted" %}</span>{% endfor %}</td>
+          <td class="cell-wrap">{% for confirmation in status.latest %}<span>{{ confirmation.municipality }} <span class="mono">{{ confirmation.submitted_on|date:"Y-m-d" }}</span></span>{% if not forloop.last %}、{% endif %}{% empty %}<span class="badge badge--within-7" data-status="not-submitted">{% translate "not submitted" %}</span>{% endfor %}</td>
         </tr>{% endfor %}</tbody>
     </table></div>
     {% else %}<p class="muted">{% translate "Register a site first." %}</p>{% endif %}
@@ -163,7 +163,7 @@
           <td class="card-head">{{ row.item.site.name }}</td>
           <td>{{ row.item.municipality }}</td>
           <td class="mono">{{ row.item.submitted_on|date:"Y-m-d" }}</td>
-          <td>{% include "hosts/components/attachment_list.html" with attachments=row.attachments %}</td>
+          <td class="cell-wrap">{% include "hosts/components/attachment_list.html" with attachments=row.attachments %}</td>
           {% if can_manage %}<td class="card-action"><div class="actions"><a class="button button--neutral button--small" href="{% url 'hosts:cooperation_edit' host.pk row.item.pk %}">{% translate "Edit" %}</a><details class="menu"><summary class="button button--neutral button--small" aria-label="{% translate "Other actions" %}" title="{% translate "Other actions" %}">…</summary><ul class="popover menu__list"><li><a class="menu__item" href="{% url 'hosts:attachment_add' host.pk 'cooperation' row.item.pk %}">{% translate "Attach" %}</a></li></ul></details></div></td>{% endif %}
         </tr>{% endfor %}</tbody>
     </table></div>
@@ -181,9 +181,9 @@
         <tr{% if row.item == detail.current_support_contract %} aria-current="true"{% endif %} data-contract="{{ row.item.pk }}">
           <td class="card-head mono">{{ row.item.starts_on|date:"Y-m-d" }} – {{ row.item.ends_on|date:"Y-m-d"|default:"" }}</td>
           <td class="mono">{{ row.item.concluded_on|date:"Y-m-d" }}</td>
-          <td>{% if row.item.terminated_on %}<span class="mono">{{ row.item.terminated_on|date:"Y-m-d" }}</span> <span class="status" data-terminated>{% translate "terminated" %}</span><div class="caption">{{ row.item.get_termination_category_display }} / {{ row.item.get_termination_reason_display }}{% if row.item.termination_note %}（{{ row.item.termination_note }}）{% endif %}{% if row.item.ends_on %} · {% translate "planned end date" %} {{ row.item.ends_on|date:"Y-m-d" }}{% endif %}</div>{% elif row.deadline %}{% due_date row.deadline %}{% elif not row.item.ends_on %}<span class="muted">{% translate "no end date" %}</span>{% else %}<span class="mono muted">{{ row.item.ends_on|date:"Y-m-d" }}</span>{% endif %}</td>
+          <td class="cell-wrap">{% if row.item.terminated_on %}<span class="mono">{{ row.item.terminated_on|date:"Y-m-d" }}</span> <span class="status" data-terminated>{% translate "terminated" %}</span><div class="caption">{{ row.item.get_termination_category_display }} / {{ row.item.get_termination_reason_display }}{% if row.item.termination_note %}（{{ row.item.termination_note }}）{% endif %}{% if row.item.ends_on %} · {% translate "planned end date" %} {{ row.item.ends_on|date:"Y-m-d" }}{% endif %}</div>{% elif row.deadline %}{% due_date row.deadline %}{% elif not row.item.ends_on %}<span class="muted">{% translate "no end date" %}</span>{% else %}<span class="mono muted">{{ row.item.ends_on|date:"Y-m-d" }}</span>{% endif %}</td>
           <td class="mono">{% if row.item.monthly_fee is not None %}¥{{ row.item.monthly_fee|yen }}{% else %}<span class="muted">—</span>{% endif %}</td>
-          <td>{% include "hosts/components/attachment_list.html" with attachments=row.attachments %}</td>
+          <td class="cell-wrap">{% include "hosts/components/attachment_list.html" with attachments=row.attachments %}</td>
           {% if can_manage %}<td class="card-action"><div class="actions"><a class="button button--neutral button--small" href="{% url 'hosts:support_contract_edit' host.pk row.item.pk %}">{% translate "Edit" %}</a><details class="menu"><summary class="button button--neutral button--small" aria-label="{% translate "Other actions" %}" title="{% translate "Other actions" %}">…</summary><ul class="popover menu__list"><li><a class="menu__item" href="{% url 'hosts:attachment_add' host.pk 'support-contracts' row.item.pk %}">{% translate "Attach" %}</a></li>{% if not row.item.terminated_on %}<li><a class="menu__item menu__item--danger" href="{% url 'hosts:support_contract_terminate' host.pk row.item.pk %}">{% translate "Register the termination" %}</a></li>{% elif can_reopen %}<li><a class="menu__item menu__item--danger" href="{% url 'hosts:support_contract_reopen' host.pk row.item.pk %}">{% translate "Cancel the termination" %}</a></li>{% endif %}</ul></details></div></td>{% endif %}
         </tr>{% endfor %}</tbody>
     </table></div>
@@ -211,7 +211,7 @@
     <div class="table-scroll"><table class="table table--list table--cards" id="host-document-list">
       <thead><tr><th>{% translate "kind" %}</th><th>{% translate "site" %}</th><th>{% translate "period or issue date" %}</th><th>{% translate "languages" %}</th><th>{% translate "files" %}</th></tr></thead>
       <tbody>{% for item in host_document_rows %}{% with document=item.document %}<tr data-host-document="{{ document.pk }}">
-        <td class="card-head">{{ document.get_kind_display }}{% if not item.valid %}<br><span class="badge badge--overdue">{% translate "outside the period" %}</span>{% elif item.ending %}<br><span class="badge badge--within-7">{% translate "period ending soon" %}</span>{% endif %}{% if item.old %}<br><span class="badge badge--within-7">{% translate "issued more than 3 months ago" %}</span>{% endif %}</td>
+        <td class="card-head cell-wrap">{{ document.get_kind_display }}{% if not item.valid %}<br><span class="badge badge--overdue">{% translate "outside the period" %}</span>{% elif item.ending %}<br><span class="badge badge--within-7">{% translate "period ending soon" %}</span>{% endif %}{% if item.old %}<br><span class="badge badge--within-7">{% translate "issued more than 3 months ago" %}</span>{% endif %}</td>
         <td>{{ document.site.name|default:"—" }}</td>
         <td class="mono">{% if document.period_start %}{{ document.period_start|date:"Y-m-d" }}〜{{ document.period_end|date:"Y-m-d" }}{% elif document.issued_on %}{{ document.issued_on|date:"Y-m-d" }}{% else %}—{% endif %}{% if document.valid_until %}<br>〜{{ document.valid_until|date:"Y-m-d" }}{% endif %}</td>
         <td>{% for language in document.languages.all %}{{ language.name }}{% if not forloop.last %}・{% endif %}{% empty %}—{% endfor %}</td>

@@ -1,11 +1,15 @@
 {% load i18n ui %}{# 支援計画の版の表示（区分は様式の順。初期状態はすべてたたむ）。view は apps.support.display.PlanView #}
 <div class="stack" id="plan-sections">
+  {# 支援の項目の表（見本 06: 項目・実施予定・担当・注意。U4〜U8 の見比べの直し）。行（項目）を押すと、今どおりその項目の中身が開く #}
+  <div class="plan-table" role="group" aria-label="{% translate 'Support items' %}">
+    <div class="plan-table__head" aria-hidden="true"><span>{% translate "support item" %}</span><span>{% translate "planned" %}</span><span>{% translate "staff in charge" %}</span><span>{% translate "notes" context "plan warnings" %}</span></div>
   {% for section_view in view.sections %}{% with section=section_view.section %}
-  <details class="card plan-section" id="section-{{ section.code }}">
+  <details class="plan-section" id="section-{{ section.code }}">
     <summary class="plan-section__summary">
       <span class="plan-section__title">{{ section.title }}</span>
-      <span class="caption">{% blocktranslate count counter=section_view.planned_count %}{{ counter }} planned{% plural %}{{ counter }} planned{% endblocktranslate %}{% if section_view.staff_names %} · {{ section_view.staff_names|join:"、" }}{% endif %}{% if section_view.languages and section_view.show_item_fields %} · {{ section_view.languages|join:"、" }}{% endif %}</span>
-      {% if section_view.warning_count %}<span class="badge badge--within-7" data-warnings="{{ section_view.warning_count }}">{% blocktranslate count counter=section_view.warning_count %}{{ counter }} note{% plural %}{{ counter }} notes{% endblocktranslate %}</span>{% endif %}
+      <span class="plan-section__cell" data-label="{% translate 'planned' %}">{% blocktranslate count counter=section_view.planned_count context "plan table" %}{{ counter }} item{% plural %}{{ counter }} items{% endblocktranslate %}</span>
+      <span class="plan-section__cell" data-label="{% translate 'staff in charge' %}">{{ section_view.staff_names|join:"、"|default:"—" }}</span>
+      <span class="plan-section__cell{% if not section_view.warning_count %} plan-section__cell--empty{% endif %}">{% if section_view.warning_count %}<span class="status-dot status-dot--caution" data-warnings="{{ section_view.warning_count }}">{% blocktranslate count counter=section_view.warning_count %}{{ counter }} note{% plural %}{{ counter }} notes{% endblocktranslate %}</span>{% else %}<span class="muted">—</span>{% endif %}</span>
     </summary>
     <div class="stack plan-section__body">
       {% if section_view.show_item_fields %}
@@ -60,6 +64,7 @@
     </div>
   </details>
   {% endwith %}{% endfor %}
+  </div>
   <section class="card" id="plan-fields">
     <div class="card__header"><h2 class="card__title">{% translate "Whole plan" %}</h2></div>
     <dl class="fields">
