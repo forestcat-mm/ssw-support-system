@@ -5,7 +5,8 @@
 生成前の検査（ツールの入力チェックの写し）が「必須」として知らせる。
 
 台帳（T46a・T46b の項目・雇用契約・支援計画・担当者と支援責任者の履歴）から作り、台帳に無いものは
-申請ごとの入力（BulkApplicationEntry.inputs と sensitive）から取る。
+申請ごとの入力（BulkApplicationEntry.inputs と sensitive）から取る。認定の日本における連絡先は、
+入国前なので台帳の住所・電話ではなく申請ごとの入力から取る（変更・更新は台帳から）。
 """
 
 from __future__ import annotations
@@ -137,6 +138,27 @@ def to_full_width(text: str) -> str:
     return "".join(result)
 
 
+def phones(text: str | None) -> tuple[str, str]:
+    """電話番号を、ツールの電話の欄と携帯電話の欄に分ける（070・080・090 で始まれば携帯）。"""
+    number = digits(text)
+    if number.startswith(("070", "080", "090")):
+        return "", number
+    return number, ""
+
+
+def contact_values(inputs: dict[str, Any]) -> dict[str, str]:
+    """認定の日本における連絡先（申請ごとの入力。ADR-0039 決定 17）。
+
+    空なら空のまま（台帳の住所・電話は使わない。検査が不足として知らせる）。
+    """
+    phone, mobile = phones(inputs.get("contact_phone", ""))
+    return {
+        "p.postal": digits(inputs.get("contact_postal", "")),
+        "p.phone": phone,
+        "p.mobile": mobile,
+    } | _address("p", inputs.get("contact_address", ""))
+
+
 def _latest(model: Any, worker: ForeignWorker) -> Any:
     latest = model._default_manager.select_related("record").filter(worker=worker).first()
     return getattr(latest, "record", None)
@@ -171,8 +193,7 @@ def worker_values(worker: ForeignWorker, procedure: str) -> dict[str, str]:
     passport = _latest(LatestPassportRecord, worker)
     address = _latest(LatestWorkerAddress, worker)
     contact = _latest(LatestWorkerContact, worker)
-    phone = digits(contact.phone if contact else "")
-    mobile = phone if phone.startswith(("070", "080", "090")) else ""
+    phone, mobile = phones(contact.phone if contact else "")
     values: dict[str, str] = {
         "p.nationality": code_by_japanese("CA61", worker.nationality.name, procedure),
         "p.birth_date": ymd(worker.birth_date),
@@ -181,7 +202,7 @@ def worker_values(worker: ForeignWorker, procedure: str) -> dict[str, str]:
         "p.birthplace": worker.birthplace,
         "p.home_address": to_full_width(contact.home_country_address if contact else ""),
         "p.postal": digits(address.postal_code if address else ""),
-        "p.phone": "" if mobile else phone,
+        "p.phone": phone,
         "p.mobile": mobile,
         "p.email": contact.email if contact else "",
         "p.passport": passport.number if passport else "",
@@ -563,6 +584,7 @@ def input_values(entry: BulkApplicationEntry, procedure: str) -> dict[str, str]:
         "plan.appropriate": flag(inputs.get("plan_appropriate")),
     }
     if procedure == "coe":
+        values |= contact_values(inputs)
         values |= {
             "a.entry_purpose": _code_starting("CC11", ("特定技能（１号）",), procedure),
             "a.entry_month": inputs.get("entry_month", ""),

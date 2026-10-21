@@ -60,6 +60,34 @@ INPUT_FIELDS: tuple[InputField, ...] = (
     InputField("spouse", _("spouse"), "yes_no"),
     InputField("occupation", _("occupation"), "text", max_length=40),
     # 認定
+    # 日本における連絡先（入国前なので台帳の住所ではなく申請ごとに入れる。ADR-0039 決定 17）
+    InputField(
+        "contact_postal",
+        _("contact in Japan: postal code"),
+        "text",
+        ("coe",),
+        max_length=8,
+        help_text=_("Example: 272-0023"),
+    ),
+    InputField(
+        "contact_address",
+        _("contact in Japan: address"),
+        "text",
+        ("coe",),
+        max_length=255,
+        help_text=_(
+            "Write from the prefecture. It is split into the prefecture, the municipality "
+            "and the rest of the address of the tool."
+        ),
+    ),
+    InputField(
+        "contact_phone",
+        _("contact in Japan: phone number"),
+        "text",
+        ("coe",),
+        max_length=20,
+        help_text=_("A number starting with 070, 080 or 090 goes to the mobile phone column."),
+    ),
     InputField(
         "entry_month",
         _("planned month of entry"),

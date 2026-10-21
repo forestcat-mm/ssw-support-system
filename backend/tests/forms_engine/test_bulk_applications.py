@@ -138,6 +138,67 @@ def test_inputs_default_to_the_previous_entry(loaded: None) -> None:
     assert defaults["occupation"] == "会社員"
 
 
+def test_coe_contact_in_japan_comes_from_the_entry(loaded: None) -> None:
+    """認定の日本における連絡先は行の入力から取る（台帳は使わない。ADR-0039 決定 17）。"""
+    from apps.forms_engine.bulk_forms import EntryForm
+
+    application = complete_application("coe", people=1)
+    entry = application.entries.get()
+    inputs = dict(entry.inputs) | {
+        "contact_postal": "272-0023",
+        "contact_address": "千葉県市川市南八幡五丁目8番8号 さくら台寮203号室",
+        "contact_phone": "080-0000-5678",
+    }
+    bulk_applications.save_inputs(entry, inputs, sensitive=None, by=None)
+    values = bulk_application_data.build(entry)
+    assert (values["p.postal"], values["p.phone"], values["p.mobile"]) == (
+        "2720023",
+        "",
+        "08000005678",
+    )
+    assert values["p.address_rest"] == "南八幡五丁目８番８号さくら台寮２０３号室"
+    assert (values["p.pref"], values["p.city"]) == ("120006", "122033")  # 千葉県・市川市
+    assert bulk_applications.check(application) == []
+    template = bulk_applications.template_of(application)
+    form = EntryForm(entry=entry, definition=template.mapping.definition, show_sensitive=False)
+    assert form.initial["contact_postal"] == "272-0023"
+    # 次の一括申請の初めの値は、この行の答え
+    assert bulk_application_data.default_inputs(entry.worker)["contact_phone"] == "080-0000-5678"
+
+
+def test_coe_without_the_contact_in_japan_is_missing(loaded: None) -> None:
+    """認定で連絡先の欄が空なら、台帳に住所・電話があっても不足になる。"""
+    application = complete_application("coe", people=1)
+    entry = application.entries.get()
+    inputs = {key: value for key, value in entry.inputs.items() if not key.startswith("contact_")}
+    bulk_applications.save_inputs(entry, inputs, sensitive=None, by=None)
+    assert entry.worker.addresses.exists() and entry.worker.contacts.exists()
+    labels = [p.label for p in bulk_applications.check(application)]
+    assert labels.count("日本における連絡先　居住地") == 2  # 都道府県と市区町村
+    assert "日本における連絡先　郵便番号" in labels
+    assert "日本における連絡先　携帯電話番号" in labels
+
+
+@pytest.mark.parametrize("procedure", ["extension", "change"])
+def test_renewals_take_the_address_and_phone_from_the_ledger(loaded: None, procedure: str) -> None:
+    """変更・更新は今のまま台帳の住所・電話から取る（行の入力に連絡先の欄は無い）。"""
+    from apps.forms_engine.bulk_forms import EntryForm
+
+    application = complete_application(procedure, people=1)
+    entry = application.entries.get()
+    inputs = dict(entry.inputs) | {"contact_postal": "100-0001", "contact_phone": "03-1111-2222"}
+    bulk_applications.save_inputs(entry, inputs, sensitive=None, by=None)
+    values = bulk_application_data.build(entry)
+    assert (values["p.postal"], values["p.phone"], values["p.mobile"]) == (
+        "2730005",
+        "",
+        "09012345678",
+    )
+    template = bulk_applications.template_of(application)
+    form = EntryForm(entry=entry, definition=template.mapping.definition, show_sensitive=False)
+    assert "contact_postal" not in form.fields
+
+
 def test_bulk_application_and_the_application_set_link_each_other(loaded: None) -> None:
     """T49: 一括申請の行から申請の書類の一覧・提出用の PDF へ、申請の書類の一覧から一括申請へ。"""
     application = complete_application("extension", people=1)

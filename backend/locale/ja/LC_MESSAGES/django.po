@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 17:51+0900\n"
+"POT-Creation-Date: 2026-10-21 23:50+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -3293,6 +3293,27 @@ msgstr "配偶者の有無"
 
 msgid "occupation"
 msgstr "職業"
+
+msgid "contact in Japan: postal code"
+msgstr "日本における連絡先（郵便番号）"
+
+msgid "Example: 272-0023"
+msgstr "例: 272-0023"
+
+msgid "contact in Japan: address"
+msgstr "日本における連絡先（住所）"
+
+msgid ""
+"Write from the prefecture. It is split into the prefecture, the municipality"
+" and the rest of the address of the tool."
+msgstr "都道府県から書きます。ツールの都道府県・市区町村・以降に分けて書き込みます。"
+
+msgid "contact in Japan: phone number"
+msgstr "日本における連絡先（電話番号）"
+
+msgid ""
+"A number starting with 070, 080 or 090 goes to the mobile phone column."
+msgstr "070・080・090 で始まる番号は、携帯電話番号の欄に書き込みます。"
 
 msgid "planned month of entry"
 msgstr "入国予定年月"
