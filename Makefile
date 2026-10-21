@@ -7,8 +7,11 @@ RUNNER ?= docker
 export RUNNER
 ifeq ($(RUNNER),host)
 WEB := tools/cloud/host_run.sh
-# e2e: 単体テストと別の DB（docker-compose の e2e と同じ）。$(1) は足す環境変数（GATE2=1 など）
-E2E = $(WEB) env TEST_DB_SUFFIX=e2e DJANGO_ALLOW_ASYNC_UNSAFE=true $(1)
+# e2e: 単体テストと別の DB（docker-compose の e2e と同じ）。$(1) は足す環境変数（GATE2=1 など）。
+# make のコマンド行の GATE4=1 などは環境に入るので、ゲートの変数をいったん外す（docker の e2e は -e で
+# 渡したものだけが届くのと同じにする。外さないと make e2e の中でもゲートが流れる）
+E2E = $(WEB) env -u GATE2 -u GATE3 -u GATE4 -u GATE_DATE -u DESIGN_SHOTS \
+	TEST_DB_SUFFIX=e2e DJANGO_ALLOW_ASYNC_UNSAFE=true $(1)
 NO_HOST = @echo "RUNNER=host では $@ を使わない（$(1)）" >&2; exit 1
 else
 WEB := $(COMPOSE) exec web
