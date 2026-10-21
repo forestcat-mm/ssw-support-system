@@ -113,7 +113,8 @@ gate4:      ## 段階4の受け入れ確認（seed → 一括申請 3 種・一�
 # いちばん新しいログは .checks/logs/latest.log でも開ける。
 CHECKS_NAME ?=
 CHECKS_LOG ?= .checks/logs/$(shell date +%Y-%m-%d_%H%M)_$(if $(CHECKS_NAME),$(CHECKS_NAME)_,)checks.log
-CHECK_LIMIT ?= 900
+# 1 件の上限（秒）。RUNNER=host（クラウドの 4 CPU）は単体テストに約 19 分かかるので 1800
+CHECK_LIMIT ?= $(if $(filter host,$(RUNNER)),1800,900)
 # gate2 は既定で 1 つの基準日。期限の計算・届出の起票にさわったときは 3 つの基準日にする:
 #   make checks GATE2_DATES="2026-10-17 2026-11-30 2026-12-28"
 GATE2_DATES ?= 2026-10-17
