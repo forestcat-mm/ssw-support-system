@@ -58,6 +58,7 @@ AUDITED_MODELS: frozenset[str] = frozenset(
         "workers.workerqualification",
         "workers.internshipcompletion",
         "workers.workhistory",
+        "workers.workerphoto",
         "forms_engine.bulkapplication",
         "forms_engine.bulkapplicationentry",
         "forms_engine.bulkapplicationfile",

@@ -4,6 +4,24 @@
   <div class="card__header"><h2 class="card__title">{% translate "Assigned staff (history)" %}</h2>{% if can_manage %}<a class="button button--neutral button--small" href="{% url 'workers:staff_change' worker.pk %}">{% translate "Change the assigned staff" %}</a>{% endif %}</div>
   {% translate "assigned staff" as staff_label %}{% include "ui/components/staff_periods.html" with periods=staff_periods table_id="staff-period-table" owner=worker void_kind="worker" can_void=can_manage %}
 </section>
+<section class="card" id="photos" style="margin-top: var(--space-16)">
+  <div class="card__header"><h2 class="card__title">{% translate "Application photos" %}</h2>{% if can_manage %}<a class="button button--light" href="{% url 'workers:photo_create' worker.pk %}">{% translate "Register a photo" %}</a>{% endif %}</div>
+  {% if photos %}
+  <ul class="item-rows" id="photo-history">
+    {% for item in photos %}
+    <li class="item-row{% if item.voided_at %} is-voided{% endif %}" data-photo="{{ item.pk }}">
+      <img class="photo-thumb" src="{% url 'workers:photo_image' worker.pk item.pk %}" alt="{% blocktranslate with day=item.taken_on|date:'Y-m-d' %}Photo taken on {{ day }}{% endblocktranslate %}">
+      <div class="item-row__body">
+        <div class="item-row__title">{% blocktranslate with day=item.taken_on|date:"Y-m-d" %}Taken on {{ day }}{% endblocktranslate %}{% if photo and item.pk == photo.pk %} <span class="chip">{% translate "in use" context "photo" %}</span>{% endif %}</div>
+        <div class="item-row__note">{% blocktranslate with day=item.created_at|date:"Y-m-d" by=item.created_by.get_username|default:"—" %}Registered on {{ day }} by {{ by }}{% endblocktranslate %}{% if item.voided_at %} · {% translate "voided" %} {{ item.voided_at|date:"Y-m-d" }}: {{ item.void_reason }}{% endif %}</div>
+      </div>
+      <a class="button button--ghost button--small" href="{% url 'workers:photo_download' worker.pk item.pk %}">{% translate "Download (JPEG)" %}</a>
+      {% if can_manage and not item.voided_at %}<details class="menu"><summary class="button button--neutral button--small" aria-label="{% translate 'Other actions' %}" title="{% translate 'Other actions' %}">…</summary><ul class="popover menu__list"><li><a class="menu__item menu__item--danger" href="{% url 'workers:photo_void' worker.pk item.pk %}">{% translate "Void" %}</a></li></ul></details>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}<p class="muted">{% translate "No application photo is registered." %}</p>{% endif %}
+</section>
 <section class="stack" style="margin-top: var(--space-16)">
 {% if entries %}
 <div class="table-wrap">

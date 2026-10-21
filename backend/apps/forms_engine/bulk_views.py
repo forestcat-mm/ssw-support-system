@@ -37,6 +37,7 @@ from services import (
     bulk_applications,
     form_templates,
     worker_list,
+    worker_photos,
     workers,
 )
 
@@ -136,6 +137,8 @@ class BulkDetailView(BulkView):
                 "contract": bulk_application_data.contract_of(entry.worker, application.basis_on),
                 "problems": by_entry.get(entry.pk, []),
                 "bundle": bundles.get(entry.worker_id),
+                # 申請用の写真の注意（無い・6 か月より前。Excel は作れる。U4-D3）
+                "photo_notice": worker_photos.notice(entry.worker, application.basis_on),
             }
             for entry in entries
         ]

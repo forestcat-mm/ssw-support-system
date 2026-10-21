@@ -6,13 +6,14 @@
   <a class="person-head__back" href="{{ back_url }}">← {% translate "Foreign workers" %}</a>
   <div class="person-head__main">
     <div class="person-head__who">
-      <div class="person-photo" role="img" aria-label="{% blocktranslate with name=display_name %}Photo of {{ name }}{% endblocktranslate %}"><span class="person-photo__initial" aria-hidden="true"{% if display_name_lang %} lang="{{ display_name_lang }}"{% endif %}>{{ initial }}</span></div>
+      <div class="person-photo"{% if not photo %} role="img" aria-label="{% blocktranslate with name=display_name %}Photo of {{ name }}{% endblocktranslate %}"{% endif %} id="person-photo">{% if photo %}<img class="person-photo__image" src="{% url 'workers:photo_image' worker.pk photo.pk %}" alt="{% blocktranslate with name=display_name %}Photo of {{ name }}{% endblocktranslate %}" width="72" height="96">{% else %}<span class="person-photo__initial" aria-hidden="true"{% if display_name_lang %} lang="{{ display_name_lang }}"{% endif %}>{{ initial }}</span>{% endif %}</div>
       <div class="person-head__name-block">
         <div class="person-head__name">
           <h1 class="person-name"><span{% if display_name_lang %} lang="{{ display_name_lang }}"{% endif %}>{{ display_name }}</span></h1>
           {% if romaji %}<span class="person-head__romaji">{{ romaji }}</span>{% endif %}
         </div>
         <div class="cluster person-head__chips">{% worker_status worker.status worker.get_status_display %}{% if head.residence_status %}<span class="chip">{{ head.residence_status }}</span>{% endif %}</div>
+        <div class="person-head__photo-line" id="person-photo-line">{% if photo %}{% blocktranslate with day=photo.taken_on|date:"Y-m-d" %}Photo taken on {{ day }}{% endblocktranslate %}{% if can_manage %} · <a href="{% url 'workers:photo_create' worker.pk %}">{% translate "Change the photo" %}</a>{% endif %}{% elif can_manage %}<a href="{% url 'workers:photo_create' worker.pk %}">{% translate "Register a photo" %}</a>{% endif %}</div>
       </div>
     </div>
     {% if head.expiry %}{% with expiry=head.expiry %}
@@ -44,7 +45,7 @@
 <div class="person-bar" id="person-bar" hidden>
   <div class="person-bar__row">
     <a class="person-bar__back" href="{{ back_url }}" aria-label="{% translate 'Back to the foreign workers' %}">←</a>
-    <div class="person-photo person-photo--small" aria-hidden="true"><span class="person-photo__initial"{% if display_name_lang %} lang="{{ display_name_lang }}"{% endif %}>{{ initial }}</span></div>
+    <div class="person-photo person-photo--small" aria-hidden="true">{% if photo %}<img class="person-photo__image" src="{% url 'workers:photo_image' worker.pk photo.pk %}" alt="" width="30" height="40">{% else %}<span class="person-photo__initial"{% if display_name_lang %} lang="{{ display_name_lang }}"{% endif %}>{{ initial }}</span>{% endif %}</div>
     <span class="person-bar__name"><span{% if display_name_lang %} lang="{{ display_name_lang }}"{% endif %}>{{ display_name }}</span></span>
     {% if romaji %}<span class="person-head__romaji">{{ romaji }}</span>{% endif %}
     {% worker_status worker.status worker.get_status_display %}

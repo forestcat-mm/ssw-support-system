@@ -4,7 +4,7 @@ from apps.contracts import edit_views as contract_views
 from apps.forms_engine import views as forms_views
 from apps.support import record_views
 from apps.support import views as support_views
-from apps.workers import document_views, views
+from apps.workers import document_views, photo_views, views
 
 app_name = "workers"
 
@@ -266,6 +266,23 @@ urlpatterns = [
         "<int:pk>/health-documents/<int:attachment_id>/void/",
         document_views.HealthDocumentVoidView.as_view(),
         name="health_document_void",
+    ),
+    # 申請用の写真（U4。ADR-0047）
+    path("<int:pk>/photos/new/", photo_views.PhotoCreateView.as_view(), name="photo_create"),
+    path(
+        "<int:pk>/photos/<int:photo_id>/image/",
+        photo_views.PhotoImageView.as_view(),
+        name="photo_image",
+    ),
+    path(
+        "<int:pk>/photos/<int:photo_id>/download/",
+        photo_views.PhotoDownloadView.as_view(),
+        name="photo_download",
+    ),
+    path(
+        "<int:pk>/photos/<int:photo_id>/void/",
+        photo_views.PhotoVoidView.as_view(),
+        name="photo_void",
     ),
     path("<int:pk>/deactivate/", views.WorkerDeactivateView.as_view(), name="deactivate"),
     path("<int:pk>/reactivate/", views.WorkerReactivateView.as_view(), name="reactivate"),

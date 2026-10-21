@@ -65,7 +65,7 @@ from apps.hosts.models import (
     SpecifiedSkillField,
     SupportContract,
 )
-from apps.seed import bulk_builders, support_builders
+from apps.seed import bulk_builders, photo_builders, support_builders
 from apps.seed.context import (
     DUMMY_MARK,
     DUMMY_USERNAME,
@@ -85,6 +85,7 @@ from apps.workers.models import (
     StatusOfResidence,
     WorkerAddress,
     WorkerContact,
+    WorkerPhoto,
     WorkerQualification,
     WorkerStatus,
 )
@@ -1139,6 +1140,7 @@ STEPS: tuple[Step, ...] = (
     seed_uncertified_host,  # 加入証明なしの場面（T39）
     bulk_builders.seed_ledger_items,  # 一括申請の台帳の項目と役員（段階4 T55）
     bulk_builders.seed_efile_filings,  # 一括届出の場面（段階4 T55）
+    photo_builders.seed_photos,  # 申請用の写真（U4）
     seed_filings,
 )
 
@@ -1268,6 +1270,11 @@ def delete_rows(by_model: dict[type[models.Model], list[int]]) -> int:
     deleted += OfficeManagerPeriod.objects.filter(
         models.Q(office_id__in=by_model.get(Office, [])) | models.Q(staff_id__in=staff_ids)
     ).delete()[0]
+    # 申請用の写真（U4）: ダミーの外国人の写真は、画面で足したものも消す（ファイルも消す）
+    for photo in WorkerPhoto.objects.filter(worker_id__in=by_model.get(ForeignWorker, [])):
+        photo.original.delete(save=False)
+        photo.cropped.delete(save=False)
+        deleted += photo.delete()[0]
     for model in DELETE_ORDER:
         ids = by_model.get(model, [])
         if ids:

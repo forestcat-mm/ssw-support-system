@@ -1,0 +1,29 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Void a record" %} | {{ worker }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{% url 'workers:history' worker.pk %}#photos">← {{ worker }}</a></p>
+  <h1>{% translate "Void a record" %}</h1>
+{% endblock %}
+{% block content %}
+<div class="stack form">
+  <section class="card">
+    <div class="card__header"><h2 class="card__title">{% translate "Application photo" %}</h2></div>
+    <div class="cluster">
+      <img class="photo-thumb" src="{% url 'workers:photo_image' worker.pk photo.pk %}" alt="{% blocktranslate with day=photo.taken_on|date:'Y-m-d' %}Photo taken on {{ day }}{% endblocktranslate %}">
+      <dl class="fields">
+        <dt>{% translate "taken on" %}</dt><dd>{{ photo.taken_on|date:"Y-m-d" }}</dd>
+        <dt>{% translate "registered on" %}</dt><dd>{{ photo.created_at|date:"Y-m-d" }}</dd>
+      </dl>
+    </div>
+  </section>
+  <p class="message message--warning">{% translate "A voided photo stays in the history with a strikethrough. The screens use the newest remaining photo." %}</p>
+  <form class="form" method="post" novalidate id="void-form">
+    {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+    {% for field in form %}{% form_field field %}{% endfor %}
+    <div class="form-actions">
+      <button class="button button--danger" type="submit">{% translate "Void" %}</button>
+      <a class="button button--neutral" href="{% url 'workers:history' worker.pk %}#photos">{% translate "Cancel" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

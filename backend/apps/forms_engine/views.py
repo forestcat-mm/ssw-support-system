@@ -67,6 +67,7 @@ from services import (
     periodic_report,
     submission_bundles,
     submission_drafts,
+    worker_photos,
     workers,
 )
 from services.files import FilePolicy, validate_file
@@ -312,6 +313,7 @@ class ApplicationSetView(WorkerDetailView):
             set_id=set_id,
             basis_on=on,
             row_checks=application_bulk.row_checks(found),
+            photo_notice=worker_photos.notice(self.worker, on),  # 申請用の写真（U4-D3・D4）
             bundles=[
                 {"bundle": bundle, "can_download": submission_bundles.can_download(user, bundle)}
                 for bundle in bundles
@@ -814,6 +816,7 @@ class SubmissionBundleCreateView(WorkerFormView):
             max_files=settings.SUBMISSION_MAX_FILES,
             over_limit_text=submission_bundles.warning_text(submission_bundles.Warn.OVER_LIMIT),
             back_url=_set_url(worker, overview.definition.id, overview.facts.on),
+            photo=worker_photos.latest(worker),  # 申請用の写真の JPEG のダウンロード（U4）
         )
 
     def form(

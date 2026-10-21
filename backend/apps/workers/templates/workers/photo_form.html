@@ -1,0 +1,37 @@
+{% extends "ui/base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Register an application photo" %} | {{ worker }}{% endblock %}
+{% block page_header %}
+  <p class="caption"><a href="{% url 'workers:detail' worker.pk %}">← {{ worker }}</a></p>
+  <h1>{% translate "Register an application photo" %}</h1>
+{% endblock %}
+{% block content %}
+{# 申請用の写真（U4。ADR-0047）。画像を選ぶと、上に縦 3:4 の枠が出る。枠はドラッグで動かし、右下の角で大きさを変える（矢印のキーでも動かせる）。JS が動かないときは真ん中で 3:4 に切り抜く #}
+<form class="form" method="post" enctype="multipart/form-data" novalidate id="photo-form" data-photo-form>
+  {% csrf_token %}<input type="hidden" name="{{ once_field }}" value="{{ once_token }}">
+  {% include "ui/components/form_errors.html" %}
+  <section class="card stack">
+    <div class="message">
+      <strong>{% translate "Standard of the photo" %}</strong>
+      <ul class="photo-rules">
+        <li>{% translate "Vertical 4 : horizontal 3 (the frame below cuts it to this ratio)." %}</li>
+        <li>{% translate "Taken within 6 months before the application." %}</li>
+        <li>{% translate "Only the applicant, facing the front, without a hat, without a background (including shadows), clear." %}</li>
+        <li>{% translate "Do not edit the image (no retouching, no left-right flip). The system only crops it." %}</li>
+      </ul>
+    </div>
+    {% if current %}<p class="caption">{% blocktranslate with day=current.taken_on|date:"Y-m-d" %}The current photo (taken on {{ day }}) stays in the history.{% endblocktranslate %}</p>{% endif %}
+    {% for field in form %}{% form_field field %}{% endfor %}
+    <div class="photo-crop" data-photo-crop hidden>
+      <p class="caption">{% translate "Move the frame by dragging (or with the arrow keys) and resize it with the corner." %}</p>
+      <div class="photo-crop__stage" data-photo-stage>
+        <img class="photo-crop__image" alt="" data-photo-preview>
+        <div class="photo-crop__frame" tabindex="0" role="slider" aria-label="{% translate 'Crop frame (3:4)' %}" aria-valuetext="" data-photo-frame><span class="photo-crop__handle" aria-hidden="true" data-photo-handle></span></div>
+      </div>
+    </div>
+  </section>
+  <div class="form-actions">
+    <button class="button button--primary" type="submit">{% translate "Register" %}</button>
+    <a class="button button--neutral" href="{% url 'workers:detail' worker.pk %}">{% translate "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

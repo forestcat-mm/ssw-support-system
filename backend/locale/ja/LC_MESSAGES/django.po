@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ssw-support-system\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 12:50+0900\n"
+"POT-Creation-Date: 2026-10-21 13:15+0900\n"
 "PO-Revision-Date: 2026-10-16 14:30+0900\n"
 "Last-Translator: ssw-support-system\n"
 "Language-Team: ja\n"
@@ -4001,6 +4001,12 @@ msgid ""
 "the host organization cannot be judged."
 msgstr "基準日の雇用契約が無いため、受入れ機関による行は判断できません。"
 
+msgid "Application photos"
+msgstr "申請用の写真"
+
+msgid "Register a photo"
+msgstr "写真を登録する"
+
 #, python-format
 msgid "%(counter)s required document is not ready."
 msgid_plural "%(counter)s required documents are not ready."
@@ -4616,6 +4622,10 @@ msgid ""
 msgstr ""
 "申請人の写真はこの PDF に入れません。在留申請オンラインシステムでは JPEG "
 "で別に添付し（容量の上限に含まれます）、窓口では申請書に貼ってください。"
+
+#, python-format
+msgid "Download the application photo (JPEG, taken on %(day)s)"
+msgstr "申請用の写真をダウンロード（JPEG・%(day)s 撮影）"
 
 msgid "Estimated size"
 msgstr "見積もりの大きさ"
@@ -7571,6 +7581,50 @@ msgstr "退社（年月）"
 msgid "employer"
 msgstr "勤務先"
 
+msgid "original image"
+msgstr "元の画像"
+
+msgid "photo (3:4)"
+msgstr "写真（3:4）"
+
+msgid "format of the original image"
+msgstr "元の画像の形式"
+
+msgid "crop left"
+msgstr "切り抜きの左"
+
+msgid "crop top"
+msgstr "切り抜きの上"
+
+msgid "crop width"
+msgstr "切り抜きの幅"
+
+msgid "crop height"
+msgstr "切り抜きの高さ"
+
+msgid "taken on"
+msgstr "撮影日"
+
+msgid "application photo"
+msgstr "申請用の写真"
+
+msgid "application photos"
+msgstr "申請用の写真"
+
+msgid "photo file"
+msgstr "写真のファイル"
+
+msgid "JPEG or PNG, up to 10 MB."
+msgstr "JPEG または PNG。10MB まで。"
+
+msgid ""
+"The photo for an application must be taken within 6 months before the "
+"application."
+msgstr "申請に使う写真は、申請の日前 6 か月以内に撮影したものです。"
+
+msgid "Registered the application photo."
+msgstr "申請用の写真を登録しました。"
+
 msgid "Home"
 msgstr "ホーム"
 
@@ -7623,6 +7677,13 @@ msgstr "取消にする届出タスク"
 #, python-format
 msgid "Photo of %(name)s"
 msgstr "%(name)sの写真"
+
+#, python-format
+msgid "Photo taken on %(day)s"
+msgstr "写真 %(day)s 撮影"
+
+msgid "Change the photo"
+msgstr "写真を変える"
 
 msgid "Back to the foreign workers"
 msgstr "外国人台帳へ戻る"
@@ -7926,6 +7987,24 @@ msgstr "担当者の履歴"
 msgid "Change the assigned staff"
 msgstr "担当者を変える"
 
+#, python-format
+msgid "Taken on %(day)s"
+msgstr "%(day)s 撮影"
+
+msgctxt "photo"
+msgid "in use"
+msgstr "使用中"
+
+#, python-format
+msgid "Registered on %(day)s by %(by)s"
+msgstr "%(day)s 登録（%(by)s）"
+
+msgid "Download (JPEG)"
+msgstr "ダウンロード（JPEG）"
+
+msgid "No application photo is registered."
+msgstr "申請用の写真が登録されていません。"
+
 msgid "number"
 msgstr "番号"
 
@@ -7942,6 +8021,48 @@ msgstr "健康診断の書類を添付"
 
 msgid "Filter by period of stay"
 msgstr "在留期限で絞る"
+
+msgid "Register an application photo"
+msgstr "申請用の写真を登録する"
+
+msgid "Standard of the photo"
+msgstr "写真の規格"
+
+msgid "Vertical 4 : horizontal 3 (the frame below cuts it to this ratio)."
+msgstr "縦 4：横 3（下の枠でこの比率に切り抜きます）。"
+
+msgid "Taken within 6 months before the application."
+msgstr "申請の日前 6 か月以内に撮影したもの。"
+
+msgid ""
+"Only the applicant, facing the front, without a hat, without a background "
+"(including shadows), clear."
+msgstr "申請人本人のみ・無帽で正面を向いたもの・背景（影を含む。）がないもの・鮮明であるもの。"
+
+msgid ""
+"Do not edit the image (no retouching, no left-right flip). The system only "
+"crops it."
+msgstr "画像を加工しない（修正・左右反転をしない）。システムは切り抜くだけです。"
+
+#, python-format
+msgid "The current photo (taken on %(day)s) stays in the history."
+msgstr "今の写真（%(day)s 撮影）は履歴に残ります。"
+
+msgid ""
+"Move the frame by dragging (or with the arrow keys) and resize it with the "
+"corner."
+msgstr "枠はドラッグ（または矢印のキー）で動かし、角で大きさを変えます。"
+
+msgid "Crop frame (3:4)"
+msgstr "切り抜きの枠（3:4）"
+
+msgid "Application photo"
+msgstr "申請用の写真"
+
+msgid ""
+"A voided photo stays in the history with a strikethrough. The screens use "
+"the newest remaining photo."
+msgstr "取り消した写真は打ち消し線で履歴に残ります。画面には、残っているうちの最新の写真を使います。"
 
 msgid "Register a foreign worker"
 msgstr "外国人の登録"
@@ -9713,6 +9834,21 @@ msgstr "提出用の PDF の下書きがある"
 
 msgid "Open the list"
 msgstr "一覧へ"
+
+#, python-format
+msgid ""
+"The application photo is old (taken on %(day)s). It must be taken within 6 "
+"months before the application."
+msgstr "写真が古い（%(day)s 撮影）。申請の日前 6 か月以内に撮影した写真が要ります。"
+
+msgid "The image could not be read. Use a JPEG or PNG file."
+msgstr "画像を読めませんでした。JPEG か PNG のファイルにしてください。"
+
+msgid "Use a JPEG or PNG file."
+msgstr "JPEG か PNG のファイルにしてください。"
+
+msgid "The date taken cannot be in the future."
+msgstr "撮影日に今日より後の日は入れられません。"
 
 #, python-format
 msgid ""

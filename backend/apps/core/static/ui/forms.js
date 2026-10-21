@@ -842,6 +842,81 @@ const initPersonBar = () => {
   targets.forEach((target) => observer.observe(target));
 };
 
+// 申請用の写真の切り抜き（U4。ADR-0047）: 選んだ画像の上に縦 3:4 の枠を出し、ドラッグで動かす・右下の角で
+// 大きさを変える（矢印のキーで動かし、Shift＋矢印で大きさを変える）。枠の位置は元の画像の画素で隠しの欄に入れる。
+// JS が動かないときは枠が出ず、サーバーが真ん中で 3:4 に切り抜く。
+initializers.push((root) => root.querySelectorAll("form[data-photo-form]").forEach((form) => {
+  const input = form.querySelector('input[type="file"]');
+  const crop = form.querySelector("[data-photo-crop]");
+  const image = form.querySelector("[data-photo-preview]");
+  const frame = form.querySelector("[data-photo-frame]");
+  const handle = form.querySelector("[data-photo-handle]");
+  if (!input || !crop || !image || !frame) return;
+  const field = (name) => form.querySelector(`input[name="${name}"]`);
+  let box = { x: 0, y: 0, w: 0 }; // 表示の画素（高さは w の 4/3）
+  const bounds = () => ({ w: image.clientWidth, h: image.clientHeight });
+  const clamp = () => {
+    const b = bounds();
+    box.w = Math.max(30, Math.min(box.w, b.w, (b.h * 3) / 4));
+    box.x = Math.max(0, Math.min(box.x, b.w - box.w));
+    box.y = Math.max(0, Math.min(box.y, b.h - (box.w * 4) / 3));
+  };
+  const draw = () => {
+    clamp();
+    frame.style.left = `${box.x}px`;
+    frame.style.top = `${box.y}px`;
+    frame.style.width = `${box.w}px`;
+    frame.style.height = `${(box.w * 4) / 3}px`;
+    const scale = image.naturalWidth / (image.clientWidth || 1);
+    field("crop_left").value = Math.round(box.x * scale);
+    field("crop_top").value = Math.round(box.y * scale);
+    field("crop_width").value = Math.round(box.w * scale);
+    field("crop_height").value = Math.round(((box.w * 4) / 3) * scale);
+    frame.setAttribute("aria-valuetext", `${field("crop_left").value}, ${field("crop_top").value}`);
+  };
+  input.addEventListener("change", () => {
+    const file = input.files && input.files[0];
+    if (!file || !/^image\/(jpeg|png)$/.test(file.type)) { crop.hidden = true; return; }
+    const url = URL.createObjectURL(file);
+    image.onload = () => {
+      crop.hidden = false;
+      const b = bounds();
+      box.w = Math.min(b.w, (b.h * 3) / 4);
+      box.x = (b.w - box.w) / 2;
+      box.y = (b.h - (box.w * 4) / 3) / 2;
+      draw();
+    };
+    image.src = url;
+  });
+  let drag = null;
+  const start = (event, mode) => {
+    event.preventDefault();
+    event.stopPropagation();
+    drag = { mode, x: event.clientX, y: event.clientY, box: { ...box } };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", stop, { once: true });
+  };
+  const move = (event) => {
+    if (!drag) return;
+    const dx = event.clientX - drag.x;
+    const dy = event.clientY - drag.y;
+    if (drag.mode === "move") box = { ...drag.box, x: drag.box.x + dx, y: drag.box.y + dy };
+    else box = { ...drag.box, w: drag.box.w + Math.max(dx, (dy * 3) / 4) };
+    draw();
+  };
+  const stop = () => { drag = null; window.removeEventListener("pointermove", move); };
+  frame.addEventListener("pointerdown", (event) => start(event, "move"));
+  handle?.addEventListener("pointerdown", (event) => start(event, "resize"));
+  frame.addEventListener("keydown", (event) => {
+    const step = { ArrowLeft: [-5, 0], ArrowRight: [5, 0], ArrowUp: [0, -5], ArrowDown: [0, 5] }[event.key];
+    if (!step) return;
+    event.preventDefault();
+    if (event.shiftKey) box.w += step[0] + step[1];
+    else { box.x += step[0]; box.y += step[1]; }
+    draw();
+  });
+}));
+
 const initAll = (root) => initializers.forEach((init) => init(root));
 initAll(document);
 initModal();

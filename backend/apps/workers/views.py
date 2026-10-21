@@ -64,6 +64,7 @@ from services import (
     worker_documents,
     worker_list,
     worker_overview,
+    worker_photos,
     workers,
 )
 
@@ -182,6 +183,7 @@ class WorkerDetailView(ActionRequiredMixin, TemplateView):
             back_url=reverse("workers:list") + (f"?{list_query}" if list_query else ""),
             head=self.head,
             initial=worker_overview.initial_of(self.worker),
+            photo=worker_photos.latest(self.worker),  # 申請用の写真（U4）
             toc=[],
             can_manage=active and authorization.has_action(user, Action.WORKERS_MANAGE),
             can_deactivate=active and authorization.has_action(user, Action.WORKERS_DEACTIVATE),
@@ -305,9 +307,15 @@ class WorkerHistoryView(WorkerDetailView):
     def tab_context(self, context: dict[str, Any]) -> dict[str, Any]:
         entries = worker_detail.history(self.worker)
         context["entries"] = entries
+        photos = worker_photos.history(self.worker)
+        # 「使っている写真」は取り消していない最新の写真（並びは新しい順）
+        context["photos"] = photos
         periods = staff_periods.worker_periods(self.worker)
         context["staff_periods"] = periods
-        shown: dict[str, list[int]] = {"staff_assignment": [period.pk for period in periods]}
+        shown: dict[str, list[int]] = {
+            "staff_assignment": [period.pk for period in periods],
+            "worker_photo": [photo.pk for photo in photos],
+        }
         for entry in entries:
             shown.setdefault(entry.kind, []).append(entry.record.pk)
         return {"shown": shown}

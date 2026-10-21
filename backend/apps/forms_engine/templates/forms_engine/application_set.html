@@ -11,6 +11,7 @@
     </form>
     <p class="caption" id="application-set-source">{% blocktranslate with name=overview.definition.name day=overview.definition.valid_from|date:"Y-m-d" %}{{ name }}: the list of documents to submit (revised on {{ day }}). Rows marked ○ are required; △ only when they apply.{% endblocktranslate %}</p>
     {% if not overview.facts.contract %}<p class="message message--warning" id="application-set-no-contract">{% translate "There is no employment contract on the basis date, so rows that depend on the host organization cannot be judged." %}</p>{% endif %}
+    {% if photo_notice %}<p class="section-notice section-notice--caution" id="photo-notice">{{ photo_notice }}{% if photo %} <a href="{% url 'workers:history' worker.pk %}#photos">{% translate "Application photos" %}</a>{% elif can_manage %} <a href="{% url 'workers:photo_create' worker.pk %}">{% translate "Register a photo" %}</a>{% endif %}</p>{% endif %}
     <p id="application-set-open">{% blocktranslate count counter=overview.open_count %}{{ counter }} required document is not ready.{% plural %}{{ counter }} required documents are not ready.{% endblocktranslate %}</p>
     {% if can_generate %}<div class="cluster" id="application-set-actions">
       {% if row_checks %}<a class="button button--primary" href="{% url 'workers:application_bulk' worker.pk %}?{{ query }}" id="application-bulk-link">{% translate "Generate the missing documents" %}</a>{% endif %}

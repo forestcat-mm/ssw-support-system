@@ -22,12 +22,14 @@ from apps.core.fields import BlindIndexField, EncryptedCharField
 from apps.core.models import (
     Attachment,
     Country,
+    PrivateFileField,
     Staff,
     StaffPeriod,
     SupportLanguage,
     TrackedModel,
 )
 from services import passport, residence_card
+from services.files import upload_path
 
 
 class ConfirmedValue(models.Model):
@@ -580,3 +582,39 @@ class LatestWorkerContact(models.Model):
 
     def __str__(self) -> str:
         return f"{self.worker_id}: {self.record_id}"
+
+
+def photo_upload_to(instance: object, filename: str) -> str:
+    return upload_path("workers/photos", filename)
+
+
+class WorkerPhoto(HistoryRecord):
+    """申請用の写真（U4。ADR-0047）。履歴行: 新しい写真を足すと前の写真は履歴に残る。
+
+    元の画像（向きを正し、EXIF を消したもの）と、縦 3:4 に切り抜いた画像（JPEG）を持つ。
+    誤りは取消。ファイルに URL は作らない（PrivateFileField）。画面の写真は認可つきの
+    画像の取り出しから出す。
+    """
+
+    worker = models.ForeignKey(
+        ForeignWorker,
+        verbose_name=_("foreign worker"),
+        on_delete=models.PROTECT,
+        related_name="photos",
+    )
+    original = PrivateFileField(_("original image"), upload_to=photo_upload_to, max_length=255)
+    cropped = PrivateFileField(_("photo (3:4)"), upload_to=photo_upload_to, max_length=255)
+    original_format = models.CharField(_("format of the original image"), max_length=8)
+    crop_left = models.PositiveIntegerField(_("crop left"))
+    crop_top = models.PositiveIntegerField(_("crop top"))
+    crop_width = models.PositiveIntegerField(_("crop width"))
+    crop_height = models.PositiveIntegerField(_("crop height"))
+    taken_on = models.DateField(_("taken on"))
+
+    class Meta:
+        verbose_name = _("application photo")
+        verbose_name_plural = _("application photos")
+        ordering = ("-created_at", "-pk")
+
+    def __str__(self) -> str:
+        return f"{self.worker_id}: {self.taken_on:%Y-%m-%d}"
