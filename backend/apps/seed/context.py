@@ -2,13 +2,18 @@
 
 from __future__ import annotations
 
+import datetime
 import io
 import random
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import date, timedelta
+from datetime import date, time, timedelta
+from zoneinfo import ZoneInfo
 
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.utils import timezone
 from pypdf import PdfWriter
 from pypdf.generic import DecodedStreamObject, DictionaryObject, NameObject
 
@@ -19,9 +24,25 @@ from apps.seed.models import SeedObject
 from apps.workers.models import ForeignWorker
 
 SEED = 20261016
+TOKYO = ZoneInfo("Asia/Tokyo")
 DUMMY_MARK = "（ダミー）"
 DUMMY_USERNAME = "dummy_tanto"
 DUMMY_USERNAME_2 = "dummy_tanto2"  # 2 人目の担当者（鈴木 次郎）
+
+
+@contextmanager
+def as_of(day: date, at: time = time(10)) -> Iterator[None]:
+    """この中の「今」をその日の時刻にする（生成日・署名日の検査のため。抜けると元に戻す）。
+
+    seed_scenario と seed_documents が使う。監査ログの日時（モデルの既定）は実際の時刻のまま。
+    """
+    real = timezone.now
+    offset = datetime.datetime.combine(day, at, tzinfo=TOKYO) - real()
+    timezone.now = lambda: real() + offset
+    try:
+        yield
+    finally:
+        timezone.now = real
 
 
 def _dummy_pdf() -> bytes:

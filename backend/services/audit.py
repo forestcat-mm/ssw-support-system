@@ -161,6 +161,7 @@ EXCLUDED_MODELS: Mapping[str, str] = {
     "core.recoverycodedevice": "MFA 端末（ADR-0001）。設定・リセットはイベントで記録",
     "core.recoverycode": "MFA 端末（ADR-0001）。ハッシュのみで内容は記録しない",
     "seed.seedobject": "ダミーデータの台帳（開発用。seed_dummy が書く）",
+    "seed.seedrun": "ダミーデータの基準日（開発用。seed_dummy が書く）",
     "workers.latestresidencerecord": "最新行の DB ビュー（読み取り専用）",
     "workers.latestpassportrecord": "最新行の DB ビュー（読み取り専用）",
     "workers.latestworkeraddress": "最新行の DB ビュー（読み取り専用）",

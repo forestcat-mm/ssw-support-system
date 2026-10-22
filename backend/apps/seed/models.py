@@ -52,3 +52,22 @@ class SeedObject(TrackedModel):
 
     def __str__(self) -> str:
         return f"{self.content_type.model}:{self.object_id}"
+
+
+class SeedRun(TrackedModel):
+    """seed_dummy の基準日（区分ごとに 1 行。開発用。fix2）。
+
+    seed_documents が seed_dummy と同じ基準日で生成物を作るために読む。書くのは seed_dummy
+    だけで、DEBUG と ALLOW_DUMMY_DATA が true のときだけ（builders.ensure_allowed）。
+    本番の DB では空のまま。
+    """
+
+    scope = models.CharField(_("scope"), max_length=16, choices=SeedScope.choices, unique=True)
+    base_on = models.DateField(_("base date"))
+
+    class Meta:
+        verbose_name = _("dummy data base date")
+        verbose_name_plural = _("dummy data base dates")
+
+    def __str__(self) -> str:
+        return f"{self.scope}: {self.base_on}"
