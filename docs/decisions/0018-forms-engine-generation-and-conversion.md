@@ -132,6 +132,13 @@ T29 で見本の様式（第1-17号〔Excel〕・第5-9号〔Word〕）を実際
 | ＭＳ Ｐゴシック・MS PGothic | **Noto Sans CJK JP**（列幅が合うため） | fonts-noto-cjk 1:20220127+repack1-1 |
 | SimSun・宋体（中国語） | Noto Serif CJK SC | 同上 |
 | Calibri | Carlito | fonts-crosextra-carlito 20220224-1 |
+| SimHei・黑体・DengXian・等线・Microsoft YaHei・微软雅黑（中国語のゴシック体） | Noto Sans CJK SC | fonts-noto-cjk（2026-10-22。ADR-0048） |
+| Microsoft JhengHei・微軟正黑體（繁体字のゴシック体） | Noto Sans CJK TC | 同上 |
+| Times New Roman | Liberation Serif（字の幅が同じ） | fonts-liberation2 2.1.5-1（2026-10-22。ADR-0048） |
+| Arial | Liberation Sans（字の幅が同じ） | 同上 |
+| Century | Liberation Serif（Century より 1 割ほど狭い。幅が同じ C059 などは行が高く頁が増えた） | 同上 |
+
+字が無いときの行き先として DejaVu（fonts-dejavu-core 2.37-6）も入れる（Liberation を入れると依存で入らなくなるので明示。ADR-0048）。中国語の字形（簡体字か日本の字形か）は字体ではなく run の言語で決まるので、PDF の直前の写しで中国語の字体の run の言語を zh-CN にする（ADR-0048・ADR-0032 の例外の一覧）。
 
 fontconfig は 2.14.1-4。パッケージの版を変えたら、空の様式の変換の頁数（テスト）と見た目を確かめ直す。
 

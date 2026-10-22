@@ -177,7 +177,9 @@ def test_converting_1_25_again_gives_the_same_xml(tmp_path: Path) -> None:
         names = [name for name in reg.namelist() if name.startswith("word/")]
         assert names
         for name in names:
-            assert again.read(name) == reg.read(name), name
+            assert doc_conversion.neutral_fonts(name, again.read(name)) == (
+                doc_conversion.neutral_fonts(name, reg.read(name))
+            ), name
 
 
 # --- 産業の照合 ---------------------------------------------------------------------------------

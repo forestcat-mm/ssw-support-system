@@ -504,11 +504,21 @@ def _render(
             form_docx.render(source.parent / supplement["file"], extra, values)
             form_docx.append_body(filled, extra)
             extra.unlink()
+        # 保存する文書は公式の組み方のまま。変換の直前の一時の写しでだけ変える（ADR-0032）:
+        # 頁の組み方（manifest の pdf_layout）と、中国語の字体の run の言語（ADR-0048）
+        copy = workdir / "for-pdf" / filled.name
+        source_for_pdf = filled
         layout = (template.manifest or {}).get("pdf_layout")
         if layout:
-            # 保存する文書は公式の組み方のまま。変換の直前の一時の写しでだけ詰める（ADR-0032）
-            copy = workdir / "for-pdf" / filled.name
             form_docx.with_pdf_layout(filled, copy, layout)
+            source_for_pdf = copy
+        language = workdir / "for-pdf" / f"zh-{filled.name}"
+        if form_docx.with_chinese_language(source_for_pdf, language).changed:
+            language.replace(copy)
+            source_for_pdf = copy
+        else:
+            language.unlink()
+        if source_for_pdf != filled:
             pdf = form_convert.convert(copy)
             copy.unlink()
             return filled, pdf

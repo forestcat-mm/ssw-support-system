@@ -29,11 +29,13 @@ step() {
 
 step apt-update apt-get update -q
 # VM に既にある: postgresql-16・redis-server・LibreOffice 24.2・IPA ゴシック・Carlito・python3.12。
-# 足す: gettext・GUI なしの LibreOffice（Docker のイメージと同じ名前）・IPA 明朝・Noto CJK
+# 足す: gettext・GUI なしの LibreOffice（Docker のイメージと同じ名前）・IPA 明朝・Noto CJK・Liberation
+# （web のイメージと同じ字体。web に無い字体は、フックが写す 97-reject-fonts-not-in-web.conf で使わせない）
 step apt-install apt-get install -y -q --no-install-recommends \
   "python$PYTHON_VERSION" postgresql-16 redis-server gettext \
   libreoffice-writer-nogui libreoffice-calc-nogui \
-  fontconfig fonts-ipafont-mincho fonts-ipafont-gothic fonts-noto-cjk fonts-crosextra-carlito
+  fontconfig fonts-ipafont-mincho fonts-ipafont-gothic fonts-noto-cjk fonts-crosextra-carlito \
+  fonts-liberation2
 # uv（astral.sh は許可されていないので PyPI から。VM の既定の uv を同じ場所で置き換える）
 step uv uv tool install --force "uv==$UV_VERSION"
 # Playwright の Chromium（VM の既定の chromium-1194 は playwright 1.63 に合わない。同じ場所に足す）
