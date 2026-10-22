@@ -1,6 +1,6 @@
 # ADR-0045: 段階4のダミーデータと gate4
 
-- 状態: 採用（T55）。不在の間の指示（2026-10-20・21）により、決めてほしい点はおすすめで決めた（`.checks/phase4/blockD/plan.md`・`docs/decisions/log/phase4-blockBCD.md` の T55-D1・D2、D-4）
+- 状態: 採用（T55。2026-10-22 に決定 5〔seed_documents の基準日〕を追記）。不在の間の指示（2026-10-20・21）により、決めてほしい点はおすすめで決めた（`.checks/phase4/blockD/plan.md`・`docs/decisions/log/phase4-blockBCD.md` の T55-D1・D2、D-4）
 - 日付: 2026-10-21
 - 関連: ADR-0038（台帳の項目）・0039（一括申請）・0040（一括届出）、`docs/tasks-phase4.md` の段階4の完了条件 A、`docs/dummy-data.md`
 
@@ -19,6 +19,11 @@
    - ダウンロードした xlsm を読み戻して、写した入力チェック（列項目TBL・業務コードTBL の全規則）を通り、入力シート以外のファイル（vbaProject.bin・ActiveX・ブック・スタイル・名前定義）が元のブックと同じ。
    - `make checks` に `GATE4=1` で足した。
 4. **gate4 で見つけたこと**: 一括申請（変更）の「希望する在留期間」の選択肢を「特定技能１号」の頭で絞ると、変更の表（「１年」など）では空になり、画面で選べなかった（T48 の不備。fix 2cff922 で、絞ると空になるときは絞らないようにした）。
+
+5. **seed_documents の基準日**（2026-10-22 に追記。fix2。`.checks/phase4/fix2/plan.md` の F2-D1 は A）: seed_documents は実際の今日で生成していたので、seed_dummy の 26 日以上後に流すと、食品の受入れ機関の加入の有効期限（基準日＋25 日）を過ぎて第13-1号の生成前の検査で止まった。
+   - seed_dummy が基準日を表 `SeedRun`（区分ごとに 1 行）に記録し、`--reset` で書き直す。seed_documents の基準日は `--date`（`make seed-docs DATE=…`）→ 記録 → 今日（記録の無い古い DB。知らせる）の順。生成と署名は基準日の時刻で行う（`apps/seed/context.as_of`。seed_scenario と共通にした）。
+   - 本番: seed アプリは本番の設定でも INSTALLED_APPS に入るので、マイグレーションで表は作られるが空のまま。表を作るだけのマイグレーションで、書くのは seed_dummy だけ。seed のコマンドは DEBUG と ALLOW_DUMMY_DATA が true でなければ何も書かずに止まる（設定の既定はどちらも false）。表を読むのは seed_documents だけ。admin に出さない。監査ログは記録しない表（`services/audit.py` の EXCLUDED_MODELS）。
+   - 基準日が 2027-04-01 以降だと、seed_dummy の業務区分「飲食料品製造業全般」（2027-03-31 まで）のため第13-1号で止まる（F2-D2。別の依頼。`docs/handoff-mvp.md` の後で直す一覧）。
 
 ## 未確認の点
 
