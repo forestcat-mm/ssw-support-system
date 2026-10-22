@@ -13,10 +13,12 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from django.core.management import call_command
+from django.core.management import CommandError, call_command
+from django.utils import timezone
 
 from apps.filings.models import Filing, FilingKind
 from apps.forms_engine.models import GeneratedDocument, GenerationStatus
+from apps.seed.models import SeedRun
 from apps.workers.models import ForeignWorker, WorkerStatus
 from services import application_sets, contracts, form_data_application, form_generation
 from services.form_signatures import SignatureState, state
@@ -46,9 +48,11 @@ def test_uncertified_host_blocks_the_pledge(seeded: list[ForeignWorker]) -> None
 def test_seed_documents_make_the_signature_scenes(
     seeded: list[ForeignWorker], settings: Any, today_is: Callable[[datetime.date], None]
 ) -> None:
-    today_is(BASE)  # seed_documents は今日で作る。seed_dummy と同じ基準日にする
+    # seed_dummy の 60 日後に流しても、記録した seed_dummy の基準日で作る（fix2）
+    today_is(BASE + datetime.timedelta(days=60))
     out = StringIO()
     call_command("seed_documents", stdout=out)
+    assert f"base date {BASE}" in out.getvalue()
     documents = {
         (document.worker_id, document.template.form_id): document
         for document in GeneratedDocument.objects.select_related("template")
@@ -70,7 +74,46 @@ def test_seed_documents_make_the_signature_scenes(
     assert [f["code"] for f in warned.findings] == ["career_plan_missing"]
     tasks = Filing.objects.filter(kind=FilingKind.SIGNED_COPY_COLLECTION)
     assert {task.object_id for task in tasks} == {bilingual.pk, awaiting.pk}
+    # 生成日・署名日は基準日（seed の中だけ「今」をずらす）
+    assert {timezone.localdate(d.generated_at) for d in documents.values() if d.generated_at} == {
+        BASE
+    }
     count = GeneratedDocument.objects.count()
     call_command("seed_documents", stdout=out)
     assert GeneratedDocument.objects.count() == count
     assert "already exist" in out.getvalue()
+
+
+def test_seed_documents_date_option_overrides_the_recorded_base(
+    seeded: list[ForeignWorker],
+) -> None:
+    """--date（make seed-docs DATE=…）は、記録した seed_dummy の基準日より優先する。"""
+    on = BASE + datetime.timedelta(days=3)
+    out = StringIO()
+    call_command("seed_documents", "--date", on.isoformat(), stdout=out)
+    assert f"base date {on}" in out.getvalue()
+    dates = {timezone.localdate(d.generated_at) for d in GeneratedDocument.objects.all()}
+    assert dates == {on}
+
+
+def test_seed_documents_uses_today_without_the_record(
+    seeded: list[ForeignWorker], today_is: Callable[[datetime.date], None]
+) -> None:
+    """基準日の記録の無い古い開発用 DB は今日で作り、DATE で渡すよう知らせる。"""
+    SeedRun.objects.all().delete()
+    today_is(BASE)
+    out = StringIO()
+    call_command("seed_documents", stdout=out)
+    assert "基準日が記録されていない" in out.getvalue() and f"base date {BASE}" in out.getvalue()
+
+
+@pytest.mark.parametrize(("debug", "allowed"), [(False, True), (True, False)])
+def test_seed_documents_refuses_outside_development(
+    seeded: list[ForeignWorker], settings: Any, debug: bool, allowed: bool
+) -> None:
+    """DEBUG か ALLOW_DUMMY_DATA が false なら、何も作らずに止まる（本番の設定）。"""
+    settings.DEBUG = debug
+    settings.ALLOW_DUMMY_DATA = allowed
+    with pytest.raises(CommandError):
+        call_command("seed_documents", stdout=StringIO())
+    assert not GeneratedDocument.objects.exists()

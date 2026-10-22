@@ -75,7 +75,7 @@ from apps.seed.context import (
     SeedContext,
     dummy_pdf,
 )
-from apps.seed.models import SeedObject, SeedScope
+from apps.seed.models import SeedObject, SeedRun, SeedScope
 from apps.workers.models import (
     ApplicationType,
     ForeignWorker,
@@ -1162,7 +1162,14 @@ def run(base: date) -> SeedContext:
     ctx = SeedContext(base=base)
     for step in STEPS:
         step(ctx)
+    # 基準日を記録する（seed_documents が同じ基準日で生成物を作る。fix2）
+    SeedRun.objects.update_or_create(scope=SeedScope.DUMMY, defaults={"base_on": base})
     return ctx
+
+
+def base_date() -> date | None:
+    """記録した seed_dummy の基準日（記録の無い古い開発用 DB なら None）。"""
+    return SeedRun.objects.filter(scope=SeedScope.DUMMY).values_list("base_on", flat=True).first()
 
 
 # 消す順番（依存の逆順）。台帳に無い行（届出タスク）は対象から辿って消す
@@ -1254,6 +1261,7 @@ def reset(
             by_model.setdefault(model, []).append(entry.object_id)
     deleted = delete_rows(by_model)
     SeedObject.all_objects.filter(scope=scope).delete()
+    SeedRun.objects.filter(scope=scope).delete()
     return deleted + deleted_scenario
 
 

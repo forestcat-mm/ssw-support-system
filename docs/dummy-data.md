@@ -271,6 +271,8 @@ seed を流した直後のダッシュボードの行と外国人ごとの警告
 ### 生成物の場面（make seed-docs。T39-D2）
 生成は PDF の変換を伴うので seed_dummy には入れず、別のコマンド `seed_documents` にした（作成済みなら何もしない。生成物は `make seed-reset` で消える）。
 
+基準日（2026-10-22。fix2）: seed_dummy が基準日を記録し（`SeedRun`）、seed_documents はその日で作る。`make seed` と `make seed-docs` を別の日に流しても同じ場面になる（前は seed_documents が今日で作ったので、seed_dummy の 26 日以上後に流すと、食品の受入れ機関の加入の有効期限〔基準日＋25 日〕を過ぎて第13-1号で止まった）。`make seed-docs DATE=YYYY-MM-DD` で基準日を指定できる。基準日の記録の無い古い開発用 DB（2026-10-22 より前に `make seed` した DB）は今日で作り、そのことを知らせる。seed の基準日で作るときは `DATE=` で渡す（例: 2026-10-21 に seed した DB は `make seed-docs DATE=2026-10-21`）。生成と署名は基準日の時刻で行う（seed_scenario と同じ。監査ログの日時は実際の時刻）。基準日が 2027-04-01 以降だと業務区分の都合で止まる（`docs/handoff-mvp.md` の後で直す一覧）。
+
 | 外国人 | 様式 | 場面 |
 |---|---|---|
 | 2 番（中国語） | 第1-5号（日中併記。T38） | 署名待ち・中国語の外国人 |

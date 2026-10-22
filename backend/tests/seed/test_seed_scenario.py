@@ -19,6 +19,7 @@ from apps.core.models import Attachment, AuditAction, AuditLog, Role, User, User
 from apps.forms_engine.models import GeneratedDocument
 from apps.hosts.models import HostOrganization, SupportContractFee
 from apps.seed import builders, scenario
+from apps.seed.context import as_of
 from apps.seed.models import SeedObject
 from apps.support.models import (
     Briefing,
@@ -168,7 +169,7 @@ def test_resetting_the_dummy_data_also_removes_the_scenario() -> None:
 
 def test_as_of_moves_now_only_inside() -> None:
     before = timezone.localdate()
-    with scenario.as_of(date(2026, 7, 7)):
+    with as_of(date(2026, 7, 7)):
         assert timezone.localdate() == date(2026, 7, 7)
     assert timezone.localdate() == before
 
@@ -269,7 +270,7 @@ def test_audit_log_keeps_the_real_time_inside_as_of() -> None:
     real_day = timezone.localdate()
     worker = ForeignWorker.objects.first()
     assert worker is not None
-    with scenario.as_of(date(2026, 7, 7)):
+    with as_of(date(2026, 7, 7)):
         assert timezone.localdate() == date(2026, 7, 7)
         worker.name_kana = "テスト"
         worker.save()

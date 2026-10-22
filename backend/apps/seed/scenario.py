@@ -22,20 +22,15 @@
 
 from __future__ import annotations
 
-import datetime
-from collections.abc import Iterator
-from contextlib import contextmanager
 from dataclasses import dataclass, field, replace
 from datetime import date, time
 from decimal import Decimal
 from typing import Any
-from zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.base import ContentFile
 from django.db import models, transaction
-from django.utils import timezone
 
 from apps.contracts.models import (
     EmploymentContract,
@@ -74,7 +69,7 @@ from apps.hosts.models import (
     SupportContract,
 )
 from apps.seed import builders
-from apps.seed.context import DUMMY_USERNAME, dummy_pdf
+from apps.seed.context import DUMMY_USERNAME, as_of, dummy_pdf
 from apps.seed.models import SeedObject, SeedScope
 from apps.seed.photo_builders import dummy_image
 from apps.support.models import (
@@ -150,7 +145,6 @@ SECTIONS = {
     8: "定期面談と相談",
 }
 LAST_SECTION = max(SECTIONS)
-TOKYO = ZoneInfo("Asia/Tokyo")
 HOST_NAME = "さくら台フーズ株式会社"
 WORKER_ROMAJI = "WANG LINA"
 # 業務区分は 2026 年に選べる「飲食料品製造業全般」（「飲食料品製造業」は 2027-04-01 から）
@@ -225,18 +219,6 @@ class ScenarioContext:
         )
         self.created.append(obj)
         return obj
-
-
-@contextmanager
-def as_of(day: date, at: time = time(10)) -> Iterator[None]:
-    """この中の「今」をその日の時刻にする（生成日・署名日の検査のため。抜けると元に戻す）。"""
-    real = timezone.now
-    offset = datetime.datetime.combine(day, at, tzinfo=TOKYO) - real()
-    timezone.now = lambda: real() + offset
-    try:
-        yield
-    finally:
-        timezone.now = real
 
 
 # ダミーの PDF に書く書類の名前（英字。統合 PDF で見分けられるように）

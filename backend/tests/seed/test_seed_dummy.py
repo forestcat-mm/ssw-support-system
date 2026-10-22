@@ -18,7 +18,7 @@ from apps.contracts.models import (
 from apps.filings.models import Filing, FilingKind
 from apps.hosts.models import HostOrganization, HostSite
 from apps.seed.context import DUMMY_USERNAME
-from apps.seed.models import SeedObject
+from apps.seed.models import SeedObject, SeedRun
 from apps.workers.models import (
     ForeignWorker,
     LatestResidenceRecord,
@@ -178,6 +178,16 @@ def test_refuses_outside_development(settings: Settings, debug: bool, allowed: b
     with pytest.raises(CommandError):
         _seed("--reset")
     assert not ForeignWorker.objects.exists()
+    assert not SeedRun.objects.exists()  # 基準日の表は空のまま（本番の設定。fix2）
+
+
+def test_records_the_base_date_and_reset_rewrites_it() -> None:
+    """seed_dummy は基準日を記録し（seed_documents が使う。fix2）、--reset で書き直す。"""
+    _seed()
+    assert SeedRun.objects.get(scope="dummy").base_on == BASE
+    out = StringIO()
+    call_command("seed_dummy", "--reset", "--date", "2026-11-01", stdout=out)
+    assert SeedRun.objects.get(scope="dummy").base_on == date(2026, 11, 1)
 
 
 def test_reset_keeps_non_dummy_data() -> None:
