@@ -150,6 +150,11 @@ def _bulk_application(
     entry = BulkApplicationEntry.objects.get(application=application, worker=worker)
     fill_inputs(entry, procedure)
     page.locator(f'tr[data-entry="{entry.pk}"]').get_by_role("link", name="入力").click()
+    contact = page.get_by_label("日本における連絡先（郵便番号）")
+    if procedure == "coe":  # 認定だけ、日本における連絡先を行の入力に持つ（ADR-0039 決定 17）
+        expect(contact).to_have_value(entry.inputs["contact_postal"])
+    else:
+        expect(contact).to_have_count(0)
     page.get_by_role("button", name="保存する").click()
     expect(page.get_by_text("保存しました")).to_be_visible()
     problems = bulk_applications.check(application)

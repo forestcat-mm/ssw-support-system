@@ -2,6 +2,9 @@
 
 - --until N: 節 1〜N が終わった状態（1 自機関と担当者 … 8 定期面談と相談。既定は 8）。
 - --with-docs: 節 6 の生成物と署名済みの添付など、PDF の変換を伴うものも作る（遅い）。
+- --ledger: 段階4の台帳の項目（節 1〜3 の一括申請の項目）も入れる。
+- --bulk: 一括申請（節 6 の 6-18〜6-20。認定・2026-07-10）も節 5 の後に作る（--ledger を含む。
+  --until 5 以上）。Excel は作らない。
 - 作成済みなら何もしない。--reset でシナリオの記録だけを消して作り直す（ダミーデータは消さない）。
 - seed_dummy の後に流す（担当者 dummy_tanto・自機関を使う）。
 - DEBUG かつ ALLOW_DUMMY_DATA のときだけ動く。
@@ -34,6 +37,16 @@ class Command(BaseCommand):
             "--with-docs",
             action="store_true",
             help="Also generate the forms and attach the signed copies (slow).",
+        )
+        parser.add_argument(
+            "--ledger",
+            action="store_true",
+            help="Also fill the ledger items for the bulk application (phase 4).",
+        )
+        parser.add_argument(
+            "--bulk",
+            action="store_true",
+            help="Also create the bulk application (certificate of eligibility). Implies --ledger.",
         )
         parser.add_argument(
             "--reset", action="store_true", help="Delete the scenario records and recreate them."
@@ -89,13 +102,21 @@ class Command(BaseCommand):
                 )
             )
             return
-        result = scenario.run(options["until"], with_docs=options["with_docs"])
+        result = scenario.run(
+            options["until"],
+            with_docs=options["with_docs"],
+            ledger=options["ledger"],
+            bulk=options["bulk"],
+        )
         # 最後の説明は日本語（開発用の道具。2026-10-20 の指示）
         sections = "、".join(f"{n} {scenario.SECTIONS[n]}" for n in range(1, result.until + 1))
         docs = "あり" if result.with_docs else "なし"
+        ledger = "あり" if result.ledger else "なし"
+        bulk = "あり" if result.bulk else "なし"
         self.stdout.write(
             self.style.SUCCESS(
-                f"テストシナリオの記録を作りました（節: {sections}。生成物: {docs}）: "
+                f"テストシナリオの記録を作りました（節: {sections}。生成物: {docs}。"
+                f"段階4の台帳の項目: {ledger}。一括申請: {bulk}）: "
                 f"{result.rows} 行、生成物 {result.documents} 件"
             )
         )

@@ -13,6 +13,9 @@
 - 作った行はダミーの台帳（SeedObject）に scope="scenario" で載せる。消すのは reset() だけで、
   seed_dummy のダミーデータは消さない。
 - 生成と署名は、その場面の日付の時刻で行う（as_of。署名日は生成日より前にできないため）。
+- 段階4の台帳の項目（節 1〜3 の一括申請の項目）は `ledger` のときだけ入れる。一括申請（節 6 の
+  6-18〜6-20。認定・基準日 2026-07-10）は `bulk` のときだけ節 5 の後に作る（`ledger` を含む。
+  Excel は作らない）。既定（どちらも無し）は段階3の本線のまま。
 業務のルール（検査・タスクの起票）は services をそのまま呼ぶ。値はシナリオの「本線のダミーデータ
 一覧」のとおり。値の無い欄は空にする。作れなかった値は NOT_STORED に書く。
 """
@@ -46,18 +49,24 @@ from apps.core.models import (
     Attachment,
     AttachmentKind,
     Country,
+    Office,
     Organization,
+    OrganizationOfficer,
     Staff,
     SupportLanguage,
     User,
 )
-from apps.forms_engine.models import GeneratedDocument
+from apps.forms_engine.models import BulkApplication, BulkProcedure, GeneratedDocument
 from apps.hosts.models import (
     CareerPlanLevel,
     CareerPlanVersion,
     FeeTiming,
+    HostApplicantContact,
     HostCooperationConfirmation,
+    HostDeclaration,
+    HostFinancialYear,
     HostMembership,
+    HostOfficer,
     HostOrganization,
     HostSite,
     OperationCategory,
@@ -67,6 +76,7 @@ from apps.hosts.models import (
 from apps.seed import builders
 from apps.seed.context import DUMMY_USERNAME, dummy_pdf
 from apps.seed.models import SeedObject, SeedScope
+from apps.seed.photo_builders import dummy_image
 from apps.support.models import (
     ConsultationStatus,
     InterviewPreference,
@@ -76,16 +86,25 @@ from apps.support.models import SupportPlan as SupportPlanOf
 from apps.workers.models import (
     ApplicationType,
     ForeignWorker,
+    InternshipCompletion,
     PassportRecord,
+    QualificationArea,
     ResidenceRecord,
     Sex,
     StatusOfResidence,
     WorkerAddress,
     WorkerContact,
+    WorkerPhoto,
+    WorkerQualification,
+    WorkerRelative,
     WorkerStatus,
+    WorkHistory,
 )
 from services import (
+    addresses,
     briefings,
+    bulk_application_data,
+    bulk_applications,
     career_plans,
     consultations,
     contracts,
@@ -99,6 +118,8 @@ from services import (
     form_data_interview,
     form_generation,
     form_signatures,
+    host_application,
+    host_declarations,
     host_records,
     interview_answers,
     support_interviews,
@@ -106,8 +127,10 @@ from services import (
     support_records,
     wage_explanations,
     worker_documents,
+    worker_photos,
     workers,
 )
+from services import organization as organization_records
 from services.attachments import create_attachment
 from services.briefings import BriefingInput, CheckInput, FeeInput, SessionInput
 from services.consultations import EntryInput, ReceptionInput
@@ -137,7 +160,8 @@ SIGNED_ON = date(2026, 7, 8)  # 節 6 の署名済みの添付の署名日
 
 # 値はあるが、今の作りに欄が無い・決まった形で入れられないもの（報告に書く）
 NOT_STORED = (
-    "外国人の出生地（中国河南省）: 外国人の台帳に出生地の欄が無い",
+    "外国人の出生地（中国河南省洛陽市）など段階4の台帳の項目: --ledger（make の LEDGER=1）の"
+    "ときだけ入れる",
     "協議会の名称（食品産業特定技能協議会）: 加入の行に協議会の名称の欄が無い（分野で決まる）",
     "報酬の説明の賃金規程の報酬（月給 205,000〜230,000 円）: 欄は 1 つの額なので "
     "205,000 円を入れた",
@@ -152,6 +176,31 @@ NOT_STORED = (
 # 同じ値（キャリアアッププランの適用開始日とキャリアルート・支援計画の適用開始日・雇用契約の第1版の
 # 変更日・業務区分・本人確認の印・2 回目の面談の ⑥ の対応・費用の内訳）が入ったので、今は無い
 FILLED: tuple[str, ...] = ()
+
+# --ledger・--bulk のときの、欄が無い・決まった形で入れられないもの（報告に書く）
+LEDGER_NOT_STORED = (
+    "自機関の法人番号（8300001234567）: seed_dummy の値があるので変えない",
+    "受入れ機関の申請担当者の部署（総務部）: 申請担当者に部署の欄が無い",
+    "受入れ機関の決算の年度の始め（2025-04-01）: 決算は期末の日（2026-03-31）だけを持つ。純損益・"
+    "純資産は値が無いので空",
+    "第1-11-1号 ３ の人数（常勤の職員 120 人・特定技能外国人 0 人）: ３ は離職者数と行方不明者数の"
+    "欄。120 人は事業所の常勤職員数に入れた",
+    "職歴の仕事の内容（冷凍食品の製造）: 職歴の行に内容の欄が無い（勤務先の名称だけ）",
+)
+BULK_NOT_STORED = (
+    "主たる職種（飲食料品製造業全般）: ツールの選択肢に無いので、契約の業務と事業所の産業分類に"
+    "合う「そう菜製造業」にした",
+    "外国の機関名と支払額（鄭州サンプル人材服務・150,000 円）: 一括申請の値は事前ガイダンスの記録"
+    "（鄭州サンプル人材服務（架空の送出機関）・150000円）から取る（行の入力は使われない）",
+)
+# --ledger のときの、値に無いが入力が必須なので決めて入れたもの
+LEDGER_FILLED = (
+    "技能水準・日本語能力の受験地: ツールで必須なので中国にした",
+    "受入れ機関の申告: (21) 無・(26) 有・(32) 有（通常の答え）、(27)(28) 空（労働者派遣ではない）、"
+    "(29) の内容「労災保険・雇用保険に加入」、申告日 2026-07-10（申請の基準日）",
+    "第1-11-1号 ３: 離職者数は 4 つとも 0 人、行方不明者数は特定技能 0 人（技能実習は実習実施者"
+    "ではないので空）",
+)
 
 
 class ScenarioError(Exception):
@@ -1037,6 +1086,210 @@ def _interview_reports(ctx: ScenarioContext, interview: PeriodicInterview) -> No
             )
 
 
+# --- 段階4の台帳の項目（--ledger。節 1〜3 の一括申請の項目） ------------------------------------
+
+BULK_BASIS = date(2026, 7, 10)  # 一括申請（認定）の基準日。申告日も同じ日にする
+ORGANIZATION_ADDRESS = ("101-0021", "東京都千代田区外神田一丁目2番3号 サンプルビル4階")
+STAFF_EMAIL = "sato.hanako@example.com"
+# 申告で「有」にする項目（指示の (23)(29)(30)(31) と、通常の答えが「有」の (26)(32)）
+DECLARATION_YES = ("23", "26", "29", "30", "31", "32")
+DECLARATION_BLANK = ("27", "28")  # 労働者派遣ではない（ADR-0038 決定 10）
+PHOTO_TAKEN_ON = date(2026, 6, 20)
+PHOTO_COLOR = (205, 214, 236)
+
+
+def _replace_dummy_address(place: Organization | Office) -> bool:
+    """所在地が空か、ツールの表で分けられない（seed のダミー）なら、シナリオの値にする。"""
+    if place.address and addresses.split(place.address).ok:
+        return False
+    place.postal_code, place.address = ORGANIZATION_ADDRESS
+    return True
+
+
+def ledger_1(ctx: ScenarioContext) -> None:
+    """自機関の番号・所在地・役員と、取次者（佐藤 花子）の印とメール。"""
+    organization = Organization.objects.get()
+    if not organization.corporate_number:
+        organization.corporate_number = "8300001234567"
+    organization.employment_insurance_number = "13016543210"  # 1301-654321-0
+    _replace_dummy_address(organization)
+    organization_records.save_record(organization, by=ctx.user)
+    office = ctx.staff.office
+    if office is not None and _replace_dummy_address(office):
+        organization_records.save_record(office, by=ctx.user)
+    officer = OrganizationOfficer(
+        organization=organization, name="小林 直人", position="代表取締役"
+    )
+    ctx.keep(host_application.save_row(officer, by=ctx.user))
+    ctx.staff.is_online_application_user = True
+    ctx.staff.online_application_email = STAFF_EMAIL
+    organization_records.save_record(ctx.staff, by=ctx.user)
+
+
+def _declaration_answers() -> dict[str, dict[str, str]]:
+    answers = {}
+    for item in host_declarations.items():
+        if item.key in DECLARATION_BLANK:
+            continue
+        detail = "労災保険・雇用保険に加入" if item.key == "29" else ""
+        answers[item.key] = {
+            "answer": "yes" if item.key in DECLARATION_YES else "no",
+            "detail": detail,
+        }
+    return answers
+
+
+def ledger_2(ctx: ScenarioContext) -> None:
+    """受入れ機関の業種・資本金・決算・申告・役員・申請担当者と、事業所の職員数・番号・保険。"""
+    host, site = ctx.host, ctx.site
+    assert host is not None and site is not None
+    host.industry_1 = bulk_application_data.code_by_japanese("CC13", "食料品製造業", "coe")
+    host.capital = 30_000_000
+    host_records.save_host(host, by=ctx.user)
+    year = HostFinancialYear(
+        host_organization=host,
+        fiscal_year_end=date(2026, 3, 31),  # 2025 年度（2025-04-01〜2026-03-31）
+        sales=1_200_000_000,
+        ordinary_profit=36_000_000,
+    )
+    ctx.keep(host_application.save_row(year, by=ctx.user))
+    declaration = HostDeclaration(
+        host_organization=host,
+        declared_on=BULK_BASIS,
+        left_japanese_voluntary=0,
+        left_japanese_involuntary=0,
+        left_foreign_voluntary=0,
+        left_foreign_involuntary=0,
+        missing_ssw=0,
+    )
+    ctx.keep(host_application.add_declaration(declaration, _declaration_answers(), by=ctx.user))
+    for name, position, not_involved in (
+        ("高橋 誠", "代表取締役", False),
+        ("中村 由美", "取締役", True),  # 受入れ業務の執行に直接関与しない（第1-23号）
+    ):
+        officer = HostOfficer(
+            host_organization=host,
+            name=name,
+            position=position,
+            not_involved_in_acceptance=not_involved,
+        )
+        ctx.keep(host_application.save_row(officer, by=ctx.user))
+    contact = HostApplicantContact(
+        host_organization=host,
+        name="田中 一郎",
+        relationship="所属機関の職員",
+        postal_code="273-0012",
+        address="千葉県船橋市浜町四丁目10番1号",
+        phone_number="047-400-1236",
+        is_active=True,
+    )
+    ctx.keep(host_application.save_row(contact, by=ctx.user))
+    site.full_time_employees = 120
+    site.employment_insurance_number = "12011234567"  # 1201-123456-7
+    site.labour_insurance_number = "12101123456000"
+    site.health_pension_insured = True
+    site.labour_insurance_covered = True
+    host_application.save_row(site, by=ctx.user)
+
+
+def ledger_3(ctx: ScenarioContext) -> None:
+    """外国人の出生地・在日親族・職歴・試験（合格証明書つき）・申請用の写真。技能実習2号は無し。"""
+    worker = ctx.worker
+    assert worker is not None
+    worker.birthplace = "中国河南省洛陽市"
+    worker.has_relatives_in_japan = False
+    worker.has_work_history = True
+    workers.update_worker(worker, by=ctx.user, loaded_updated_at=None)
+    history = WorkHistory(
+        joined_on=date(2019, 7, 1),  # 年月は月の 1 日で持つ
+        left_on=date(2025, 12, 1),
+        employer="鄭州サンプル食品有限公司",
+    )
+    ctx.keep(workers.add_record(worker, history, by=ctx.user))
+    for area, exam, passed_on, filename in (
+        (QualificationArea.SKILL, "017", date(2026, 3, 15), "合格証明書_技能測定試験.pdf"),
+        (QualificationArea.JAPANESE, "002", date(2026, 2, 20), "合格証明書_日本語基礎テスト.pdf"),
+    ):
+        row = WorkerQualification(
+            area=area,
+            evaluation="03",  # 特定技能評価試験
+            # 017 飲食料品製造業特定技能１号技能測定試験・002 国際交流基金日本語基礎テスト
+            exam=exam,
+            exam_country="039",  # 中国（値に無い。LEDGER_FILLED）
+            passed_on=passed_on,
+        )
+        files = [(AttachmentKind.QUALIFICATION_CERTIFICATE, _pdf(filename))]
+        ctx.keep(workers.add_record(worker, row, by=ctx.user, files=files))
+        for attachment in Attachment.objects.filter(
+            content_type=ContentType.objects.get_for_model(WorkerQualification), object_id=row.pk
+        ):
+            ctx.keep(attachment)
+    photo = worker_photos.register(
+        worker, dummy_image(PHOTO_COLOR), taken_on=PHOTO_TAKEN_ON, box=None, by=ctx.user
+    )
+    ctx.keep(photo)
+
+
+# --- 一括申請（--bulk。節 6 の 6-18〜6-20。Excel は作らない） ----------------------------------
+
+BULK_INPUTS = {
+    "spouse": "no",
+    "occupation": "無職",
+    # 日本における連絡先（入国前。入居予定の寮。ADR-0039 決定 17）
+    "contact_postal": "272-0023",
+    "contact_address": "千葉県市川市南八幡五丁目8番8号 さくら台寮203号室",
+    "contact_phone": "080-0000-5678",
+    "entry_month": "2026年9月",
+    "port": "01",  # 成田空港(NRT)
+    "stay_years": "1",
+    "stay_months": "0",
+    "companion": "no",
+    "visa_place": "北京",
+    "entry_history": "yes",
+    "entry_count": "1",
+    "last_entry_from": "20240401",
+    "last_entry_to": "20240407",
+    "coe_history": "no",
+    "deport": "no",
+    "receipt": "03",  # メール
+    "notice_email": STAFF_EMAIL,
+    "main_occupation": "L35",  # そう菜製造業（「飲食料品製造業全般」は無い。BULK_NOT_STORED）
+    "hours_equal": "yes",
+    "pay_equal": "yes",
+    "discrimination": "no",
+    "home_leave": "yes",
+    "return_travel": "yes",
+    "health": "yes",
+    "plan_appropriate": "yes",
+    "deposit": "no",
+    "foreign_fee": "yes",
+    "foreign_fee_org": "鄭州サンプル人材服務",
+    "foreign_fee_amount": "150000円",
+}
+
+
+def section_bulk(ctx: ScenarioContext) -> None:
+    """一括申請（認定・2026-07-10・取次者 佐藤 花子）と王さんの行（代理人 田中 一郎）。"""
+    assert ctx.worker is not None
+    application = BulkApplication(
+        procedure=BulkProcedure.COE,
+        basis_on=BULK_BASIS,
+        intermediary=ctx.staff,
+        created_by=ctx.user,
+        updated_by=ctx.user,
+    )
+    application.save()
+    ctx.keep(application)
+    for entry in bulk_applications.add_workers(application, [ctx.worker], by=ctx.user):
+        ctx.keep(entry)
+        bulk_applications.save_inputs(
+            entry,
+            {**(entry.inputs or {}), **BULK_INPUTS},
+            sensitive={"crime": "no", "crime_detail": ""},
+            by=ctx.user,
+        )
+
+
 # --- 実行・消す --------------------------------------------------------------------------
 
 
@@ -1048,6 +1301,8 @@ class ScenarioResult:
     documents: int
     not_stored: tuple[str, ...] = NOT_STORED
     filled: tuple[str, ...] = FILLED
+    ledger: bool = False
+    bulk: bool = False
 
 
 def _context() -> ScenarioContext:
@@ -1124,8 +1379,12 @@ def replacement_rows() -> dict[type[models.Model], list[int]]:
     def ids(queryset: models.QuerySet[Any]) -> list[int]:
         return list(queryset.values_list("pk", flat=True))
 
+    qualifications = WorkerQualification.objects.filter(worker_id__in=people)
+    internships = InternshipCompletion.objects.filter(worker_id__in=people)
     attachment_targets = models.Q(pk__in=[])
     for model, queryset in (
+        (WorkerQualification, qualifications),
+        (InternshipCompletion, internships),
         (HostOrganization, HostOrganization.objects.filter(pk__in=hosts)),
         (HostMembership, memberships),
         (HostCooperationConfirmation, cooperation),
@@ -1159,6 +1418,17 @@ def replacement_rows() -> dict[type[models.Model], list[int]]:
         PassportRecord: ids(PassportRecord.objects.filter(worker_id__in=people)),
         WorkerAddress: ids(WorkerAddress.objects.filter(worker_id__in=people)),
         WorkerContact: ids(WorkerContact.objects.filter(worker_id__in=people)),
+        # 段階4の台帳の項目（一括申請の項目）
+        WorkerRelative: ids(WorkerRelative.objects.filter(worker_id__in=people)),
+        WorkerQualification: ids(qualifications),
+        InternshipCompletion: ids(internships),
+        WorkHistory: ids(WorkHistory.objects.filter(worker_id__in=people)),
+        HostFinancialYear: ids(HostFinancialYear.objects.filter(host_organization_id__in=hosts)),
+        HostDeclaration: ids(HostDeclaration.objects.filter(host_organization_id__in=hosts)),
+        HostOfficer: ids(HostOfficer.objects.filter(host_organization_id__in=hosts)),
+        HostApplicantContact: ids(
+            HostApplicantContact.objects.filter(host_organization_id__in=hosts)
+        ),
         ForeignWorker: people,
         Attachment: ids(Attachment.objects.filter(attachment_targets)),
     }
@@ -1169,7 +1439,7 @@ def replacement_counts(rows: dict[type[models.Model], list[int]]) -> dict[str, i
     """消す行の件数（種類ごと。支援のデータ・生成物・届出タスクは外国人・受入れ機関から数える）。"""
     from apps.contracts.models import EmploymentConditionTemplate
     from apps.filings.models import Filing
-    from apps.forms_engine.models import SubmissionBundle, SubmissionDraft
+    from apps.forms_engine.models import BulkApplicationEntry, SubmissionBundle, SubmissionDraft
     from apps.hosts.models import HostDocument
     from apps.support.models import (
         Briefing,
@@ -1233,6 +1503,10 @@ def replacement_counts(rows: dict[type[models.Model], list[int]]) -> dict[str, i
             )
         ).count(),
         "filings.Filing": Filing.objects.filter(filings).count(),
+        "workers.WorkerPhoto": WorkerPhoto.objects.filter(worker_id__in=people).count(),
+        "forms_engine.BulkApplicationEntry": BulkApplicationEntry.objects.filter(
+            worker_id__in=people
+        ).count(),
     }
     return counts | {label: count for label, count in extra.items() if count}
 
@@ -1246,10 +1520,16 @@ def replace_existing(rows: dict[type[models.Model], list[int]]) -> int:
 
 
 @transaction.atomic
-def run(until: int = LAST_SECTION, *, with_docs: bool = False) -> ScenarioResult:
+def run(
+    until: int = LAST_SECTION, *, with_docs: bool = False, ledger: bool = False, bulk: bool = False
+) -> ScenarioResult:
+    """節 1〜until の記録を作る。ledger で段階4の台帳の項目、bulk で一括申請も（ledger を含む）。"""
     builders.ensure_allowed()
     if not 1 <= until <= LAST_SECTION:
         raise ScenarioError(f"--until must be 1 to {LAST_SECTION}.")
+    if bulk and until < 5:
+        raise ScenarioError("--bulk needs sections 1 to 5 (--until 5 or more).")
+    ledger = ledger or bulk
     found = conflicts()
     if found:
         raise ScenarioError(
@@ -1267,9 +1547,27 @@ def run(until: int = LAST_SECTION, *, with_docs: bool = False) -> ScenarioResult
         7: lambda: section_7(ctx, with_docs),
         8: lambda: section_8(ctx, with_docs),
     }
+    ledger_steps = {1: ledger_1, 2: ledger_2, 3: ledger_3}
     for number in range(1, until + 1):
         steps[number]()
-    return ScenarioResult(until, with_docs, len(ctx.created), len(ctx.documents))
+        if ledger and number in ledger_steps:
+            ledger_steps[number](ctx)
+        if bulk and number == 5:
+            section_bulk(ctx)  # 雇用契約・支援計画・事前ガイダンスの後（6-18〜6-20）
+    not_stored: tuple[str, ...] = NOT_STORED
+    if ledger:
+        not_stored = tuple(line for line in NOT_STORED if "段階4の台帳の項目" not in line)
+        not_stored += LEDGER_NOT_STORED + (BULK_NOT_STORED if bulk else ())
+    return ScenarioResult(
+        until,
+        with_docs,
+        len(ctx.created),
+        len(ctx.documents),
+        not_stored=not_stored,
+        filled=FILLED + (LEDGER_FILLED if ledger else ()),
+        ledger=ledger,
+        bulk=bulk,
+    )
 
 
 @transaction.atomic

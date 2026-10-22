@@ -197,6 +197,9 @@ def fill_inputs(entry: BulkApplicationEntry, procedure: str) -> None:
     }
     if procedure == "coe":
         inputs |= {
+            "contact_postal": "273-0005",
+            "contact_address": "千葉県船橋市本町1-2-3 サンプル寮101",
+            "contact_phone": "090-1234-5678",
             "entry_month": "2027年4月",
             "port": first_code("A024", procedure, "成田"),
             "stay_years": "1",
