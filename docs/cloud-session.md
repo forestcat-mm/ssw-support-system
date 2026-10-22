@@ -124,18 +124,18 @@ PR の説明文に「手元で流すこと」として、コマンドと期待�
 
 ## 7. 帳票の字体（クラウドと手元の違い）
 
-クラウドの VM には、手元の web のイメージに無い字体（Inter・WenQuanYi Zen Hei・Liberation・DejaVu など。VM の既定と Playwright の依存で入る）がある。置き換えの規則（`99-form-fonts.conf`）に無い字体名や、置き換え先に無い字は、fontconfig と LibreOffice が別の字体を選ぶので、クラウドでは手元と違う字体になる。頁数は、2026-10-21 の時点で単体テスト・gate3 の頁数の検査が通っている。
+クラウドの VM には、手元の web のイメージに無い字体（Inter・WenQuanYi Zen Hei・Free・Unifont など。VM の既定と Playwright の依存で入る）がある。2026-10-22 から（ADR-0048）、SessionStart フックが `backend/config/fonts/97-reject-fonts-not-in-web.conf`（rejectfont）も `/etc/fonts/conf.d/` に写し、web のイメージに無い字体を使わせない。setup.sh は web と同じ `fonts-liberation2` を入れる（**setup.sh を変えたので、環境の設定画面の setup script を貼り直す**）。LibreOffice の版の違い（クラウドは 24.2、web は 7.4）は残る。
 
 `make blank-pages`（`tools/forms/blank_pages.py`）で、入っている字体の一覧（`fc-list : family`）、空の様式ごとの頁数・埋め込みの字体と、代わりの字体（元の字体名・置き換え先・選ばれた字体・字の数・字の例・理由・当てはめ）を出す。手元（web のコンテナ）とクラウドで同じ形の結果になるので、見比べて対策を決める（対策は別の PR。2026-10-21 の案は PR #1 のコメント）。
 
 - 代わりの字体は、文書の字の並びと PDF の字の並びを位置で突き合わせて、run ごとの指定と比べる（同じ字が日本語と中国語の run に出ても取り違えない）。位置で当たらない字（頁ごとのヘッダーなど）だけは字で推定し、当てはめの列が「字」になる。
 - 理由: 規則が無い／置き換え先に字が無い（⑴・㊞ など）／欧文の字体で描かれた（`w:hint="eastAsia"` の □ ※ などを LibreOffice が欧文の字体で描く）／置き換え先で描かれない／文書の文字に無い。
 
-対策の案は次の 3 つで、まだ決めていない。
+対策は (c)（規則を足し、web に無い字体を使わせない）にした（2026-10-22。ADR-0048）。
 
-- (a) LibreOffice の変換のときだけ、web のイメージに無い字体を使わせない（fontconfig の rejectfont など）
-- (b) 足りない字体名（Century・Times New Roman・SimHei・DengXian・Microsoft YaHei など）の置き換えの規則を足す
-- (c) (a) と (b) の両方
+- (b) 足りない字体名（Century・Times New Roman・Arial・SimHei・DengXian・Microsoft YaHei・Microsoft JhengHei）の置き換えの規則を `99-form-fonts.conf` に足した。web のイメージに `fonts-liberation2` を入れた。
+- (a) web のイメージに無い字体を使わせない規則（`97-reject-fonts-not-in-web.conf`）を、クラウドと e2e のイメージに置いた（web には置かない）。
+- 中国語の字形は run の言語で決まるので、PDF の直前の写しで中国語の字体の run の言語を zh-CN にする（ADR-0048）。PDF の名前（`NotoSerifCJKjp`）は字形を表さないので、blank-pages は Noto CJK の地域の名前を同じ字体として扱う。
 
 ## 8. Docker を使う案（使えない）
 
