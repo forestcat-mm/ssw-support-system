@@ -14,13 +14,16 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # gettext: UI 文言の .po/.mo（makemessages / compilemessages）に使う。
 # LibreOffice（GUI なし）とフォント: 帳票の PDF 変換（services.forms.convert。ADR-0018）。
 #   IPA フォントは参考様式の MS 明朝・MS ゴシックの置き換え、Noto CJK は中国語（簡体字）、
-#   Carlito は Calibri の置き換え。置き換えの規則は backend/config/fonts/99-form-fonts.conf。
+#   Carlito は Calibri の置き換え、Liberation は Times New Roman・Arial・Century の置き換え（ADR-0048）。
+#   DejaVu は字が無いときの行き先（記号など）。fontconfig の依存は DejaVu か Liberation のどれかでよい
+#   ので、Liberation を入れると DejaVu が入らなくなる。明示して入れる。
+#   置き換えの規則は backend/config/fonts/99-form-fonts.conf。
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         gettext \
         libreoffice-writer-nogui libreoffice-calc-nogui \
         fontconfig fonts-ipafont-mincho fonts-ipafont-gothic fonts-noto-cjk \
-        fonts-crosextra-carlito \
+        fonts-crosextra-carlito fonts-liberation2 fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 COPY backend/config/fonts/99-form-fonts.conf /etc/fonts/conf.d/99-form-fonts.conf
 RUN fc-cache -f

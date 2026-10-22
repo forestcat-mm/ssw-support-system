@@ -4,6 +4,10 @@
 （docs/cloud-session.md の 6）。変換は生成と同じ services.form_convert.convert（.docx と .xlsx
 だけ。.doc・.xlsm の original は対象外）。様式のファイルは変えない（一時の写しを変換する）。
 
+変換の前に、生成と同じく中国語の字体の run の言語を zh-CN にする（services.form_docx。
+ADR-0048）。書き換えた run と、かなを含むので書き換えなかった run の数を「中国語の字体の run の言語」
+に出す。
+
 使い方（backend/ で。make blank-pages でも同じ。FORMS="1-23 1-5" で様式を絞る、MD=1 で Markdown）:
     docker compose exec web python ../tools/forms/blank_pages.py [--markdown] [様式ID ...]
     tools/cloud/host_run.sh python ../tools/forms/blank_pages.py [--markdown] [様式ID ...]
@@ -21,7 +25,9 @@
   - 置き換え先に字が無い: 規則の置き換え先（か元の字体）に、その字が無い（⑴・㊞ など）
   - 欧文の字体で描かれた: Word は日本語の字体で描く記号（w:hint="eastAsia" の □ ※ など）を、
     LibreOffice が同じ run の欧文の字体で描いた
-  - 置き換え先で描かれない: 置き換え先に字があるのに、別の字体になった（上のどれでもない）
+  - 置き換え先で描かれない: 置き換え先に字があるのに、別の字体になった（上のどれでもない）。
+    Noto CJK の地域の名前（jp・sc・tc・kr・hk）は同じ字体として扱う（TTC の面は字形の表を共有し、
+    LibreOffice 7.4 は面によらず先頭の jp の名前を PDF に書く。字形は run の言語で決まる。ADR-0048）
   - 文書の文字に無い: 番号・記号など、本文の文字に無い字
   元の字体名に［テーマ］が付くものは、テーマの指定（minorEastAsia など）を Word の解き方で
   字体名にしたもの。
@@ -444,8 +450,17 @@ class Fallback:
     how: str  # 当てはめ: 位置（run に当たった）か字（字で推定）
 
 
+NOTO_CJK_REGION = re.compile(r"^(notosanscjk|notoserifcjk|notosansmonocjk)(jp|sc|tc|kr|hk)$")
+
+
+def _same_font(name: str) -> str:
+    """比べる形。Noto CJK の地域の違いは同じにする（PDF の名前は字形を表さない。ADR-0048）。"""
+    normalized = key(name)
+    return NOTO_CJK_REGION.sub(r"\1", normalized)
+
+
 def _is(family: str, name: str | None) -> bool:
-    return bool(name) and key(family) == key(name or "")
+    return bool(name) and _same_font(family) == _same_font(name or "")
 
 
 def fallbacks(doc: list[DocChar], pdf: list[PdfChar], fonts: Fonts) -> dict[Fallback, Counter[str]]:
@@ -495,6 +510,7 @@ class Row:
     families: list[str]
     fallbacks: dict[Fallback, Counter[str]]
     aligned: str = ""  # 位置で当たった字の割合
+    language: tuple[int, int] = (0, 0)  # 言語を zh-CN にした run・かなを含むので変えなかった run
 
 
 def sources(selected: Iterable[str]) -> Iterator[tuple[str, str, Path]]:
@@ -508,19 +524,25 @@ def sources(selected: Iterable[str]) -> Iterator[tuple[str, str, Path]]:
                 yield form, version, path
 
 
-def convert_blank(path: Path) -> Path:
-    from services import form_convert
+def convert_blank(path: Path) -> tuple[Path, tuple[int, int]]:
+    """生成と同じ一時の写し（docx は中国語の字体の run の言語を zh-CN に）を PDF にする。"""
+    from services import form_convert, form_docx
 
     workdir = Path(tempfile.mkdtemp(prefix="blank-pages-"))
     copy = workdir / f"blank{path.suffix}"
-    shutil.copyfile(path, copy)
-    return form_convert.convert(copy)
+    language = (0, 0)
+    if path.suffix == ".docx":
+        fix = form_docx.with_chinese_language(path, copy)
+        language = (fix.changed, fix.skipped_kana)
+    else:
+        shutil.copyfile(path, copy)
+    return form_convert.convert(copy), language
 
 
 def collect(selected: Iterable[str], fonts: Fonts) -> Iterator[Row]:
     for form, version, path in sources(selected):
         try:
-            pdf = convert_blank(path)
+            pdf, language = convert_blank(path)
         except Exception as error:  # noqa: BLE001  変換できない版も一覧に残す
             yield Row(form, version, path.name, f"変換できない（{type(error).__name__}）", [], {})
             continue
@@ -531,7 +553,7 @@ def collect(selected: Iterable[str], fonts: Fonts) -> Iterator[Row]:
         hit = sum(item is not None for item in align(doc, embedded))
         aligned = f"{hit / len(embedded):.0%}" if embedded else "—"
         found = fallbacks(doc, embedded, fonts)
-        yield Row(form, version, path.name, pages, families, found, aligned)
+        yield Row(form, version, path.name, pages, families, found, aligned, language)
 
 
 def environment() -> list[tuple[str, str]]:
@@ -611,6 +633,19 @@ def main(argv: list[str]) -> int:
         "当てはめ",
     ]
     print(table("代わりの字体", header, fallback_rows, options.markdown))
+    language_rows = [
+        [r.form, r.version, r.source, str(r.language[0]), str(r.language[1])]
+        for r in rows
+        if any(r.language)
+    ]
+    print(
+        table(
+            "中国語の字体の run の言語",
+            ["様式", "版", "ファイル", "zh-CN にした run", "かなを含むので変えなかった run"],
+            language_rows,
+            options.markdown,
+        )
+    )
     return 0
 
 

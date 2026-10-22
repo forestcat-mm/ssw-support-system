@@ -293,7 +293,9 @@ def test_converting_1_4_again_gives_the_same_xml(tmp_path: Path) -> None:
             name for name in again.namelist() if name.startswith("word/")
         )
         for name in names:
-            assert again.read(name) == registered.read(name), name
+            assert doc_conversion.neutral_fonts(name, again.read(name)) == (
+                doc_conversion.neutral_fonts(name, registered.read(name))
+            ), name
 
 
 # --- データ ---------------------------------------------------------------------------------

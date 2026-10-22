@@ -46,13 +46,16 @@ service redis-server start > /dev/null 2>&1  # ulimit の警告は出るが、�
 pg_isready -q -h localhost || problem "PostgreSQL が動いていない（service postgresql start）"
 [ "$(redis-cli ping 2> /dev/null)" = "PONG" ] || problem "Redis が動いていない（service redis-server start）"
 
-# 2. 帳票の字体の置き換えの規則（リポジトリの版を写す）
-rules=backend/config/fonts/99-form-fonts.conf
-if ! cmp -s "$rules" /etc/fonts/conf.d/99-form-fonts.conf; then
-  cp "$rules" /etc/fonts/conf.d/99-form-fonts.conf && fc-cache -f > /dev/null 2>&1
-fi
-cmp -s "$rules" /etc/fonts/conf.d/99-form-fonts.conf \
-  || problem "字体の規則の写し /etc/fonts/conf.d/99-form-fonts.conf がリポジトリと違う"
+# 2. 帳票の字体の置き換えの規則と、web のイメージに無い字体を使わせない規則（リポジトリの版を写す。
+#    ADR-0048）
+for name in 99-form-fonts.conf 97-reject-fonts-not-in-web.conf; do
+  rules="backend/config/fonts/$name"
+  if ! cmp -s "$rules" "/etc/fonts/conf.d/$name"; then
+    cp "$rules" "/etc/fonts/conf.d/$name" && fc-cache -f > /dev/null 2>&1
+  fi
+  cmp -s "$rules" "/etc/fonts/conf.d/$name" \
+    || problem "字体の規則の写し /etc/fonts/conf.d/$name がリポジトリと違う"
+done
 
 # 3. .env（既存の値は変えない。消えたときは写しから戻す。接続先だけを VM の構成に合わせる）
 new_env=0

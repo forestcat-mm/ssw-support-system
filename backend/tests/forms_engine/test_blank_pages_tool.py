@@ -13,8 +13,15 @@ ROOT = Path(settings.FORM_TEMPLATES_ROOT)
 D = blank_pages.DocChar
 # fontconfig の代わり: 規則の無い名前の行き先と、IPA 明朝に無い字（クラウドの VM で確かめたもの）
 MATCHED = {"Century": "Inter", "SimHei": "Noto Sans CJK SC"}
+# 理由の確かめには、規則の無い名前が要る。Century・SimHei には規則を足した（ADR-0048）ので、
+# このテストの中だけ規則から外して「規則が無い」名前として使う
+RULES = {
+    name: target
+    for name, target in blank_pages.read_rules().items()
+    if blank_pages.key(name) not in {blank_pages.key("Century"), blank_pages.key("SimHei")}
+}
 FONTS = blank_pages.Fonts(
-    blank_pages.read_rules(),
+    RULES,
     {blank_pages.key("IPAMincho"), blank_pages.key("Inter")},
     match=lambda name: MATCHED.get(name, ""),
     has_glyph=lambda family, char: not (family == "IPAMincho" and char in "⑴㊞"),
@@ -128,3 +135,12 @@ def test_xlsx_chars_take_the_font_of_the_cell() -> None:
         for item in chars
         if blank_pages.is_east_asian(item.char)
     )
+
+
+def test_noto_cjk_region_names_are_the_same_font() -> None:
+    """LibreOffice 7.4 は Noto CJK の TTC の面によらず jp の名前を PDF に書く（ADR-0048）。"""
+    assert blank_pages._is("NotoSerifCJKjp", "Noto Serif CJK SC")
+    assert blank_pages._is("NotoSansCJKsc", "Noto Sans CJK JP")
+    assert not blank_pages._is("NotoSansCJKjp", "Noto Serif CJK SC")
+    doc = [D("的", "SimSun", "SimSun")]  # 規則で Noto Serif CJK SC
+    assert found(doc, [("的", "NotoSerifCJKjp")]) == {}
